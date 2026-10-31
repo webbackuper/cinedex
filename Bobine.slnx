@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Bobine.App/Bobine.App.csproj" />
+    <Project Path="src/Bobine.Core/Bobine.Core.csproj" />
+    <Project Path="src/Bobine.Data/Bobine.Data.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Bobine.Tests/Bobine.Tests.csproj" />
+  </Folder>
+</Solution>

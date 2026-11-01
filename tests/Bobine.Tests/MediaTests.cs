@@ -49,6 +49,25 @@ public sealed class MediaTests
         Assert.Equal(year, parsed.Year);
     }
 
+    [Theory]
+    [InlineData("Heat.1080p.TeleSync.x265.EAC3.mkv", "Heat")]
+    [InlineData("Alien Romulus WEB-DL DDP5.1 H.264-GRP.mkv", "Alien Romulus")]
+    [InlineData("Le Fabuleux Destin TRUEFRENCH DTS-HD MA 7.1 HEVC.mkv", "Le Fabuleux Destin")]
+    [InlineData("Ma vie de Courgette MULTi 10bit.mkv", "Ma vie de Courgette")]
+    [InlineData("It.2017.HDR10.Dolby.Vision.mkv", "It")]
+    [InlineData("En attendant Bojangles.mkv", "En attendant Bojangles")]
+    public void Release_terms_are_removed_without_eating_title_words(string file, string title)
+    {
+        Assert.Equal(title, FileNameParser.Parse(file).Title);
+    }
+
+    [Fact]
+    public void Noise_list_can_be_replaced_by_the_user()
+    {
+        Assert.Equal("Heat", FileNameParser.Parse("Heat Edition Ultime.mkv", ["Edition Ultime"]).Title);
+        Assert.Equal("Heat TeleSync", FileNameParser.Parse("Heat TeleSync.mkv", []).Title);
+    }
+
     [Fact]
     public void Bracketed_parts_are_kept_when_the_option_is_off()
     {

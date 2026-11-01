@@ -24,6 +24,9 @@
     <TextBox Text="{Binding PlayerArgs}" PlaceholderText="Paramètres du lecteur, ex. --fullscreen %FILEPATH%" />
     <CheckBox Content="Marquer comme vu à la lecture depuis Bobine" IsChecked="{Binding MarkSeenOnPlay}" />
     <CheckBox Content="Au scan, ignorer le contenu entre ( ) et [ ] dans les noms de fichiers (par défaut)" IsChecked="{Binding IgnoreBracketed}" />
+    <TextBlock Text="Termes retirés des titres à l'import (un par ligne, mots entiers, majuscules indifférentes)" />
+    <TextBox Text="{Binding NoiseWordsText}" AcceptsReturn="True" TextWrapping="NoWrap" Height="160" FontFamily="Consolas,Menlo,monospace" />
+    <Button Content="Rétablir la liste par défaut" Click="OnResetNoiseWords" />
     <TextBlock Text="Fichiers .nfo (format Kodi)" FontSize="16" FontWeight="SemiBold" Margin="0,12,0,0" />
     <CheckBox Content="Lire le .nfo au scan d'un dossier et compléter la fiche" IsChecked="{Binding NfoReadOnScan}" />
     <CheckBox Content="Créer ou compléter le .nfo après une mise à jour TMDb" IsChecked="{Binding NfoWriteAfterMetadata}" />

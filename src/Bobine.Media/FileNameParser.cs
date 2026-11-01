@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
@@ -27,23 +28,43 @@ public static partial class FileNameParser
         ".mkv", ".mp4", ".m4v", ".avi", ".mov", ".wmv", ".mpg", ".mpeg", ".m2ts", ".ts", ".vob", ".webm", ".ogv", ".flv", ".3gp", ".iso", ".divx", ".xvid",
     };
 
-    /// <summary>Mots techniques retirés du titre (insensibles à la casse), complétables par l'utilisateur.</summary>
+    /// <summary>
+    /// Termes propres aux fichiers vidéo diffusés (résolution, source, codecs, audio, langues, marqueurs de release),
+    /// retirés du titre en mots entiers, sans tenir compte de la casse. Liste par défaut, modifiable dans les réglages.
+    /// Un séparateur dans un terme (« WEB-DL », « DD5.1 », « H.264 ») accepte aussi espace, point, tiret ou soulignement.
+    /// Les sigles courts ambigus (« HD », « TS », « MA », « EN », « It »...) en sont exclus : ce sont aussi des mots de titres.
+    /// </summary>
     public static readonly IReadOnlyList<string> DefaultNoiseWords =
     [
-        "1080p", "1080i", "720p", "2160p", "4k", "uhd", "hdr", "hdr10", "dv", "sdr", "bluray", "blu-ray", "bdrip", "brrip", "dvdrip", "webrip", "web-dl", "webdl", "web",
-        "hdtv", "x264", "x265", "h264", "h265", "hevc", "avc", "xvid", "divx", "aac", "ac3", "dts", "truehd", "atmos", "remux", "proper", "repack",
-        "extended", "unrated", "directors", "cut", "multi", "vff", "vfq", "vf", "vostfr", "french", "truefrench", "subfrench", "english", "10bit", "8bit",
+        // Résolutions et formats d'image
+        "2160p", "1440p", "1080p", "1080i", "720p", "576p", "576i", "480p", "480i", "4K", "UHD", "FHD", "HSBS", "HOU",
+        // Sources
+        "BluRay", "Blu-Ray", "BDRip", "BRRip", "BDMV", "BDRemux", "Remux", "UHDRip", "WEB", "WEB-DL", "WEBDL", "WEBRip", "WEB-Rip", "HDTV", "HDTVRip", "PDTV",
+        "DVDRip", "DVD", "DVD5", "DVD9", "DVDScr", "DVDScreener", "Screener", "SCR", "HDRip", "HDCAM", "CAMRip", "TeleSync", "HDTS", "TeleCine",
+        "VHSRip", "AMZN", "DSNP", "HMAX", "ATVP",
+        // Vidéo
+        "x264", "x265", "H264", "H265", "H.264", "H.265", "HEVC", "AVC", "AV1", "VP9", "XviD", "DivX", "VC-1", "MPEG2", "10bit", "10-bit", "8bit", "12bit",
+        "HDR", "HDR10", "HDR10+", "HDR10Plus", "DoVi", "Dolby Vision", "HLG", "SDR",
+        // Audio
+        "AAC", "AAC2.0", "AAC5.1", "AC3", "EAC3", "E-AC3", "DD2.0", "DD5.1", "DD+", "DDP", "DDP5.1", "DDP7.1", "DTS", "DTS-HD", "DTS-HDMA", "DTS-MA", "DTS-X", "DTSX",
+        "TrueHD", "Atmos", "FLAC", "LPCM", "PCM", "MP3", "Opus", "5.1", "7.1", "2.0",
+        // Langues et sous-titres
+        "MULTI", "VF", "VFF", "VFQ", "VFI", "VF2", "VOST", "VOSTFR", "SUBFRENCH", "FRENCH", "TRUEFRENCH", "VOF",
+        // Marqueurs de release
+        "PROPER", "REPACK", "RERIP", "iNTERNAL", "READNFO", "DUBBED", "SUBBED",
     ];
+
+    private static readonly ConcurrentDictionary<string, Regex> NoisePatterns = new(StringComparer.Ordinal);
 
     public static bool IsVideo(string path) => VideoExtensions.Contains(Path.GetExtension(path));
 
     /// <param name="path">Chemin ou nom du fichier.</param>
-    /// <param name="extraNoiseWords">Mots à retirer en plus des mots techniques usuels.</param>
+    /// <param name="noiseWords">Termes à retirer du titre ; null = <see cref="DefaultNoiseWords"/>.</param>
     /// <param name="ignoreBracketed">
     /// Ignorer tout ce qui est entre ( ), [ ] ou { } pour le titre (« Heat (Director's Cut) [1080p] »).
     /// L'année, l'identifiant IMDb, la résolution et la partie y sont tout de même lus avant d'être retirés.
     /// </param>
-    public static ParsedName Parse(string path, IEnumerable<string>? extraNoiseWords = null, bool ignoreBracketed = true)
+    public static ParsedName Parse(string path, IEnumerable<string>? noiseWords = null, bool ignoreBracketed = true)
     {
         ArgumentNullException.ThrowIfNull(path);
         var name = Path.GetFileNameWithoutExtension(path);
@@ -95,20 +116,47 @@ public static partial class FileNameParser
             title = name[..cut];
         }
 
-        var noise = new HashSet<string>(DefaultNoiseWords.Concat(extraNoiseWords ?? []), StringComparer.OrdinalIgnoreCase);
+        // Les termes techniques sont repérés sur le texte brut (ils peuvent contenir « . » ou « - »),
+        // remplacés par une marque, puis le titre est coupé à la première marque : ce qui suit est technique.
+        const string Mark = "\u0001";
+        title = NoisePattern(noiseWords ?? DefaultNoiseWords).Replace(title, " " + Mark + " ");
+        title = ResolutionPattern().Replace(title, " " + Mark + " ");
         title = SeparatorPattern().Replace(title, " ");
         var words = title.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
-
-        // Sans année, on coupe au premier mot technique ; on retire aussi les marqueurs de partie.
-        var firstNoise = words.FindIndex(w => noise.Contains(w) || ResolutionPattern().IsMatch(w));
+        var firstNoise = words.IndexOf(Mark);
         if (firstNoise > 0)
         {
             words = words[..firstNoise];
         }
 
-        words.RemoveAll(w => noise.Contains(w) || PartPattern().IsMatch(w) || ImdbPattern().IsMatch(w));
+        words.RemoveAll(w => w == Mark || PartPattern().IsMatch(w) || ImdbPattern().IsMatch(w));
         title = string.Join(' ', words).Trim(' ', '-', '_', '.');
         return new ParsedName(title.Length == 0 ? name : title, year, season, episode, part, resolution, imdb);
+    }
+
+    /// <summary>
+    /// Expression « mots entiers » construite une fois par liste : chaque terme est échappé, et ses séparateurs
+    /// internes (espace, point, tiret, soulignement) acceptent n'importe lequel de ces séparateurs, ou aucun.
+    /// </summary>
+    internal static Regex NoisePattern(IEnumerable<string> words)
+    {
+        var terms = words.Select(w => w.Trim()).Where(w => w.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderByDescending(w => w.Length)
+            .ToList();
+        var key = string.Join('\n', terms);
+        return NoisePatterns.GetOrAdd(key, _ =>
+        {
+            if (terms.Count == 0)
+            {
+                return new Regex("(?!)", RegexOptions.CultureInvariant);
+            }
+
+            var alternatives = terms.Select(t => string.Join("[ ._-]?", SeparatorPattern().Split(t).Where(p => p.Length > 0).Select(Regex.Escape)));
+            return new Regex(
+                $"(?<![\\p{{L}}\\p{{N}}])(?:{string.Join('|', alternatives)})(?![\\p{{L}}\\p{{N}}])",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
+                TimeSpan.FromMilliseconds(200));
+        });
     }
 
     [GeneratedRegex(@"tt\d{7,10}")]

@@ -26,6 +26,8 @@ public sealed partial class SettingsWindow : Window
         }
     }
 
+    private void OnResetNoiseWords(object? sender, RoutedEventArgs e) => (DataContext as SettingsViewModel)?.ResetNoiseWords();
+
     private void OnForget(object? sender, RoutedEventArgs e) => (DataContext as SettingsViewModel)?.ForgetToken();
 
     private void OnCancel(object? sender, RoutedEventArgs e) => Close(false);

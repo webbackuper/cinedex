@@ -28,7 +28,7 @@ public sealed partial class CandidateRow(ScanCandidate candidate) : ObservableOb
 
 /// <summary>Ajout depuis le disque : choix du dossier, analyse, sélection, import avec progression.</summary>
 [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1001", Justification = "_cancel n'existe que pendant une opération et est libéré dans RunAsync.")]
-public sealed partial class ImportFolderViewModel(LibraryImportService import, bool ignoreBracketed = true) : ObservableObject
+public sealed partial class ImportFolderViewModel(LibraryImportService import, bool ignoreBracketed = true, IReadOnlyList<string>? noiseWords = null) : ObservableObject
 {
     private CancellationTokenSource? _cancel;
 
@@ -69,7 +69,7 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, b
         await RunAsync(async token =>
         {
             Message = "Analyse du dossier...";
-            var options = new ScanOptions { Recursive = Recursive, IgnoreBracketed = IgnoreBracketed, NoiseWords = TitleEditorViewModel.SplitList(NoiseWords) };
+            var options = new ScanOptions { Recursive = Recursive, IgnoreBracketed = IgnoreBracketed, NoiseWords = [.. noiseWords ?? FileNameParser.DefaultNoiseWords, .. TitleEditorViewModel.SplitList(NoiseWords)] };
             var found = await import.ScanAsync(Folder, options, token);
             foreach (var candidate in found)
             {

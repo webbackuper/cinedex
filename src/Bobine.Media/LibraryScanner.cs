@@ -7,7 +7,8 @@ public sealed record ScanOptions
     /// <summary>Fichiers ignorés s'ils contiennent l'un de ces mots (bandes-annonces, échantillons...).</summary>
     public IReadOnlyList<string> IgnoreKeywords { get; init; } = ["sample", "trailer", "-ts.", "featurette"];
 
-    public IReadOnlyList<string> NoiseWords { get; init; } = [];
+    /// <summary>Termes retirés des titres (liste complète, modifiable dans les réglages).</summary>
+    public IReadOnlyList<string> NoiseWords { get; init; } = FileNameParser.DefaultNoiseWords;
 
     /// <summary>Ignorer le contenu entre ( ), [ ] et { } dans les noms (l'année y est lue avant).</summary>
     public bool IgnoreBracketed { get; init; } = true;

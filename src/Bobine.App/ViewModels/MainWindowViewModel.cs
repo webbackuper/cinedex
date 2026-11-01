@@ -83,13 +83,48 @@ public sealed partial class MainWindowViewModel : ObservableObject
         new(QuickFilter.Movies, "Films seulement"),
         new(QuickFilter.Series, "Séries seulement"),
         new(QuickFilter.Loaned, "Prêtés"),
+        new(QuickFilter.MediaFiles, "Fichiers vidéo"),
+    ];
+
+    /// <summary>Sous-menu « Définition » du bandeau gauche.</summary>
+    public IReadOnlyList<FilterItem> DefinitionFilters { get; } =
+    [
         new(QuickFilter.StandardDefinition, "Définition standard"),
         new(QuickFilter.HighDefinition, "Haute définition"),
         new(QuickFilter.UltraHighDefinition, "Ultra HD (4K)"),
         new(QuickFilter.ThreeD, "3D"),
-        new(QuickFilter.PhysicalMedia, "Supports physiques"),
-        new(QuickFilter.MediaFiles, "Fichiers vidéo"),
     ];
+
+    /// <summary>Sélection de la liste principale ; vide quand une vue du sous-menu est choisie (et inversement).</summary>
+    public FilterItem? SelectedMainFilter
+    {
+        get => Filters.Contains(SelectedFilter) ? SelectedFilter : null;
+        set
+        {
+            if (value is not null)
+            {
+                SelectedFilter = value;
+            }
+        }
+    }
+
+    public FilterItem? SelectedDefinitionFilter
+    {
+        get => DefinitionFilters.Contains(SelectedFilter) ? SelectedFilter : null;
+        set
+        {
+            if (value is not null)
+            {
+                SelectedFilter = value;
+            }
+        }
+    }
+
+    [ObservableProperty]
+    public partial bool IsDefinitionExpanded { get; set; }
+
+    [RelayCommand]
+    private void ToggleDefinitions() => IsDefinitionExpanded = !IsDefinitionExpanded;
 
     public IReadOnlyList<Choice<SortField>> Sorts { get; } =
     [
@@ -334,7 +369,17 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     partial void OnSearchTextChanged(string value) => Refresh();
 
-    partial void OnSelectedFilterChanged(FilterItem value) => Refresh();
+    partial void OnSelectedFilterChanged(FilterItem value)
+    {
+        OnPropertyChanged(nameof(SelectedMainFilter));
+        OnPropertyChanged(nameof(SelectedDefinitionFilter));
+        if (DefinitionFilters.Contains(value))
+        {
+            IsDefinitionExpanded = true;
+        }
+
+        Refresh();
+    }
 
     partial void OnSelectedSortChanged(Choice<SortField> value) => Refresh();
 

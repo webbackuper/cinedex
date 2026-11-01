@@ -140,7 +140,30 @@
         <ScrollViewer>
           <StackPanel>
             <TextBlock Classes="section" Text="BIBLIOTHÈQUE" />
-            <ListBox Classes="nav" ItemsSource="{Binding Filters}" SelectedItem="{Binding SelectedFilter}">
+            <ListBox Classes="nav" ItemsSource="{Binding Filters}" SelectedItem="{Binding SelectedMainFilter}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:FilterItem">
+                  <StackPanel Orientation="Horizontal" Spacing="10">
+                    <controls:Icon Kind="{Binding Value, Converter={x:Static views:FilterIconConverter.Instance}}" Width="18" Height="18"
+                                   Foreground="{DynamicResource BobineMuted}" />
+                    <TextBlock Text="{Binding Label}" Foreground="{DynamicResource BobineInk}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+
+            <!-- Sous-menu Définition : se déplie au clic, et reste ouvert tant qu'une de ses vues est choisie. -->
+            <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Margin="8,2,8,0"
+                    Command="{Binding ToggleDefinitionsCommand}" ToolTip.Tip="Classer par définition de l'image">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <controls:Icon Kind="view" Width="18" Height="18" Foreground="{DynamicResource BobineMuted}" />
+                <TextBlock Grid.Column="1" Margin="10,0,0,0" Text="Définition" Foreground="{DynamicResource BobineInk}" VerticalAlignment="Center" />
+                <controls:Icon Grid.Column="2" Kind="chevron-down" Width="14" Height="14" Foreground="{DynamicResource BobineMuted}"
+                               RenderTransformOrigin="50%,50%" RenderTransform="{Binding IsDefinitionExpanded, Converter={x:Static views:ExpandArrowConverter.Instance}}" />
+              </Grid>
+            </Button>
+            <ListBox Classes="nav" Margin="20,0,0,0" ItemsSource="{Binding DefinitionFilters}" SelectedItem="{Binding SelectedDefinitionFilter}"
+                     IsVisible="{Binding IsDefinitionExpanded}">
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:FilterItem">
                   <StackPanel Orientation="Horizontal" Spacing="10">

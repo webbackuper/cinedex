@@ -124,6 +124,25 @@ public sealed class MainWindowViewModelTests : IDisposable
     }
 
     [Fact]
+    public void Definition_submenu_shares_the_selection_with_the_main_list()
+    {
+        _vm.Load();
+        Assert.Same(_vm.Filters[0], _vm.SelectedMainFilter);
+        Assert.False(_vm.IsDefinitionExpanded);
+        Assert.DoesNotContain(_vm.Filters, f => f.Value == QuickFilter.PhysicalMedia);
+
+        _vm.SelectedDefinitionFilter = _vm.DefinitionFilters.Single(f => f.Value == QuickFilter.UltraHighDefinition);
+        Assert.Null(_vm.SelectedMainFilter);
+        Assert.Equal(QuickFilter.UltraHighDefinition, _vm.SelectedFilter.Value);
+        Assert.True(_vm.IsDefinitionExpanded);
+
+        _vm.SelectedMainFilter = null;
+        Assert.Equal(QuickFilter.UltraHighDefinition, _vm.SelectedFilter.Value);
+        _vm.SelectedMainFilter = _vm.Filters[1];
+        Assert.Null(_vm.SelectedDefinitionFilter);
+    }
+
+    [Fact]
     public async Task Editing_several_titles_opens_the_bulk_editor()
     {
         _repo.Add(new NewTitle(TitleKind.Movie, "A", 2000));

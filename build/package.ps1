@@ -18,7 +18,14 @@ param(
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $target = Join-Path $Output $Rid
-if (Test-Path $target) { Remove-Item -Recurse -Force $target }
+if (Test-Path $target) {
+    # Bobine en cours d'exécution depuis ce dossier : on s'arrête avant de supprimer quoi que ce soit.
+    foreach ($exe in Get-ChildItem -Path $target -Filter 'Bobine*' -File) {
+        try { [IO.File]::Open($exe.FullName, 'Open', 'ReadWrite', 'None').Dispose() }
+        catch { throw "$($exe.FullName) est en cours d'utilisation : fermez Bobine ou utilisez -Output vers un autre dossier." }
+    }
+    Remove-Item -Recurse -Force $target
+}
 
 & $Dotnet publish (Join-Path $root 'src/Bobine.App') -c Release -r $Rid --self-contained `
     -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o $target

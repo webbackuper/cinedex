@@ -114,6 +114,17 @@
         </ScrollViewer>
       </TabItem>
 
+      <TabItem Header="Classement">
+        <StackPanel Spacing="8" Margin="0,8">
+          <TextBlock Text="Collection (saga, coffret)" />
+          <ComboBox MinWidth="320" ItemsSource="{Binding Collections}" SelectedItem="{Binding SelectedCollection}" />
+          <TextBlock Text="Tags, séparés par des virgules" Margin="0,8,0,0" />
+          <TextBox Text="{Binding TagsText}" PlaceholderText="culte, huis clos, à revoir" />
+          <TextBlock Text="Groupes personnels, séparés par des virgules" Margin="0,8,0,0" />
+          <TextBox Text="{Binding GroupsText}" PlaceholderText="Soirée famille, Noël" />
+        </StackPanel>
+      </TabItem>
+
       <TabItem Header="Statut et notes">
         <StackPanel Spacing="8" Margin="0,8">
           <CheckBox Content="Possédé (décoché : liste de souhaits)" IsChecked="{Binding IsOwned}" />

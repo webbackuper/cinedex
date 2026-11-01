@@ -98,6 +98,49 @@ public sealed class MainWindowViewModelTests : IDisposable
         Assert.Null(_vm.Detail!.CurrentLoan);
     }
 
+    [Fact]
+    public async Task Advanced_search_filters_and_clear_resets()
+    {
+        _repo.Add(new NewTitle(TitleKind.Movie, "Old", 1950));
+        _repo.Add(new NewTitle(TitleKind.Movie, "New", 2020));
+        _vm.Load();
+        _dialogs.OnAdvancedSearch = search =>
+        {
+            search.YearFrom = "2000";
+            return true;
+        };
+
+        await _vm.AdvancedSearchCommand.ExecuteAsync(null);
+        Assert.True(_vm.HasCriteria);
+        Assert.Equal(["New"], _vm.Titles.Select(t => t.Title));
+
+        _vm.ClearSearchCommand.Execute(null);
+        Assert.False(_vm.HasCriteria);
+        Assert.Equal(2, _vm.Titles.Count);
+    }
+
+    [Fact]
+    public async Task Editing_several_titles_opens_the_bulk_editor()
+    {
+        _repo.Add(new NewTitle(TitleKind.Movie, "A", 2000));
+        _repo.Add(new NewTitle(TitleKind.Movie, "B", 2001));
+        _vm.Load();
+        _vm.SelectedTitles.Add(_vm.Titles[0]);
+        _vm.SelectedTitles.Add(_vm.Titles[1]);
+        _dialogs.OnBulkEdit = edit =>
+        {
+            edit.IsFavorite = true;
+            edit.AddTags = "lot";
+            return true;
+        };
+
+        await _vm.EditCommand.ExecuteAsync(null);
+
+        Assert.All(_vm.Titles, t => Assert.True(t.IsFavorite));
+        Assert.Equal(2, _vm.SelectedTitles.Count);
+        Assert.Equal(["lot"], _repo.Get(_vm.Titles[0].Id)!.Tags);
+    }
+
     private sealed class FakeDialogs : IDialogs
     {
         public bool Answer { get; set; }
@@ -118,5 +161,13 @@ public sealed class MainWindowViewModelTests : IDisposable
             Task.FromResult<Bobine.Core.Metadata.MetadataSearchResult?>(null);
 
         public Task<bool> EditSettingsAsync(SettingsViewModel settings) => Task.FromResult(false);
+
+        public Func<AdvancedSearchViewModel, bool>? OnAdvancedSearch { get; set; }
+
+        public Func<BulkEditViewModel, bool>? OnBulkEdit { get; set; }
+
+        public Task<bool> AdvancedSearchAsync(AdvancedSearchViewModel search) => Task.FromResult(OnAdvancedSearch?.Invoke(search) ?? false);
+
+        public Task<bool> BulkEditAsync(BulkEditViewModel edit) => Task.FromResult(OnBulkEdit?.Invoke(edit) ?? false);
     }
 }

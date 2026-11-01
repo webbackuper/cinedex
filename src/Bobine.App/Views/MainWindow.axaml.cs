@@ -39,6 +39,12 @@ public sealed partial class MainWindow : Window, IDialogs
     public Task<bool> EditSettingsAsync(SettingsViewModel settings) =>
         new SettingsWindow { DataContext = settings }.ShowDialog<bool>(this);
 
+    public Task<bool> AdvancedSearchAsync(AdvancedSearchViewModel search) =>
+        new AdvancedSearchWindow { DataContext = search }.ShowDialog<bool>(this);
+
+    public Task<bool> BulkEditAsync(BulkEditViewModel edit) =>
+        new BulkEditWindow { DataContext = edit }.ShowDialog<bool>(this);
+
     private void OnListDoubleTapped(object? sender, RoutedEventArgs e)
     {
         if (DataContext is MainWindowViewModel vm && vm.EditCommand.CanExecute(null))

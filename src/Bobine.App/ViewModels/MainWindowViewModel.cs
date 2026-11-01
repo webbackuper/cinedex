@@ -128,7 +128,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public string DataLocation => _paths.IsPortable ? $"Mode portable : {_paths.DataRoot}" : _paths.DataRoot;
 
-    private TitleQuery CurrentQuery => new(SearchText, SelectedFilter.Value, SelectedSort.Value, SortDescending);
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasCriteria))]
+    public partial SearchCriteria? Criteria { get; set; }
+
+    public bool HasCriteria => Criteria is { IsEmpty: false };
+
+    partial void OnCriteriaChanged(SearchCriteria? value) => Refresh();
+
+    private TitleQuery CurrentQuery => new(SearchText, SelectedFilter.Value, SelectedSort.Value, SortDescending, Criteria: Criteria);
 
     private IReadOnlyList<long> SelectedIds => SelectedTitles.Select(t => t.Id).ToList();
 
@@ -169,16 +177,24 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private bool CanAdd() => !string.IsNullOrWhiteSpace(NewTitleText);
 
-    [RelayCommand(CanExecute = nameof(HasSingleSelection))]
+    /// <summary>Un titre : fiche complète. Plusieurs : modification groupée.</summary>
+    [RelayCommand(CanExecute = nameof(HasSelection))]
     private async Task EditAsync()
     {
+        if (SelectedTitles.Count > 1)
+        {
+            await BulkEditAsync();
+            return;
+        }
+
         var current = _titles.Get(SelectedTitles[0].Id);
         if (current is null)
         {
             return;
         }
 
-        var editor = new TitleEditorViewModel(current, _titles.Genres(), _titles.RefItems("medium"), _titles.RefItems("case"), _titles.RefItems("version"));
+        var editor = new TitleEditorViewModel(
+            current, _titles.Genres(), _titles.RefItems("medium"), _titles.RefItems("case"), _titles.RefItems("version"), _titles.Collections());
         // La fenêtre d'édition valide elle-même (TryBuild) avant de se fermer sur « Enregistrer ».
         if (await _dialogs.EditTitleAsync(editor) && editor.TryBuild(out var updated))
         {
@@ -379,6 +395,36 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    private async Task BulkEditAsync()
+    {
+        var ids = SelectedIds;
+        var edit = new BulkEditViewModel(ids.Count, _titles.RefItems("medium"), _titles.Collections());
+        if (await _dialogs.BulkEditAsync(edit))
+        {
+            _titles.ApplyBulk(ids.ToList(), edit.Build());
+            Refresh(selectIds: ids);
+            Status = $"{ids.Count} titres modifiés";
+        }
+    }
+
+    [RelayCommand]
+    private async Task AdvancedSearchAsync()
+    {
+        var search = new AdvancedSearchViewModel(Criteria, _titles.Genres(), _titles.Tags(), _titles.Groups(), _titles.Collections());
+        if (await _dialogs.AdvancedSearchAsync(search))
+        {
+            Criteria = search.Build();
+        }
+    }
+
+    [RelayCommand]
+    private void ClearSearch()
+    {
+        SearchText = string.Empty;
+        SelectedFilter = Filters[0];
+        Criteria = null;
     }
 
     [RelayCommand]

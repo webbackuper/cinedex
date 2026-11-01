@@ -14,6 +14,8 @@
     <KeyBinding Gesture="F7" Command="{Binding PickRandomCommand}" />
     <KeyBinding Gesture="Alt+E" Command="{Binding EditCommand}" />
     <KeyBinding Gesture="F5" Command="{Binding ReloadCommand}" />
+    <KeyBinding Gesture="Ctrl+Shift+F" Command="{Binding AdvancedSearchCommand}" />
+    <KeyBinding Gesture="Escape" Command="{Binding ClearSearchCommand}" />
     <KeyBinding Gesture="Ctrl+T" Command="{Binding AddFromTmdbCommand}" />
     <KeyBinding Gesture="Ctrl+U" Command="{Binding LinkToTmdbCommand}" />
   </Window.KeyBindings>
@@ -25,6 +27,8 @@
       <ComboBox Width="200" Margin="0,0,8,0" ItemsSource="{Binding Filters}" SelectedItem="{Binding SelectedFilter}" ToolTip.Tip="Filtre" />
       <ComboBox Width="170" Margin="0,0,8,0" ItemsSource="{Binding Sorts}" SelectedItem="{Binding SelectedSort}" ToolTip.Tip="Trier par" />
       <ToggleButton Margin="0,0,8,0" IsChecked="{Binding SortDescending}" Content="Ordre inverse" />
+      <Button Margin="0,0,8,0" Content="Recherche avancée" Command="{Binding AdvancedSearchCommand}" ToolTip.Tip="Ctrl+Maj+F" />
+      <Button Margin="0,0,8,0" Content="Tout afficher" Command="{Binding ClearSearchCommand}" ToolTip.Tip="Efface recherche, filtre et critères (Échap)" />
       <Button Margin="0,0,8,0" Content="Au hasard" Command="{Binding PickRandomCommand}" ToolTip.Tip="Un titre non vu au hasard (Ctrl+R)" />
       <Button Margin="0,0,8,0" Content="Tout mettre à jour (TMDb)" Command="{Binding UpdateAllFromTmdbCommand}" />
       <Button Content="Réglages" Command="{Binding OpenSettingsCommand}" />
@@ -111,6 +115,15 @@
               <TextBlock Text="{Binding Copy.MediumCode, StringFormat='Support : {0}'}" Opacity="0.8" />
               <TextBlock Text="{Binding Copy.Location, StringFormat='Emplacement : {0}'}" Opacity="0.8" />
               <TextBlock Text="{Binding ViewCount, StringFormat='Vu {0} fois'}" Opacity="0.8" />
+              <TextBlock Text="{Binding CollectionName, StringFormat='Collection : {0}'}" Opacity="0.8" IsVisible="{Binding CollectionName, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              <ItemsControl ItemsSource="{Binding Tags}">
+                <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="x:String">
+                    <Border Margin="0,0,6,6" Padding="8,2" CornerRadius="10" Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"><TextBlock Text="{Binding}" FontSize="12" /></Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
               <TextBlock Text="{Binding Comments}" TextWrapping="Wrap" Opacity="0.8" />
             </StackPanel>
 

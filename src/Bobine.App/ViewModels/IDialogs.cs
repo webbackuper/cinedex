@@ -14,4 +14,8 @@ public interface IDialogs
     Task<MetadataSearchResult?> SearchMetadataAsync(MetadataSearchViewModel search);
 
     Task<bool> EditSettingsAsync(SettingsViewModel settings);
+
+    Task<bool> AdvancedSearchAsync(AdvancedSearchViewModel search);
+
+    Task<bool> BulkEditAsync(BulkEditViewModel edit);
 }

@@ -27,10 +27,15 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         IReadOnlyList<Genre> genres,
         IReadOnlyList<RefItem> media,
         IReadOnlyList<RefItem> cases,
-        IReadOnlyList<RefItem> versions)
+        IReadOnlyList<RefItem> versions,
+        IReadOnlyList<CollectionInfo>? collections = null)
     {
         ArgumentNullException.ThrowIfNull(original);
         _original = original;
+        Collections = [new(null, "(aucune)"), .. (collections ?? []).Select(c => new Choice<long?>(c.Id, c.Name))];
+        SelectedCollection = Collections.FirstOrDefault(c => c.Value == original.CollectionId) ?? Collections[0];
+        TagsText = string.Join(", ", original.Tags);
+        GroupsText = string.Join(", ", original.Groups);
         Kinds = [new(TitleKind.Movie, "Film"), new(TitleKind.Series, "Série")];
         Media = WithNone(media);
         Cases = WithNone(cases);
@@ -82,6 +87,14 @@ public sealed partial class TitleEditorViewModel : ObservableObject
     public IReadOnlyList<Choice<string?>> Versions { get; }
 
     public ObservableCollection<GenreChoice> Genres { get; }
+
+    public IReadOnlyList<Choice<long?>> Collections { get; }
+
+    [ObservableProperty] public partial Choice<long?> SelectedCollection { get; set; }
+
+    [ObservableProperty] public partial string TagsText { get; set; }
+
+    [ObservableProperty] public partial string GroupsText { get; set; }
 
     [ObservableProperty] public partial Choice<TitleKind> SelectedKind { get; set; }
 
@@ -203,6 +216,9 @@ public sealed partial class TitleEditorViewModel : ObservableObject
             IsLocked = IsLocked,
             IsAdult = IsAdult,
             GenreCodes = Genres.Where(g => g.IsSelected).Select(g => g.Genre.Code).ToList(),
+            Tags = SplitList(TagsText),
+            Groups = SplitList(GroupsText),
+            CollectionId = SelectedCollection.Value,
             Copy = (_original.Copy ?? new CopyInfo()) with
             {
                 Number = number,
@@ -219,6 +235,12 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         };
         return true;
     }
+
+    /// <summary>« SF, huis clos ; culte » donne trois libellés, sans doublon ni vide.</summary>
+    internal static IReadOnlyList<string> SplitList(string text) =>
+        (text ?? string.Empty).Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
     internal static bool IsImdbId(string value) =>
         value.Length is >= 9 and <= 12 && value.StartsWith("tt", StringComparison.Ordinal) && value[2..].All(char.IsAsciiDigit);

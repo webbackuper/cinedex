@@ -89,7 +89,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
         new(QuickFilter.ThreeD, "3D"),
         new(QuickFilter.PhysicalMedia, "Supports physiques"),
         new(QuickFilter.MediaFiles, "Fichiers vidéo"),
-        new(QuickFilter.MissingFiles, "Fichiers introuvables"),
     ];
 
     public IReadOnlyList<Choice<SortField>> Sorts { get; } =
@@ -404,13 +403,23 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 return MediaTextOf(current.Id);
             },
             _media?.People,
-            new LoanEditorViewModel(_titles, current.Id));
+            new LoanEditorViewModel(_titles, current.Id),
+            _media?.Files);
         var editor = new TitleEditorViewModel(
             current, _titles.Genres(), _titles.RefItems("medium"), _titles.RefItems("case"), _titles.RefItems("version"), _titles.Collections(), extras);
         // La fenêtre d'édition valide elle-même (TryBuild) avant de se fermer sur « Enregistrer ».
         if (await _dialogs.EditTitleAsync(editor) && editor.TryBuild(out var updated))
         {
             _titles.Update(updated);
+            try
+            {
+                editor.ApplyFileChanges();
+            }
+            catch (InvalidOperationException ex)
+            {
+                Status = ex.Message;
+            }
+
             if (editor.SeenChanged)
             {
                 _titles.SetSeen([updated.Id], editor.IsSeen, DateTimeOffset.Now);
@@ -655,6 +664,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>Fichier absent : le plus souvent un disque USB débranché, nommé par son MediaID.</summary>
+    private string MissingMediaMessage() =>
+        DetailFiles.Select(f => f.VolumeLabel).FirstOrDefault(l => l is not null) is { } label
+            ? $"Fichier introuvable : branchez le disque « {label} »."
+            : "Fichier introuvable : le disque est peut-être débranché.";
+
     /// <summary>Lit le premier fichier présent ; marque le titre comme vu si le réglage le demande (par défaut).</summary>
     [RelayCommand(CanExecute = nameof(HasFiles))]
     private void Play()
@@ -662,7 +677,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var file = DetailFiles.FirstOrDefault(f => File.Exists(f.FullPath));
         if (file is null)
         {
-            Status = "Fichier introuvable : le disque est peut-être débranché. « Vérifier les fichiers » peut le retrouver.";
+            Status = MissingMediaMessage();
             return;
         }
 
@@ -687,7 +702,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var file = DetailFiles.FirstOrDefault(f => File.Exists(f.FullPath));
         if (file is null)
         {
-            Status = "Fichier introuvable.";
+            Status = MissingMediaMessage();
             return;
         }
 
@@ -799,15 +814,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         try
         {
             var (missing, relinked) = await _media.Import.CheckFilesAsync();
-            Status = $"{missing} fichier(s) introuvable(s), {relinked} retrouvé(s) après déplacement";
-            if (missing > 0)
-            {
-                SelectedFilter = Filters.Single(f => f.Value == QuickFilter.MissingFiles);
-            }
-            else
-            {
-                Refresh(selectIds: SelectedIds);
-            }
+            Status = $"{missing} fichier(s) introuvable(s) (disque non branché ?), {relinked} retrouvé(s) après déplacement";
+            Refresh(selectIds: SelectedIds);
         }
         finally
         {

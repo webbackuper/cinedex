@@ -4,6 +4,7 @@ using System.Globalization;
 using Bobine.App.Services;
 using Bobine.Core.People;
 using Bobine.Core.Titles;
+using Bobine.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -30,7 +31,21 @@ public sealed record TitleEditorExtras(
     Func<Task<string?>>? RefreshMedia = null,
     Func<string, Task<string?>>? AddFile = null,
     PeopleService? People = null,
-    LoanEditorViewModel? Loans = null);
+    LoanEditorViewModel? Loans = null,
+    MediaFileRepository? Files = null);
+
+/// <summary>Un fichier du titre dans l'onglet Fichier : chemin complet et MediaID (nom du disque) modifiable.</summary>
+public sealed partial class FileVolumeRow(MediaFileEntry file) : ObservableObject
+{
+    public MediaFileEntry File { get; } = file;
+
+    public string Header => (File.Part > 1 ? $"Partie {File.Part} : " : string.Empty) + File.FullPath;
+
+    [ObservableProperty]
+    public partial string MediaId { get; set; } = file.VolumeLabel ?? string.Empty;
+
+    public bool IsChanged => !string.Equals(MediaId.Trim(), File.VolumeLabel ?? string.Empty, StringComparison.Ordinal);
+}
 
 /// <summary>
 /// Copie éditable d'une fiche. Les nombres sont saisis en texte et validés à l'enregistrement,
@@ -56,6 +71,8 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         _addFile = extras.AddFile;
         _people = extras.People;
         Loans = extras.Loans;
+        _files = extras.Files;
+        ReloadFiles();
         PosterPath = extras.PosterPath;
         Cast = extras.Cast ?? [];
         CrewText = extras.CrewText ?? string.Empty;
@@ -118,6 +135,41 @@ public sealed partial class TitleEditorViewModel : ObservableObject
 
     private readonly PeopleService? _people;
 
+    private readonly MediaFileRepository? _files;
+
+    /// <summary>Fichiers du titre, avec leur MediaID modifiable (enregistré avec la fiche).</summary>
+    public ObservableCollection<FileVolumeRow> Files { get; } = [];
+
+    public bool HasFiles => Files.Count > 0;
+
+    /// <summary>Enregistre les MediaID modifiés ; appelé après un enregistrement réussi de la fiche.</summary>
+    public void ApplyFileChanges()
+    {
+        foreach (var row in Files.Where(r => r.IsChanged))
+        {
+            _files?.SetVolumeLabel(row.File.Id, row.MediaId);
+        }
+    }
+
+    private void ReloadFiles()
+    {
+        // Les MediaID déjà saisis sont conservés quand la liste est relue (partie ajoutée, MediaInfo relu).
+        var typed = Files.ToDictionary(r => r.File.Id, r => r.MediaId);
+        Files.Clear();
+        foreach (var file in _files?.FilesOf(_original.Id) ?? [])
+        {
+            var row = new FileVolumeRow(file);
+            if (typed.TryGetValue(file.Id, out var mediaId))
+            {
+                row.MediaId = mediaId;
+            }
+
+            Files.Add(row);
+        }
+
+        OnPropertyChanged(nameof(HasFiles));
+    }
+
     /// <summary>Titre choisi depuis la fiche d'un acteur : la fiche se ferme et le catalogue s'y place.</summary>
     public long? NavigateToTitleId { get; set; }
 
@@ -141,6 +193,7 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         try
         {
             MediaText = await _addFile(path) ?? MediaText;
+            ReloadFiles();
             LastError = null;
         }
         catch (Exception ex) when (ex is InvalidOperationException or IOException or UnauthorizedAccessException)
@@ -206,6 +259,7 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         try
         {
             MediaText = await _refreshMedia() ?? MediaText;
+            ReloadFiles();
         }
         finally
         {

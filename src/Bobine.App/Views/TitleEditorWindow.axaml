@@ -147,7 +147,24 @@
             <TextBlock Text="Lecture en cours…" VerticalAlignment="Center" Opacity="0.7" IsVisible="{Binding IsRefreshingMedia}" />
           </StackPanel>
           <ScrollViewer>
-            <SelectableTextBlock Text="{Binding MediaText}" TextWrapping="Wrap" LineHeight="21" />
+            <StackPanel Spacing="12">
+              <Border Padding="12,10" CornerRadius="8" Background="{DynamicResource BobineSurfaceAlt}" IsVisible="{Binding HasFiles}">
+                <StackPanel Spacing="6">
+                  <TextBlock Text="MediaID : nom du disque où se trouve le fichier" FontWeight="SemiBold" />
+                  <ItemsControl ItemsSource="{Binding Files}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:FileVolumeRow">
+                        <Grid ColumnDefinitions="200,*" Margin="0,3">
+                          <TextBox Text="{Binding MediaId}" Watermark="Nom du disque" ToolTip.Tip="Rempli au scan avec le nom du disque (Propriétés dans Windows)" />
+                          <TextBlock Grid.Column="1" Margin="10,0,0,0" Text="{Binding Header}" VerticalAlignment="Center" TextWrapping="Wrap" Opacity="0.75" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+              <SelectableTextBlock Text="{Binding MediaText}" TextWrapping="Wrap" LineHeight="21" />
+            </StackPanel>
           </ScrollViewer>
         </DockPanel>
       </TabItem>

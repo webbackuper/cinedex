@@ -5,7 +5,8 @@ namespace Bobine.Data;
 
 public sealed record ScanRoot(long Id, string Path, string Kind, bool ScanOnStartup);
 
-public sealed record MediaFileEntry(long Id, long TitleId, string FullPath, int Part, bool IsMissing, long? SizeBytes);
+/// <summary>Fichier vidéo ; <paramref name="VolumeLabel"/> est le MediaID, nom du disque sur lequel il a été trouvé.</summary>
+public sealed record MediaFileEntry(long Id, long TitleId, string FullPath, int Part, bool IsMissing, long? SizeBytes, string? VolumeLabel = null);
 
 /// <summary>Un fichier d'un titre et ses propriétés techniques (vides tant que MediaInfo ne l'a pas lu).</summary>
 public sealed record MediaFileDetail(
@@ -31,6 +32,7 @@ public sealed record MediaFileDetail(
         var lines = new List<string>
         {
             (File.Part > 1 ? $"Partie {File.Part} : " : "Emplacement : ") + File.FullPath + (File.IsMissing ? "  (introuvable)" : string.Empty),
+            "MediaID : " + (File.VolumeLabel ?? "(disque sans nom)"),
         };
         if (File.SizeBytes is { } size)
         {
@@ -103,6 +105,9 @@ public sealed record MediaFileProperties(
 /// </summary>
 public sealed class MediaFileRepository(CatalogDatabase database)
 {
+    /// <summary>Disques branchés ; remplaçable pour les tests.</summary>
+    public Func<Volumes> VolumeProvider { get; init; } = Volumes.Current;
+
     public long AddScanRoot(string path, string kind, bool scanOnStartup = false)
     {
         var full = Normalize(path);
@@ -154,7 +159,13 @@ public sealed class MediaFileRepository(CatalogDatabase database)
     {
         using var connection = database.Open();
         var comparer = OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
-        return new HashSet<string>(All(connection).Select(f => f.FullPath), comparer);
+        var volumes = VolumeProvider();
+
+        // Un fichier n'est « connu » que si le disque branché à cet endroit est bien celui où il a été trouvé :
+        // un autre disque USB monté sous la même lettre peut contenir un fichier au même chemin.
+        return new HashSet<string>(
+            All(connection, volumes: volumes).Where(f => volumes.IsOnRecordedVolume(f.FullPath, f.VolumeLabel)).Select(f => f.FullPath),
+            comparer);
     }
 
     /// <summary>Rattache un fichier à l'exemplaire principal d'un titre ; renvoie l'identifiant du fichier.</summary>
@@ -173,13 +184,13 @@ public sealed class MediaFileRepository(CatalogDatabase database)
         var (rootId, stored) = Split(connection, transaction, full);
         var id = connection.ExecuteScalar<long>(
             """
-            INSERT INTO media_file (copy_id, scan_root_id, path, part_number, size_bytes, last_seen_at, is_missing)
-            VALUES (@copyId, @rootId, @stored, @part, @sizeBytes, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 0)
+            INSERT INTO media_file (copy_id, scan_root_id, path, part_number, size_bytes, last_seen_at, is_missing, volume_label)
+            VALUES (@copyId, @rootId, @stored, @part, @sizeBytes, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 0, @label)
             ON CONFLICT DO UPDATE SET copy_id = excluded.copy_id, size_bytes = excluded.size_bytes, is_missing = 0,
                 last_seen_at = excluded.last_seen_at
             RETURNING id;
             """,
-            new { copyId, rootId, stored, part, sizeBytes },
+            new { copyId, rootId, stored, part, sizeBytes, label = VolumeProvider().LabelOf(full) },
             transaction);
         transaction.Commit();
         return id;
@@ -188,7 +199,7 @@ public sealed class MediaFileRepository(CatalogDatabase database)
     public IReadOnlyList<MediaFileEntry> FilesOf(long titleId)
     {
         using var connection = database.Open();
-        return All(connection, "WHERE m.copy_id IS NOT NULL AND c.title_id = @titleId", new { titleId });
+        return All(connection, "WHERE m.copy_id IS NOT NULL AND c.title_id = @titleId", new { titleId }, VolumeProvider());
     }
 
     /// <summary>Rattache un fichier à un épisode ; relatif au dossier surveillé qui le contient, comme pour les films.</summary>
@@ -200,12 +211,12 @@ public sealed class MediaFileRepository(CatalogDatabase database)
         var (rootId, stored) = Split(connection, transaction, full);
         var id = connection.ExecuteScalar<long>(
             """
-            INSERT INTO media_file (episode_id, scan_root_id, path, part_number, size_bytes, last_seen_at, is_missing)
-            VALUES (@episodeId, @rootId, @stored, @part, @sizeBytes, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 0)
+            INSERT INTO media_file (episode_id, scan_root_id, path, part_number, size_bytes, last_seen_at, is_missing, volume_label)
+            VALUES (@episodeId, @rootId, @stored, @part, @sizeBytes, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 0, @label)
             ON CONFLICT DO UPDATE SET episode_id = excluded.episode_id, copy_id = NULL, size_bytes = excluded.size_bytes, is_missing = 0
             RETURNING id;
             """,
-            new { episodeId, rootId, stored, part, sizeBytes },
+            new { episodeId, rootId, stored, part, sizeBytes, label = VolumeProvider().LabelOf(full) },
             transaction);
         transaction.Commit();
         return id;
@@ -336,11 +347,34 @@ public sealed class MediaFileRepository(CatalogDatabase database)
         transaction.Commit();
     }
 
+    /// <summary>Change le MediaID (nom du disque) d'un fichier ; vide = inconnu.</summary>
+    public void SetVolumeLabel(long mediaFileId, string? label)
+    {
+        using var connection = database.Open();
+        try
+        {
+            connection.Execute(
+                "UPDATE media_file SET volume_label = @label WHERE id = @mediaFileId;",
+                new { mediaFileId, label = string.IsNullOrWhiteSpace(label) ? null : label.Trim() });
+        }
+        catch (SqliteException ex) when (ex.SqliteErrorCode == 19)
+        {
+            throw new InvalidOperationException("Un autre fichier porte déjà ce chemin sur ce MediaID.", ex);
+        }
+    }
+
+    /// <summary>MediaID distincts du catalogue (disques déjà scannés).</summary>
+    public IReadOnlyList<string> VolumeLabels()
+    {
+        using var connection = database.Open();
+        return connection.Query<string>("SELECT DISTINCT volume_label FROM media_file WHERE volume_label IS NOT NULL ORDER BY volume_label COLLATE NOCASE;").ToList();
+    }
+
     /// <summary>Vérifie la présence de chaque fichier ; renvoie les fichiers absents.</summary>
     public IReadOnlyList<MediaFileEntry> CheckMissing()
     {
         using var connection = database.Open();
-        var files = All(connection);
+        var files = All(connection, volumes: VolumeProvider());
         using var transaction = connection.BeginTransaction();
         var missing = new List<MediaFileEntry>();
         foreach (var file in files)
@@ -422,10 +456,10 @@ public sealed class MediaFileRepository(CatalogDatabase database)
         return count;
     }
 
-    private static List<MediaFileEntry> All(SqliteConnection connection, string where = "", object? param = null) =>
-        connection.Query<(long Id, long TitleId, string Path, string? Root, long Part, long Missing, long? Size)>(
+    private static List<MediaFileEntry> All(SqliteConnection connection, string where = "", object? param = null, Volumes? volumes = null) =>
+        connection.Query<(long Id, long TitleId, string Path, string? Root, long Part, long Missing, long? Size, string? Label)>(
                 $"""
-                SELECT m.id, coalesce(c.title_id, s.title_id), m.path, r.path, m.part_number, m.is_missing, m.size_bytes
+                SELECT m.id, coalesce(c.title_id, s.title_id), m.path, r.path, m.part_number, m.is_missing, m.size_bytes, m.volume_label
                 FROM media_file m
                 LEFT JOIN copy c ON c.id = m.copy_id
                 LEFT JOIN episode e ON e.id = m.episode_id
@@ -434,13 +468,18 @@ public sealed class MediaFileRepository(CatalogDatabase database)
                 {where} ORDER BY m.part_number;
                 """,
                 param)
-            .Select(f => new MediaFileEntry(
-                f.Id,
-                f.TitleId,
-                f.Root is null ? f.Path : System.IO.Path.GetFullPath(System.IO.Path.Combine(f.Root, f.Path)),
-                (int)f.Part,
-                f.Missing != 0,
-                f.Size))
+            .Select(f =>
+            {
+                var full = f.Root is null ? f.Path : System.IO.Path.GetFullPath(System.IO.Path.Combine(f.Root, f.Path));
+                return new MediaFileEntry(
+                    f.Id,
+                    f.TitleId,
+                    volumes is null ? full : volumes.Resolve(full, f.Label),
+                    (int)f.Part,
+                    f.Missing != 0,
+                    f.Size,
+                    f.Label);
+            })
             .ToList();
 
     /// <summary>Trouve le dossier surveillé le plus précis contenant le fichier ; sinon chemin absolu.</summary>

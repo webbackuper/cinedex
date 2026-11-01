@@ -37,7 +37,8 @@
       <Button Margin="0,0,8,0" Content="Relire les infos techniques" Command="{Binding RefreshTechnicalCommand}" ToolTip.Tip="MediaInfo sur la sélection, ou sur tous les titres affichés" />
       <Button Margin="0,0,8,0" Content="Écrire les .nfo" Command="{Binding WriteNfoCommand}" ToolTip.Tip="Crée ou complète le .nfo des fichiers de la sélection, ou de tous les titres affichés" />
       <Button Margin="0,0,8,0" Content="Vérifier les fichiers" Command="{Binding CheckFilesCommand}" ToolTip.Tip="Repère les fichiers absents et retrouve ceux qui ont été déplacés" />
-      <Button Content="Réglages" Command="{Binding OpenSettingsCommand}" />
+      <Button Margin="0,0,8,0" Content="Réglages" Command="{Binding OpenSettingsCommand}" />
+      <Button Content="{Binding CatalogLabel}" Command="{Binding ManageCatalogsCommand}" ToolTip.Tip="Ouvrir, créer, renommer ou retirer un catalogue" />
     </WrapPanel>
 
     <!-- Actions -->

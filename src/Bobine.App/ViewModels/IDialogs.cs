@@ -20,4 +20,6 @@ public interface IDialogs
     Task<bool> BulkEditAsync(BulkEditViewModel edit);
 
     Task<bool> ImportFolderAsync(ImportFolderViewModel import);
+
+    Task ManageCatalogsAsync(CatalogsViewModel catalogs);
 }

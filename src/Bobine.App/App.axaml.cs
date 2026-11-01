@@ -8,6 +8,7 @@ using Bobine.App.Views;
 using Bobine.Core;
 using Bobine.Data;
 using Bobine.Metadata.Tmdb;
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -17,6 +18,9 @@ namespace Bobine.App;
 public sealed class App : Application
 {
     private ServiceProvider? _services;
+    private Serilog.Core.Logger? _serilog;
+    private AppPaths? _paths;
+    private MainWindow? _window;
 
     public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
@@ -24,29 +28,49 @@ public sealed class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            _services = ConfigureServices(AppPaths.Resolve());
-            var window = new MainWindow();
-            var services = _services;
-            var main = new MainWindowViewModel(
-                services.GetRequiredService<TitleRepository>(),
-                services.GetRequiredService<AppPaths>(),
-                window,
-                services.GetRequiredService<MetadataService>(),
-                services.GetRequiredService<ImageStore>(),
-                () => new SettingsViewModel(services.GetRequiredService<ISecretStore>(), services.GetRequiredService<SettingsStore>()),
-                services.GetRequiredService<MediaContext>());
-            main.Load();
-            window.DataContext = main;
-            desktop.MainWindow = window;
-            desktop.ShutdownRequested += (_, _) => _services.Dispose();
+            _paths = AppPaths.Resolve();
+            _paths.EnsureCreated();
+            _serilog = CreateLogger(_paths);
+            _window = new MainWindow();
+            OpenCatalog(new CatalogManager(_paths).Current);
+            desktop.MainWindow = _window;
+            desktop.ShutdownRequested += (_, _) =>
+            {
+                _services?.Dispose();
+                _serilog.Dispose();
+            };
         }
 
         base.OnFrameworkInitializationCompleted();
     }
 
-    internal static ServiceProvider ConfigureServices(AppPaths paths)
+    /// <summary>Ouvre un catalogue : ferme le précédent, reconstruit les services sur la nouvelle base, recharge la fenêtre.</summary>
+    private void OpenCatalog(string name)
     {
-        paths.EnsureCreated();
+        var previous = _services;
+        _services = ConfigureServices(_paths!, name, _serilog!);
+        previous?.Dispose();
+        SqliteConnection.ClearAllPools();
+        new CatalogManager(_paths!).SetCurrent(name);
+
+        var services = _services;
+        var catalogs = new CatalogsViewModel(new CatalogManager(_paths!), name, OpenCatalog, services.GetRequiredService<SettingsStore>());
+        var main = new MainWindowViewModel(
+            services.GetRequiredService<TitleRepository>(),
+            services.GetRequiredService<AppPaths>(),
+            _window!,
+            services.GetRequiredService<MetadataService>(),
+            services.GetRequiredService<ImageStore>(),
+            () => new SettingsViewModel(services.GetRequiredService<ISecretStore>(), services.GetRequiredService<SettingsStore>()),
+            services.GetRequiredService<MediaContext>(),
+            catalogs);
+        main.Load();
+        _window!.DataContext = main;
+        _window.Title = $"Bobine · {name}";
+    }
+
+    private static Serilog.Core.Logger CreateLogger(AppPaths paths)
+    {
         var serilog = new LoggerConfiguration()
             .MinimumLevel.Information()
             .WriteTo.File(
@@ -61,24 +85,25 @@ public sealed class App : Application
             serilog.Dispose();
         };
         TaskScheduler.UnobservedTaskException += (_, e) => serilog.Error(e.Exception, "Erreur non observée dans une tâche");
+        return serilog;
+    }
 
+    internal static ServiceProvider ConfigureServices(AppPaths paths, string catalog, Serilog.ILogger serilog)
+    {
+        paths.EnsureCreated();
         var services = new ServiceCollection();
-        services.AddLogging(builder => builder.AddSerilog(serilog, dispose: true));
+        services.AddLogging(builder => builder.AddSerilog(serilog, dispose: false));
         services.AddSingleton(paths);
         services.AddSingleton(sp =>
         {
-            var database = new CatalogDatabase(
-                paths.CatalogDatabasePath(AppPaths.DefaultCatalogName),
-                sp.GetRequiredService<ILogger<CatalogDatabase>>());
+            var database = new CatalogDatabase(paths.CatalogDatabasePath(catalog), sp.GetRequiredService<ILogger<CatalogDatabase>>());
             database.Initialize(paths.BackupsDirectory);
             return database;
         });
         services.AddSingleton<TitleRepository>();
         services.AddSingleton<SettingsStore>();
         services.AddSingleton<MetadataRepository>();
-        services.AddSingleton(sp => new ImageStore(
-            sp.GetRequiredService<CatalogDatabase>(),
-            paths.CatalogImagesDirectory(AppPaths.DefaultCatalogName)));
+        services.AddSingleton(sp => new ImageStore(sp.GetRequiredService<CatalogDatabase>(), paths.CatalogImagesDirectory(catalog)));
         services.AddSingleton(SecretStore.ForCurrentPlatform());
         services.AddSingleton(_ => TmdbClient.CreateHttpClient());
         services.AddSingleton(sp =>

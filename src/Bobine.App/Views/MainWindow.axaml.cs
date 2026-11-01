@@ -48,6 +48,9 @@ public sealed partial class MainWindow : Window, IDialogs
     public Task<bool> ImportFolderAsync(ImportFolderViewModel import) =>
         new ImportFolderWindow { DataContext = import }.ShowDialog<bool>(this);
 
+    public Task ManageCatalogsAsync(CatalogsViewModel catalogs) =>
+        new CatalogsWindow { DataContext = catalogs }.ShowDialog(this);
+
     private void OnListDoubleTapped(object? sender, RoutedEventArgs e)
     {
         if (DataContext is MainWindowViewModel vm && vm.EditCommand.CanExecute(null))

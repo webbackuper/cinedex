@@ -12,6 +12,13 @@ public sealed class SettingsStore(CatalogDatabase database)
         return connection.ExecuteScalar<string?>("SELECT value FROM setting WHERE key = @key;", new { key });
     }
 
+    /// <summary>Tous les réglages, pour les reprendre dans un nouveau catalogue.</summary>
+    public IReadOnlyDictionary<string, string?> All()
+    {
+        using var connection = database.Open();
+        return connection.Query<(string Key, string? Value)>("SELECT key, value FROM setting;").ToDictionary(r => r.Key, r => r.Value);
+    }
+
     public void Set(string key, string? value)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);

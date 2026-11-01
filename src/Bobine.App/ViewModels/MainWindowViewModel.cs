@@ -27,6 +27,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly ImageStore? _images;
     private readonly Func<SettingsViewModel>? _settings;
     private readonly MediaContext? _media;
+    private readonly CatalogsViewModel? _catalogs;
     private bool _refreshing;
     private bool _loaded;
 
@@ -37,7 +38,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         MetadataService? metadata = null,
         ImageStore? images = null,
         Func<SettingsViewModel>? settings = null,
-        MediaContext? media = null)
+        MediaContext? media = null,
+        CatalogsViewModel? catalogs = null)
     {
         _titles = titles;
         _paths = paths;
@@ -46,6 +48,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _images = images;
         _settings = settings;
         _media = media;
+        _catalogs = catalogs;
         SelectedFilter = Filters[0];
         SelectedSort = Sorts[0];
         SelectedTitles.CollectionChanged += (_, _) =>
@@ -583,6 +586,17 @@ public sealed partial class MainWindowViewModel : ObservableObject
         SearchText = string.Empty;
         SelectedFilter = Filters[0];
         Criteria = null;
+    }
+
+    public string CatalogLabel => $"Catalogue : {_catalogs?.Current ?? AppPaths.DefaultCatalogName}";
+
+    [RelayCommand]
+    private async Task ManageCatalogsAsync()
+    {
+        if (_catalogs is not null)
+        {
+            await _dialogs.ManageCatalogsAsync(_catalogs);
+        }
     }
 
     [RelayCommand]

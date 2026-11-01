@@ -161,6 +161,22 @@ public sealed class MediaFileRepository(CatalogDatabase database)
         var comparer = OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
         var volumes = VolumeProvider();
 
+        // Fichiers importés avant le MediaID, présents sur un disque branché : leur MediaID est complété au passage.
+        foreach (var file in All(connection, "WHERE m.volume_label IS NULL").Where(f => File.Exists(f.FullPath)))
+        {
+            if (volumes.LabelOf(file.FullPath) is { } label)
+            {
+                try
+                {
+                    connection.Execute("UPDATE media_file SET volume_label = @label WHERE id = @Id;", new { label, file.Id });
+                }
+                catch (SqliteException ex) when (ex.SqliteErrorCode == 19)
+                {
+                    // Même chemin déjà enregistré pour ce disque : on laisse ce fichier tel quel.
+                }
+            }
+        }
+
         // Un fichier n'est « connu » que si le disque branché à cet endroit est bien celui où il a été trouvé :
         // un autre disque USB monté sous la même lettre peut contenir un fichier au même chemin.
         return new HashSet<string>(

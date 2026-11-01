@@ -53,4 +53,22 @@ public sealed class VolumeTests
         files.SetVolumeLabel(files.FilesOf(ran)[0].Id, "FILMS-C");
         Assert.Equal("FILMS-C", files.FilesOf(ran)[0].VolumeLabel);
     }
+
+    [Fact]
+    public void Files_imported_before_media_id_get_it_at_the_next_scan()
+    {
+        using var temp = new TempDirectory();
+        var db = new CatalogDatabase(Path.Combine(temp.Path, "bobine.db"));
+        db.Initialize(temp.Path);
+        var titles = new TitleRepository(db);
+        var path = Path.Combine(temp.Path, "Films", "heat.mkv");
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllBytes(path, new byte[10]);
+        var id = titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));
+        new MediaFileRepository(db) { VolumeProvider = () => new Volumes([]) }.Attach(id, path, 10);
+
+        var files = new MediaFileRepository(db) { VolumeProvider = () => new Volumes([(temp.Path, "FILMS-A")]) };
+        Assert.Contains(path, files.KnownPaths());
+        Assert.Equal("FILMS-A", Assert.Single(files.FilesOf(id)).VolumeLabel);
+    }
 }

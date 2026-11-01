@@ -9,6 +9,9 @@ public sealed record ScanOptions
 
     public IReadOnlyList<string> NoiseWords { get; init; } = [];
 
+    /// <summary>Ignorer le contenu entre ( ), [ ] et { } dans les noms (l'année y est lue avant).</summary>
+    public bool IgnoreBracketed { get; init; } = true;
+
     /// <summary>Taille minimale d'un fichier vidéo retenu (les petits fichiers sont souvent des extraits).</summary>
     public long MinimumBytes { get; init; } = 20L * 1024 * 1024;
 
@@ -97,12 +100,12 @@ public static class LibraryScanner
             return;
         }
 
-        var parsed = FileNameParser.Parse(nameOverride is null ? file.Name : nameOverride + ".iso", options.NoiseWords);
+        var parsed = FileNameParser.Parse(nameOverride is null ? file.Name : nameOverride + ".iso", options.NoiseWords, options.IgnoreBracketed);
 
         // Nom de fichier peu parlant (« movie.mkv », « VTS_01_1.VOB ») : on prend le nom du dossier.
         if (nameOverride is null && parsed.Year is null && file.Directory is { } parent && parent.Name.Length > 3)
         {
-            var fromFolder = FileNameParser.Parse(parent.Name + ".mkv", options.NoiseWords);
+            var fromFolder = FileNameParser.Parse(parent.Name + ".mkv", options.NoiseWords, options.IgnoreBracketed);
             if (fromFolder.Year is not null)
             {
                 parsed = parsed with { Title = fromFolder.Title, Year = fromFolder.Year };

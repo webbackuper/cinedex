@@ -436,7 +436,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private async Task ImportFolderAsync()
     {
-        if (_media is not null && await _dialogs.ImportFolderAsync(new ImportFolderViewModel(_media.Import)))
+        if (_media is not null && await _dialogs.ImportFolderAsync(new ImportFolderViewModel(_media.Import, _media.Settings.Get(MediaContext.IgnoreBracketedKey) != "false")))
         {
             Refresh(selectIds: SelectedIds);
         }

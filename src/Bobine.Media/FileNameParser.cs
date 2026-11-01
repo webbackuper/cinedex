@@ -37,7 +37,13 @@ public static partial class FileNameParser
 
     public static bool IsVideo(string path) => VideoExtensions.Contains(Path.GetExtension(path));
 
-    public static ParsedName Parse(string path, IEnumerable<string>? extraNoiseWords = null)
+    /// <param name="path">Chemin ou nom du fichier.</param>
+    /// <param name="extraNoiseWords">Mots à retirer en plus des mots techniques usuels.</param>
+    /// <param name="ignoreBracketed">
+    /// Ignorer tout ce qui est entre ( ), [ ] ou { } pour le titre (« Heat (Director's Cut) [1080p] »).
+    /// L'année, l'identifiant IMDb, la résolution et la partie y sont tout de même lus avant d'être retirés.
+    /// </param>
+    public static ParsedName Parse(string path, IEnumerable<string>? extraNoiseWords = null, bool ignoreBracketed = true)
     {
         ArgumentNullException.ThrowIfNull(path);
         var name = Path.GetFileNameWithoutExtension(path);
@@ -68,9 +74,28 @@ public static partial class FileNameParser
             }
         }
 
-        var title = name[..cut];
+        string title;
+        if (ignoreBracketed)
+        {
+            // L'année a déjà été lue sur le nom complet ; ce qui la suit est technique. Sur ce qui la précède,
+            // on retire les groupes entre délimiteurs, imbrications comprises.
+            var stripped = name[..cut];
+            string previous;
+            do
+            {
+                previous = stripped;
+                stripped = AnyBracketPattern().Replace(stripped, " ");
+            }
+            while (stripped != previous);
+
+            title = UnclosedBracketPattern().Replace(stripped, " ");
+        }
+        else
+        {
+            title = name[..cut];
+        }
+
         var noise = new HashSet<string>(DefaultNoiseWords.Concat(extraNoiseWords ?? []), StringComparer.OrdinalIgnoreCase);
-        title = BracketPattern().Replace(title, " ");
         title = SeparatorPattern().Replace(title, " ");
         var words = title.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
 
@@ -81,7 +106,7 @@ public static partial class FileNameParser
             words = words[..firstNoise];
         }
 
-        words.RemoveAll(w => noise.Contains(w) || PartPattern().IsMatch(w));
+        words.RemoveAll(w => noise.Contains(w) || PartPattern().IsMatch(w) || ImdbPattern().IsMatch(w));
         title = string.Join(' ', words).Trim(' ', '-', '_', '.');
         return new ParsedName(title.Length == 0 ? name : title, year, season, episode, part, resolution, imdb);
     }
@@ -102,9 +127,14 @@ public static partial class FileNameParser
     [GeneratedRegex(@"(?i)(?<![a-z0-9])(2160|1080|720|576|480)[pi](?![a-z0-9])")]
     private static partial Regex ResolutionPattern();
 
-    [GeneratedRegex(@"\[[^\]]*\]|\{[^}]*\}")]
-    private static partial Regex BracketPattern();
+    // Groupe le plus intérieur, répété jusqu'à disparition pour traiter les imbrications.
+    [GeneratedRegex(@"\([^()\[\]{}]*\)|\[[^()\[\]{}]*\]|\{[^()\[\]{}]*\}")]
+    private static partial Regex AnyBracketPattern();
 
-    [GeneratedRegex(@"[._()\s]+")]
+    // Délimiteur ouvert jamais fermé (« Film (version longue.mkv ») : on retire jusqu'à la fin.
+    [GeneratedRegex(@"[(\[{].*$")]
+    private static partial Regex UnclosedBracketPattern();
+
+    [GeneratedRegex(@"[._()\[\]{}\s]+")]
     private static partial Regex SeparatorPattern();
 }

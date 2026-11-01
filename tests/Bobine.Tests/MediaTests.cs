@@ -34,6 +34,30 @@ public sealed class MediaTests
         Assert.Equal(episode, parsed.Episode);
     }
 
+    [Theory]
+    [InlineData("Heat (1995) [Director's Cut] 1080p.mkv", "Heat", 1995)]
+    [InlineData("Heat (Version longue) (1995).mkv", "Heat", 1995)]
+    [InlineData("[Team] Akira (1988) [BD 1080p][x265].mkv", "Akira", 1988)]
+    [InlineData("Le Samouraï (Restauré [4K]) 1967.mkv", "Le Samouraï", 1967)]
+    [InlineData("La Haine (VF.mkv", "La Haine", null)]
+    [InlineData("37°2 Le Matin (DC-1080p) de Jean-Jacques Beineix - 1985.mkv", "37°2 Le Matin de Jean-Jacques Beineix", 1985)]
+    public void Bracketed_parts_are_ignored_by_default_but_the_year_is_kept(string file, string title, int? year)
+    {
+        var parsed = FileNameParser.Parse(file);
+
+        Assert.Equal(title, parsed.Title);
+        Assert.Equal(year, parsed.Year);
+    }
+
+    [Fact]
+    public void Bracketed_parts_are_kept_when_the_option_is_off()
+    {
+        var parsed = FileNameParser.Parse("Heat (Version longue) [Remaster] (1995).mkv", ignoreBracketed: false);
+
+        Assert.Equal("Heat Version longue Remaster", parsed.Title);
+        Assert.Equal(1995, parsed.Year);
+    }
+
     [Fact]
     public void Parts_and_imdb_ids_are_detected()
     {

@@ -27,6 +27,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         PlayerPath = settings.Get(Services.MediaContext.PlayerKey) ?? string.Empty;
         PlayerArgs = settings.Get(Services.MediaContext.PlayerArgsKey) ?? string.Empty;
         MarkSeenOnPlay = settings.Get(Services.MediaContext.MarkSeenOnPlayKey) != "false";
+        IgnoreBracketed = settings.Get(Services.MediaContext.IgnoreBracketedKey) != "false";
         var nfo = Services.NfoSettings.Load(settings);
         NfoReadOnScan = nfo.ReadOnScan;
         NfoWriteAfterMetadata = nfo.WriteAfterMetadata;
@@ -49,6 +50,9 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool MarkSeenOnPlay { get; set; }
+
+    [ObservableProperty]
+    public partial bool IgnoreBracketed { get; set; }
 
     [ObservableProperty]
     public partial bool NfoReadOnScan { get; set; }
@@ -123,6 +127,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         _settings.Set(Services.MediaContext.PlayerKey, NullIfBlank(PlayerPath));
         _settings.Set(Services.MediaContext.PlayerArgsKey, NullIfBlank(PlayerArgs));
         _settings.Set(Services.MediaContext.MarkSeenOnPlayKey, MarkSeenOnPlay ? "true" : "false");
+        _settings.Set(Services.MediaContext.IgnoreBracketedKey, IgnoreBracketed ? "true" : "false");
         _settings.Set(Services.NfoSettings.ReadKey, NfoReadOnScan ? "true" : "false");
         _settings.Set(Services.NfoSettings.WriteKey, NfoWriteAfterMetadata ? "true" : "false");
         _settings.Set(Services.NfoSettings.OverwriteKey, NfoOverwrite ? "true" : "false");

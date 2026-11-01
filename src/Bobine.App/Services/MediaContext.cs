@@ -10,4 +10,5 @@ public sealed record MediaContext(MediaFileRepository Files, LibraryImportServic
     public const string PlayerKey = "media.player";
     public const string PlayerArgsKey = "media.playerArgs";
     public const string MarkSeenOnPlayKey = "media.markSeenOnPlay";
+    public const string IgnoreBracketedKey = "scan.ignoreBracketed";
 }

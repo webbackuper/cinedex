@@ -23,6 +23,7 @@
     <TextBox Text="{Binding PlayerPath}" PlaceholderText="Lecteur externe (vide : lecteur par défaut du système)" />
     <TextBox Text="{Binding PlayerArgs}" PlaceholderText="Paramètres du lecteur, ex. --fullscreen %FILEPATH%" />
     <CheckBox Content="Marquer comme vu à la lecture depuis Bobine" IsChecked="{Binding MarkSeenOnPlay}" />
+    <CheckBox Content="Au scan, ignorer le contenu entre ( ) et [ ] dans les noms de fichiers (par défaut)" IsChecked="{Binding IgnoreBracketed}" />
     <TextBlock Text="Fichiers .nfo (format Kodi)" FontSize="16" FontWeight="SemiBold" Margin="0,12,0,0" />
     <CheckBox Content="Lire le .nfo au scan d'un dossier et compléter la fiche" IsChecked="{Binding NfoReadOnScan}" />
     <CheckBox Content="Créer ou compléter le .nfo après une mise à jour TMDb" IsChecked="{Binding NfoWriteAfterMetadata}" />

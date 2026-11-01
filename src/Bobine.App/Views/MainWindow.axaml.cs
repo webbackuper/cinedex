@@ -47,8 +47,8 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
     public Task<bool> EditSettingsAsync(SettingsViewModel settings) =>
         new SettingsWindow { DataContext = settings }.ShowDialog<bool>(this);
 
-    public Task<bool> AdvancedSearchAsync(AdvancedSearchViewModel search) =>
-        new AdvancedSearchWindow { DataContext = search }.ShowDialog<bool>(this);
+    public Task<bool> RuleSearchAsync(RuleSearchViewModel search) =>
+        new RuleSearchWindow { DataContext = search }.ShowDialog<bool>(this);
 
     public Task<bool> BulkEditAsync(BulkEditViewModel edit) =>
         new BulkEditWindow { DataContext = edit }.ShowDialog<bool>(this);

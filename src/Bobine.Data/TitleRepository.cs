@@ -96,6 +96,11 @@ public sealed partial class TitleRepository(CatalogDatabase database)
             AddCriteria(criteria, where, parameters);
         }
 
+        if (query.Rules is { IsEmpty: false } rules && RuleClause(rules, parameters) is { } rulesClause)
+        {
+            where.Add(rulesClause);
+        }
+
         if (where.Count > 0)
         {
             sql.Append(" WHERE ").AppendJoin(" AND ", where);

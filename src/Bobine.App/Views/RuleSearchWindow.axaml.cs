@@ -3,9 +3,9 @@ using Avalonia.Interactivity;
 
 namespace Bobine.App.Views;
 
-public sealed partial class AdvancedSearchWindow : Window
+public sealed partial class RuleSearchWindow : Window
 {
-    public AdvancedSearchWindow() => InitializeComponent();
+    public RuleSearchWindow() => InitializeComponent();
 
     private void OnSearch(object? sender, RoutedEventArgs e) => Close(true);
 

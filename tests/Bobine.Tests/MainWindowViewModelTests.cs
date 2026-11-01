@@ -104,9 +104,13 @@ public sealed class MainWindowViewModelTests : IDisposable
         _repo.Add(new NewTitle(TitleKind.Movie, "Old", 1950));
         _repo.Add(new NewTitle(TitleKind.Movie, "New", 2020));
         _vm.Load();
-        _dialogs.OnAdvancedSearch = search =>
+        _dialogs.OnRuleSearch = search =>
         {
-            search.YearFrom = "2000";
+            var row = search.Rules[0];
+            row.SelectedField = Bobine.Core.Titles.SearchFields.Find("year")!;
+            row.SelectedOperator = row.Operators.Single(o => o.Value == Bobine.Core.Titles.RuleOperator.GreaterOrEqual);
+            row.Value = "2000";
+            Assert.Equal("1 film correspond.", search.CountText);
             return true;
         };
 
@@ -162,11 +166,11 @@ public sealed class MainWindowViewModelTests : IDisposable
 
         public Task<bool> EditSettingsAsync(SettingsViewModel settings) => Task.FromResult(false);
 
-        public Func<AdvancedSearchViewModel, bool>? OnAdvancedSearch { get; set; }
+        public Func<RuleSearchViewModel, bool>? OnRuleSearch { get; set; }
 
         public Func<BulkEditViewModel, bool>? OnBulkEdit { get; set; }
 
-        public Task<bool> AdvancedSearchAsync(AdvancedSearchViewModel search) => Task.FromResult(OnAdvancedSearch?.Invoke(search) ?? false);
+        public Task<bool> RuleSearchAsync(RuleSearchViewModel search) => Task.FromResult(OnRuleSearch?.Invoke(search) ?? false);
 
         public Task<bool> BulkEditAsync(BulkEditViewModel edit) => Task.FromResult(OnBulkEdit?.Invoke(edit) ?? false);
 

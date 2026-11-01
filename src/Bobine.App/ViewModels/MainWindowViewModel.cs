@@ -252,7 +252,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             _loaded = false;
             SearchText = string.Empty;
             SelectedFilter = Filters[0];
-            Criteria = null;
+            Rules = null;
             _loaded = true;
         }
 
@@ -314,13 +314,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasCriteria))]
-    public partial SearchCriteria? Criteria { get; set; }
+    public partial RuleSearch? Rules { get; set; }
 
-    public bool HasCriteria => Criteria is { IsEmpty: false };
+    /// <summary>Une recherche multicritère est active (le bouton d'effacement apparaît).</summary>
+    public bool HasCriteria => Rules is { IsEmpty: false };
 
-    partial void OnCriteriaChanged(SearchCriteria? value) => Refresh();
+    partial void OnRulesChanged(RuleSearch? value) => Refresh();
 
-    private TitleQuery CurrentQuery => new(SearchText, SelectedFilter.Value, SelectedSort.Value, SortDescending, Criteria: Criteria);
+    private TitleQuery CurrentQuery => new(SearchText, SelectedFilter.Value, SelectedSort.Value, SortDescending, Rules: Rules);
 
     private IReadOnlyList<long> SelectedIds => SelectedTitles.Select(t => t.Id).ToList();
 
@@ -838,10 +839,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private async Task AdvancedSearchAsync()
     {
-        var search = new AdvancedSearchViewModel(Criteria, _titles.Genres(), _titles.Tags(), _titles.Groups(), _titles.Collections());
-        if (await _dialogs.AdvancedSearchAsync(search))
+        // Le décompte en direct suit le texte recherché et le filtre rapide en cours.
+        var search = new RuleSearchViewModel(Rules, _titles.Genres(), rules => _titles.Query(CurrentQuery with { Rules = rules }).Count);
+        if (await _dialogs.RuleSearchAsync(search))
         {
-            Criteria = search.Build();
+            Rules = search.Build();
         }
     }
 
@@ -850,7 +852,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         SearchText = string.Empty;
         SelectedFilter = Filters[0];
-        Criteria = null;
+        Rules = null;
     }
 
     public string CatalogName => _catalogs?.Current ?? AppPaths.DefaultCatalogName;

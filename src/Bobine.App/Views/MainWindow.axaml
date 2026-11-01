@@ -99,6 +99,13 @@
         </StackPanel>
 
         <StackPanel DockPanel.Dock="Bottom" Margin="8,8,8,14" Spacing="2">
+          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding AdvancedSearchCommand}"
+                  ToolTip.Tip="Chercher sur tous les champs : genre, notes, année, acteurs, MediaID… (Ctrl+Maj+F)">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <controls:Icon Kind="funnel" Width="18" Height="18" />
+              <TextBlock Text="Recherche multicritère" />
+            </StackPanel>
+          </Button>
           <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenPeopleCommand}" IsVisible="{Binding HasPeople}">
             <StackPanel Orientation="Horizontal" Spacing="10">
               <controls:Icon Kind="about" Width="18" Height="18" />
@@ -219,7 +226,7 @@
         </StackPanel>
         <DockPanel>
           <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
-            <Button Classes="tool" Command="{Binding AdvancedSearchCommand}" ToolTip.Tip="Recherche avancée (Ctrl+Maj+F)">
+            <Button Classes="tool" Command="{Binding AdvancedSearchCommand}" ToolTip.Tip="Recherche multicritère (Ctrl+Maj+F)">
               <controls:Icon Kind="funnel" />
             </Button>
             <Button Classes="tool" Command="{Binding ClearSearchCommand}" ToolTip.Tip="Tout afficher : efface recherche, filtre et critères (Échap)"

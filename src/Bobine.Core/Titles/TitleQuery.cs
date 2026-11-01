@@ -86,7 +86,8 @@ public sealed record TitleQuery(
     SortField Sort = SortField.Title,
     bool Descending = false,
     bool HideAdult = false,
-    SearchCriteria? Criteria = null)
+    SearchCriteria? Criteria = null,
+    RuleSearch? Rules = null)
 {
     public static TitleQuery Default { get; } = new();
 }

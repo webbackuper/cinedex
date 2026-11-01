@@ -15,7 +15,7 @@ public interface IDialogs
 
     Task<bool> EditSettingsAsync(SettingsViewModel settings);
 
-    Task<bool> AdvancedSearchAsync(AdvancedSearchViewModel search);
+    Task<bool> RuleSearchAsync(RuleSearchViewModel search);
 
     Task<bool> BulkEditAsync(BulkEditViewModel edit);
 

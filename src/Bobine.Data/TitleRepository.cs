@@ -420,6 +420,20 @@ public sealed partial class TitleRepository(CatalogDatabase database)
             .ToList();
     }
 
+    /// <summary>Emprunteurs déjà connus, du plus récent au plus ancien (suggestions de saisie).</summary>
+    public IReadOnlyList<string> Borrowers()
+    {
+        using var connection = database.Open();
+        return connection.Query<string>("SELECT borrower FROM loan GROUP BY borrower COLLATE NOCASE ORDER BY max(id) DESC LIMIT 200;").ToList();
+    }
+
+    /// <summary>Efface une ligne de l'historique des prêts (saisie erronée).</summary>
+    public void DeleteLoan(long loanId)
+    {
+        using var connection = database.Open();
+        connection.Execute("DELETE FROM loan WHERE id = @loanId;", new { loanId });
+    }
+
     /// <summary>Dernier emprunteur saisi, pour pré-remplir le prochain prêt.</summary>
     public string? LastBorrower()
     {

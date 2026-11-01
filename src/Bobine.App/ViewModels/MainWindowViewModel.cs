@@ -403,7 +403,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 Status = $"Partie {part} rattachée à « {current.Title} »";
                 return MediaTextOf(current.Id);
             },
-            _media?.People);
+            _media?.People,
+            new LoanEditorViewModel(_titles, current.Id));
         var editor = new TitleEditorViewModel(
             current, _titles.Genres(), _titles.RefItems("medium"), _titles.RefItems("case"), _titles.RefItems("version"), _titles.Collections(), extras);
         // La fenêtre d'édition valide elle-même (TryBuild) avant de se fermer sur « Enregistrer ».
@@ -424,8 +425,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
         else
         {
-            // Infos techniques relues ou partie ajoutée depuis la fiche, même sans enregistrer.
-            OnSelectionChanged();
+            // Infos techniques relues, partie ajoutée ou prêt modifié depuis la fiche, même sans enregistrer.
+            Refresh(selectId: current.Id);
         }
     }
 

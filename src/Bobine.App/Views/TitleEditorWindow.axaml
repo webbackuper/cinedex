@@ -154,6 +154,7 @@
 
       <TabItem Header="Exemplaire">
         <ScrollViewer>
+          <StackPanel>
           <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" Margin="0,8">
             <Grid.Styles>
               <Style Selector="Grid > :is(Control)">
@@ -180,9 +181,48 @@
             <TextBlock Classes="label" Grid.Row="7" Text="Prix" />
             <TextBox Grid.Row="7" Grid.Column="1" Width="100" HorizontalAlignment="Left" Text="{Binding Price}" />
             <CheckBox Grid.Row="8" Grid.Column="1" Content="3D" IsChecked="{Binding Is3D}" />
-            <TextBlock Classes="label" Grid.Row="9" Text="Prêt" />
-            <TextBlock Grid.Row="9" Grid.Column="1" Text="{Binding LoanText}" VerticalAlignment="Center" TextWrapping="Wrap" />
           </Grid>
+
+          <!-- Prêt : enregistré aussitôt, indépendamment du bouton Enregistrer. -->
+          <Border Margin="0,8,0,8" Padding="14,12" CornerRadius="10" Background="{DynamicResource BobineSurfaceAlt}"
+                  IsVisible="{Binding $parent[Window].((vm:TitleEditorViewModel)DataContext).HasLoans}" DataContext="{Binding Loans}" x:DataType="vm:LoanEditorViewModel">
+            <StackPanel Spacing="10">
+              <TextBlock Text="Prêt" FontWeight="SemiBold" FontSize="15" />
+              <TextBlock Text="{Binding StatusText}" FontWeight="SemiBold" Foreground="{DynamicResource BobineAccent}" />
+
+              <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding !IsLoaned}">
+                <AutoCompleteBox Width="240" Text="{Binding BorrowerText}" ItemsSource="{Binding Borrowers}"
+                                 FilterMode="ContainsOrdinal" Watermark="Emprunteur" />
+                <TextBlock Text="le" VerticalAlignment="Center" />
+                <CalendarDatePicker SelectedDate="{Binding LoanDate}" Width="150" />
+                <Button Classes="accent" Content="Prêter" Command="{Binding LendCommand}" />
+              </StackPanel>
+
+              <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsLoaned}">
+                <TextBlock Text="Rendu le" VerticalAlignment="Center" />
+                <CalendarDatePicker SelectedDate="{Binding ReturnDate}" Width="150" />
+                <Button Classes="accent" Content="Marquer comme rendu" Command="{Binding ReturnCommand}" />
+              </StackPanel>
+
+              <TextBlock Text="{Binding Error}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" TextWrapping="Wrap"
+                         IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+              <TextBlock Text="Historique" FontWeight="SemiBold" Margin="0,6,0,0" IsVisible="{Binding HasHistory}" />
+              <TextBlock Text="Aucun prêt enregistré pour ce titre." Opacity="0.7" IsVisible="{Binding !HasHistory}" />
+              <ItemsControl ItemsSource="{Binding History}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:LoanLine">
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                      <TextBlock Text="{Binding Text}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                      <Button Grid.Column="1" Classes="tool" Content="Effacer" Padding="8,2" ToolTip.Tip="Effacer cette ligne (saisie erronée)"
+                              Command="{Binding $parent[ItemsControl].((vm:LoanEditorViewModel)DataContext).DeleteCommand}" CommandParameter="{Binding}" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+          </StackPanel>
         </ScrollViewer>
       </TabItem>
 

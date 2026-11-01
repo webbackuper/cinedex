@@ -29,7 +29,8 @@ public sealed record TitleEditorExtras(
     string? MediaText = null,
     Func<Task<string?>>? RefreshMedia = null,
     Func<string, Task<string?>>? AddFile = null,
-    PeopleService? People = null);
+    PeopleService? People = null,
+    LoanEditorViewModel? Loans = null);
 
 /// <summary>
 /// Copie éditable d'une fiche. Les nombres sont saisis en texte et validés à l'enregistrement,
@@ -54,6 +55,7 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         _refreshMedia = extras.RefreshMedia;
         _addFile = extras.AddFile;
         _people = extras.People;
+        Loans = extras.Loans;
         PosterPath = extras.PosterPath;
         Cast = extras.Cast ?? [];
         CrewText = extras.CrewText ?? string.Empty;
@@ -177,9 +179,10 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         ? "Jamais vu"
         : $"Vu {_original.ViewCount} fois" + (_original.LastSeenAt is { } last ? $", dernière fois le {last.ToLocalTime():d}" : string.Empty);
 
-    public string LoanText => _original.CurrentLoan is { } loan
-        ? $"Prêté à {loan.Borrower} depuis le {loan.LoanedAt.ToLocalTime():d}"
-        : "Disponible (prêt et retour depuis le panneau de droite)";
+    /// <summary>Gestion du prêt dans l'onglet Exemplaire (absente si la fiche est ouverte sans catalogue).</summary>
+    public LoanEditorViewModel? Loans { get; }
+
+    public bool HasLoans => Loans is not null;
 
     /// <summary>Durée saisie en minutes, affichée aussi en heures : « 112 » donne « soit 1 h 52 ».</summary>
     public string RuntimeText =>

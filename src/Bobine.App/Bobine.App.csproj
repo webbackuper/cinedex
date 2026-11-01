@@ -27,5 +27,6 @@
     <ProjectReference Include="..\Bobine.Core\Bobine.Core.csproj" />
     <ProjectReference Include="..\Bobine.Data\Bobine.Data.csproj" />
     <ProjectReference Include="..\Bobine.Metadata\Bobine.Metadata.csproj" />
+    <ProjectReference Include="..\Bobine.Media\Bobine.Media.csproj" />
   </ItemGroup>
 </Project>

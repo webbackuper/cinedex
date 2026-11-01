@@ -1,0 +1,160 @@
+using Bobine.Media;
+
+namespace Bobine.Tests;
+
+public sealed class MediaTests
+{
+    [Theory]
+    [InlineData("Heat.1995.1080p.BluRay.x264-GRP.mkv", "Heat", 1995, "1080p")]
+    [InlineData("Heat (1995).mkv", "Heat", 1995, null)]
+    [InlineData("Blade Runner 2049 (2017) [2160p].mkv", "Blade Runner 2049", 2017, "2160p")]
+    [InlineData("2001 l'odyssée de l'espace 1968.avi", "2001 l'odyssée de l'espace", 1968, null)]
+    [InlineData("Le.Fabuleux.Destin.d'Amelie.Poulain.FRENCH.DVDRip.avi", "Le Fabuleux Destin d'Amelie Poulain", null, null)]
+    [InlineData("The_Thing_1982_720p.mp4", "The Thing", 1982, "720p")]
+    public void Movie_names_are_parsed(string file, string title, int? year, string? resolution)
+    {
+        var parsed = FileNameParser.Parse(file);
+
+        Assert.Equal(title, parsed.Title);
+        Assert.Equal(year, parsed.Year);
+        Assert.Equal(resolution, parsed.Resolution);
+        Assert.False(parsed.IsEpisode);
+    }
+
+    [Theory]
+    [InlineData("Breaking.Bad.S01E02.720p.mkv", "Breaking Bad", 1, 2)]
+    [InlineData("Dark - 2x05 - Truths.mkv", "Dark", 2, 5)]
+    [InlineData("The Office S09E23.mp4", "The Office", 9, 23)]
+    public void Episode_names_follow_kodi_conventions(string file, string title, int season, int episode)
+    {
+        var parsed = FileNameParser.Parse(file);
+
+        Assert.Equal(title, parsed.Title);
+        Assert.Equal(season, parsed.Season);
+        Assert.Equal(episode, parsed.Episode);
+    }
+
+    [Fact]
+    public void Parts_and_imdb_ids_are_detected()
+    {
+        var parsed = FileNameParser.Parse("Lawrence of Arabia (1962) CD2 tt0056172.avi");
+
+        Assert.Equal("Lawrence of Arabia", parsed.Title);
+        Assert.Equal(2, parsed.Part);
+        Assert.Equal("tt0056172", parsed.ImdbId);
+    }
+
+    [Fact]
+    public void Kodi_nfo_is_read()
+    {
+        var info = NfoReader.ReadXml("""
+            <movie><title>Heat</title><year>1995</year>
+            <uniqueid type="imdb">tt0113277</uniqueid><uniqueid type="tmdb">949</uniqueid></movie>
+            """);
+
+        Assert.Equal(new NfoInfo("Heat", 1995, "tt0113277", 949), info);
+    }
+
+    [Fact]
+    public void Nfo_with_external_entities_is_refused()
+    {
+        var info = NfoReader.ReadXml("""
+            <?xml version="1.0"?>
+            <!DOCTYPE movie [<!ENTITY xxe SYSTEM "file:///c:/windows/win.ini">]>
+            <movie><title>&xxe;</title></movie>
+            """);
+
+        Assert.Null(info);
+    }
+
+    [Fact]
+    public void Plain_text_nfo_with_links_is_read()
+    {
+        var info = NfoReader.ReadText("Release info\nhttps://www.imdb.com/title/tt0113277/\nhttps://www.themoviedb.org/movie/949-heat");
+
+        Assert.Equal("tt0113277", info!.ImdbId);
+        Assert.Equal(949, info.TmdbId);
+    }
+
+    [Fact]
+    public void Scanner_finds_videos_skips_samples_small_and_known_files()
+    {
+        using var temp = new TempDirectory();
+        var films = Directory.CreateDirectory(Path.Combine(temp.Path, "Films", "Heat (1995)")).FullName;
+        Write(Path.Combine(films, "movie.mkv"), 2048);
+        Write(Path.Combine(films, "sample.mkv"), 2048);
+        File.WriteAllText(Path.Combine(films, "movie.nfo"), "https://www.imdb.com/title/tt0113277/");
+        File.WriteAllBytes(Path.Combine(films, "folder.jpg"), [0xFF, 0xD8, 0xFF]);
+        var other = Directory.CreateDirectory(Path.Combine(temp.Path, "Films", "Divers")).FullName;
+        Write(Path.Combine(other, "Alien.1979.mkv"), 2048);
+        Write(Path.Combine(other, "Tiny.2000.mkv"), 10);
+        Write(Path.Combine(other, "notes.txt"), 4096);
+        var dvd = Directory.CreateDirectory(Path.Combine(temp.Path, "Films", "Le Samourai 1967", "VIDEO_TS")).FullName;
+        Write(Path.Combine(dvd, "VIDEO_TS.IFO"), 1);
+        Write(Path.Combine(dvd, "VTS_01_1.VOB"), 4096);
+
+        var options = new ScanOptions { MinimumBytes = 1024 };
+        var all = LibraryScanner.Scan(temp.Path, options, cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Equal(3, all.Count);
+        var heat = all.Single(c => c.FullPath.EndsWith("movie.mkv", StringComparison.Ordinal));
+        Assert.Equal("Heat", heat.BestTitle);
+        Assert.Equal(1995, heat.BestYear);
+        Assert.Equal("tt0113277", heat.ImdbId);
+        Assert.EndsWith("folder.jpg", heat.LocalCoverPath, StringComparison.Ordinal);
+        Assert.Contains(all, c => c.BestTitle == "Le Samourai" && c.BestYear == 1967);
+
+        var known = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { heat.FullPath };
+        Assert.Equal(2, LibraryScanner.Scan(temp.Path, options, known, TestContext.Current.CancellationToken).Count);
+    }
+
+    [Fact]
+    public void Ffprobe_output_is_parsed()
+    {
+        var props = MediaProbe.Parse("""
+            {"streams":[
+              {"codec_type":"video","codec_name":"hevc","width":3840,"height":2160,"avg_frame_rate":"24000/1001",
+               "pix_fmt":"yuv420p10le","color_transfer":"smpte2084","display_aspect_ratio":"16:9",
+               "side_data_list":[{"side_data_type":"DOVI configuration record"}]},
+              {"codec_type":"video","codec_name":"mjpeg","disposition":{"attached_pic":1}},
+              {"codec_type":"audio","codec_name":"truehd","channels":8,"tags":{"language":"eng"}},
+              {"codec_type":"audio","codec_name":"ac3","channels":6,"tags":{"language":"fre"}},
+              {"codec_type":"subtitle","tags":{"language":"fre"}},
+              {"codec_type":"subtitle","tags":{"language":"und"}}],
+             "format":{"format_name":"matroska,webm","duration":"10234.56"}}
+            """)!;
+
+        Assert.Equal("matroska", props.Container);
+        Assert.Equal("hevc", props.VideoCodec);
+        Assert.Equal(2160, props.Height);
+        Assert.Equal(23.976, props.FrameRate);
+        Assert.Equal(10, props.BitDepth);
+        Assert.Equal(["HDR10", "Dolby Vision"], props.HdrFormats);
+        Assert.Equal(10235, props.DurationSeconds);
+        Assert.Equal(2, props.Audio.Count);
+        Assert.Equal(["fre"], props.SubtitleLanguages);
+    }
+
+    [Theory]
+    [InlineData(null, new[] { "C:\\Films\\Mon film.mkv" })]
+    [InlineData("--fullscreen %FILEPATH%", new[] { "--fullscreen", "C:\\Films\\Mon film.mkv" })]
+    [InlineData("--title \"Mon titre\"", new[] { "--title", "Mon titre", "C:\\Films\\Mon film.mkv" })]
+    [InlineData("--x=%FILEPATH% & calc", new[] { "--x=C:\\Films\\Mon film.mkv", "&", "calc" })]
+    public void Player_arguments_keep_the_path_whole(string? parameters, string[] expected)
+    {
+        Assert.Equal(expected, Player.BuildArguments(parameters, "C:\\Films\\Mon film.mkv"));
+    }
+
+    [Fact]
+    public void Player_refuses_non_video_files()
+    {
+        using var temp = new TempDirectory();
+        var script = Path.Combine(temp.Path, "evil.bat");
+        File.WriteAllText(script, "echo");
+
+        Assert.Throws<InvalidOperationException>(() => Player.Play(script));
+        Assert.Throws<FileNotFoundException>(() => Player.Play(Path.Combine(temp.Path, "absent.mkv")));
+    }
+
+    private static void Write(string path, int bytes) => File.WriteAllBytes(path, new byte[bytes]);
+}

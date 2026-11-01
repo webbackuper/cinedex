@@ -15,7 +15,8 @@ public sealed class MetadataService(
     SeriesRepository? series = null,
     NfoService? nfo = null,
     RatingsService? ratings = null,
-    SettingsStore? settings = null)
+    SettingsStore? settings = null,
+    ApiGate? gate = null)
 {
     public const string MaxActorsKey = "metadata.maxActors";
     public const int DefaultMaxActors = 25;
@@ -124,6 +125,7 @@ public sealed class MetadataService(
     public async Task<BatchResult> UpdateTitlesAsync(IReadOnlyList<TitleDetail> targets, ImportOptions options, IProgress<string>? progress, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(targets);
+        gate?.Reset();
         int updated = 0, skipped = 0, failed = 0, notFound = 0, duplicates = 0;
         var messages = new List<string>();
         for (var i = 0; i < targets.Count; i++)
@@ -134,6 +136,14 @@ public sealed class MetadataService(
             if (title.IsLocked)
             {
                 skipped++;
+                continue;
+            }
+
+            if (gate?.IsDisabled(ExternalApi.Tmdb) == true)
+            {
+                // TMDb écarté après sa limite : on complète au moins les notes (OMDb / fichier IMDb) si l'identifiant est connu.
+                skipped++;
+                await EnrichRatingsAsync(title.Id, cancellationToken).ConfigureAwait(false);
                 continue;
             }
 
@@ -164,6 +174,13 @@ public sealed class MetadataService(
             {
                 duplicates++;
                 messages.Add($"Déjà au catalogue sous une autre entrée : {title.Title}");
+            }
+            catch (Exception ex) when (gate is not null && ex is TmdbRateLimitException or TmdbAuthenticationException)
+            {
+                // Limite TMDb ou jeton refusé : l'utilisateur choisit de terminer sans TMDb ou d'interrompre.
+                await gate.ReportLimitAsync(ExternalApi.Tmdb, ex.Message).ConfigureAwait(false);
+                messages.Add($"TMDb écarté : {ex.Message}");
+                i--;
             }
             catch (Exception ex) when (ex is TmdbUnavailableException or KeyNotFoundException or HttpRequestException)
             {

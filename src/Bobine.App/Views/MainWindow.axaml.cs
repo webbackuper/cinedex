@@ -1,12 +1,13 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Bobine.App.Services;
 using Bobine.App.ViewModels;
 using Bobine.Core.Metadata;
 
 namespace Bobine.App.Views;
 
-public sealed partial class MainWindow : Window, IDialogs
+public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
 {
     public MainWindow()
     {
@@ -57,6 +58,24 @@ public sealed partial class MainWindow : Window, IDialogs
 
     public Task ManageCatalogsAsync(CatalogsViewModel catalogs) =>
         new CatalogsWindow { DataContext = catalogs }.ShowDialog(this);
+
+    /// <summary>Limite d'API atteinte pendant un import : continuer sans elle ou interrompre.</summary>
+    public Task<bool> ContinueWithoutAsync(ExternalApi api, string reason, string consequence)
+    {
+        var name = api switch
+        {
+            ExternalApi.Tmdb => "TMDb",
+            ExternalApi.Omdb => "OMDb",
+            _ => "le fichier des notes IMDb",
+        };
+        return Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => MessageWindow.ShowAsync(
+            this,
+            $"Limite atteinte : {name}",
+            $"{reason}\n\nSi vous continuez sans {name} : {consequence}",
+            confirm: true,
+            okLabel: $"Continuer sans {name}",
+            cancelLabel: "Interrompre"));
+    }
 
     public Task<bool> ShowSeriesAsync(SeriesViewModel series) =>
         new SeriesWindow { DataContext = series }.ShowDialog<bool>(this);

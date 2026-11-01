@@ -36,7 +36,8 @@ public sealed class LibraryImportService(
     Func<MediaProbe> probeFactory,
     ILogger<LibraryImportService> logger,
     SeriesRepository? series = null,
-    NfoService? nfo = null)
+    NfoService? nfo = null,
+    ApiGate? gate = null)
 {
     public void RememberFolder(string folder) => files.AddScanRoot(folder, "movies");
 
@@ -105,6 +106,7 @@ public sealed class LibraryImportService(
         int added = 0, linked = 0, manual = 0, episodes = 0, failed = 0, fromNfo = 0;
         var readNfo = nfo is not null && options.ReadNfo && nfo.Settings.ReadOnScan;
         var messages = new List<string>();
+        gate?.Reset();
         var useTmdb = options.UseTmdb && metadataService is not null;
         var probe = options.ReadTechnicalProperties ? probeFactory() : null;
         if (probe is { IsAvailable: false })
@@ -174,10 +176,15 @@ public sealed class LibraryImportService(
                     nfo.WriteForTitle(titleId);
                 }
             }
-            catch (TmdbAuthenticationException ex)
+            catch (Exception ex) when (ex is TmdbAuthenticationException or TmdbRateLimitException)
             {
-                // Sans jeton valide, on continue sans TMDb plutôt que d'échouer sur chaque fichier.
-                messages.Add(ex.Message);
+                // Jeton refusé ou limite atteinte : l'utilisateur choisit de terminer l'import sans TMDb ou d'interrompre.
+                if (gate is not null)
+                {
+                    await gate.ReportLimitAsync(ExternalApi.Tmdb, ex.Message).ConfigureAwait(false);
+                }
+
+                messages.Add($"TMDb écarté : {ex.Message}");
                 useTmdb = false;
                 i--;
             }
@@ -211,6 +218,13 @@ public sealed class LibraryImportService(
                         files.AttachEpisode(episodeId, episode.FullPath, episode.SizeBytes, episode.Parsed.Part ?? 1);
                         episodes++;
                     }
+                }
+                catch (Exception ex) when (ex is TmdbAuthenticationException or TmdbRateLimitException && gate is not null)
+                {
+                    await gate!.ReportLimitAsync(ExternalApi.Tmdb, ex.Message).ConfigureAwait(false);
+                    useTmdb = false;
+                    failed += group.Count();
+                    messages.Add($"{group.Key} : TMDb écarté ({ex.Message}), à relancer avec « Mettre à jour via TMDb ».");
                 }
                 catch (Exception ex) when (ex is IOException or TmdbUnavailableException or TmdbAuthenticationException or HttpRequestException or KeyNotFoundException)
                 {

@@ -24,7 +24,10 @@ public sealed class TmdbOptions
 
 public sealed class TmdbAuthenticationException(string message) : Exception(message);
 
-public sealed class TmdbUnavailableException(string message, Exception? inner = null) : Exception(message, inner);
+public class TmdbUnavailableException(string message, Exception? inner = null) : Exception(message, inner);
+
+/// <summary>Limite de débit de TMDb toujours atteinte après les nouveaux essais.</summary>
+public sealed class TmdbRateLimitException(string message) : TmdbUnavailableException(message);
 
 /// <summary>
 /// Client de l'API TMDb v3. Le jeton est envoyé en en-tête Authorization (jamais dans l'URL),
@@ -263,6 +266,11 @@ public sealed partial class TmdbClient
                     _logger.LogWarning("TMDb a répondu {Status}, nouvel essai dans {Wait}", (int)response.StatusCode, wait);
                     await Task.Delay(wait < TimeSpan.FromSeconds(30) ? wait : TimeSpan.FromSeconds(30), cancellationToken).ConfigureAwait(false);
                     continue;
+                }
+
+                if (response.StatusCode == HttpStatusCode.TooManyRequests)
+                {
+                    throw new TmdbRateLimitException("TMDb limite le nombre de requêtes et refuse encore après trois essais espacés.");
                 }
 
                 if (response.StatusCode == HttpStatusCode.NotFound)

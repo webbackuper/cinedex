@@ -48,7 +48,7 @@ public sealed class App : Application
     private void OpenCatalog(string name)
     {
         var previous = _services;
-        _services = ConfigureServices(_paths!, name, _serilog!);
+        _services = ConfigureServices(_paths!, name, _serilog!, _window);
         previous?.Dispose();
         SqliteConnection.ClearAllPools();
         new CatalogManager(_paths!).SetCurrent(name);
@@ -88,12 +88,13 @@ public sealed class App : Application
         return serilog;
     }
 
-    internal static ServiceProvider ConfigureServices(AppPaths paths, string catalog, Serilog.ILogger serilog)
+    internal static ServiceProvider ConfigureServices(AppPaths paths, string catalog, Serilog.ILogger serilog, IApiLimitPrompt? prompt = null)
     {
         paths.EnsureCreated();
         var services = new ServiceCollection();
         services.AddLogging(builder => builder.AddSerilog(serilog, dispose: false));
         services.AddSingleton(paths);
+        services.AddSingleton(_ => new ApiGate(prompt));
         services.AddSingleton(sp =>
         {
             var database = new CatalogDatabase(paths.CatalogDatabasePath(catalog), sp.GetRequiredService<ILogger<CatalogDatabase>>());
@@ -147,7 +148,8 @@ public sealed class App : Application
                 sp.GetRequiredService<SettingsStore>().Get(MediaContext.MediaInfoKey)),
             sp.GetRequiredService<ILogger<LibraryImportService>>(),
             sp.GetRequiredService<SeriesRepository>(),
-            sp.GetRequiredService<NfoService>()));
+            sp.GetRequiredService<NfoService>(),
+            sp.GetRequiredService<ApiGate>()));
         services.AddSingleton(sp => new MediaContext(
             sp.GetRequiredService<MediaFileRepository>(),
             sp.GetRequiredService<LibraryImportService>(),
@@ -155,7 +157,8 @@ public sealed class App : Application
             sp.GetRequiredService<NfoService>(),
             sp.GetRequiredService<RatingsService>(),
             sp.GetRequiredService<SeriesRepository>(),
-            sp.GetRequiredService<PeopleService>()));
+            sp.GetRequiredService<PeopleService>(),
+            sp.GetRequiredService<ApiGate>()));
         return services.BuildServiceProvider();
     }
 }

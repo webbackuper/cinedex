@@ -138,6 +138,11 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, b
         {
             await action(_cancel.Token);
         }
+        catch (ApiLimitAbortedException ex)
+        {
+            Message = ex.Message + " Les fichiers déjà traités restent dans le catalogue.";
+            Imported = true;
+        }
         catch (OperationCanceledException)
         {
             Message = "Interrompu.";

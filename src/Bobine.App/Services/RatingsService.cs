@@ -19,11 +19,10 @@ public sealed class RatingsService(
     TitleRepository titles,
     MetadataRepository metadata,
     SettingsStore settings,
-    ILogger<RatingsService> logger)
+    ILogger<RatingsService> logger,
+    ApiGate? gate = null)
 {
     public const string UseDatasetKey = "ratings.useImdbDataset";
-
-    private bool _omdbExhausted;
 
     public bool UseDataset => settings.Get(UseDatasetKey) != "false";
 
@@ -37,7 +36,7 @@ public sealed class RatingsService(
         }
 
         ExternalRatings? ratings = null;
-        if (!_omdbExhausted)
+        if (gate?.IsDisabled(ExternalApi.Omdb) != true)
         {
             try
             {
@@ -45,13 +44,16 @@ public sealed class RatingsService(
             }
             catch (OmdbException ex)
             {
-                // Quota épuisé ou clé refusée : inutile d'insister pour les titres suivants de la session.
-                _omdbExhausted = ex.IsQuota || ex.IsAuth;
                 logger.LogWarning("OMDb : {Message}", ex.Message);
+                // Quota épuisé ou clé refusée : l'utilisateur choisit de continuer sans OMDb ou d'interrompre.
+                if ((ex.IsQuota || ex.IsAuth) && gate is not null)
+                {
+                    await gate.ReportLimitAsync(ExternalApi.Omdb, ex.Message).ConfigureAwait(false);
+                }
             }
         }
 
-        if (ratings?.ImdbRating is null && UseDataset)
+        if (ratings?.ImdbRating is null && UseDataset && gate?.IsDisabled(ExternalApi.ImdbDataset) != true)
         {
             try
             {
@@ -64,6 +66,10 @@ public sealed class RatingsService(
             catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidDataException)
             {
                 logger.LogWarning(ex, "Fichier des notes IMDb indisponible");
+                if (gate is not null)
+                {
+                    await gate.ReportLimitAsync(ExternalApi.ImdbDataset, "Le fichier officiel des notes IMDb est indisponible : " + ex.Message).ConfigureAwait(false);
+                }
             }
         }
 

@@ -550,9 +550,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         IsBusy = true;
         Status = "Connexion à TMDb...";
+        _media?.Gate?.Reset();
         try
         {
             await action();
+        }
+        catch (ApiLimitAbortedException ex)
+        {
+            Status = ex.Message;
+            Refresh(selectIds: SelectedIds);
         }
         catch (TmdbAuthenticationException ex)
         {

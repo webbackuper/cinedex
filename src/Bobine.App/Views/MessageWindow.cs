@@ -7,9 +7,9 @@ namespace Bobine.App.Views;
 /// <summary>Boîte de message ou de confirmation simple, construite en code.</summary>
 internal static class MessageWindow
 {
-    public static async Task<bool> ShowAsync(Window owner, string title, string message, bool confirm)
+    public static async Task<bool> ShowAsync(Window owner, string title, string message, bool confirm, string? okLabel = null, string? cancelLabel = null)
     {
-        var ok = new Button { Content = confirm ? "Confirmer" : "Fermer", IsDefault = true, Classes = { "accent" } };
+        var ok = new Button { Content = okLabel ?? (confirm ? "Confirmer" : "Fermer"), IsDefault = true, Classes = { "accent" } };
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right };
         var window = new Window
         {
@@ -31,7 +31,7 @@ internal static class MessageWindow
         };
         if (confirm)
         {
-            var cancel = new Button { Content = "Annuler", IsCancel = true, Classes = { "tool" } };
+            var cancel = new Button { Content = cancelLabel ?? "Annuler", IsCancel = true, Classes = { "tool" } };
             cancel.Click += (_, _) => window.Close(false);
             buttons.Children.Add(cancel);
         }

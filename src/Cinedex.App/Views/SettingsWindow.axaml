@@ -43,6 +43,11 @@
               <TextBlock Text="Thème" VerticalAlignment="Center" />
               <ComboBox ItemsSource="{Binding ThemeChoices}" SelectedItem="{Binding SelectedTheme}" MinWidth="200" />
             </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding CanChooseTheme}">
+              <TextBlock Text="Fenêtre au démarrage" VerticalAlignment="Center" />
+              <ComboBox ItemsSource="{Binding StartupChoices}" SelectedItem="{Binding SelectedStartup}" MinWidth="300" />
+            </StackPanel>
+            <TextBlock Classes="hint" Text="F11 bascule à tout moment entre plein écran et fenêtre." />
             <TextBlock Classes="h" Text="Contenu" />
             <CheckBox Content="Masquer les titres marqués « contenu pour adultes » dans la liste" IsChecked="{Binding HideAdult}" />
             <TextBlock Classes="h" Text="Données" />

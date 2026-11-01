@@ -33,6 +33,7 @@ public sealed class App : Application
             _serilog = CreateLogger(_paths);
             Services.Appearance.Apply(Services.Appearance.Load(_paths.DataRoot));
             _window = new MainWindow();
+            _window.ApplyStartupPlacement(_paths.DataRoot);
             OpenCatalog(new CatalogManager(_paths).Current);
             desktop.MainWindow = _window;
             desktop.ShutdownRequested += (_, _) =>

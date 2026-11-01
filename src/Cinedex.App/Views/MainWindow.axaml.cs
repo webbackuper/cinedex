@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -9,9 +10,17 @@ namespace Cinedex.App.Views;
 
 public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
 {
+    private string? _dataRoot;
+    private WindowState _beforeFullScreen = WindowState.Maximized;
+
     public MainWindow()
     {
         InitializeComponent();
+        KeyBindings.Add(new KeyBinding
+        {
+            Gesture = new KeyGesture(Key.F11),
+            Command = new CommunityToolkit.Mvvm.Input.RelayCommand(ToggleFullScreen),
+        });
         KeyBindings.Add(new KeyBinding
         {
             Gesture = new KeyGesture(Key.F, KeyModifiers.Control),
@@ -26,6 +35,77 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
                 NewTitleBox.Focus();
             }),
         });
+    }
+
+    /// <summary>
+    /// Taille au lancement selon les réglages : agrandie à l'écran (par défaut), plein écran, ou comme à la dernière
+    /// fermeture si cette position est encore sur un écran branché. À appeler avant l'affichage de la fenêtre.
+    /// </summary>
+    public void ApplyStartupPlacement(string dataRoot)
+    {
+        _dataRoot = dataRoot;
+        var placement = WindowPlacement.Load(dataRoot);
+        switch (placement.Mode)
+        {
+            case StartupWindowMode.FullScreen:
+                WindowState = WindowState.FullScreen;
+                break;
+            case StartupWindowMode.LastSize when placement is { Width: > 0, Height: > 0, X: { } x, Y: { } y }:
+                WindowStartupLocation = WindowStartupLocation.Manual;
+                Width = Math.Max(MinWidth, placement.Width.Value);
+                Height = Math.Max(MinHeight, placement.Height.Value);
+                Position = new PixelPoint(x, y);
+                Opened += (_, _) =>
+                {
+                    // Écran débranché depuis : on revient au centre de l'écran principal.
+                    if (Screens.All.All(s => !s.WorkingArea.Contains(new PixelPoint(x + 40, y + 20))) && Screens.Primary is { } screen)
+                    {
+                        Position = new PixelPoint(
+                            screen.WorkingArea.X + Math.Max(0, (screen.WorkingArea.Width - (int)(Width * screen.Scaling)) / 2),
+                            screen.WorkingArea.Y + Math.Max(0, (screen.WorkingArea.Height - (int)(Height * screen.Scaling)) / 2));
+                    }
+                };
+                WindowState = placement.WasMaximized ? WindowState.Maximized : WindowState.Normal;
+                break;
+            default:
+                WindowState = WindowState.Maximized;
+                break;
+        }
+
+        Closing += (_, _) => RememberPlacement();
+    }
+
+    private void RememberPlacement()
+    {
+        if (_dataRoot is null)
+        {
+            return;
+        }
+
+        var previous = WindowPlacement.Load(_dataRoot);
+        var normal = WindowState == WindowState.Normal;
+        (previous with
+        {
+            WasMaximized = WindowState != WindowState.Normal,
+            X = normal ? Position.X : previous.X,
+            Y = normal ? Position.Y : previous.Y,
+            Width = normal ? Width : previous.Width,
+            Height = normal ? Height : previous.Height,
+        }).Save(_dataRoot);
+    }
+
+    /// <summary>F11 : plein écran, puis retour à l'état précédent.</summary>
+    private void ToggleFullScreen()
+    {
+        if (WindowState == WindowState.FullScreen)
+        {
+            WindowState = _beforeFullScreen;
+        }
+        else
+        {
+            _beforeFullScreen = WindowState;
+            WindowState = WindowState.FullScreen;
+        }
     }
 
     public async Task<bool> EditTitleAsync(TitleEditorViewModel editor)

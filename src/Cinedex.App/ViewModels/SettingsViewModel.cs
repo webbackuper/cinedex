@@ -42,6 +42,13 @@ public sealed partial class SettingsViewModel : ObservableObject
         // Général : apparence commune à tous les catalogues (si l'emplacement des données est connu).
         ThemeChoices = [new(AppTheme.System, "Comme le système"), new(AppTheme.Light, "Clair"), new(AppTheme.Dark, "Sombre")];
         SelectedTheme = ThemeChoices.Single(c => c.Value == (dataRoot is null ? AppTheme.System : Appearance.Load(dataRoot)));
+        StartupChoices =
+        [
+            new(StartupWindowMode.Maximized, "Agrandie à la taille de l'écran"),
+            new(StartupWindowMode.FullScreen, "Plein écran (F11 pour en sortir)"),
+            new(StartupWindowMode.LastSize, "Taille et position de la dernière fois"),
+        ];
+        SelectedStartup = StartupChoices.Single(c => c.Value == (dataRoot is null ? StartupWindowMode.Maximized : WindowPlacement.Load(dataRoot).Mode));
 
         // Bandeau gauche.
         var display = DisplaySettings.Load(settings);
@@ -89,6 +96,11 @@ public sealed partial class SettingsViewModel : ObservableObject
     public partial Choice<AppTheme> SelectedTheme { get; set; }
 
     public bool CanChooseTheme => _dataRoot is not null;
+
+    public IReadOnlyList<Choice<StartupWindowMode>> StartupChoices { get; }
+
+    [ObservableProperty]
+    public partial Choice<StartupWindowMode> SelectedStartup { get; set; }
 
     public string DataLocation => _dataRoot ?? "(inconnu)";
 
@@ -307,6 +319,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         {
             Appearance.Save(_dataRoot, SelectedTheme.Value);
             Appearance.Apply(SelectedTheme.Value);
+            (WindowPlacement.Load(_dataRoot) with { Mode = SelectedStartup.Value }).Save(_dataRoot);
         }
 
         _settings.Set(Services.NfoSettings.ReadKey, NfoReadOnScan ? "true" : "false");

@@ -17,6 +17,12 @@
       <TextBlock Grid.Column="3" Text="Pays des certifications" VerticalAlignment="Center" Margin="0,0,8,0" />
       <TextBox Grid.Column="4" Text="{Binding Country}" PlaceholderText="FR" />
     </Grid>
+    <StackPanel Orientation="Horizontal" Spacing="8">
+      <TextBlock Text="Acteurs gardés dans la distribution d'un film" VerticalAlignment="Center" />
+      <NumericUpDown Value="{Binding MaxActorsNumber}" Minimum="1" Maximum="200" Increment="5" Width="130" FormatString="0" />
+    </StackPanel>
+    <TextBlock Classes="muted" FontSize="11.5" TextWrapping="Wrap"
+               Text="Appliqué aux prochains imports et mises à jour TMDb. Pour les films déjà au catalogue, relancez « Mettre à jour via TMDb »." />
     <TextBlock Text="Notes IMDb, Rotten Tomatoes, Metacritic" FontSize="16" FontWeight="SemiBold" Margin="0,12,0,0" />
     <TextBlock Text="{Binding OmdbState}" TextWrapping="Wrap" Opacity="0.8" />
     <TextBox Text="{Binding NewOmdbKey}" PasswordChar="•" PlaceholderText="Clé API OMDb" />

@@ -14,8 +14,20 @@ public sealed class MetadataService(
     ILogger<MetadataService> logger,
     SeriesRepository? series = null,
     NfoService? nfo = null,
-    RatingsService? ratings = null)
+    RatingsService? ratings = null,
+    SettingsStore? settings = null)
 {
+    public const string MaxActorsKey = "metadata.maxActors";
+    public const int DefaultMaxActors = 25;
+
+    /// <summary>Nombre d'acteurs gardés dans la distribution, choisi dans les réglages (1 à 200).</summary>
+    public int MaxActors => ReadMaxActors(settings);
+
+    public static int ReadMaxActors(SettingsStore? store) =>
+        int.TryParse(store?.Get(MaxActorsKey), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var n) && n is >= 1 and <= 200
+            ? n
+            : DefaultMaxActors;
+
     /// <summary>Notes IMDb / Rotten Tomatoes / Metacritic : un échec n'empêche jamais la mise à jour de la fiche.</summary>
     private async Task EnrichRatingsAsync(long titleId, CancellationToken cancellationToken)
     {
@@ -71,7 +83,7 @@ public sealed class MetadataService(
         }
 
         var record = await tmdb.GetDetailsAsync(result.Kind, result.SourceId, cancellationToken).ConfigureAwait(false);
-        var id = metadata.Create(record, options);
+        var id = metadata.Create(record, options with { MaxActors = MaxActors });
         await DownloadImagesAsync(id, record, options, cancellationToken).ConfigureAwait(false);
         if (record.Kind == TitleKind.Series)
         {
@@ -87,7 +99,7 @@ public sealed class MetadataService(
     public async Task<bool> UpdateAsync(long titleId, TitleKind kind, long sourceId, ImportOptions options, CancellationToken cancellationToken = default)
     {
         var record = await tmdb.GetDetailsAsync(kind, sourceId, cancellationToken).ConfigureAwait(false);
-        if (!metadata.Apply(titleId, record, options))
+        if (!metadata.Apply(titleId, record, options with { MaxActors = MaxActors }))
         {
             return false;
         }

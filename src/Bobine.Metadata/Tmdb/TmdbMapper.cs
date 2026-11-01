@@ -14,7 +14,7 @@ internal static partial class TmdbMapper
     public static MetadataRecord ToRecord(TmdbMovie movie, TmdbOptions options)
     {
         var credits = new List<MetadataCredit>();
-        foreach (var cast in (movie.Credits?.Cast ?? []).OrderBy(c => c.Order).Take(50))
+        foreach (var cast in (movie.Credits?.Cast ?? []).OrderBy(c => c.Order).Take(200))
         {
             credits.Add(new MetadataCredit(CreditRole.Actor, cast.Id, cast.Name, Clean(cast.Character), cast.Order, cast.ProfilePath));
         }
@@ -53,7 +53,7 @@ internal static partial class TmdbMapper
     public static MetadataRecord ToRecord(TmdbTv tv, TmdbOptions options)
     {
         var credits = new List<MetadataCredit>();
-        foreach (var cast in (tv.AggregateCredits?.Cast ?? []).OrderBy(c => c.Order).Take(50))
+        foreach (var cast in (tv.AggregateCredits?.Cast ?? []).OrderBy(c => c.Order).Take(200))
         {
             credits.Add(new MetadataCredit(CreditRole.Actor, cast.Id, cast.Name, Clean(cast.Roles?.FirstOrDefault()?.Character), cast.Order, cast.ProfilePath));
         }

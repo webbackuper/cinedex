@@ -37,6 +37,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         HasToken = SafeRead() is not null;
         HasOmdbKey = SafeRead(SecretStore.OmdbKey) is not null;
         UseImdbDataset = settings.Get(Services.RatingsService.UseDatasetKey) != "false";
+        MaxActorsNumber = Services.MetadataService.ReadMaxActors(settings);
     }
 
     [ObservableProperty]
@@ -98,6 +99,10 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     public partial bool UseImdbDataset { get; set; }
 
+    /// <summary>Nombre d'acteurs gardés dans la distribution à chaque import ou mise à jour TMDb.</summary>
+    [ObservableProperty]
+    public partial decimal? MaxActorsNumber { get; set; }
+
     public string OmdbState => HasOmdbKey
         ? "Une clé OMDb est enregistrée dans le coffre du système (notes IMDb, Rotten Tomatoes, Metacritic)."
         : "Aucune clé OMDb : créez-en une gratuite sur omdbapi.com pour les notes Rotten Tomatoes et Metacritic.";
@@ -137,6 +142,13 @@ public sealed partial class SettingsViewModel : ObservableObject
             }
         }
 
+        var maxActors = (int)Math.Round(MaxActorsNumber ?? 0);
+        if (maxActors is < 1 or > 200)
+        {
+            Error = "Nombre d'acteurs : un nombre entre 1 et 200 est attendu.";
+            return false;
+        }
+
         var omdb = NewOmdbKey.Trim();
         if (omdb.Length > 0 && (omdb.Length is < 6 or > 64 || !omdb.All(char.IsAsciiLetterOrDigit)))
         {
@@ -152,6 +164,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
 
         _settings.Set(Services.RatingsService.UseDatasetKey, UseImdbDataset ? "true" : "false");
+        _settings.Set(Services.MetadataService.MaxActorsKey, maxActors.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
         if (token.Length > 0)
         {

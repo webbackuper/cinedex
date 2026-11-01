@@ -40,6 +40,7 @@ public sealed class MediaTests
     [InlineData("[Team] Akira (1988) [BD 1080p][x265].mkv", "Akira", 1988)]
     [InlineData("Le Samouraï (Restauré [4K]) 1967.mkv", "Le Samouraï", 1967)]
     [InlineData("La Haine (VF.mkv", "La Haine", null)]
+    [InlineData("17 fois Cécile Cassard (Christophe Honoré - 2002).mp4", "17 fois Cécile Cassard", 2002)]
     [InlineData("37°2 Le Matin (DC-1080p) de Jean-Jacques Beineix - 1985.mkv", "37°2 Le Matin de Jean-Jacques Beineix", 1985)]
     public void Bracketed_parts_are_ignored_by_default_but_the_year_is_kept(string file, string title, int? year)
     {

@@ -48,6 +48,24 @@
       </FluentTheme.Palettes>
     </FluentTheme>
 
+    <!-- Toutes les fenêtres (fiche, réglages, import, recherche...) partagent le fond « papier » et l'encre. -->
+    <Style Selector="Window">
+      <Setter Property="Background" Value="{DynamicResource BobineBackground}" />
+      <Setter Property="Foreground" Value="{DynamicResource BobineInk}" />
+    </Style>
+    <Style Selector="TabItem">
+      <Setter Property="FontSize" Value="15" />
+    </Style>
+    <Style Selector="TextBox">
+      <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="ComboBox">
+      <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="ListBox">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
     <!-- Bouton plat à icône, utilisé partout dans les barres d'outils. -->
     <Style Selector="Button.tool">
       <Setter Property="Background" Value="Transparent" />

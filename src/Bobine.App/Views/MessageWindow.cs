@@ -9,7 +9,7 @@ internal static class MessageWindow
 {
     public static async Task<bool> ShowAsync(Window owner, string title, string message, bool confirm)
     {
-        var ok = new Button { Content = confirm ? "Confirmer" : "Fermer", IsDefault = true };
+        var ok = new Button { Content = confirm ? "Confirmer" : "Fermer", IsDefault = true, Classes = { "accent" } };
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right };
         var window = new Window
         {
@@ -31,7 +31,7 @@ internal static class MessageWindow
         };
         if (confirm)
         {
-            var cancel = new Button { Content = "Annuler", IsCancel = true };
+            var cancel = new Button { Content = "Annuler", IsCancel = true, Classes = { "tool" } };
             cancel.Click += (_, _) => window.Close(false);
             buttons.Children.Add(cancel);
         }

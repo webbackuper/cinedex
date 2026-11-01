@@ -21,7 +21,7 @@
         <Button Content="Renommer" Command="{Binding RenameCommand}" />
         <Button Content="Retirer" Command="{Binding RemoveCommand}" ToolTip.Tip="Le catalogue est déplacé dans les sauvegardes, pas effacé" />
         <Button Content="Ouvrir" Command="{Binding OpenCommand}" />
-        <Button Content="Fermer" IsCancel="True" Click="OnClose" />
+        <Button Classes="tool" Content="Fermer" IsCancel="True" Click="OnClose" />
       </StackPanel>
     </StackPanel>
 

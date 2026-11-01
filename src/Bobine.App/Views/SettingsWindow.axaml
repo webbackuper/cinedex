@@ -42,8 +42,8 @@
                Text="Bobine utilise l'API TMDb. This product uses the TMDB API but is not endorsed or certified by TMDB. IMDb n'est utilisé que pour les identifiants et les liens." />
     <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
       <Button Content="Oublier le jeton" Click="OnForget" IsVisible="{Binding HasToken}" />
-      <Button Content="Annuler" IsCancel="True" Click="OnCancel" />
-      <Button Content="Enregistrer" IsDefault="True" Click="OnSave" />
+      <Button Classes="tool" Content="Annuler" IsCancel="True" Click="OnCancel" />
+      <Button Classes="accent" Content="Enregistrer" IsDefault="True" Click="OnSave" />
     </StackPanel>
   </StackPanel>
   </ScrollViewer>

@@ -18,8 +18,8 @@
       <TextBlock Text="{Binding LastError}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" TextWrapping="Wrap"
                  IsVisible="{Binding LastError, Converter={x:Static ObjectConverters.IsNotNull}}" />
       <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-        <Button Content="Annuler" IsCancel="True" Click="OnCancel" />
-        <Button Content="Enregistrer" IsDefault="True" Click="OnSave" />
+        <Button Classes="tool" Content="Annuler" IsCancel="True" Click="OnCancel" />
+        <Button Classes="accent" Content="Enregistrer" IsDefault="True" Click="OnSave" />
       </StackPanel>
     </StackPanel>
 

@@ -9,8 +9,8 @@
   <DockPanel Margin="16">
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,12,0,0">
       <TextBlock VerticalAlignment="Center" Opacity="0.6" Margin="0,0,16,0" Text="Les critères renseignés se cumulent." />
-      <Button Content="Annuler" IsCancel="True" Click="OnCancel" />
-      <Button Content="Rechercher" IsDefault="True" Click="OnSearch" />
+      <Button Classes="tool" Content="Annuler" IsCancel="True" Click="OnCancel" />
+      <Button Classes="accent" Content="Rechercher" IsDefault="True" Click="OnSearch" />
     </StackPanel>
     <ScrollViewer>
       <StackPanel Spacing="10">

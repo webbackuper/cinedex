@@ -22,8 +22,8 @@
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,12,0,0">
       <TextBlock VerticalAlignment="Center" Opacity="0.6" FontSize="11" Margin="0,0,16,0"
                  Text="This product uses the TMDB API but is not endorsed or certified by TMDB." />
-      <Button Content="Annuler" IsCancel="True" Click="OnCancel" />
-      <Button Content="Choisir" IsDefault="True" Click="OnChoose" />
+      <Button Classes="tool" Content="Annuler" IsCancel="True" Click="OnCancel" />
+      <Button Classes="accent" Content="Choisir" IsDefault="True" Click="OnChoose" />
     </StackPanel>
 
     <ListBox ItemsSource="{Binding Results}" SelectedItem="{Binding Selected}" DoubleTapped="OnChoose">

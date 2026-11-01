@@ -115,13 +115,16 @@
             <ItemsControl ItemsSource="{Binding Cast}" IsVisible="{Binding HasCast}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="people:CastMember">
-                  <Grid ColumnDefinitions="40,*,*" Margin="0,3">
-                    <Border Width="32" Height="40" CornerRadius="4" ClipToBounds="True" Background="{DynamicResource BobineSurfaceAlt}">
-                      <Image Source="{Binding PhotoPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=64}" Stretch="UniformToFill" />
-                    </Border>
-                    <SelectableTextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="8,0" />
-                    <SelectableTextBlock Grid.Column="2" Text="{Binding Character}" Opacity="0.75" VerticalAlignment="Center" TextWrapping="Wrap" />
-                  </Grid>
+                  <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="4,3" Margin="0,1"
+                          Click="OnOpenPerson" Cursor="Hand" ToolTip.Tip="{Binding Name, StringFormat='Fiche de {0}'}">
+                    <Grid ColumnDefinitions="40,*,*">
+                      <Border Width="32" Height="40" CornerRadius="4" ClipToBounds="True" Background="{DynamicResource BobineSurfaceAlt}">
+                        <Image Source="{Binding PhotoPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=64}" Stretch="UniformToFill" />
+                      </Border>
+                      <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="8,0" />
+                      <TextBlock Grid.Column="2" Text="{Binding Character}" Opacity="0.75" VerticalAlignment="Center" TextWrapping="Wrap" />
+                    </Grid>
+                  </Button>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
@@ -138,6 +141,9 @@
           <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="0,0,0,10">
             <Button Classes="tool" Content="Relire les infos techniques (MediaInfo)" Command="{Binding RefreshMediaCommand}"
                     IsVisible="{Binding CanRefreshMedia}" IsEnabled="{Binding !IsRefreshingMedia}" />
+            <Button Classes="tool" Content="Ajouter une partie (CD2, part2…)" Click="OnAddPart"
+                    IsVisible="{Binding CanAddFile}" IsEnabled="{Binding !IsRefreshingMedia}"
+                    ToolTip.Tip="Rattacher un fichier de plus à ce film quand il est découpé en plusieurs fichiers" />
             <TextBlock Text="Lecture en cours…" VerticalAlignment="Center" Opacity="0.7" IsVisible="{Binding IsRefreshingMedia}" />
           </StackPanel>
           <ScrollViewer>

@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using Bobine.App.Services;
 using Bobine.Core.People;
 using Bobine.Core.Titles;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -18,14 +19,17 @@ public sealed partial class GenreChoice(Genre genre, bool isSelected) : Observab
 
 /// <summary>
 /// Ce que le panneau de droite affiche en plus des champs de la fiche : affiche, distribution, équipe et fichiers.
-/// <paramref name="RefreshMedia"/> relit les fichiers avec MediaInfo et renvoie le nouveau texte.
+/// <paramref name="RefreshMedia"/> relit les fichiers avec MediaInfo et renvoie le nouveau texte ;
+/// <paramref name="AddFile"/> rattache un fichier de plus (CD2, part2...) et renvoie le nouveau texte, ou lève une erreur lisible.
 /// </summary>
 public sealed record TitleEditorExtras(
     string? PosterPath = null,
     IReadOnlyList<CastMember>? Cast = null,
     string? CrewText = null,
     string? MediaText = null,
-    Func<Task<string?>>? RefreshMedia = null);
+    Func<Task<string?>>? RefreshMedia = null,
+    Func<string, Task<string?>>? AddFile = null,
+    PeopleService? People = null);
 
 /// <summary>
 /// Copie éditable d'une fiche. Les nombres sont saisis en texte et validés à l'enregistrement,
@@ -48,6 +52,8 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         _original = original;
         extras ??= new TitleEditorExtras();
         _refreshMedia = extras.RefreshMedia;
+        _addFile = extras.AddFile;
+        _people = extras.People;
         PosterPath = extras.PosterPath;
         Cast = extras.Cast ?? [];
         CrewText = extras.CrewText ?? string.Empty;
@@ -105,6 +111,45 @@ public sealed partial class TitleEditorViewModel : ObservableObject
     }
 
     private readonly Func<Task<string?>>? _refreshMedia;
+
+    private readonly Func<string, Task<string?>>? _addFile;
+
+    private readonly PeopleService? _people;
+
+    /// <summary>Titre choisi depuis la fiche d'un acteur : la fiche se ferme et le catalogue s'y place.</summary>
+    public long? NavigateToTitleId { get; set; }
+
+    public bool CanOpenPerson => _people is not null;
+
+    /// <summary>Fiche d'un acteur de la distribution (null si les acteurs ne sont pas gérés).</summary>
+    public PersonViewModel? PersonPage(CastMember member) =>
+        _people is null || member is null ? null : new PersonViewModel(_people, member.PersonId);
+
+    public bool CanAddFile => _addFile is not null;
+
+    /// <summary>Rattache une partie supplémentaire (CD2, part2...) au titre ; le texte de l'onglet est mis à jour.</summary>
+    public async Task AddFileAsync(string path)
+    {
+        if (_addFile is null || string.IsNullOrWhiteSpace(path) || IsRefreshingMedia)
+        {
+            return;
+        }
+
+        IsRefreshingMedia = true;
+        try
+        {
+            MediaText = await _addFile(path) ?? MediaText;
+            LastError = null;
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or IOException or UnauthorizedAccessException)
+        {
+            LastError = ex.Message;
+        }
+        finally
+        {
+            IsRefreshingMedia = false;
+        }
+    }
 
     public string WindowTitle => $"Modifier : {_original.Title}";
 

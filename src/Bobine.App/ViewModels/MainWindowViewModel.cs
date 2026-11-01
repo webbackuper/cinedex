@@ -396,7 +396,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 var (_, tool) = await _media.Import.RefreshTechnicalAsync([current.Id], new Progress<string>(m => Status = m), CancellationToken.None);
                 Status = tool == "aucun" ? "MediaInfo introuvable : indiquez son chemin dans les réglages." : "Infos techniques relues avec " + tool;
                 return MediaTextOf(current.Id);
-            });
+            },
+            _media is null ? null : async path =>
+            {
+                var part = await _media.Import.AddPartAsync(current.Id, path);
+                Status = $"Partie {part} rattachée à « {current.Title} »";
+                return MediaTextOf(current.Id);
+            },
+            _media?.People);
         var editor = new TitleEditorViewModel(
             current, _titles.Genres(), _titles.RefItems("medium"), _titles.RefItems("case"), _titles.RefItems("version"), _titles.Collections(), extras);
         // La fenêtre d'édition valide elle-même (TryBuild) avant de se fermer sur « Enregistrer ».
@@ -410,9 +417,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
             Refresh(selectId: updated.Id);
         }
+        else if (editor.NavigateToTitleId is { } target)
+        {
+            // Un film choisi depuis la fiche d'un acteur.
+            GoToTitle(target);
+        }
         else
         {
-            // Les infos techniques ont pu être relues depuis la fiche, même sans enregistrer.
+            // Infos techniques relues ou partie ajoutée depuis la fiche, même sans enregistrer.
             OnSelectionChanged();
         }
     }

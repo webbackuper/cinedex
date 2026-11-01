@@ -68,6 +68,42 @@ public sealed class LibraryImportService(
     }
 
     /// <summary>
+    /// Rattache une partie supplémentaire (CD2, part2...) à un titre, numérotée après les parties existantes,
+    /// puis lit ses propriétés techniques. Refuse un fichier absent, non vidéo ou déjà présent dans le catalogue.
+    /// </summary>
+    public async Task<int> AddPartAsync(long titleId, string path, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        var full = Path.GetFullPath(path);
+        if (!File.Exists(full))
+        {
+            throw new InvalidOperationException($"Fichier introuvable : {full}");
+        }
+
+        if (!FileNameParser.IsVideo(full))
+        {
+            throw new InvalidOperationException($"Ce n'est pas un fichier vidéo reconnu : {Path.GetFileName(full)}");
+        }
+
+        if (files.KnownPaths().Contains(full))
+        {
+            throw new InvalidOperationException($"Ce fichier est déjà dans le catalogue : {Path.GetFileName(full)}");
+        }
+
+        var existing = files.FilesOf(titleId);
+        var part = existing.Count == 0 ? 1 : existing.Max(f => f.Part) + 1;
+        var fileId = files.Attach(titleId, full, new FileInfo(full).Length, part);
+
+        var probe = probeFactory();
+        if (probe.IsAvailable && await probe.ProbeAsync(full, cancellationToken).ConfigureAwait(false) is { } props)
+        {
+            files.SaveProperties(fileId, ToProperties(props));
+        }
+
+        return part;
+    }
+
+    /// <summary>
     /// Vérifie tous les fichiers ; ceux qui manquent sont recherchés (même nom, même taille) dans les dossiers surveillés.
     /// Renvoie (manquants restants, retrouvés).
     /// </summary>

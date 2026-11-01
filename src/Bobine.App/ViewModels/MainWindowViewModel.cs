@@ -174,6 +174,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public bool HasDetail => Detail is not null;
 
+    public bool IsSeries => Detail?.Kind == TitleKind.Series;
+
     public bool IsEmpty => _loaded && Titles.Count == 0;
 
     public string DataLocation => _paths.IsPortable ? $"Mode portable : {_paths.DataRoot}" : _paths.DataRoot;
@@ -213,6 +215,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         DetailFiles = Detail is null || _media is null ? [] : _media.Files.FilesOf(Detail.Id);
         TechnicalSummary = Detail is null ? null : _media?.Files.TechnicalSummary(Detail.Id);
         LinkToTmdbCommand.NotifyCanExecuteChanged();
+        OpenSeriesCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(IsSeries));
         BorrowerText = Detail?.CurrentLoan is null ? _titles.LastBorrower() ?? string.Empty : string.Empty;
         EditCommand.NotifyCanExecuteChanged();
         DeleteCommand.NotifyCanExecuteChanged();
@@ -523,6 +527,24 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     private bool HasFiles() => DetailFiles.Count > 0;
+
+    /// <summary>Saisons et épisodes de la série sélectionnée.</summary>
+    [RelayCommand(CanExecute = nameof(IsSeriesSelected))]
+    private async Task OpenSeriesAsync()
+    {
+        if (Detail is not { } detail || _media?.Series is not { } series)
+        {
+            return;
+        }
+
+        var vm = new SeriesViewModel(detail.Id, detail.Title, detail.TmdbId, series, _metadata, _media.Files, _media.Settings);
+        if (await _dialogs.ShowSeriesAsync(vm))
+        {
+            Refresh(selectId: detail.Id);
+        }
+    }
+
+    public bool IsSeriesSelected() => Detail?.Kind == TitleKind.Series && _media?.Series is not null;
 
     /// <summary>Actualise les notes IMDb de tout le catalogue depuis le fichier officiel (sans consommer le quota OMDb).</summary>
     [RelayCommand]

@@ -173,5 +173,7 @@ public sealed class MainWindowViewModelTests : IDisposable
         public Task<bool> ImportFolderAsync(ImportFolderViewModel import) => Task.FromResult(false);
 
         public Task ManageCatalogsAsync(CatalogsViewModel catalogs) => Task.CompletedTask;
+
+        public Task<bool> ShowSeriesAsync(SeriesViewModel series) => Task.FromResult(false);
     }
 }

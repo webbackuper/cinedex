@@ -374,6 +374,12 @@
                     <TextBlock Text="Lire" />
                   </StackPanel>
                 </Button>
+                <Button Classes="accent" Margin="0,0,8,8" Command="{Binding OpenSeriesCommand}" IsVisible="{Binding IsSeries}" ToolTip.Tip="Saisons et épisodes">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <controls:Icon Kind="tv" Foreground="White" Width="18" Height="18" />
+                    <TextBlock Text="Épisodes" />
+                  </StackPanel>
+                </Button>
                 <Button Classes="tool" Margin="0,0,2,8" Command="{Binding ToggleSeenCommand}" ToolTip.Tip="Vu / pas vu (Ctrl+S)">
                   <controls:Icon Kind="eye" />
                 </Button>

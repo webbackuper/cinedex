@@ -151,7 +151,8 @@ public sealed class App : Application
             sp.GetRequiredService<LibraryImportService>(),
             sp.GetRequiredService<SettingsStore>(),
             sp.GetRequiredService<NfoService>(),
-            sp.GetRequiredService<RatingsService>()));
+            sp.GetRequiredService<RatingsService>(),
+            sp.GetRequiredService<SeriesRepository>()));
         return services.BuildServiceProvider();
     }
 }

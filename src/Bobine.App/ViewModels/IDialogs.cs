@@ -22,4 +22,6 @@ public interface IDialogs
     Task<bool> ImportFolderAsync(ImportFolderViewModel import);
 
     Task ManageCatalogsAsync(CatalogsViewModel catalogs);
+
+    Task<bool> ShowSeriesAsync(SeriesViewModel series);
 }

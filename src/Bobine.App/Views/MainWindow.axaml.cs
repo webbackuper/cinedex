@@ -58,6 +58,9 @@ public sealed partial class MainWindow : Window, IDialogs
     public Task ManageCatalogsAsync(CatalogsViewModel catalogs) =>
         new CatalogsWindow { DataContext = catalogs }.ShowDialog(this);
 
+    public Task<bool> ShowSeriesAsync(SeriesViewModel series) =>
+        new SeriesWindow { DataContext = series }.ShowDialog<bool>(this);
+
     private void OnListDoubleTapped(object? sender, RoutedEventArgs e)
     {
         if (DataContext is MainWindowViewModel vm && vm.EditCommand.CanExecute(null))

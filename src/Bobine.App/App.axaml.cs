@@ -99,6 +99,7 @@ public sealed class App : Application
         services.AddSingleton<MetadataService>();
         services.AddSingleton<MediaFileRepository>();
         services.AddSingleton<SeriesRepository>();
+        services.AddSingleton<NfoService>();
         services.AddSingleton(sp => new LibraryImportService(
             sp.GetRequiredService<TitleRepository>(),
             sp.GetRequiredService<MediaFileRepository>(),
@@ -109,11 +110,13 @@ public sealed class App : Application
                 sp.GetRequiredService<SettingsStore>().Get(MediaContext.FfprobeKey),
                 sp.GetRequiredService<SettingsStore>().Get(MediaContext.MediaInfoKey)),
             sp.GetRequiredService<ILogger<LibraryImportService>>(),
-            sp.GetRequiredService<SeriesRepository>()));
+            sp.GetRequiredService<SeriesRepository>(),
+            sp.GetRequiredService<NfoService>()));
         services.AddSingleton(sp => new MediaContext(
             sp.GetRequiredService<MediaFileRepository>(),
             sp.GetRequiredService<LibraryImportService>(),
-            sp.GetRequiredService<SettingsStore>()));
+            sp.GetRequiredService<SettingsStore>(),
+            sp.GetRequiredService<NfoService>()));
         return services.BuildServiceProvider();
     }
 }

@@ -27,6 +27,11 @@ public sealed partial class SettingsViewModel : ObservableObject
         PlayerPath = settings.Get(Services.MediaContext.PlayerKey) ?? string.Empty;
         PlayerArgs = settings.Get(Services.MediaContext.PlayerArgsKey) ?? string.Empty;
         MarkSeenOnPlay = settings.Get(Services.MediaContext.MarkSeenOnPlayKey) != "false";
+        var nfo = Services.NfoSettings.Load(settings);
+        NfoReadOnScan = nfo.ReadOnScan;
+        NfoWriteAfterMetadata = nfo.WriteAfterMetadata;
+        NfoOverwrite = nfo.OverwriteExisting;
+        NfoBackup = nfo.Backup;
         HasToken = SafeRead() is not null;
     }
 
@@ -44,6 +49,18 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool MarkSeenOnPlay { get; set; }
+
+    [ObservableProperty]
+    public partial bool NfoReadOnScan { get; set; }
+
+    [ObservableProperty]
+    public partial bool NfoWriteAfterMetadata { get; set; }
+
+    [ObservableProperty]
+    public partial bool NfoOverwrite { get; set; }
+
+    [ObservableProperty]
+    public partial bool NfoBackup { get; set; }
 
     [ObservableProperty]
     public partial string NewToken { get; set; } = string.Empty;
@@ -106,6 +123,10 @@ public sealed partial class SettingsViewModel : ObservableObject
         _settings.Set(Services.MediaContext.PlayerKey, NullIfBlank(PlayerPath));
         _settings.Set(Services.MediaContext.PlayerArgsKey, NullIfBlank(PlayerArgs));
         _settings.Set(Services.MediaContext.MarkSeenOnPlayKey, MarkSeenOnPlay ? "true" : "false");
+        _settings.Set(Services.NfoSettings.ReadKey, NfoReadOnScan ? "true" : "false");
+        _settings.Set(Services.NfoSettings.WriteKey, NfoWriteAfterMetadata ? "true" : "false");
+        _settings.Set(Services.NfoSettings.OverwriteKey, NfoOverwrite ? "true" : "false");
+        _settings.Set(Services.NfoSettings.BackupKey, NfoBackup ? "true" : "false");
         Error = null;
         return true;
     }

@@ -14,6 +14,26 @@ public sealed partial class TitleRepository
         public static readonly Label Group = new("user_group", "title_group", "group_id");
     }
 
+    /// <summary>Générique d'un titre, dans l'ordre : (rôle, nom, personnage).</summary>
+    public IReadOnlyList<(string Role, string Name, string? Character)> Credits(long titleId)
+    {
+        using var connection = database.Open();
+        return connection.Query<(string, string, string?)>(
+                "SELECT c.role, p.name, c.character FROM credit c JOIN person p ON p.id = c.person_id WHERE c.title_id = @titleId ORDER BY c.role, c.position;",
+                new { titleId })
+            .ToList();
+    }
+
+    /// <summary>Libellés des genres d'un titre.</summary>
+    public IReadOnlyList<string> GenreLabels(long titleId)
+    {
+        using var connection = database.Open();
+        return connection.Query<string>(
+                "SELECT g.label FROM title_genre tg JOIN genre g ON g.id = tg.genre_id WHERE tg.title_id = @titleId ORDER BY g.label;",
+                new { titleId })
+            .ToList();
+    }
+
     public IReadOnlyList<CollectionInfo> Collections()
     {
         using var connection = database.Open();

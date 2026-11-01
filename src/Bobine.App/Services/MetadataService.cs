@@ -12,7 +12,8 @@ public sealed class MetadataService(
     MetadataRepository metadata,
     ImageStore images,
     ILogger<MetadataService> logger,
-    SeriesRepository? series = null)
+    SeriesRepository? series = null,
+    NfoService? nfo = null)
 {
     /// <summary>
     /// Récupère saisons et épisodes d'une série liée à TMDb et les fusionne (saisons verrouillées épargnées).
@@ -58,6 +59,7 @@ public sealed class MetadataService(
             await SyncEpisodesAsync(id, record.SourceId, record, cancellationToken).ConfigureAwait(false);
         }
 
+        nfo?.AfterMetadataUpdate(id);
         return (id, true);
     }
 
@@ -76,6 +78,7 @@ public sealed class MetadataService(
             await SyncEpisodesAsync(titleId, record.SourceId, record, cancellationToken).ConfigureAwait(false);
         }
 
+        nfo?.AfterMetadataUpdate(titleId);
         return true;
     }
 

@@ -4,8 +4,9 @@
         x:Class="Bobine.App.Views.SettingsWindow"
         x:DataType="vm:SettingsViewModel"
         Title="Réglages"
-        Width="620" SizeToContent="Height" CanResize="False"
+        Width="680" Height="720" MinHeight="400"
         WindowStartupLocation="CenterOwner">
+  <ScrollViewer>
   <StackPanel Margin="20" Spacing="12">
     <TextBlock Text="Source de données : TMDb" FontSize="16" FontWeight="SemiBold" />
     <TextBlock Text="{Binding TokenState}" TextWrapping="Wrap" Opacity="0.8" />
@@ -22,6 +23,11 @@
     <TextBox Text="{Binding PlayerPath}" PlaceholderText="Lecteur externe (vide : lecteur par défaut du système)" />
     <TextBox Text="{Binding PlayerArgs}" PlaceholderText="Paramètres du lecteur, ex. --fullscreen %FILEPATH%" />
     <CheckBox Content="Marquer comme vu à la lecture depuis Bobine" IsChecked="{Binding MarkSeenOnPlay}" />
+    <TextBlock Text="Fichiers .nfo (format Kodi)" FontSize="16" FontWeight="SemiBold" Margin="0,12,0,0" />
+    <CheckBox Content="Lire le .nfo au scan d'un dossier et compléter la fiche" IsChecked="{Binding NfoReadOnScan}" />
+    <CheckBox Content="Créer ou compléter le .nfo après une mise à jour TMDb" IsChecked="{Binding NfoWriteAfterMetadata}" />
+    <CheckBox Content="Remplacer les valeurs déjà présentes dans le .nfo (sinon seuls les champs manquants sont ajoutés)" IsChecked="{Binding NfoOverwrite}" />
+    <CheckBox Content="Garder une copie .nfo.bak du fichier d'origine avant modification" IsChecked="{Binding NfoBackup}" />
     <TextBlock Text="{Binding Error}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" TextWrapping="Wrap"
                IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
     <TextBlock FontSize="11" Opacity="0.6" TextWrapping="Wrap"
@@ -32,4 +38,5 @@
       <Button Content="Enregistrer" IsDefault="True" Click="OnSave" />
     </StackPanel>
   </StackPanel>
+  </ScrollViewer>
 </Window>

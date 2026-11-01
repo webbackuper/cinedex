@@ -19,10 +19,13 @@ public sealed record LibraryImportOptions
     public bool UseLocalCover { get; init; } = true;
 
     public bool WriteNfo { get; init; }
+
+    /// <summary>Compléter les fiches avec le .nfo trouvé à côté du fichier (si le réglage du catalogue l'autorise).</summary>
+    public bool ReadNfo { get; init; } = true;
 }
 
 /// <summary>Bilan d'un import ; Episodes = épisodes rattachés (ou laissés de côté si les séries ne sont pas gérées).</summary>
-public sealed record LibraryImportResult(int Added, int Linked, int WithoutMetadata, int Episodes, int Failed, IReadOnlyList<string> Messages);
+public sealed record LibraryImportResult(int Added, int Linked, int WithoutMetadata, int Episodes, int Failed, IReadOnlyList<string> Messages, int FromNfo = 0);
 
 /// <summary>Ajoute au catalogue les fichiers trouvés par le scan : identification TMDb, fichier, jaquette locale, propriétés techniques.</summary>
 public sealed class LibraryImportService(
@@ -32,7 +35,8 @@ public sealed class LibraryImportService(
     MetadataService? metadataService,
     Func<MediaProbe> probeFactory,
     ILogger<LibraryImportService> logger,
-    SeriesRepository? series = null)
+    SeriesRepository? series = null,
+    NfoService? nfo = null)
 {
     public void RememberFolder(string folder) => files.AddScanRoot(folder, "movies");
 
@@ -98,7 +102,8 @@ public sealed class LibraryImportService(
     {
         ArgumentNullException.ThrowIfNull(candidates);
         ArgumentNullException.ThrowIfNull(options);
-        int added = 0, linked = 0, manual = 0, episodes = 0, failed = 0;
+        int added = 0, linked = 0, manual = 0, episodes = 0, failed = 0, fromNfo = 0;
+        var readNfo = nfo is not null && options.ReadNfo && nfo.Settings.ReadOnScan;
         var messages = new List<string>();
         var useTmdb = options.UseTmdb && metadataService is not null;
         var probe = options.ReadTechnicalProperties ? probeFactory() : null;
@@ -135,10 +140,22 @@ public sealed class LibraryImportService(
                         linked++;
                     }
                 }
+                else if (readNfo && candidate.Nfo is { } known && nfo!.FindExisting(known) is { } existing)
+                {
+                    // Même film (identifiant TMDb du .nfo) déjà au catalogue : on y rattache ce fichier, sans doublon.
+                    titleId = existing;
+                    linked++;
+                }
                 else
                 {
                     titleId = titles.Add(new NewTitle(TitleKind.Movie, candidate.BestTitle, candidate.BestYear));
                     manual++;
+                    if (readNfo && candidate.Nfo is { } info)
+                    {
+                        // Le .nfo complète la fiche ; ses identifiants servent ensuite à « Mettre à jour via TMDb ».
+                        nfo!.ApplyToTitle(titleId, info);
+                        fromNfo++;
+                    }
                 }
 
                 var fileId = files.Attach(titleId, candidate.FullPath, candidate.SizeBytes, candidate.Parsed.Part ?? 1);
@@ -152,9 +169,9 @@ public sealed class LibraryImportService(
                     files.SaveProperties(fileId, ToProperties(props));
                 }
 
-                if (options.WriteNfo && titles.Get(titleId) is { } detail)
+                if (options.WriteNfo && nfo is not null)
                 {
-                    NfoReader.WriteIfMissing(candidate.FullPath, detail.Title, detail.Year, detail.ImdbId, detail.TmdbId);
+                    nfo.WriteForTitle(titleId);
                 }
             }
             catch (TmdbAuthenticationException ex)
@@ -203,7 +220,7 @@ public sealed class LibraryImportService(
             }
         }
 
-        return new LibraryImportResult(added, linked, manual, episodes, failed, messages);
+        return new LibraryImportResult(added, linked, manual, episodes, failed, messages, fromNfo);
     }
 
     private async Task<long> FindOrCreateSeriesAsync(string name, bool useTmdb, CancellationToken cancellationToken)

@@ -78,6 +78,9 @@ public sealed record MetadataRecord
 
     public IReadOnlyList<long> GenreSourceIds { get; init; } = [];
 
+    /// <summary>Genres par nom (fichiers .nfo), rapprochés des genres du catalogue par libellé ou code.</summary>
+    public IReadOnlyList<string> GenreNames { get; init; } = [];
+
     public IReadOnlyList<string> Keywords { get; init; } = [];
 
     public IReadOnlyList<MetadataCredit> Credits { get; init; } = [];

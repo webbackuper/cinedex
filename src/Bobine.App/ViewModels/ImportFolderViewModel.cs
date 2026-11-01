@@ -99,7 +99,7 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import) :
             var result = await import.ImportAsync(selected, options, progress, token);
             Imported = true;
             Candidates.Clear();
-            var summary = $"{result.Added} ajouté(s) avec TMDb, {result.WithoutMetadata} sans fiche TMDb, {result.Linked} déjà présent(s)";
+            var summary = $"{result.Added} ajouté(s) avec TMDb, {result.WithoutMetadata} sans fiche TMDb (dont {result.FromNfo} complété(s) par leur .nfo), {result.Linked} déjà présent(s)";
             if (result.Episodes > 0)
             {
                 summary += $", {result.Episodes} épisode(s) laissé(s) pour les séries";

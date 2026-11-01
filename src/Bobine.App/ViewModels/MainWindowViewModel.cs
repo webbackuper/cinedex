@@ -487,6 +487,20 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private bool HasFiles() => DetailFiles.Count > 0;
 
+    /// <summary>Crée ou complète le .nfo des fichiers de la sélection, ou de tous les titres affichés.</summary>
+    [RelayCommand]
+    private void WriteNfo()
+    {
+        if (_media?.Nfo is not { } nfo)
+        {
+            return;
+        }
+
+        var ids = SelectedTitles.Count > 0 ? SelectedIds : Titles.Select(t => t.Id).ToList();
+        var written = ids.Sum(id => nfo.WriteForTitle(id));
+        Status = $"{written} fichier(s) .nfo créé(s) ou complété(s)";
+    }
+
     /// <summary>Relit les infos techniques (MediaInfo) des fichiers de la sélection, ou de tous les titres affichés.</summary>
     [RelayCommand]
     private async Task RefreshTechnicalAsync()

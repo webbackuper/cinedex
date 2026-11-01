@@ -19,7 +19,7 @@
                   ToolTip.Tip="Décoché : les fichiers sont ajoutés tels quels ; lancez ensuite « Mettre à jour via TMDb »." />
         <CheckBox Margin="0,0,16,0" Content="Premier résultat si plusieurs" IsChecked="{Binding UseFirstMatch}" />
         <CheckBox Margin="0,0,16,0" Content="Infos techniques (MediaInfo)" IsChecked="{Binding ReadProperties}" />
-        <CheckBox Margin="0,0,16,0" Content="Créer les .nfo manquants" IsChecked="{Binding WriteNfo}" />
+        <CheckBox Margin="0,0,16,0" Content="Créer ou compléter les .nfo" IsChecked="{Binding WriteNfo}" />
         <CheckBox Content="Surveiller ce dossier" IsChecked="{Binding RememberFolder}" />
       </WrapPanel>
       <TextBox Text="{Binding NoiseWords}" PlaceholderText="Mots à retirer des noms de fichiers, séparés par des virgules (en plus des mots techniques usuels)" />

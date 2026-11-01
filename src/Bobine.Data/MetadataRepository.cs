@@ -47,7 +47,8 @@ public sealed class MetadataRepository(CatalogDatabase database)
             return false;
         }
 
-        var other = FindBySource(connection, transaction, record.Kind, record.SourceId);
+        // SourceId 0 : fiche locale (.nfo) sans identifiant TMDb, pas de risque de doublon.
+        var other = record.SourceId > 0 ? FindBySource(connection, transaction, record.Kind, record.SourceId) : null;
         if (other is not null && other != titleId)
         {
             throw new DuplicateTitleException(other.Value);
@@ -84,13 +85,13 @@ public sealed class MetadataRepository(CatalogDatabase database)
         connection.Execute(
             """
             UPDATE title SET
-                kind = @Kind, tmdb_id = @SourceId, imdb_id = coalesce(@ImdbId, imdb_id),
+                kind = @Kind, tmdb_id = CASE WHEN @SourceId > 0 THEN @SourceId ELSE tmdb_id END, imdb_id = coalesce(@ImdbId, imdb_id),
                 year = coalesce(@Year, year), runtime_minutes = coalesce(@RuntimeMinutes, runtime_minutes),
                 certification = coalesce(@Certification, certification),
-                countries = @Countries, spoken_languages = @SpokenLanguages, studio = coalesce(@Studio, studio),
+                countries = coalesce(@Countries, countries), spoken_languages = coalesce(@SpokenLanguages, spoken_languages), studio = coalesce(@Studio, studio),
                 web_link = coalesce(@Homepage, web_link), trailer_url = coalesce(@TrailerUrl, trailer_url),
-                tmdb_rating = @Rating, tmdb_votes = @Votes, is_adult = max(is_adult, @IsAdult),
-                series_status = @SeriesStatus,
+                tmdb_rating = coalesce(@Rating, tmdb_rating), tmdb_votes = coalesce(@Votes, tmdb_votes), is_adult = max(is_adult, @IsAdult),
+                series_status = coalesce(@SeriesStatus, series_status),
                 metadata_fetched_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
                 updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
             WHERE id = @TitleId;
@@ -141,21 +142,45 @@ public sealed class MetadataRepository(CatalogDatabase database)
                 transaction);
         }
 
-        if (options.UpdateCredits)
+        if (options.UpdateGenres && r.GenreSourceIds.Count == 0 && r.GenreNames.Count > 0)
+        {
+            connection.Execute("DELETE FROM title_genre WHERE title_id = @titleId;", new { titleId }, transaction);
+            foreach (var name in r.GenreNames.Where(n => !string.IsNullOrWhiteSpace(n)).Select(n => n.Trim()))
+            {
+                // Rapprochement par libellé ou code (« Drame », « drama ») ; un genre inconnu est ajouté au catalogue.
+                var genreId = connection.ExecuteScalar<long?>(
+                    "SELECT id FROM genre WHERE label = @name COLLATE NOCASE OR code = @name COLLATE NOCASE OR replace(code, '_', ' ') = @name COLLATE NOCASE;",
+                    new { name },
+                    transaction)
+                    ?? connection.ExecuteScalar<long>(
+                        "INSERT INTO genre (code, label) VALUES (@code, @name) ON CONFLICT (code) DO UPDATE SET label = genre.label RETURNING id;",
+                        new { name, code = name.ToLowerInvariant().Replace(' ', '_') },
+                        transaction);
+                connection.Execute("INSERT OR IGNORE INTO title_genre (title_id, genre_id) VALUES (@titleId, @genreId);", new { titleId, genreId }, transaction);
+            }
+        }
+
+        if (options.UpdateCredits && r.Credits.Count > 0)
         {
             ReplaceCredits(connection, transaction, titleId, r.Credits, options.MaxActors);
         }
 
         if (options.UpdateCollection && r.Collection is { } collection)
         {
-            var collectionId = connection.ExecuteScalar<long>(
-                """
-                INSERT INTO collection (name, sort_key, tmdb_id) VALUES (@Name, @SortKey, @SourceId)
-                ON CONFLICT (tmdb_id) DO UPDATE SET name = excluded.name
-                RETURNING id;
-                """,
-                new { collection.Name, SortKey = SortTitle.Compute(collection.Name), collection.SourceId },
-                transaction);
+            var collectionId = collection.SourceId > 0
+                ? connection.ExecuteScalar<long>(
+                    """
+                    INSERT INTO collection (name, sort_key, tmdb_id) VALUES (@Name, @SortKey, @SourceId)
+                    ON CONFLICT (tmdb_id) DO UPDATE SET name = excluded.name
+                    RETURNING id;
+                    """,
+                    new { collection.Name, SortKey = SortTitle.Compute(collection.Name), collection.SourceId },
+                    transaction)
+                : connection.ExecuteScalar<long?>("SELECT id FROM collection WHERE name = @Name COLLATE NOCASE;", new { collection.Name }, transaction)
+                  ?? connection.ExecuteScalar<long>(
+                      "INSERT INTO collection (name, sort_key) VALUES (@Name, @SortKey) RETURNING id;",
+                      new { collection.Name, SortKey = SortTitle.Compute(collection.Name) },
+                      transaction);
             connection.Execute("UPDATE title SET collection_id = @collectionId WHERE id = @titleId;", new { collectionId, titleId }, transaction);
         }
 
@@ -183,14 +208,18 @@ public sealed class MetadataRepository(CatalogDatabase database)
                 continue;
             }
 
-            var personId = connection.ExecuteScalar<long>(
-                """
-                INSERT INTO person (name, tmdb_id) VALUES (@Name, @SourcePersonId)
-                ON CONFLICT (tmdb_id) DO UPDATE SET name = excluded.name
-                RETURNING id;
-                """,
-                new { credit.Name, credit.SourcePersonId },
-                transaction);
+            // Personne sans identifiant (.nfo) : rapprochée par nom parmi celles sans identifiant TMDb.
+            var personId = credit.SourcePersonId > 0
+                ? connection.ExecuteScalar<long>(
+                    """
+                    INSERT INTO person (name, tmdb_id) VALUES (@Name, @SourcePersonId)
+                    ON CONFLICT (tmdb_id) DO UPDATE SET name = excluded.name
+                    RETURNING id;
+                    """,
+                    new { credit.Name, credit.SourcePersonId },
+                    transaction)
+                : connection.ExecuteScalar<long?>("SELECT id FROM person WHERE name = @Name AND tmdb_id IS NULL;", new { credit.Name }, transaction)
+                  ?? connection.ExecuteScalar<long>("INSERT INTO person (name) VALUES (@Name) RETURNING id;", new { credit.Name }, transaction);
             connection.Execute(
                 """
                 INSERT INTO credit (title_id, person_id, role, character, is_voice, position)

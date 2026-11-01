@@ -35,6 +35,7 @@
       <Button Margin="0,0,8,0" Content="Au hasard" Command="{Binding PickRandomCommand}" ToolTip.Tip="Un titre non vu au hasard (Ctrl+R)" />
       <Button Margin="0,0,8,0" Content="Mettre à jour via TMDb" Command="{Binding UpdateAllFromTmdbCommand}" ToolTip.Tip="Sélection, ou tous les titres affichés : complète les fiches existantes sans créer d'entrée" />
       <Button Margin="0,0,8,0" Content="Relire les infos techniques" Command="{Binding RefreshTechnicalCommand}" ToolTip.Tip="MediaInfo sur la sélection, ou sur tous les titres affichés" />
+      <Button Margin="0,0,8,0" Content="Écrire les .nfo" Command="{Binding WriteNfoCommand}" ToolTip.Tip="Crée ou complète le .nfo des fichiers de la sélection, ou de tous les titres affichés" />
       <Button Margin="0,0,8,0" Content="Vérifier les fichiers" Command="{Binding CheckFilesCommand}" ToolTip.Tip="Repère les fichiers absents et retrouve ceux qui ont été déplacés" />
       <Button Content="Réglages" Command="{Binding OpenSettingsCommand}" />
     </WrapPanel>

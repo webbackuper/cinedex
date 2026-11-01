@@ -52,7 +52,7 @@ public sealed class MediaTests
             <uniqueid type="imdb">tt0113277</uniqueid><uniqueid type="tmdb">949</uniqueid></movie>
             """);
 
-        Assert.Equal(new NfoInfo("Heat", 1995, "tt0113277", 949), info);
+        Assert.Equal(("Heat", 1995, "tt0113277", 949L), (info!.Title, info.Year, info.ImdbId, info.TmdbId));
     }
 
     [Fact]

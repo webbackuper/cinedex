@@ -51,6 +51,7 @@
     <!-- Toutes les fenêtres (fiche, réglages, import, recherche...) partagent le fond « papier » et l'encre. -->
     <Style Selector="Window">
       <Setter Property="Background" Value="{DynamicResource BobineBackground}" />
+      <Setter Property="Icon" Value="/Assets/bobine.ico" />
       <Setter Property="Foreground" Value="{DynamicResource BobineInk}" />
     </Style>
     <Style Selector="TabItem">

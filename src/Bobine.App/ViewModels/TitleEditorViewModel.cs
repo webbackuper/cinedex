@@ -1,8 +1,10 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using Bobine.Core.People;
 using Bobine.Core.Titles;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace Bobine.App.ViewModels;
 
@@ -13,6 +15,17 @@ public sealed partial class GenreChoice(Genre genre, bool isSelected) : Observab
     [ObservableProperty]
     public partial bool IsSelected { get; set; } = isSelected;
 }
+
+/// <summary>
+/// Ce que le panneau de droite affiche en plus des champs de la fiche : affiche, distribution, équipe et fichiers.
+/// <paramref name="RefreshMedia"/> relit les fichiers avec MediaInfo et renvoie le nouveau texte.
+/// </summary>
+public sealed record TitleEditorExtras(
+    string? PosterPath = null,
+    IReadOnlyList<CastMember>? Cast = null,
+    string? CrewText = null,
+    string? MediaText = null,
+    Func<Task<string?>>? RefreshMedia = null);
 
 /// <summary>
 /// Copie éditable d'une fiche. Les nombres sont saisis en texte et validés à l'enregistrement,
@@ -28,10 +41,17 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         IReadOnlyList<RefItem> media,
         IReadOnlyList<RefItem> cases,
         IReadOnlyList<RefItem> versions,
-        IReadOnlyList<CollectionInfo>? collections = null)
+        IReadOnlyList<CollectionInfo>? collections = null,
+        TitleEditorExtras? extras = null)
     {
         ArgumentNullException.ThrowIfNull(original);
         _original = original;
+        extras ??= new TitleEditorExtras();
+        _refreshMedia = extras.RefreshMedia;
+        PosterPath = extras.PosterPath;
+        Cast = extras.Cast ?? [];
+        CrewText = extras.CrewText ?? string.Empty;
+        MediaText = extras.MediaText ?? "Aucun fichier vidéo rattaché à ce titre.";
         Collections = [new(null, "(aucune)"), .. (collections ?? []).Select(c => new Choice<long?>(c.Id, c.Name))];
         SelectedCollection = Collections.FirstOrDefault(c => c.Value == original.CollectionId) ?? Collections[0];
         TagsText = string.Join(", ", original.Tags);
@@ -56,6 +76,14 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         ImdbId = original.ImdbId ?? string.Empty;
         WebLink = original.WebLink ?? string.Empty;
         UserRating = original.UserRating?.ToString("0.#", CultureInfo.CurrentCulture) ?? string.Empty;
+        TmdbRating = original.TmdbRating?.ToString("0.0", CultureInfo.CurrentCulture) ?? string.Empty;
+        ImdbRating = original.ImdbRating?.ToString("0.0", CultureInfo.CurrentCulture) ?? string.Empty;
+        ImdbVotes = Format(original.ImdbVotes);
+        Tomatometer = Format(original.Tomatometer);
+        Metascore = Format(original.Metascore);
+        SpokenLanguages = original.SpokenLanguages ?? string.Empty;
+        TrailerUrl = original.TrailerUrl ?? string.Empty;
+        IsSeen = original.IsSeen;
         Comments = original.Comments ?? string.Empty;
         IsOwned = original.IsOwned;
         IsFavorite = original.IsFavorite;
@@ -76,7 +104,66 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         Is3D = copy?.Is3D ?? false;
     }
 
+    private readonly Func<Task<string?>>? _refreshMedia;
+
     public string WindowTitle => $"Modifier : {_original.Title}";
+
+    public string? PosterPath { get; }
+
+    public IReadOnlyList<CastMember> Cast { get; }
+
+    public bool HasCast => Cast.Count > 0;
+
+    public string CrewText { get; }
+
+    /// <summary>Emplacement complet et propriétés techniques de chaque fichier (lecture seule : relu par MediaInfo).</summary>
+    [ObservableProperty] public partial string MediaText { get; set; }
+
+    public bool CanRefreshMedia => _refreshMedia is not null;
+
+    /// <summary>Identifiants en lecture seule : TMDb (rempli par la mise à jour) et date d'ajout.</summary>
+    public string SourceText => string.Join(" · ", new[]
+    {
+        _original.TmdbId is { } tmdb ? $"TMDb {tmdb}" : "Pas lié à TMDb",
+        $"ajouté le {_original.AddedAt.ToLocalTime():d}",
+    });
+
+    public string SeenText => _original.ViewCount == 0
+        ? "Jamais vu"
+        : $"Vu {_original.ViewCount} fois" + (_original.LastSeenAt is { } last ? $", dernière fois le {last.ToLocalTime():d}" : string.Empty);
+
+    public string LoanText => _original.CurrentLoan is { } loan
+        ? $"Prêté à {loan.Borrower} depuis le {loan.LoanedAt.ToLocalTime():d}"
+        : "Disponible (prêt et retour depuis le panneau de droite)";
+
+    /// <summary>Durée saisie en minutes, affichée aussi en heures : « 112 » donne « soit 1 h 52 ».</summary>
+    public string RuntimeText =>
+        int.TryParse(Runtime?.Trim(), NumberStyles.Integer, CultureInfo.CurrentCulture, out var minutes) && minutes > 0
+            ? "soit " + TitleText.FormatRuntime(minutes)
+            : string.Empty;
+
+    partial void OnRuntimeChanged(string value) => OnPropertyChanged(nameof(RuntimeText));
+
+    [ObservableProperty] public partial bool IsRefreshingMedia { get; set; }
+
+    [RelayCommand]
+    private async Task RefreshMediaAsync()
+    {
+        if (_refreshMedia is null || IsRefreshingMedia)
+        {
+            return;
+        }
+
+        IsRefreshingMedia = true;
+        try
+        {
+            MediaText = await _refreshMedia() ?? MediaText;
+        }
+        finally
+        {
+            IsRefreshingMedia = false;
+        }
+    }
 
     public IReadOnlyList<Choice<TitleKind>> Kinds { get; }
 
@@ -123,6 +210,25 @@ public sealed partial class TitleEditorViewModel : ObservableObject
     [ObservableProperty] public partial string WebLink { get; set; }
 
     [ObservableProperty] public partial string UserRating { get; set; }
+
+    [ObservableProperty] public partial string TmdbRating { get; set; }
+
+    [ObservableProperty] public partial string ImdbRating { get; set; }
+
+    [ObservableProperty] public partial string ImdbVotes { get; set; }
+
+    [ObservableProperty] public partial string Tomatometer { get; set; }
+
+    [ObservableProperty] public partial string Metascore { get; set; }
+
+    [ObservableProperty] public partial string SpokenLanguages { get; set; }
+
+    [ObservableProperty] public partial string TrailerUrl { get; set; }
+
+    /// <summary>Vu / pas vu ; enregistré à part (historique de visionnage).</summary>
+    [ObservableProperty] public partial bool IsSeen { get; set; }
+
+    public bool SeenChanged => IsSeen != _original.IsSeen;
 
     [ObservableProperty] public partial string Comments { get; set; }
 
@@ -174,6 +280,11 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         var discs = ParseInt(DiscCount, "Nombre de disques", 1, 500, errors);
         var rating = ParseDecimal(UserRating, "Note personnelle", 0, 10, errors);
         var price = ParseDecimal(Price, "Prix", 0, 1_000_000, errors);
+        var tmdbRating = ParseDecimal(TmdbRating, "Note TMDb", 0, 10, errors);
+        var imdbRating = ParseDecimal(ImdbRating, "Note IMDb", 0, 10, errors);
+        var imdbVotes = ParseInt(ImdbVotes, "Votes IMDb", 0, int.MaxValue, errors);
+        var tomatometer = ParseInt(Tomatometer, "Tomatometer", 0, 100, errors);
+        var metascore = ParseInt(Metascore, "Metascore", 0, 100, errors);
         var imdb = ImdbId.Trim();
         if (imdb.Length > 0 && !IsImdbId(imdb))
         {
@@ -181,9 +292,15 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         }
 
         var link = WebLink.Trim();
-        if (link.Length > 0 && !(Uri.TryCreate(link, UriKind.Absolute, out var uri) && uri.Scheme is "https" or "http"))
+        if (link.Length > 0 && !IsWebLink(link))
         {
             errors.Add("Le lien web doit commencer par https:// ou http://.");
+        }
+
+        var trailer = TrailerUrl.Trim();
+        if (trailer.Length > 0 && !IsWebLink(trailer))
+        {
+            errors.Add("La bande-annonce doit être un lien https:// ou http://.");
         }
 
         if (errors.Count > 0)
@@ -209,6 +326,13 @@ public sealed partial class TitleEditorViewModel : ObservableObject
             ImdbId = imdb,
             WebLink = link,
             UserRating = rating is null ? null : (double)Math.Round(rating.Value * 2, MidpointRounding.AwayFromZero) / 2,
+            TmdbRating = (double?)tmdbRating,
+            ImdbRating = (double?)imdbRating,
+            ImdbVotes = imdbVotes,
+            Tomatometer = tomatometer,
+            Metascore = metascore,
+            SpokenLanguages = SpokenLanguages,
+            TrailerUrl = trailer,
             Comments = Comments,
             IsOwned = IsOwned,
             IsFavorite = IsFavorite,
@@ -244,6 +368,9 @@ public sealed partial class TitleEditorViewModel : ObservableObject
 
     internal static bool IsImdbId(string value) =>
         value.Length is >= 9 and <= 12 && value.StartsWith("tt", StringComparison.Ordinal) && value[2..].All(char.IsAsciiDigit);
+
+    private static bool IsWebLink(string text) =>
+        Uri.TryCreate(text, UriKind.Absolute, out var uri) && uri.Scheme is "https" or "http";
 
     private static IReadOnlyList<Choice<string?>> WithNone(IReadOnlyList<RefItem> items) =>
         [new(null, "(non précisé)"), .. items.Select(i => new Choice<string?>(i.Code, i.Label))];

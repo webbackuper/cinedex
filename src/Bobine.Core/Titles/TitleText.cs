@@ -18,4 +18,21 @@ public static class TitleText
 
         return (text, null);
     }
+
+    /// <summary>Durée lisible : « 2 h 50 », « 2 h », « 45 min » ; vide si inconnue.</summary>
+    public static string FormatRuntime(int? minutes) => minutes switch
+    {
+        null or <= 0 => string.Empty,
+        < 60 => $"{minutes} min",
+        _ when minutes % 60 == 0 => $"{minutes / 60} h",
+        _ => $"{minutes / 60} h {minutes % 60:00}",
+    };
+
+    /// <summary>Durée en secondes, à la seconde près pour un fichier : « 1 h 52 min 07 s ».</summary>
+    public static string FormatDuration(int seconds) => seconds switch
+    {
+        < 60 => $"{seconds} s",
+        < 3600 => $"{seconds / 60} min {seconds % 60:00} s",
+        _ => $"{seconds / 3600} h {seconds % 3600 / 60:00} min {seconds % 60:00} s",
+    };
 }

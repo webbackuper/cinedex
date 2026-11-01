@@ -17,6 +17,9 @@ public sealed record TitleDetail
 
     public int? RuntimeMinutes { get; init; }
 
+    /// <summary>Durée affichée sur la fiche : « 2 h 50 ».</summary>
+    public string RuntimeText => TitleText.FormatRuntime(RuntimeMinutes);
+
     public string? Tagline { get; init; }
 
     public string? Overview { get; init; }
@@ -80,6 +83,8 @@ public sealed record TitleDetail
     public DateTimeOffset? LastSeenAt { get; init; }
 
     public int ViewCount { get; init; }
+
+    public bool IsSeen => ViewCount > 0;
 
     public Loan? CurrentLoan { get; init; }
 }

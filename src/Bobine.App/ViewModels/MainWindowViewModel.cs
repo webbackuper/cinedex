@@ -260,9 +260,18 @@ public sealed partial class MainWindowViewModel : ObservableObject
         Refresh(selectId: titleId);
     }
 
-    public string DetailFilesText => string.Join('\n', DetailFiles.Select(f => (f.IsMissing ? "introuvable : " : string.Empty) + f.FullPath));
+    public bool HasDetailFiles => DetailFiles.Count > 0;
 
-    partial void OnDetailFilesChanged(IReadOnlyList<MediaFileEntry> value) => OnPropertyChanged(nameof(DetailFilesText));
+    partial void OnDetailFilesChanged(IReadOnlyList<MediaFileEntry> value) => OnPropertyChanged(nameof(HasDetailFiles));
+
+    /// <summary>Emplacement complet et infos MediaInfo de chaque fichier du titre, ou une indication s'il n'y en a pas.</summary>
+    private string MediaTextOf(long titleId)
+    {
+        var files = _media?.Files.TechnicalDetails(titleId) ?? [];
+        return files.Count == 0
+            ? "Aucun fichier vidéo rattaché à ce titre (ajouté depuis TMDb ou à la main). Utilisez « Importer » pour l'associer à son fichier."
+            : string.Join("\n\n", files.Select(f => f.Describe()));
+    }
 
     public bool HasMedia => _media is not null;
 
@@ -313,7 +322,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         PosterPath = Detail is null ? null : _images?.PathFor(Detail.Id, "poster");
         BackdropPath = Detail is null ? null : _images?.PathFor(Detail.Id, "backdrop");
         DetailFiles = Detail is null || _media is null ? [] : _media.Files.FilesOf(Detail.Id);
-        TechnicalSummary = Detail is null ? null : _media?.Files.TechnicalSummary(Detail.Id);
+        TechnicalSummary = Detail is null ? null : MediaTextOf(Detail.Id);
         LoadCredits();
         LinkToTmdbCommand.NotifyCanExecuteChanged();
         OpenSeriesCommand.NotifyCanExecuteChanged();
@@ -352,13 +361,35 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
+        // La fiche reprend tout ce que montre le panneau de droite : affiche, notes, distribution, fichiers.
+        var extras = new TitleEditorExtras(
+            _images?.PathFor(current.Id, "poster"),
+            Detail?.Id == current.Id ? Cast.ToList() : null,
+            Detail?.Id == current.Id ? CrewText : null,
+            MediaTextOf(current.Id),
+            _media is null ? null : async () =>
+            {
+                var (_, tool) = await _media.Import.RefreshTechnicalAsync([current.Id], new Progress<string>(m => Status = m), CancellationToken.None);
+                Status = tool == "aucun" ? "MediaInfo introuvable : indiquez son chemin dans les réglages." : "Infos techniques relues avec " + tool;
+                return MediaTextOf(current.Id);
+            });
         var editor = new TitleEditorViewModel(
-            current, _titles.Genres(), _titles.RefItems("medium"), _titles.RefItems("case"), _titles.RefItems("version"), _titles.Collections());
+            current, _titles.Genres(), _titles.RefItems("medium"), _titles.RefItems("case"), _titles.RefItems("version"), _titles.Collections(), extras);
         // La fenêtre d'édition valide elle-même (TryBuild) avant de se fermer sur « Enregistrer ».
         if (await _dialogs.EditTitleAsync(editor) && editor.TryBuild(out var updated))
         {
             _titles.Update(updated);
+            if (editor.SeenChanged)
+            {
+                _titles.SetSeen([updated.Id], editor.IsSeen, DateTimeOffset.Now);
+            }
+
             Refresh(selectId: updated.Id);
+        }
+        else
+        {
+            // Les infos techniques ont pu être relues depuis la fiche, même sans enregistrer.
+            OnSelectionChanged();
         }
     }
 

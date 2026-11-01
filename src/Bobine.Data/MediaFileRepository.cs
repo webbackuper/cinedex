@@ -7,6 +7,82 @@ public sealed record ScanRoot(long Id, string Path, string Kind, bool ScanOnStar
 
 public sealed record MediaFileEntry(long Id, long TitleId, string FullPath, int Part, bool IsMissing, long? SizeBytes);
 
+/// <summary>Un fichier d'un titre et ses propriétés techniques (vides tant que MediaInfo ne l'a pas lu).</summary>
+public sealed record MediaFileDetail(
+    MediaFileEntry File,
+    string? Container,
+    string? VideoCodec,
+    int? Width,
+    int? Height,
+    string? AspectRatio,
+    double? FrameRate,
+    int? BitDepth,
+    string? HdrFormats,
+    int? DurationSeconds,
+    IReadOnlyList<string> Audio,
+    IReadOnlyList<string> Subtitles)
+{
+    public bool HasTechnical => Container is not null || VideoCodec is not null || Audio.Count > 0;
+
+    /// <summary>Texte de la fiche : emplacement, taille, durée, conteneur, vidéo, audio, sous-titres.</summary>
+    public string Describe()
+    {
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
+        var lines = new List<string>
+        {
+            (File.Part > 1 ? $"Partie {File.Part} : " : "Emplacement : ") + File.FullPath + (File.IsMissing ? "  (introuvable)" : string.Empty),
+        };
+        if (File.SizeBytes is { } size)
+        {
+            lines.Add("Taille : " + (size >= 1L << 30
+                ? (size / (double)(1L << 30)).ToString("0.00", culture) + " Go"
+                : (size / (double)(1L << 20)).ToString("0", culture) + " Mo"));
+        }
+
+        if (!HasTechnical)
+        {
+            lines.Add("Infos techniques pas encore lues : utilisez « Relire les infos techniques ».");
+            return string.Join('\n', lines);
+        }
+
+        if (DurationSeconds is > 0)
+        {
+            lines.Add("Durée : " + Bobine.Core.Titles.TitleText.FormatDuration(DurationSeconds.Value));
+        }
+
+        if (Container is not null)
+        {
+            lines.Add("Conteneur : " + Container);
+        }
+
+        var video = new[]
+        {
+            VideoCodec,
+            Width is null ? null : $"{Width}×{Height}",
+            AspectRatio,
+            FrameRate is null ? null : FrameRate.Value.ToString("0.###", culture) + " i/s",
+            BitDepth is null ? null : $"{BitDepth} bits",
+            HdrFormats,
+        }.Where(p => !string.IsNullOrWhiteSpace(p)).ToList();
+        if (video.Count > 0)
+        {
+            lines.Add("Vidéo : " + string.Join(" · ", video));
+        }
+
+        if (Audio.Count > 0)
+        {
+            lines.Add("Audio : " + string.Join(", ", Audio));
+        }
+
+        if (Subtitles.Count > 0)
+        {
+            lines.Add("Sous-titres : " + string.Join(", ", Subtitles));
+        }
+
+        return string.Join('\n', lines);
+    }
+}
+
 /// <summary>Propriétés techniques à enregistrer, indépendantes de l'outil qui les a lues.</summary>
 public sealed record MediaFileProperties(
     string? Container,
@@ -181,6 +257,31 @@ public sealed class MediaFileRepository(CatalogDatabase database)
         }
 
         return text;
+    }
+
+    /// <summary>Chaque fichier d'un titre avec son emplacement complet et tout ce que MediaInfo en a lu.</summary>
+    public IReadOnlyList<MediaFileDetail> TechnicalDetails(long titleId)
+    {
+        var files = FilesOf(titleId);
+        if (files.Count == 0)
+        {
+            return [];
+        }
+
+        using var connection = database.Open();
+        return files.Select(f =>
+        {
+            var row = connection.QuerySingle<(string? Container, string? Codec, long? Width, long? Height, string? Aspect, double? Fps, long? Bits, string? Hdr, long? Duration)>(
+                "SELECT container, video_codec, width, height, aspect_ratio, frame_rate, bit_depth, hdr_formats, duration_seconds FROM media_file WHERE id = @Id;",
+                new { f.Id });
+            var audio = connection.Query<(string? Language, string? Channels)>(
+                "SELECT language, channels FROM audio_track WHERE media_file_id = @Id ORDER BY position;", new { f.Id })
+                .Select(a => string.IsNullOrWhiteSpace(a.Language) ? a.Channels ?? "?" : $"{a.Channels} ({a.Language})".Trim())
+                .ToList();
+            var subs = connection.Query<string>("SELECT language FROM subtitle_track WHERE media_file_id = @Id ORDER BY position;", new { f.Id }).ToList();
+            return new MediaFileDetail(
+                f, row.Container, row.Codec, (int?)row.Width, (int?)row.Height, row.Aspect, row.Fps, (int?)row.Bits, row.Hdr, (int?)row.Duration, audio, subs);
+        }).ToList();
     }
 
     public void SaveProperties(long mediaFileId, MediaFileProperties p)

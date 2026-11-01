@@ -31,7 +31,7 @@ public sealed record TitleSummary(
         Year?.ToString(System.Globalization.CultureInfo.CurrentCulture),
         Kind == TitleKind.Series ? "Série" : null,
         Medium,
-        RuntimeMinutes is { } m ? (m >= 60 ? $"{m / 60} h {m % 60:00}" : $"{m} min") : null,
+        TitleText.FormatRuntime(RuntimeMinutes),
     }.Where(p => !string.IsNullOrEmpty(p)));
 
     public bool IsLoaned => Borrower is not null;

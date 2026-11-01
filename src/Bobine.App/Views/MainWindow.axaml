@@ -362,7 +362,7 @@
                   <TextBlock Text="{Binding OriginalTitle}" FontSize="12.5" Foreground="#D9FFFFFF" TextTrimming="CharacterEllipsis" />
                   <StackPanel Orientation="Horizontal" Spacing="10">
                     <TextBlock Text="{Binding Year}" Foreground="#D9FFFFFF" FontSize="13" />
-                    <TextBlock Text="{Binding RuntimeMinutes, StringFormat='{}{0} min'}" Foreground="#D9FFFFFF" FontSize="13" />
+                    <TextBlock Text="{Binding RuntimeText}" Foreground="#D9FFFFFF" FontSize="13" />
                     <Border BorderBrush="#99FFFFFF" BorderThickness="1" CornerRadius="3" Padding="4,0"
                             IsVisible="{Binding Certification, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                       <TextBlock Text="{Binding Certification}" Foreground="#D9FFFFFF" FontSize="11" />
@@ -496,25 +496,15 @@
                          IsVisible="{Binding CrewText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
               <!-- Exemplaire et vidéo -->
-              <Border Background="{DynamicResource BobineSurfaceAlt}" CornerRadius="10" Padding="14,12"
-                      IsVisible="{Binding TechnicalSummary, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+              <Border Background="{DynamicResource BobineSurfaceAlt}" CornerRadius="10" Padding="14,12">
                 <StackPanel Spacing="6">
-                  <StackPanel Orientation="Horizontal" Spacing="8">
-                    <controls:Icon Kind="view" Width="16" Height="16" Foreground="{DynamicResource BobineMuted}" />
-                    <TextBlock Text="Vidéo" FontWeight="SemiBold" Foreground="{DynamicResource BobineInk}" />
-                  </StackPanel>
-                  <SelectableTextBlock Text="{Binding TechnicalSummary}" TextWrapping="Wrap" FontSize="12.5" Foreground="{DynamicResource BobineMuted}" />
-                </StackPanel>
-              </Border>
-
-              <Border Background="{DynamicResource BobineSurfaceAlt}" CornerRadius="10" Padding="14,12"
-                      IsVisible="{Binding DetailFilesText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                <StackPanel Spacing="6">
-                  <StackPanel Orientation="Horizontal" Spacing="8">
-                    <controls:Icon Kind="harddisk" Width="16" Height="16" Foreground="{DynamicResource BobineMuted}" />
-                    <TextBlock Text="Fichiers" FontWeight="SemiBold" Foreground="{DynamicResource BobineInk}" />
-                  </StackPanel>
-                  <SelectableTextBlock Text="{Binding DetailFilesText}" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource BobineMuted}" />
+                  <Grid ColumnDefinitions="Auto,*,Auto">
+                    <controls:Icon Kind="harddisk" Width="16" Height="16" Foreground="{DynamicResource BobineMuted}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Margin="8,0,0,0" Text="Fichier et infos techniques" FontWeight="SemiBold" Foreground="{DynamicResource BobineInk}" VerticalAlignment="Center" />
+                    <Button Grid.Column="2" Classes="tool" Content="Relire (MediaInfo)" Command="{Binding RefreshTechnicalCommand}"
+                            IsVisible="{Binding HasDetailFiles}" ToolTip.Tip="Relire codecs, résolution, pistes audio et sous-titres" />
+                  </Grid>
+                  <SelectableTextBlock Text="{Binding TechnicalSummary}" TextWrapping="Wrap" FontSize="12.5" LineHeight="19" Foreground="{DynamicResource BobineMuted}" />
                 </StackPanel>
               </Border>
 

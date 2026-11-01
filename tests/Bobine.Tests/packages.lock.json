@@ -392,6 +392,7 @@
           "Avalonia.Themes.Fluent": "[12.1.4, )",
           "Bobine.Core": "[0.1.0, )",
           "Bobine.Data": "[0.1.0, )",
+          "Bobine.Metadata": "[0.1.0, )",
           "CommunityToolkit.Mvvm": "[8.4.2, )",
           "Microsoft.Extensions.DependencyInjection": "[10.0.14, )",
           "Serilog.Extensions.Logging": "[10.0.0, )",
@@ -407,6 +408,13 @@
           "Bobine.Core": "[0.1.0, )",
           "Dapper": "[2.1.89, )",
           "Microsoft.Data.Sqlite": "[10.0.14, )",
+          "Microsoft.Extensions.Logging": "[10.0.14, )"
+        }
+      },
+      "bobine.metadata": {
+        "type": "Project",
+        "dependencies": {
+          "Bobine.Core": "[0.1.0, )",
           "Microsoft.Extensions.Logging": "[10.0.14, )"
         }
       },

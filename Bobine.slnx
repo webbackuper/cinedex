@@ -3,6 +3,7 @@
     <Project Path="src/Bobine.App/Bobine.App.csproj" />
     <Project Path="src/Bobine.Core/Bobine.Core.csproj" />
     <Project Path="src/Bobine.Data/Bobine.Data.csproj" />
+    <Project Path="src/Bobine.Metadata/Bobine.Metadata.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Bobine.Tests/Bobine.Tests.csproj" />

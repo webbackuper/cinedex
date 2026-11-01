@@ -311,6 +311,13 @@
           "Microsoft.Extensions.Logging": "[10.0.14, )"
         }
       },
+      "bobine.metadata": {
+        "type": "Project",
+        "dependencies": {
+          "Bobine.Core": "[0.1.0, )",
+          "Microsoft.Extensions.Logging": "[10.0.14, )"
+        }
+      },
       "Dapper": {
         "type": "CentralTransitive",
         "requested": "[2.1.89, )",

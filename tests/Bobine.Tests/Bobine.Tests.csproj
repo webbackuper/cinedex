@@ -16,5 +16,6 @@
     <ProjectReference Include="..\..\src\Bobine.Core\Bobine.Core.csproj" />
     <ProjectReference Include="..\..\src\Bobine.Data\Bobine.Data.csproj" />
     <ProjectReference Include="..\..\src\Bobine.App\Bobine.App.csproj" />
+    <ProjectReference Include="..\..\src\Bobine.Metadata\Bobine.Metadata.csproj" />
   </ItemGroup>
 </Project>

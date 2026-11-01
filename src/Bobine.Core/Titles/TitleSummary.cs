@@ -16,7 +16,10 @@ public sealed record TitleSummary(
     double? UserRating,
     bool IsOwned,
     bool IsFavorite,
-    bool IsSeen);
+    bool IsSeen,
+    int? Number = null,
+    string? Medium = null,
+    string? Borrower = null);
 
 /// <summary>Données minimales pour créer une fiche à la main.</summary>
 public sealed record NewTitle(TitleKind Kind, string Title, int? Year = null, string? OriginalTitle = null);

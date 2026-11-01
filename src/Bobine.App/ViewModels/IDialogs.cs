@@ -18,4 +18,6 @@ public interface IDialogs
     Task<bool> AdvancedSearchAsync(AdvancedSearchViewModel search);
 
     Task<bool> BulkEditAsync(BulkEditViewModel edit);
+
+    Task<bool> ImportFolderAsync(ImportFolderViewModel import);
 }

@@ -16,6 +16,11 @@
       <TextBlock Grid.Column="3" Text="Pays des certifications" VerticalAlignment="Center" Margin="0,0,8,0" />
       <TextBox Grid.Column="4" Text="{Binding Country}" PlaceholderText="FR" />
     </Grid>
+    <TextBlock Text="Fichiers vidéo" FontSize="16" FontWeight="SemiBold" Margin="0,12,0,0" />
+    <TextBox Text="{Binding FfprobePath}" PlaceholderText="Chemin de ffprobe (vide : recherche dans le PATH)" />
+    <TextBox Text="{Binding PlayerPath}" PlaceholderText="Lecteur externe (vide : lecteur par défaut du système)" />
+    <TextBox Text="{Binding PlayerArgs}" PlaceholderText="Paramètres du lecteur, ex. --fullscreen %FILEPATH%" />
+    <CheckBox Content="Marquer comme vu à la lecture depuis Bobine" IsChecked="{Binding MarkSeenOnPlay}" />
     <TextBlock Text="{Binding Error}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" TextWrapping="Wrap"
                IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
     <TextBlock FontSize="11" Opacity="0.6" TextWrapping="Wrap"

@@ -33,7 +33,8 @@ public sealed class App : Application
                 window,
                 services.GetRequiredService<MetadataService>(),
                 services.GetRequiredService<ImageStore>(),
-                () => new SettingsViewModel(services.GetRequiredService<ISecretStore>(), services.GetRequiredService<SettingsStore>()));
+                () => new SettingsViewModel(services.GetRequiredService<ISecretStore>(), services.GetRequiredService<SettingsStore>()),
+                services.GetRequiredService<MediaContext>());
             main.Load();
             window.DataContext = main;
             desktop.MainWindow = window;
@@ -96,6 +97,19 @@ public sealed class App : Application
                 sp.GetRequiredService<ILogger<TmdbClient>>());
         });
         services.AddSingleton<MetadataService>();
+        services.AddSingleton<MediaFileRepository>();
+        services.AddSingleton(sp => new LibraryImportService(
+            sp.GetRequiredService<TitleRepository>(),
+            sp.GetRequiredService<MediaFileRepository>(),
+            sp.GetRequiredService<ImageStore>(),
+            sp.GetRequiredService<MetadataService>(),
+            // Relu à chaque import : un chemin ffprobe changé dans les réglages s'applique sans redémarrer.
+            () => new Bobine.Media.MediaProbe(sp.GetRequiredService<SettingsStore>().Get(MediaContext.FfprobeKey)),
+            sp.GetRequiredService<ILogger<LibraryImportService>>()));
+        services.AddSingleton(sp => new MediaContext(
+            sp.GetRequiredService<MediaFileRepository>(),
+            sp.GetRequiredService<LibraryImportService>(),
+            sp.GetRequiredService<SettingsStore>()));
         return services.BuildServiceProvider();
     }
 }

@@ -19,6 +19,7 @@ public enum QuickFilter
     ThreeD,
     PhysicalMedia,
     MediaFiles,
+    MissingFiles,
 }
 
 public enum SortField

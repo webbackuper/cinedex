@@ -5,6 +5,7 @@ using Bobine.Core;
 using Bobine.Core.Metadata;
 using Bobine.Core.Titles;
 using Bobine.Data;
+using Bobine.Media;
 using Bobine.Metadata.Tmdb;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -25,6 +26,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly MetadataService? _metadata;
     private readonly ImageStore? _images;
     private readonly Func<SettingsViewModel>? _settings;
+    private readonly MediaContext? _media;
     private bool _refreshing;
     private bool _loaded;
 
@@ -34,7 +36,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         IDialogs dialogs,
         MetadataService? metadata = null,
         ImageStore? images = null,
-        Func<SettingsViewModel>? settings = null)
+        Func<SettingsViewModel>? settings = null,
+        MediaContext? media = null)
     {
         _titles = titles;
         _paths = paths;
@@ -42,6 +45,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _metadata = metadata;
         _images = images;
         _settings = settings;
+        _media = media;
         SelectedFilter = Filters[0];
         SelectedSort = Sorts[0];
         SelectedTitles.CollectionChanged += (_, _) =>
@@ -75,6 +79,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         new(QuickFilter.ThreeD, "3D"),
         new(QuickFilter.PhysicalMedia, "Supports physiques"),
         new(QuickFilter.MediaFiles, "Fichiers vidéo"),
+        new(QuickFilter.MissingFiles, "Fichiers introuvables"),
     ];
 
     public IReadOnlyList<Choice<SortField>> Sorts { get; } =
@@ -119,6 +124,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public partial string? PosterPath { get; set; }
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(PlayCommand), nameof(OpenFolderCommand))]
+    public partial IReadOnlyList<MediaFileEntry> DetailFiles { get; set; } = [];
+
+    public string DetailFilesText => string.Join('\n', DetailFiles.Select(f => (f.IsMissing ? "introuvable : " : string.Empty) + f.FullPath));
+
+    partial void OnDetailFilesChanged(IReadOnlyList<MediaFileEntry> value) => OnPropertyChanged(nameof(DetailFilesText));
+
+    public bool HasMedia => _media is not null;
+
+    [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AddFromTmdbCommand), nameof(LinkToTmdbCommand), nameof(UpdateAllFromTmdbCommand))]
     public partial bool IsBusy { get; set; }
 
@@ -158,6 +173,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         Detail = SelectedTitles.Count == 1 ? _titles.Get(SelectedTitles[0].Id) : null;
         PosterPath = Detail is null ? null : _images?.PathFor(Detail.Id, "poster");
+        DetailFiles = Detail is null || _media is null ? [] : _media.Files.FilesOf(Detail.Id);
         LinkToTmdbCommand.NotifyCanExecuteChanged();
         BorrowerText = Detail?.CurrentLoan is null ? _titles.LastBorrower() ?? string.Empty : string.Empty;
         EditCommand.NotifyCanExecuteChanged();
@@ -390,6 +406,92 @@ public sealed partial class MainWindowViewModel : ObservableObject
         catch (Exception ex) when (ex is TmdbUnavailableException or KeyNotFoundException or DuplicateTitleException or HttpRequestException or TaskCanceledException)
         {
             Status = ex.Message;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ImportFolderAsync()
+    {
+        if (_media is not null && await _dialogs.ImportFolderAsync(new ImportFolderViewModel(_media.Import)))
+        {
+            Refresh(selectIds: SelectedIds);
+        }
+    }
+
+    /// <summary>Lit le premier fichier présent ; marque le titre comme vu si le réglage le demande (par défaut).</summary>
+    [RelayCommand(CanExecute = nameof(HasFiles))]
+    private void Play()
+    {
+        var file = DetailFiles.FirstOrDefault(f => File.Exists(f.FullPath));
+        if (file is null)
+        {
+            Status = "Fichier introuvable : le disque est peut-être débranché. « Vérifier les fichiers » peut le retrouver.";
+            return;
+        }
+
+        try
+        {
+            Player.Play(file.FullPath, _media!.Settings.Get(MediaContext.PlayerKey), _media.Settings.Get(MediaContext.PlayerArgsKey));
+            if (_media.Settings.Get(MediaContext.MarkSeenOnPlayKey) != "false")
+            {
+                _titles.SetSeen([file.TitleId], true, DateTimeOffset.Now);
+                Refresh(selectId: file.TitleId);
+            }
+        }
+        catch (Exception ex) when (ex is IOException or InvalidOperationException or System.ComponentModel.Win32Exception)
+        {
+            Status = ex.Message;
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(HasFiles))]
+    private void OpenFolder()
+    {
+        var file = DetailFiles.FirstOrDefault(f => File.Exists(f.FullPath));
+        if (file is null)
+        {
+            Status = "Fichier introuvable.";
+            return;
+        }
+
+        try
+        {
+            Player.RevealInFolder(file.FullPath);
+        }
+        catch (System.ComponentModel.Win32Exception ex)
+        {
+            Status = ex.Message;
+        }
+    }
+
+    private bool HasFiles() => DetailFiles.Count > 0;
+
+    [RelayCommand]
+    private async Task CheckFilesAsync()
+    {
+        if (_media is null)
+        {
+            return;
+        }
+
+        IsBusy = true;
+        Status = "Vérification des fichiers...";
+        try
+        {
+            var (missing, relinked) = await _media.Import.CheckFilesAsync();
+            Status = $"{missing} fichier(s) introuvable(s), {relinked} retrouvé(s) après déplacement";
+            if (missing > 0)
+            {
+                SelectedFilter = Filters.Single(f => f.Value == QuickFilter.MissingFiles);
+            }
+            else
+            {
+                Refresh(selectIds: SelectedIds);
+            }
         }
         finally
         {

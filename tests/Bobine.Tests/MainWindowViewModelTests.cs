@@ -169,5 +169,7 @@ public sealed class MainWindowViewModelTests : IDisposable
         public Task<bool> AdvancedSearchAsync(AdvancedSearchViewModel search) => Task.FromResult(OnAdvancedSearch?.Invoke(search) ?? false);
 
         public Task<bool> BulkEditAsync(BulkEditViewModel edit) => Task.FromResult(OnBulkEdit?.Invoke(edit) ?? false);
+
+        public Task<bool> ImportFolderAsync(ImportFolderViewModel import) => Task.FromResult(false);
     }
 }

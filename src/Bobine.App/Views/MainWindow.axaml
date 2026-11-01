@@ -18,6 +18,9 @@
     <KeyBinding Gesture="Escape" Command="{Binding ClearSearchCommand}" />
     <KeyBinding Gesture="Ctrl+T" Command="{Binding AddFromTmdbCommand}" />
     <KeyBinding Gesture="Ctrl+U" Command="{Binding LinkToTmdbCommand}" />
+    <KeyBinding Gesture="Ctrl+P" Command="{Binding PlayCommand}" />
+    <KeyBinding Gesture="Ctrl+O" Command="{Binding OpenFolderCommand}" />
+    <KeyBinding Gesture="Ctrl+H" Command="{Binding ImportFolderCommand}" />
   </Window.KeyBindings>
 
   <DockPanel Margin="16">
@@ -31,6 +34,7 @@
       <Button Margin="0,0,8,0" Content="Tout afficher" Command="{Binding ClearSearchCommand}" ToolTip.Tip="Efface recherche, filtre et critères (Échap)" />
       <Button Margin="0,0,8,0" Content="Au hasard" Command="{Binding PickRandomCommand}" ToolTip.Tip="Un titre non vu au hasard (Ctrl+R)" />
       <Button Margin="0,0,8,0" Content="Tout mettre à jour (TMDb)" Command="{Binding UpdateAllFromTmdbCommand}" />
+      <Button Margin="0,0,8,0" Content="Vérifier les fichiers" Command="{Binding CheckFilesCommand}" ToolTip.Tip="Repère les fichiers absents et retrouve ceux qui ont été déplacés" />
       <Button Content="Réglages" Command="{Binding OpenSettingsCommand}" />
     </WrapPanel>
 
@@ -42,7 +46,10 @@
         </TextBox.KeyBindings>
       </TextBox>
       <Button Margin="0,0,8,0" Content="Ajouter" Command="{Binding AddCommand}" ToolTip.Tip="Ajout manuel" />
-      <Button Margin="0,0,16,0" Content="Ajouter depuis TMDb" Command="{Binding AddFromTmdbCommand}" ToolTip.Tip="Recherche le titre saisi sur TMDb (Ctrl+T)" />
+      <Button Margin="0,0,8,0" Content="Ajouter depuis TMDb" Command="{Binding AddFromTmdbCommand}" ToolTip.Tip="Recherche le titre saisi sur TMDb (Ctrl+T)" />
+      <Button Margin="0,0,16,0" Content="Ajouter depuis le disque" Command="{Binding ImportFolderCommand}" ToolTip.Tip="Analyse un dossier de fichiers vidéo (Ctrl+H)" />
+      <Button Margin="0,0,8,0" Content="Lire" Command="{Binding PlayCommand}" ToolTip.Tip="Ctrl+P" />
+      <Button Margin="0,0,8,0" Content="Dossier" Command="{Binding OpenFolderCommand}" ToolTip.Tip="Ouvre le dossier du fichier (Ctrl+O)" />
       <Button Margin="0,0,8,0" Content="Modifier" Command="{Binding EditCommand}" ToolTip.Tip="Alt+E ou double-clic" />
       <Button Margin="0,0,8,0" Content="Vu / non vu" Command="{Binding ToggleSeenCommand}" ToolTip.Tip="Ctrl+S" />
       <Button Margin="0,0,8,0" Content="Favori" Command="{Binding ToggleFavoriteCommand}" ToolTip.Tip="Ctrl+D" />
@@ -125,6 +132,12 @@
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
               <TextBlock Text="{Binding Comments}" TextWrapping="Wrap" Opacity="0.8" />
+            </StackPanel>
+
+            <!-- Fichiers -->
+            <StackPanel Spacing="4" IsVisible="{Binding DetailFilesText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+              <TextBlock Text="Fichiers" FontWeight="SemiBold" />
+              <SelectableTextBlock Text="{Binding DetailFilesText}" TextWrapping="Wrap" FontSize="12" Opacity="0.8" />
             </StackPanel>
 
             <!-- Prêt -->

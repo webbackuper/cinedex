@@ -22,8 +22,24 @@ public sealed partial class SettingsViewModel : ObservableObject
         _settings = settings;
         Language = settings.Get(LanguageKey) ?? "fr-FR";
         Country = settings.Get(CountryKey) ?? "FR";
+        FfprobePath = settings.Get(Services.MediaContext.FfprobeKey) ?? string.Empty;
+        PlayerPath = settings.Get(Services.MediaContext.PlayerKey) ?? string.Empty;
+        PlayerArgs = settings.Get(Services.MediaContext.PlayerArgsKey) ?? string.Empty;
+        MarkSeenOnPlay = settings.Get(Services.MediaContext.MarkSeenOnPlayKey) != "false";
         HasToken = SafeRead() is not null;
     }
+
+    [ObservableProperty]
+    public partial string FfprobePath { get; set; }
+
+    [ObservableProperty]
+    public partial string PlayerPath { get; set; }
+
+    [ObservableProperty]
+    public partial string PlayerArgs { get; set; }
+
+    [ObservableProperty]
+    public partial bool MarkSeenOnPlay { get; set; }
 
     [ObservableProperty]
     public partial string NewToken { get; set; } = string.Empty;
@@ -63,6 +79,15 @@ public sealed partial class SettingsViewModel : ObservableObject
             return false;
         }
 
+        foreach (var (path, label) in new[] { (FfprobePath, "ffprobe"), (PlayerPath, "lecteur externe") })
+        {
+            if (path.Trim().Length > 0 && !File.Exists(path.Trim()))
+            {
+                Error = $"Chemin du {label} introuvable : {path}";
+                return false;
+            }
+        }
+
         if (token.Length > 0)
         {
             _secrets.Write(SecretStore.TmdbToken, token);
@@ -72,9 +97,15 @@ public sealed partial class SettingsViewModel : ObservableObject
 
         _settings.Set(LanguageKey, Language);
         _settings.Set(CountryKey, Country);
+        _settings.Set(Services.MediaContext.FfprobeKey, NullIfBlank(FfprobePath));
+        _settings.Set(Services.MediaContext.PlayerKey, NullIfBlank(PlayerPath));
+        _settings.Set(Services.MediaContext.PlayerArgsKey, NullIfBlank(PlayerArgs));
+        _settings.Set(Services.MediaContext.MarkSeenOnPlayKey, MarkSeenOnPlay ? "true" : "false");
         Error = null;
         return true;
     }
+
+    private static string? NullIfBlank(string value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     public void ForgetToken()
     {

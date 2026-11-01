@@ -45,6 +45,9 @@ public sealed partial class MainWindow : Window, IDialogs
     public Task<bool> BulkEditAsync(BulkEditViewModel edit) =>
         new BulkEditWindow { DataContext = edit }.ShowDialog<bool>(this);
 
+    public Task<bool> ImportFolderAsync(ImportFolderViewModel import) =>
+        new ImportFolderWindow { DataContext = import }.ShowDialog<bool>(this);
+
     private void OnListDoubleTapped(object? sender, RoutedEventArgs e)
     {
         if (DataContext is MainWindowViewModel vm && vm.EditCommand.CanExecute(null))

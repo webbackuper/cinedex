@@ -289,6 +289,30 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public string DataLocation => _paths.IsPortable ? $"Mode portable : {_paths.DataRoot}" : _paths.DataRoot;
 
+    /// <summary>Apparence choisie (commune à tous les catalogues), appliquée et mémorisée dès qu'elle change.</summary>
+    public AppTheme Theme
+    {
+        get => Appearance.Load(_paths.DataRoot);
+        set
+        {
+            Appearance.Save(_paths.DataRoot, value);
+            Appearance.Apply(value);
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsSystemTheme));
+            OnPropertyChanged(nameof(IsLightTheme));
+            OnPropertyChanged(nameof(IsDarkTheme));
+        }
+    }
+
+    public bool IsSystemTheme => Theme == AppTheme.System;
+
+    public bool IsLightTheme => Theme == AppTheme.Light;
+
+    public bool IsDarkTheme => Theme == AppTheme.Dark;
+
+    [RelayCommand]
+    private void SetTheme(AppTheme theme) => Theme = theme;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasCriteria))]
     public partial SearchCriteria? Criteria { get; set; }

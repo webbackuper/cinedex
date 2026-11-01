@@ -32,6 +32,7 @@ public sealed class Icon : Control
     private static readonly Dictionary<string, string> PathKinds = new(StringComparer.Ordinal)
     {
         ["film"] = "M4 3.5 H20 V20.5 H4 Z M8 3.5 V20.5 M16 3.5 V20.5 M4 8 H8 M4 12 H8 M4 16 H8 M16 8 H20 M16 12 H20 M16 16 H20",
+        ["moon"] = "M19.5 14.5 A 8 8 0 1 1 9.5 4.5 A 6.5 6.5 0 0 0 19.5 14.5 Z",
         ["tv"] = "M3 7.5 H21 V18.5 H3 Z M8 21 H16 M8.5 3.5 L12 7 L15.5 3.5",
         ["heart"] = "M12 20 C 7 16.5 3.5 13 3.5 9 A 4.3 4.3 0 0 1 12 7 A 4.3 4.3 0 0 1 20.5 9 C 20.5 13 17 16.5 12 20 Z",
         ["eye"] = "M2.5 12 C 5 7.5 8.3 5.5 12 5.5 C 15.7 5.5 19 7.5 21.5 12 C 19 16.5 15.7 18.5 12 18.5 C 8.3 18.5 5 16.5 2.5 12 Z M15 12 A 3 3 0 1 1 9 12 A 3 3 0 1 1 15 12 Z",

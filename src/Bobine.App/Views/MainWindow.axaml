@@ -5,6 +5,7 @@
         xmlns:views="using:Bobine.App.Views"
         xmlns:controls="using:Bobine.App.Controls"
         xmlns:people="using:Bobine.Core.People"
+        xmlns:services="using:Bobine.App.Services"
         x:Class="Bobine.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Bobine"
@@ -101,8 +102,24 @@
           <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenPeopleCommand}" IsVisible="{Binding HasPeople}">
             <StackPanel Orientation="Horizontal" Spacing="10">
               <controls:Icon Kind="about" Width="18" Height="18" />
-              <TextBlock Text="Personnes" />
+              <TextBlock Text="Acteurs" />
             </StackPanel>
+          </Button>
+          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" ToolTip.Tip="Mode clair, sombre ou comme le système">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <controls:Icon Kind="moon" Width="18" Height="18" />
+              <TextBlock Text="Apparence" />
+            </StackPanel>
+            <Button.Flyout>
+              <MenuFlyout Placement="RightEdgeAlignedBottom">
+                <MenuItem Header="Comme le système" ToggleType="Radio" IsChecked="{Binding IsSystemTheme, Mode=OneWay}"
+                          Command="{Binding SetThemeCommand}" CommandParameter="{x:Static services:AppTheme.System}" />
+                <MenuItem Header="Mode clair" ToggleType="Radio" IsChecked="{Binding IsLightTheme, Mode=OneWay}"
+                          Command="{Binding SetThemeCommand}" CommandParameter="{x:Static services:AppTheme.Light}" />
+                <MenuItem Header="Mode sombre" ToggleType="Radio" IsChecked="{Binding IsDarkTheme, Mode=OneWay}"
+                          Command="{Binding SetThemeCommand}" CommandParameter="{x:Static services:AppTheme.Dark}" />
+              </MenuFlyout>
+            </Button.Flyout>
           </Button>
           <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenSettingsCommand}">
             <StackPanel Orientation="Horizontal" Spacing="10">

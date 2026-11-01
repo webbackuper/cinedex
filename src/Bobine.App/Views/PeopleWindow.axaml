@@ -6,7 +6,7 @@
         xmlns:controls="using:Bobine.App.Controls"
         x:Class="Bobine.App.Views.PeopleWindow"
         x:DataType="vm:PeopleBrowserViewModel"
-        Title="Personnes du catalogue"
+        Title="Acteurs du catalogue"
         Width="560" Height="640" MinWidth="420" MinHeight="400"
         WindowStartupLocation="CenterOwner">
   <DockPanel Margin="18">

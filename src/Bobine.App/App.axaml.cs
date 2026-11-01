@@ -31,6 +31,7 @@ public sealed class App : Application
             _paths = AppPaths.Resolve();
             _paths.EnsureCreated();
             _serilog = CreateLogger(_paths);
+            Services.Appearance.Apply(Services.Appearance.Load(_paths.DataRoot));
             _window = new MainWindow();
             OpenCatalog(new CatalogManager(_paths).Current);
             desktop.MainWindow = _window;

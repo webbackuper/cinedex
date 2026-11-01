@@ -19,7 +19,11 @@ public sealed partial class MainWindow : Window, IDialogs
         KeyBindings.Add(new KeyBinding
         {
             Gesture = new KeyGesture(Key.A, KeyModifiers.Alt),
-            Command = new CommunityToolkit.Mvvm.Input.RelayCommand(() => NewTitleBox.Focus()),
+            Command = new CommunityToolkit.Mvvm.Input.RelayCommand(() =>
+            {
+                AddButton.Flyout?.ShowAt(AddButton);
+                NewTitleBox.Focus();
+            }),
         });
     }
 
@@ -33,8 +37,11 @@ public sealed partial class MainWindow : Window, IDialogs
 
     public Task InformAsync(string title, string message) => MessageWindow.ShowAsync(this, title, message, confirm: false);
 
-    public Task<MetadataSearchResult?> SearchMetadataAsync(MetadataSearchViewModel search) =>
-        new MetadataSearchWindow { DataContext = search }.ShowDialog<MetadataSearchResult?>(this);
+    public Task<MetadataSearchResult?> SearchMetadataAsync(MetadataSearchViewModel search)
+    {
+        AddButton.Flyout?.Hide();
+        return new MetadataSearchWindow { DataContext = search }.ShowDialog<MetadataSearchResult?>(this);
+    }
 
     public Task<bool> EditSettingsAsync(SettingsViewModel settings) =>
         new SettingsWindow { DataContext = settings }.ShowDialog<bool>(this);

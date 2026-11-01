@@ -3,10 +3,13 @@
         xmlns:vm="using:Bobine.App.ViewModels"
         xmlns:titles="using:Bobine.Core.Titles"
         xmlns:views="using:Bobine.App.Views"
+        xmlns:controls="using:Bobine.App.Controls"
         x:Class="Bobine.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Bobine"
-        Width="1280" Height="760" MinWidth="800" MinHeight="480">
+        Width="1360" Height="820" MinWidth="960" MinHeight="560"
+        Background="{DynamicResource BobineBackground}"
+        WindowStartupLocation="CenterScreen">
   <Window.KeyBindings>
     <KeyBinding Gesture="Ctrl+S" Command="{Binding ToggleSeenCommand}" />
     <KeyBinding Gesture="Ctrl+D" Command="{Binding ToggleFavoriteCommand}" />
@@ -18,157 +21,451 @@
     <KeyBinding Gesture="Escape" Command="{Binding ClearSearchCommand}" />
     <KeyBinding Gesture="Ctrl+T" Command="{Binding AddFromTmdbCommand}" />
     <KeyBinding Gesture="Ctrl+U" Command="{Binding LinkToTmdbCommand}" />
+    <KeyBinding Gesture="Ctrl+Shift+U" Command="{Binding UpdateAllFromTmdbCommand}" />
     <KeyBinding Gesture="Ctrl+P" Command="{Binding PlayCommand}" />
     <KeyBinding Gesture="Ctrl+O" Command="{Binding OpenFolderCommand}" />
     <KeyBinding Gesture="Ctrl+H" Command="{Binding ImportFolderCommand}" />
+    <KeyBinding Gesture="Ctrl+D1" Command="{Binding ShowListCommand}" />
+    <KeyBinding Gesture="Ctrl+D2" Command="{Binding ShowGridCommand}" />
   </Window.KeyBindings>
 
-  <DockPanel Margin="16">
-    <!-- Barre de recherche, filtre et tri -->
-    <WrapPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
-      <TextBox x:Name="SearchBox" Width="300" Margin="0,0,8,0" PlaceholderText="Rechercher (Ctrl+F)" Text="{Binding SearchText}" />
-      <ComboBox Width="200" Margin="0,0,8,0" ItemsSource="{Binding Filters}" SelectedItem="{Binding SelectedFilter}" ToolTip.Tip="Filtre" />
-      <ComboBox Width="170" Margin="0,0,8,0" ItemsSource="{Binding Sorts}" SelectedItem="{Binding SelectedSort}" ToolTip.Tip="Trier par" />
-      <ToggleButton Margin="0,0,8,0" IsChecked="{Binding SortDescending}" Content="Ordre inverse" />
-      <Button Margin="0,0,8,0" Content="Recherche avancée" Command="{Binding AdvancedSearchCommand}" ToolTip.Tip="Ctrl+Maj+F" />
-      <Button Margin="0,0,8,0" Content="Tout afficher" Command="{Binding ClearSearchCommand}" ToolTip.Tip="Efface recherche, filtre et critères (Échap)" />
-      <Button Margin="0,0,8,0" Content="Au hasard" Command="{Binding PickRandomCommand}" ToolTip.Tip="Un titre non vu au hasard (Ctrl+R)" />
-      <Button Margin="0,0,8,0" Content="Mettre à jour via TMDb" Command="{Binding UpdateAllFromTmdbCommand}" ToolTip.Tip="Sélection, ou tous les titres affichés : complète les fiches existantes sans créer d'entrée" />
-      <Button Margin="0,0,8,0" Content="Relire les infos techniques" Command="{Binding RefreshTechnicalCommand}" ToolTip.Tip="MediaInfo sur la sélection, ou sur tous les titres affichés" />
-      <Button Margin="0,0,8,0" Content="Écrire les .nfo" Command="{Binding WriteNfoCommand}" ToolTip.Tip="Crée ou complète le .nfo des fichiers de la sélection, ou de tous les titres affichés" />
-      <Button Margin="0,0,8,0" Content="Vérifier les fichiers" Command="{Binding CheckFilesCommand}" ToolTip.Tip="Repère les fichiers absents et retrouve ceux qui ont été déplacés" />
-      <Button Margin="0,0,8,0" Content="Réglages" Command="{Binding OpenSettingsCommand}" />
-      <Button Content="{Binding CatalogLabel}" Command="{Binding ManageCatalogsCommand}" ToolTip.Tip="Ouvrir, créer, renommer ou retirer un catalogue" />
-    </WrapPanel>
+  <Window.Styles>
+    <!-- Barre latérale : entrées plates, sélection en accent doux. -->
+    <Style Selector="ListBox.nav">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem">
+      <Setter Property="Padding" Value="12,7" />
+      <Setter Property="Margin" Value="8,1" />
+      <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem:selected /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource BobineAccentSoft}" />
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem:selected controls|Icon">
+      <Setter Property="Foreground" Value="{DynamicResource BobineAccent}" />
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem:selected TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource BobineAccent}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <!-- Liste et grille de titres. -->
+    <Style Selector="ListBox.titles">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="ListBox.titles ListBoxItem">
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Margin" Value="0,1" />
+      <Setter Property="Padding" Value="10,6" />
+    </Style>
+    <Style Selector="ListBox.titles ListBoxItem:selected /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource BobineAccentSoft}" />
+    </Style>
+    <Style Selector="ListBox.grid ListBoxItem">
+      <Setter Property="Margin" Value="6" />
+      <Setter Property="Padding" Value="6" />
+      <Setter Property="Width" Value="172" />
+    </Style>
+  </Window.Styles>
 
-    <!-- Actions -->
-    <WrapPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,12">
-      <TextBox x:Name="NewTitleBox" Width="300" Margin="0,0,8,0" PlaceholderText="Nouveau titre, ex. Heat (1995)" Text="{Binding NewTitleText}">
-        <TextBox.KeyBindings>
-          <KeyBinding Gesture="Enter" Command="{Binding AddCommand}" />
-        </TextBox.KeyBindings>
-      </TextBox>
-      <Button Margin="0,0,8,0" Content="Ajouter" Command="{Binding AddCommand}" ToolTip.Tip="Ajout manuel" />
-      <Button Margin="0,0,8,0" Content="Ajouter depuis TMDb" Command="{Binding AddFromTmdbCommand}" ToolTip.Tip="Recherche le titre saisi sur TMDb (Ctrl+T)" />
-      <Button Margin="0,0,16,0" Content="Ajouter depuis le disque" Command="{Binding ImportFolderCommand}" ToolTip.Tip="Analyse un dossier de fichiers vidéo (Ctrl+H)" />
-      <Button Margin="0,0,8,0" Content="Lire" Command="{Binding PlayCommand}" ToolTip.Tip="Ctrl+P" />
-      <Button Margin="0,0,8,0" Content="Dossier" Command="{Binding OpenFolderCommand}" ToolTip.Tip="Ouvre le dossier du fichier (Ctrl+O)" />
-      <Button Margin="0,0,8,0" Content="Modifier" Command="{Binding EditCommand}" ToolTip.Tip="Alt+E ou double-clic" />
-      <Button Margin="0,0,8,0" Content="Vu / non vu" Command="{Binding ToggleSeenCommand}" ToolTip.Tip="Ctrl+S" />
-      <Button Margin="0,0,8,0" Content="Favori" Command="{Binding ToggleFavoriteCommand}" ToolTip.Tip="Ctrl+D" />
-      <Button Margin="0,0,8,0" Content="Lier / mettre à jour (TMDb)" Command="{Binding LinkToTmdbCommand}" ToolTip.Tip="Ctrl+U" />
-      <Button Content="Supprimer" Command="{Binding DeleteCommand}" ToolTip.Tip="Suppr" />
-    </WrapPanel>
+  <Grid ColumnDefinitions="232,*,372">
+    <!-- ======================= Barre latérale ======================= -->
+    <Border Grid.Column="0" Background="{DynamicResource BobineSidebar}" BorderBrush="{DynamicResource BobineBorder}" BorderThickness="0,0,1,0">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Margin="20,22,16,8" Spacing="2">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <controls:Icon Kind="film" Width="26" Height="26" Foreground="{DynamicResource BobineAccent}" />
+            <TextBlock Text="Bobine" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource BobineInk}" VerticalAlignment="Center" />
+          </StackPanel>
+          <Button Classes="tool" Margin="-8,8,0,0" Command="{Binding ManageCatalogsCommand}" ToolTip.Tip="Ouvrir, créer, renommer ou retirer un catalogue">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <controls:Icon Kind="database" Width="18" Height="18" />
+              <TextBlock Text="{Binding CatalogName}" FontSize="13" />
+              <controls:Icon Kind="chevron-down" Width="14" Height="14" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
 
-    <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" Margin="0,12,0,0">
-      <TextBlock Grid.Column="0" Text="{Binding Status}" Opacity="0.8" />
-      <TextBlock Grid.Column="1" Text="{Binding DataLocation}" Opacity="0.6" FontSize="12" />
-    </Grid>
+        <StackPanel DockPanel.Dock="Bottom" Margin="8,8,8,14" Spacing="2">
+          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenSettingsCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <controls:Icon Kind="options" Width="18" Height="18" />
+              <TextBlock Text="Réglages" />
+            </StackPanel>
+          </Button>
+          <TextBlock Classes="muted" FontSize="10.5" Margin="10,6,8,0" TextWrapping="Wrap" Text="{Binding DataLocation}" />
+        </StackPanel>
 
-    <Grid ColumnDefinitions="*,16,380">
-      <!-- Liste -->
-      <DockPanel Grid.Column="0">
-        <Grid DockPanel.Dock="Top" ColumnDefinitions="56,*,64,150,56,40,40,120" Margin="12,0,12,4" Opacity="0.7">
-          <TextBlock Grid.Column="0" Text="N°" />
-          <TextBlock Grid.Column="1" Text="Titre" />
-          <TextBlock Grid.Column="2" Text="Année" />
-          <TextBlock Grid.Column="3" Text="Support" />
-          <TextBlock Grid.Column="4" Text="Note" />
-          <TextBlock Grid.Column="5" Text="Vu" />
-          <TextBlock Grid.Column="6" Text="Fav." />
-          <TextBlock Grid.Column="7" Text="Prêté à" />
-        </Grid>
-        <ListBox x:Name="TitleList" ItemsSource="{Binding Titles}" SelectedItems="{Binding SelectedTitles}" SelectionMode="Multiple"
-                 DoubleTapped="OnListDoubleTapped">
+        <ScrollViewer>
+          <StackPanel>
+            <TextBlock Classes="section" Text="BIBLIOTHÈQUE" />
+            <ListBox Classes="nav" ItemsSource="{Binding Filters}" SelectedItem="{Binding SelectedFilter}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:FilterItem">
+                  <StackPanel Orientation="Horizontal" Spacing="10">
+                    <controls:Icon Kind="{Binding Value, Converter={x:Static views:FilterIconConverter.Instance}}" Width="18" Height="18"
+                                   Foreground="{DynamicResource BobineMuted}" />
+                    <TextBlock Text="{Binding Label}" Foreground="{DynamicResource BobineInk}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </StackPanel>
+        </ScrollViewer>
+      </DockPanel>
+    </Border>
+
+    <!-- ======================= Zone centrale ======================= -->
+    <DockPanel Grid.Column="1" Margin="20,16,12,0">
+      <!-- Barre d'outils -->
+      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6" Margin="12,0,0,0">
+          <Button Classes="tool" Command="{Binding PickRandomCommand}" ToolTip.Tip="Un titre non vu au hasard (Ctrl+R)">
+            <controls:Icon Kind="random" />
+          </Button>
+          <Button Classes="tool" ToolTip.Tip="Actions sur la sélection, ou sur tous les titres affichés">
+            <controls:Icon Kind="more" />
+            <Button.Flyout>
+              <MenuFlyout Placement="BottomEdgeAlignedRight">
+                <MenuItem Header="Mettre à jour via TMDb" Command="{Binding UpdateAllFromTmdbCommand}" InputGesture="Ctrl+Shift+U">
+                  <MenuItem.Icon><controls:Icon Kind="cloud" Width="16" Height="16" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Relire les infos techniques (MediaInfo)" Command="{Binding RefreshTechnicalCommand}">
+                  <MenuItem.Icon><controls:Icon Kind="view" Width="16" Height="16" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Écrire les .nfo" Command="{Binding WriteNfoCommand}">
+                  <MenuItem.Icon><controls:Icon Kind="document" Width="16" Height="16" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Vérifier les fichiers" Command="{Binding CheckFilesCommand}">
+                  <MenuItem.Icon><controls:Icon Kind="alert" Width="16" Height="16" /></MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="Rafraîchir (F5)" Command="{Binding ReloadCommand}">
+                  <MenuItem.Icon><controls:Icon Kind="sync" Width="16" Height="16" /></MenuItem.Icon>
+                </MenuItem>
+              </MenuFlyout>
+            </Button.Flyout>
+          </Button>
+          <Button Classes="tool" Command="{Binding ImportFolderCommand}" ToolTip.Tip="Ajouter depuis le disque : analyse un dossier de vidéos (Ctrl+H)">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <controls:Icon Kind="folder-plus" />
+              <TextBlock Text="Scanner" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button x:Name="AddButton" Classes="accent" ToolTip.Tip="Ajouter un titre (Alt+A)">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <controls:Icon Kind="add" Foreground="White" Width="18" Height="18" />
+              <TextBlock Text="Ajouter" VerticalAlignment="Center" />
+            </StackPanel>
+            <Button.Flyout>
+              <Flyout Placement="BottomEdgeAlignedRight">
+                <StackPanel Width="340" Spacing="10" Margin="4">
+                  <TextBlock Text="Ajouter un titre" FontWeight="SemiBold" />
+                  <TextBox x:Name="NewTitleBox" Text="{Binding NewTitleText}" PlaceholderText="Titre, ex. Heat (1995), ou tt0113277">
+                    <TextBox.KeyBindings>
+                      <KeyBinding Gesture="Enter" Command="{Binding AddFromTmdbCommand}" />
+                    </TextBox.KeyBindings>
+                  </TextBox>
+                  <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                    <Button Classes="tool" Command="{Binding AddCommand}" Content="À la main" />
+                    <Button Classes="accent" Command="{Binding AddFromTmdbCommand}">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <controls:Icon Kind="cloud" Foreground="White" Width="16" Height="16" />
+                        <TextBlock Text="Chercher sur TMDb" />
+                      </StackPanel>
+                    </Button>
+                  </StackPanel>
+                </StackPanel>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+        </StackPanel>
+        <DockPanel>
+          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
+            <Button Classes="tool" Command="{Binding AdvancedSearchCommand}" ToolTip.Tip="Recherche avancée (Ctrl+Maj+F)">
+              <controls:Icon Kind="funnel" />
+            </Button>
+            <Button Classes="tool" Command="{Binding ClearSearchCommand}" ToolTip.Tip="Tout afficher : efface recherche, filtre et critères (Échap)"
+                    IsVisible="{Binding HasCriteria}">
+              <controls:Icon Kind="close" />
+            </Button>
+          </StackPanel>
+          <Border Classes="card" CornerRadius="10" MinWidth="150" Padding="10,0" Margin="0,0,6,0">
+            <DockPanel>
+              <controls:Icon DockPanel.Dock="Left" Kind="search" Width="18" Height="18" Foreground="{DynamicResource BobineMuted}" />
+              <TextBox x:Name="SearchBox" Text="{Binding SearchText}" PlaceholderText="Rechercher… (Ctrl+F)"
+                       BorderThickness="0" Background="Transparent" Margin="4,0,0,0" />
+            </DockPanel>
+          </Border>
+        </DockPanel>
+
+      </DockPanel>
+
+      <!-- Sous-barre : nombre de titres, tri, vue -->
+      <DockPanel DockPanel.Dock="Top" Margin="2,0,0,8">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="4">
+          <TextBlock Classes="muted" Text="Trier par" VerticalAlignment="Center" Margin="0,0,4,0" FontSize="12.5" />
+        <ComboBox Width="170" MinHeight="30" Padding="10,4" VerticalAlignment="Center" ItemsSource="{Binding Sorts}" SelectedItem="{Binding SelectedSort}" ToolTip.Tip="Trier par" />
+        <ToggleButton Classes="tool" IsChecked="{Binding SortDescending}" ToolTip.Tip="Ordre inverse">
+          <controls:Icon Kind="sort-direction" />
+        </ToggleButton>
+        <Border Width="1" Margin="6,6" Background="{DynamicResource BobineBorder}" />
+        <ToggleButton Classes="tool" IsChecked="{Binding IsListView, Mode=OneWay}" Command="{Binding ShowListCommand}" ToolTip.Tip="Liste (Ctrl+1)">
+          <controls:Icon Kind="list" />
+        </ToggleButton>
+        <ToggleButton Classes="tool" IsChecked="{Binding IsGridView, Mode=OneWay}" Command="{Binding ShowGridCommand}" ToolTip.Tip="Affiches (Ctrl+2)">
+          <controls:Icon Kind="grid" />
+        </ToggleButton>
+        </StackPanel>
+        <TextBlock Text="{Binding Status}" Classes="muted" FontSize="12.5" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+      </DockPanel>
+
+      <!-- Barre d'état -->
+      <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" Margin="4,8,4,10">
+        <TextBlock Grid.Column="1" Classes="muted" FontSize="11.5" Text="Sélection multiple : Ctrl+clic ou Maj+clic" />
+      </Grid>
+
+      <Panel>
+        <!-- Vue liste -->
+        <ListBox Classes="titles" IsVisible="{Binding IsListView}" ItemsSource="{Binding Titles}" SelectedItems="{Binding SelectedTitles}"
+                 SelectionMode="Multiple" DoubleTapped="OnListDoubleTapped">
           <ListBox.KeyBindings>
             <KeyBinding Gesture="Delete" Command="{Binding DeleteCommand}" />
           </ListBox.KeyBindings>
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="titles:TitleSummary">
-              <Grid ColumnDefinitions="56,*,64,150,56,40,40,120">
-                <TextBlock Grid.Column="0" Text="{Binding Number}" Opacity="0.7" />
-                <TextBlock Grid.Column="1" Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                <TextBlock Grid.Column="2" Text="{Binding Year}" />
-                <TextBlock Grid.Column="3" Text="{Binding Medium}" TextTrimming="CharacterEllipsis" Opacity="0.8" />
-                <TextBlock Grid.Column="4" Text="{Binding UserRating}" />
-                <TextBlock Grid.Column="5" Text="✓" IsVisible="{Binding IsSeen}" />
-                <TextBlock Grid.Column="6" Text="★" IsVisible="{Binding IsFavorite}" />
-                <TextBlock Grid.Column="7" Text="{Binding Borrower}" TextTrimming="CharacterEllipsis" />
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <Border Width="40" Height="60" CornerRadius="5" ClipToBounds="True" Background="{DynamicResource BobinePosterBack}">
+                  <Panel>
+                    <controls:Icon Kind="default" Width="18" Height="18" Foreground="{DynamicResource BobineMuted}" Opacity="0.6" />
+                    <Image Source="{Binding PosterPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=80}" Stretch="UniformToFill" />
+                  </Panel>
+                </Border>
+                <StackPanel Grid.Column="1" Margin="14,0" VerticalAlignment="Center" Spacing="3">
+                  <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource BobineInk}" />
+                  <TextBlock Text="{Binding Subtitle}" Classes="muted" FontSize="12.5" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                  <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding IsLoaned}" ToolTip.Tip="Prêté">
+                    <controls:Icon Kind="loan" Width="16" Height="16" Foreground="{DynamicResource BobineMuted}" />
+                    <TextBlock Text="{Binding Borrower}" Classes="muted" FontSize="12" MaxWidth="110" TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                  <TextBlock Text="{Binding UserRating, StringFormat='{}{0:0.#}'}" FontWeight="SemiBold" Foreground="{DynamicResource BobineAccent}"
+                             IsVisible="{Binding UserRating, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Ma note" />
+                  <controls:Icon Kind="heart" Width="16" Height="16" Foreground="{DynamicResource BobineAccent}" IsVisible="{Binding IsFavorite}" ToolTip.Tip="Favori" />
+                  <controls:Icon Kind="check" Width="16" Height="16" Foreground="{DynamicResource BobineMuted}" IsVisible="{Binding IsSeen}" ToolTip.Tip="Vu" />
+                  <TextBlock Text="{Binding Number, StringFormat='n° {0}'}" Classes="muted" FontSize="11" MinWidth="40" TextAlignment="Right" />
+                </StackPanel>
               </Grid>
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
-      </DockPanel>
 
-      <!-- Panneau de détail -->
-      <Border Grid.Column="2" Padding="16" CornerRadius="8" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
-        <Panel>
-          <TextBlock IsVisible="{Binding !HasDetail}" Opacity="0.6" TextWrapping="Wrap"
-                     Text="Sélectionnez un titre pour voir sa fiche. Sélection multiple : Ctrl+clic ou Maj+clic." />
-          <ScrollViewer IsVisible="{Binding HasDetail}">
-            <StackPanel Spacing="16">
-            <Image Source="{Binding PosterPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=400}"
-                   MaxHeight="420" HorizontalAlignment="Left" Stretch="Uniform"
-                   IsVisible="{Binding PosterPath, Converter={x:Static ObjectConverters.IsNotNull}}" />
-            <StackPanel Spacing="6" DataContext="{Binding Detail}" x:DataType="titles:TitleDetail">
-              <TextBlock Text="{Binding Title}" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap" />
-              <TextBlock Text="{Binding OriginalTitle}" Opacity="0.7" TextWrapping="Wrap" />
-              <TextBlock Text="{Binding Tagline}" FontStyle="Italic" TextWrapping="Wrap" />
-              <StackPanel Orientation="Horizontal" Spacing="12">
-                <TextBlock Text="{Binding Year}" />
-                <TextBlock Text="{Binding RuntimeMinutes, StringFormat='{}{0} min'}" />
-                <TextBlock Text="{Binding Certification}" />
+        <!-- Vue affiches -->
+        <ListBox Classes="titles grid" IsVisible="{Binding IsGridView}" ItemsSource="{Binding Titles}" SelectedItems="{Binding SelectedTitles}"
+                 SelectionMode="Multiple" DoubleTapped="OnListDoubleTapped" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+          <ListBox.KeyBindings>
+            <KeyBinding Gesture="Delete" Command="{Binding DeleteCommand}" />
+          </ListBox.KeyBindings>
+          <ListBox.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ListBox.ItemsPanel>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="titles:TitleSummary">
+              <StackPanel Spacing="6">
+                <Border Height="234" CornerRadius="8" ClipToBounds="True" Background="{DynamicResource BobinePosterBack}">
+                  <Panel>
+                    <StackPanel VerticalAlignment="Center" Spacing="8" Margin="12">
+                      <controls:Icon Kind="default" Width="36" Height="36" Foreground="{DynamicResource BobineMuted}" Opacity="0.6" />
+                      <TextBlock Text="{Binding Title}" TextWrapping="Wrap" TextAlignment="Center" Classes="muted" FontSize="12" />
+                    </StackPanel>
+                    <Image Source="{Binding PosterPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=320}" Stretch="UniformToFill" />
+                    <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="6">
+                      <Border CornerRadius="10" Padding="4" Background="#CC1C1A18" IsVisible="{Binding IsFavorite}">
+                        <controls:Icon Kind="heart" Width="14" Height="14" Foreground="#F4B08A" />
+                      </Border>
+                      <Border CornerRadius="10" Padding="4" Background="#CC1C1A18" IsVisible="{Binding IsSeen}">
+                        <controls:Icon Kind="check" Width="14" Height="14" Foreground="White" />
+                      </Border>
+                    </StackPanel>
+                  </Panel>
+                </Border>
+                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource BobineInk}" />
+                <TextBlock Text="{Binding Year}" Classes="muted" FontSize="12" Margin="0,-4,0,0" />
               </StackPanel>
-              <TextBlock Text="{Binding UserRating, StringFormat='Ma note : {0}/10'}" />
-              <TextBlock Text="{Binding TmdbRating, StringFormat='TMDb : {0:0.0}/10'}" Opacity="0.8" />
-              <TextBlock Text="{Binding Overview}" TextWrapping="Wrap" Margin="0,8,0,8" />
-              <TextBlock Text="{Binding Copy.MediumCode, StringFormat='Support : {0}'}" Opacity="0.8" />
-              <TextBlock Text="{Binding Copy.Location, StringFormat='Emplacement : {0}'}" Opacity="0.8" />
-              <TextBlock Text="{Binding ViewCount, StringFormat='Vu {0} fois'}" Opacity="0.8" />
-              <TextBlock Text="{Binding CollectionName, StringFormat='Collection : {0}'}" Opacity="0.8" IsVisible="{Binding CollectionName, Converter={x:Static ObjectConverters.IsNotNull}}" />
-              <ItemsControl ItemsSource="{Binding Tags}">
-                <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate x:DataType="x:String">
-                    <Border Margin="0,0,6,6" Padding="8,2" CornerRadius="10" Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"><TextBlock Text="{Binding}" FontSize="12" /></Border>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-              <TextBlock Text="{Binding Comments}" TextWrapping="Wrap" Opacity="0.8" />
-            </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
 
-            <!-- Infos techniques -->
-            <StackPanel Spacing="4" IsVisible="{Binding TechnicalSummary, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-              <TextBlock Text="Vidéo" FontWeight="SemiBold" />
-              <SelectableTextBlock Text="{Binding TechnicalSummary}" TextWrapping="Wrap" FontSize="12" Opacity="0.8" />
-            </StackPanel>
+        <!-- Catalogue vide -->
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12" IsVisible="{Binding IsEmpty}">
+          <controls:Icon Kind="library" Width="56" Height="56" Foreground="{DynamicResource BobineMuted}" />
+          <TextBlock Text="Aucun titre ici pour l'instant" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="{DynamicResource BobineInk}" />
+          <TextBlock Classes="muted" HorizontalAlignment="Center" TextAlignment="Center" MaxWidth="380" TextWrapping="Wrap"
+                     Text="Scannez un dossier de films, ajoutez un titre depuis TMDb, ou élargissez le filtre." />
+        </StackPanel>
+      </Panel>
+    </DockPanel>
 
-            <!-- Fichiers -->
-            <StackPanel Spacing="4" IsVisible="{Binding DetailFilesText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-              <TextBlock Text="Fichiers" FontWeight="SemiBold" />
-              <SelectableTextBlock Text="{Binding DetailFilesText}" TextWrapping="Wrap" FontSize="12" Opacity="0.8" />
-            </StackPanel>
+    <!-- ======================= Fiche ======================= -->
+    <Border Grid.Column="2" Margin="0,16,16,16" Classes="card" ClipToBounds="True">
+      <Panel>
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10" IsVisible="{Binding !HasDetail}" Margin="24">
+          <controls:Icon Kind="default" Width="44" Height="44" Foreground="{DynamicResource BobineMuted}" />
+          <TextBlock Classes="muted" TextAlignment="Center" TextWrapping="Wrap" Text="Sélectionnez un titre pour voir sa fiche." />
+        </StackPanel>
 
-            <!-- Prêt -->
-            <Border BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,1,0,0" Padding="0,12,0,0">
-              <StackPanel Spacing="8">
-                <TextBlock Text="Prêt" FontWeight="SemiBold" />
-                <TextBlock Text="{Binding Detail.CurrentLoan.Borrower, StringFormat='Prêté à {0}'}" IsVisible="{Binding Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                <TextBlock Text="{Binding Detail.CurrentLoan.LoanedAt, StringFormat='depuis le {0:d}'}" Opacity="0.7" IsVisible="{Binding Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNull}}">
-                  <TextBox Width="180" PlaceholderText="Emprunteur" Text="{Binding BorrowerText}" />
-                  <Button Content="Prêter" Command="{Binding LendCommand}" />
+        <ScrollViewer IsVisible="{Binding HasDetail}">
+          <StackPanel>
+            <!-- Bandeau : image de fond fondue, affiche, titre -->
+            <Panel Height="230">
+              <Image Source="{Binding BackdropPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=800}" Stretch="UniformToFill" />
+              <Border>
+                <Border.Background>
+                  <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                    <GradientStop Offset="0" Color="#33000000" />
+                    <GradientStop Offset="1" Color="#E6141210" />
+                  </LinearGradientBrush>
+                </Border.Background>
+              </Border>
+              <Grid ColumnDefinitions="Auto,*" Margin="18" VerticalAlignment="Bottom">
+                <Border Width="92" Height="138" CornerRadius="6" ClipToBounds="True" Background="{DynamicResource BobinePosterBack}" BoxShadow="0 4 14 0 #66000000">
+                  <Panel>
+                    <controls:Icon Kind="default" Width="28" Height="28" Foreground="{DynamicResource BobineMuted}" />
+                    <Image Source="{Binding PosterPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=200}" Stretch="UniformToFill" />
+                  </Panel>
+                </Border>
+                <StackPanel Grid.Column="1" Margin="14,0,0,2" VerticalAlignment="Bottom" Spacing="4" DataContext="{Binding Detail}" x:DataType="titles:TitleDetail">
+                  <TextBlock Text="{Binding Title}" FontSize="21" FontWeight="SemiBold" Foreground="White" TextWrapping="Wrap" MaxLines="3" />
+                  <TextBlock Text="{Binding OriginalTitle}" FontSize="12.5" Foreground="#D9FFFFFF" TextTrimming="CharacterEllipsis" />
+                  <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="{Binding Year}" Foreground="#D9FFFFFF" FontSize="13" />
+                    <TextBlock Text="{Binding RuntimeMinutes, StringFormat='{}{0} min'}" Foreground="#D9FFFFFF" FontSize="13" />
+                    <Border BorderBrush="#99FFFFFF" BorderThickness="1" CornerRadius="3" Padding="4,0"
+                            IsVisible="{Binding Certification, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                      <TextBlock Text="{Binding Certification}" Foreground="#D9FFFFFF" FontSize="11" />
+                    </Border>
+                  </StackPanel>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                  <Button Content="Rendu" Command="{Binding ReturnLoanCommand}" />
-                  <Button Content="Historique" Command="{Binding ShowLoanHistoryCommand}" />
+              </Grid>
+            </Panel>
+
+            <StackPanel Margin="18,14,18,22" Spacing="16">
+              <!-- Actions -->
+              <WrapPanel>
+                <Button Classes="accent" Margin="0,0,8,8" Command="{Binding PlayCommand}" ToolTip.Tip="Lire (Ctrl+P)">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <controls:Icon Kind="play" Foreground="White" Width="18" Height="18" />
+                    <TextBlock Text="Lire" />
+                  </StackPanel>
+                </Button>
+                <Button Classes="tool" Margin="0,0,2,8" Command="{Binding ToggleSeenCommand}" ToolTip.Tip="Vu / pas vu (Ctrl+S)">
+                  <controls:Icon Kind="eye" />
+                </Button>
+                <Button Classes="tool" Margin="0,0,2,8" Command="{Binding ToggleFavoriteCommand}" ToolTip.Tip="Favori (Ctrl+D)">
+                  <controls:Icon Kind="heart" />
+                </Button>
+                <Button Classes="tool" Margin="0,0,2,8" Command="{Binding EditCommand}" ToolTip.Tip="Modifier la fiche (Alt+E)">
+                  <controls:Icon Kind="edit" />
+                </Button>
+                <Button Classes="tool" Margin="0,0,2,8" Command="{Binding LinkToTmdbCommand}" ToolTip.Tip="Lier ou mettre à jour depuis TMDb (Ctrl+U)">
+                  <controls:Icon Kind="cloud" />
+                </Button>
+                <Button Classes="tool" Margin="0,0,2,8" Command="{Binding OpenFolderCommand}" ToolTip.Tip="Ouvrir le dossier du fichier (Ctrl+O)">
+                  <controls:Icon Kind="folder" />
+                </Button>
+                <Button Classes="tool" Margin="0,0,2,8" Command="{Binding DeleteCommand}" ToolTip.Tip="Supprimer du catalogue (Suppr)">
+                  <controls:Icon Kind="delete" />
+                </Button>
+              </WrapPanel>
+
+              <StackPanel Spacing="10" DataContext="{Binding Detail}" x:DataType="titles:TitleDetail">
+                <!-- Notes -->
+                <StackPanel Orientation="Horizontal" Spacing="18">
+                  <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding UserRating, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <controls:Icon Kind="star" Width="18" Height="18" Foreground="{DynamicResource BobineAccent}" />
+                    <TextBlock Text="{Binding UserRating, StringFormat='{}{0:0.#} / 10'}" FontWeight="SemiBold" Foreground="{DynamicResource BobineInk}" VerticalAlignment="Center" />
+                    <TextBlock Classes="muted" Text="ma note" FontSize="12" VerticalAlignment="Center" />
+                  </StackPanel>
+                  <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding TmdbRating, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <TextBlock Text="{Binding TmdbRating, StringFormat='{}{0:0.0}'}" FontWeight="SemiBold" Foreground="{DynamicResource BobineInk}" VerticalAlignment="Center" />
+                    <TextBlock Classes="muted" Text="TMDb" FontSize="12" VerticalAlignment="Center" />
+                  </StackPanel>
                 </StackPanel>
+
+                <TextBlock Text="{Binding Tagline}" FontStyle="Italic" TextWrapping="Wrap" Classes="muted"
+                           IsVisible="{Binding Tagline, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                <TextBlock Text="{Binding Overview}" TextWrapping="Wrap" LineHeight="21" Foreground="{DynamicResource BobineInk}" />
+
+                <!-- Classement -->
+                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding CollectionName, Converter={x:Static ObjectConverters.IsNotNull}}">
+                  <controls:Icon Kind="library" Width="16" Height="16" Foreground="{DynamicResource BobineMuted}" />
+                  <TextBlock Text="{Binding CollectionName}" Classes="muted" />
+                </StackPanel>
+                <ItemsControl ItemsSource="{Binding Tags}">
+                  <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <Border Classes="chip"><TextBlock Text="{Binding}" /></Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Text="{Binding Comments}" TextWrapping="Wrap" Classes="muted"
+                           IsVisible="{Binding Comments, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
               </StackPanel>
-            </Border>
+
+              <!-- Exemplaire et vidéo -->
+              <Border Background="{DynamicResource BobineSurfaceAlt}" CornerRadius="10" Padding="14,12"
+                      IsVisible="{Binding TechnicalSummary, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <StackPanel Spacing="6">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <controls:Icon Kind="view" Width="16" Height="16" Foreground="{DynamicResource BobineMuted}" />
+                    <TextBlock Text="Vidéo" FontWeight="SemiBold" Foreground="{DynamicResource BobineInk}" />
+                  </StackPanel>
+                  <SelectableTextBlock Text="{Binding TechnicalSummary}" TextWrapping="Wrap" FontSize="12.5" Foreground="{DynamicResource BobineMuted}" />
+                </StackPanel>
+              </Border>
+
+              <Border Background="{DynamicResource BobineSurfaceAlt}" CornerRadius="10" Padding="14,12"
+                      IsVisible="{Binding DetailFilesText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <StackPanel Spacing="6">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <controls:Icon Kind="harddisk" Width="16" Height="16" Foreground="{DynamicResource BobineMuted}" />
+                    <TextBlock Text="Fichiers" FontWeight="SemiBold" Foreground="{DynamicResource BobineInk}" />
+                  </StackPanel>
+                  <SelectableTextBlock Text="{Binding DetailFilesText}" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource BobineMuted}" />
+                </StackPanel>
+              </Border>
+
+              <!-- Prêt -->
+              <Border Background="{DynamicResource BobineSurfaceAlt}" CornerRadius="10" Padding="14,12">
+                <StackPanel Spacing="8">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <controls:Icon Kind="loan" Width="16" Height="16" Foreground="{DynamicResource BobineMuted}" />
+                    <TextBlock Text="Prêt" FontWeight="SemiBold" Foreground="{DynamicResource BobineInk}" />
+                  </StackPanel>
+                  <TextBlock Text="{Binding Detail.CurrentLoan.Borrower, StringFormat='Prêté à {0}'}" Foreground="{DynamicResource BobineInk}"
+                             IsVisible="{Binding Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  <TextBlock Text="{Binding Detail.CurrentLoan.LoanedAt, StringFormat='depuis le {0:d}'}" Classes="muted"
+                             IsVisible="{Binding Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNull}}">
+                    <TextBox PlaceholderText="Emprunteur" Text="{Binding BorrowerText}" />
+                    <Button Grid.Column="1" Margin="8,0,0,0" Content="Prêter" Command="{Binding LendCommand}" />
+                  </Grid>
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Classes="tool" Content="Rendu" Command="{Binding ReturnLoanCommand}" />
+                    <Button Classes="tool" Content="Historique" Command="{Binding ShowLoanHistoryCommand}" />
+                  </StackPanel>
+                </StackPanel>
+              </Border>
             </StackPanel>
-          </ScrollViewer>
-        </Panel>
-      </Border>
-    </Grid>
-  </DockPanel>
+          </StackPanel>
+        </ScrollViewer>
+      </Panel>
+    </Border>
+  </Grid>
 </Window>

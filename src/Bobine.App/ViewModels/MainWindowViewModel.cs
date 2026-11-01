@@ -17,6 +17,12 @@ public sealed record Choice<T>(T Value, string Label)
     public override string ToString() => Label;
 }
 
+/// <summary>Entrée de la barre latérale (type non générique, utilisable dans les modèles XAML).</summary>
+public sealed record FilterItem(QuickFilter Value, string Label)
+{
+    public override string ToString() => Label;
+}
+
 /// <summary>Fenêtre principale : liste filtrée et triée, panneau de détail, actions sur la sélection.</summary>
 public sealed partial class MainWindowViewModel : ObservableObject
 {
@@ -64,7 +70,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public ObservableCollection<TitleSummary> SelectedTitles { get; } = [];
 
-    public IReadOnlyList<Choice<QuickFilter>> Filters { get; } =
+    public IReadOnlyList<FilterItem> Filters { get; } =
     [
         new(QuickFilter.All, "Tous les titres"),
         new(QuickFilter.Owned, "Possédés"),
@@ -99,7 +105,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public partial string SearchText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    public partial Choice<QuickFilter> SelectedFilter { get; set; }
+    public partial FilterItem SelectedFilter { get; set; }
 
     [ObservableProperty]
     public partial Choice<SortField> SelectedSort { get; set; }
@@ -127,6 +133,27 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public partial string? PosterPath { get; set; }
 
     [ObservableProperty]
+    public partial string? BackdropPath { get; set; }
+
+    /// <summary>Vue affiches (grille) ou liste détaillée.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsListView))]
+    public partial bool IsGridView { get; set; }
+
+    public bool IsListView => !IsGridView;
+
+    private const string GridViewKey = "ui.gridView";
+
+    // La vue choisie est mémorisée pour le catalogue.
+    partial void OnIsGridViewChanged(bool value) => _media?.Settings.Set(GridViewKey, value ? "true" : "false");
+
+    [RelayCommand]
+    private void ShowGrid() => IsGridView = true;
+
+    [RelayCommand]
+    private void ShowList() => IsGridView = false;
+
+    [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(PlayCommand), nameof(OpenFolderCommand))]
     public partial IReadOnlyList<MediaFileEntry> DetailFiles { get; set; } = [];
 
@@ -147,6 +174,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public bool HasDetail => Detail is not null;
 
+    public bool IsEmpty => _loaded && Titles.Count == 0;
+
     public string DataLocation => _paths.IsPortable ? $"Mode portable : {_paths.DataRoot}" : _paths.DataRoot;
 
     [ObservableProperty]
@@ -164,12 +193,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public void Load()
     {
         _loaded = true;
+        IsGridView = _media?.Settings.Get(GridViewKey) == "true";
         Refresh();
     }
 
     partial void OnSearchTextChanged(string value) => Refresh();
 
-    partial void OnSelectedFilterChanged(Choice<QuickFilter> value) => Refresh();
+    partial void OnSelectedFilterChanged(FilterItem value) => Refresh();
 
     partial void OnSelectedSortChanged(Choice<SortField> value) => Refresh();
 
@@ -179,6 +209,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         Detail = SelectedTitles.Count == 1 ? _titles.Get(SelectedTitles[0].Id) : null;
         PosterPath = Detail is null ? null : _images?.PathFor(Detail.Id, "poster");
+        BackdropPath = Detail is null ? null : _images?.PathFor(Detail.Id, "backdrop");
         DetailFiles = Detail is null || _media is null ? [] : _media.Files.FilesOf(Detail.Id);
         TechnicalSummary = Detail is null ? null : _media?.Files.TechnicalSummary(Detail.Id);
         LinkToTmdbCommand.NotifyCanExecuteChanged();
@@ -591,6 +622,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         Criteria = null;
     }
 
+    public string CatalogName => _catalogs?.Current ?? AppPaths.DefaultCatalogName;
+
     public string CatalogLabel => $"Catalogue : {_catalogs?.Current ?? AppPaths.DefaultCatalogName}";
 
     [RelayCommand]
@@ -622,7 +655,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
         Titles.Clear();
         foreach (var title in _titles.Query(CurrentQuery))
         {
-            Titles.Add(title);
+            Titles.Add(title.PosterRelativePath is { } poster && _images is not null
+                ? title with { PosterPath = _images.ResolveInside(poster) }
+                : title);
         }
 
         SelectedTitles.Clear();
@@ -637,6 +672,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             ? "dans le catalogue"
             : "trouvé(s)";
         Status = string.Create(CultureInfo.CurrentCulture, $"{Titles.Count} titre(s) {label}");
+        OnPropertyChanged(nameof(IsEmpty));
     }
 
     internal static (string Title, int? Year) ParseTitleAndYear(string input) => TitleText.SplitYear(input);

@@ -11,6 +11,9 @@
     <SatelliteResourceLanguages>fr;en</SatelliteResourceLanguages>
   </PropertyGroup>
   <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+  <ItemGroup>
     <InternalsVisibleTo Include="Bobine.Tests" />
   </ItemGroup>
   <ItemGroup>

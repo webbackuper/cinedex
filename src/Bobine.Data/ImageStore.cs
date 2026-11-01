@@ -86,7 +86,7 @@ public sealed class ImageStore(CatalogDatabase database, string imagesDirectory)
     }
 
     /// <summary>Résout un chemin relatif en refusant toute sortie du dossier des images.</summary>
-    internal string? ResolveInside(string relative)
+    public string? ResolveInside(string relative)
     {
         var full = Path.GetFullPath(Path.Combine(ImagesDirectory, relative));
         var root = ImagesDirectory.EndsWith(Path.DirectorySeparatorChar) ? ImagesDirectory : ImagesDirectory + Path.DirectorySeparatorChar;

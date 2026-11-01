@@ -22,9 +22,14 @@ public sealed class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             _services = ConfigureServices(AppPaths.Resolve());
-            var main = _services.GetRequiredService<MainWindowViewModel>();
+            var window = new MainWindow();
+            var main = new MainWindowViewModel(
+                _services.GetRequiredService<TitleRepository>(),
+                _services.GetRequiredService<AppPaths>(),
+                window);
             main.Load();
-            desktop.MainWindow = new MainWindow { DataContext = main };
+            window.DataContext = main;
+            desktop.MainWindow = window;
             desktop.ShutdownRequested += (_, _) => _services.Dispose();
         }
 
@@ -42,6 +47,12 @@ public sealed class App : Application
                 retainedFileCountLimit: 14,
                 formatProvider: System.Globalization.CultureInfo.InvariantCulture)
             .CreateLogger();
+        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+        {
+            serilog.Fatal(e.ExceptionObject as Exception, "Erreur non gérée");
+            serilog.Dispose();
+        };
+        TaskScheduler.UnobservedTaskException += (_, e) => serilog.Error(e.Exception, "Erreur non observée dans une tâche");
 
         var services = new ServiceCollection();
         services.AddLogging(builder => builder.AddSerilog(serilog, dispose: true));
@@ -56,7 +67,6 @@ public sealed class App : Application
         });
         services.AddSingleton<TitleRepository>();
         services.AddSingleton<SettingsStore>();
-        services.AddSingleton<MainWindowViewModel>();
         return services.BuildServiceProvider();
     }
 }

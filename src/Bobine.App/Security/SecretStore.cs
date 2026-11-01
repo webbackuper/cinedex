@@ -18,6 +18,7 @@ public interface ISecretStore
 public static class SecretStore
 {
     public const string TmdbToken = "tmdb-read-token";
+    public const string OmdbKey = "omdb-api-key";
 
     public static ISecretStore ForCurrentPlatform()
     {

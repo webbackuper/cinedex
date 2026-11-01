@@ -191,6 +191,9 @@ public sealed partial class TitleRepository(CatalogDatabase database)
             ImdbId = row.Imdb_Id,
             TmdbRating = row.Tmdb_Rating,
             ImdbRating = row.Imdb_Rating,
+            ImdbVotes = (int?)row.Imdb_Votes,
+            Tomatometer = (int?)row.Tomatometer,
+            Metascore = (int?)row.Metascore,
             UserRating = row.User_Rating,
             Comments = row.Comments,
             IsOwned = row.Is_Owned != 0,
@@ -617,6 +620,12 @@ public sealed partial class TitleRepository(CatalogDatabase database)
         public double? Tmdb_Rating { get; set; }
 
         public double? Imdb_Rating { get; set; }
+
+        public long? Imdb_Votes { get; set; }
+
+        public long? Tomatometer { get; set; }
+
+        public long? Metascore { get; set; }
 
         public double? User_Rating { get; set; }
 

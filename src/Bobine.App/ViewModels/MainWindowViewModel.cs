@@ -524,6 +524,32 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private bool HasFiles() => DetailFiles.Count > 0;
 
+    /// <summary>Actualise les notes IMDb de tout le catalogue depuis le fichier officiel (sans consommer le quota OMDb).</summary>
+    [RelayCommand]
+    private async Task RefreshImdbRatingsAsync()
+    {
+        if (_media?.Ratings is not { } ratings)
+        {
+            return;
+        }
+
+        IsBusy = true;
+        try
+        {
+            var count = await ratings.RefreshAllImdbAsync(new Progress<string>(m => Status = m));
+            Refresh(selectIds: SelectedIds);
+            Status = $"Notes IMDb actualisées pour {count} titre(s)";
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidDataException)
+        {
+            Status = $"Fichier IMDb indisponible : {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
     /// <summary>Crée ou complète le .nfo des fichiers de la sélection, ou de tous les titres affichés.</summary>
     [RelayCommand]
     private void WriteNfo()

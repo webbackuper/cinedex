@@ -35,6 +35,8 @@ public sealed partial class SettingsViewModel : ObservableObject
         NfoOverwrite = nfo.OverwriteExisting;
         NfoBackup = nfo.Backup;
         HasToken = SafeRead() is not null;
+        HasOmdbKey = SafeRead(SecretStore.OmdbKey) is not null;
+        UseImdbDataset = settings.Get(Services.RatingsService.UseDatasetKey) != "false";
     }
 
     [ObservableProperty]
@@ -85,6 +87,21 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     public partial bool HasToken { get; set; }
 
+    /// <summary>Nouvelle clé OMDb (jamais réaffichée une fois enregistrée).</summary>
+    [ObservableProperty]
+    public partial string NewOmdbKey { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(OmdbState))]
+    public partial bool HasOmdbKey { get; set; }
+
+    [ObservableProperty]
+    public partial bool UseImdbDataset { get; set; }
+
+    public string OmdbState => HasOmdbKey
+        ? "Une clé OMDb est enregistrée dans le coffre du système (notes IMDb, Rotten Tomatoes, Metacritic)."
+        : "Aucune clé OMDb : créez-en une gratuite sur omdbapi.com pour les notes Rotten Tomatoes et Metacritic.";
+
     [ObservableProperty]
     public partial string? Error { get; set; }
 
@@ -120,6 +137,22 @@ public sealed partial class SettingsViewModel : ObservableObject
             }
         }
 
+        var omdb = NewOmdbKey.Trim();
+        if (omdb.Length > 0 && (omdb.Length is < 6 or > 64 || !omdb.All(char.IsAsciiLetterOrDigit)))
+        {
+            Error = "La clé OMDb ne semble pas valide (lettres et chiffres, ex. 8 caractères).";
+            return false;
+        }
+
+        if (omdb.Length > 0)
+        {
+            _secrets.Write(SecretStore.OmdbKey, omdb);
+            NewOmdbKey = string.Empty;
+            HasOmdbKey = true;
+        }
+
+        _settings.Set(Services.RatingsService.UseDatasetKey, UseImdbDataset ? "true" : "false");
+
         if (token.Length > 0)
         {
             _secrets.Write(SecretStore.TmdbToken, token);
@@ -152,11 +185,11 @@ public sealed partial class SettingsViewModel : ObservableObject
         HasToken = false;
     }
 
-    private string? SafeRead()
+    private string? SafeRead(string name = SecretStore.TmdbToken)
     {
         try
         {
-            return _secrets.Read(SecretStore.TmdbToken);
+            return _secrets.Read(name);
         }
         catch (InvalidOperationException)
         {

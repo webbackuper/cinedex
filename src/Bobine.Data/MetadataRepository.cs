@@ -59,6 +59,31 @@ public sealed class MetadataRepository(CatalogDatabase database)
         return true;
     }
 
+    /// <summary>
+    /// Enregistre les notes externes (IMDb, Rotten Tomatoes, Metacritic). Une valeur absente ne remplace pas
+    /// une valeur déjà connue. Les titres verrouillés ne sont pas modifiés.
+    /// </summary>
+    public bool ApplyRatings(long titleId, double? imdbRating, int? imdbVotes, int? tomatometer, int? metascore)
+    {
+        using var connection = database.Open();
+        return connection.Execute(
+            """
+            UPDATE title SET
+                imdb_rating = coalesce(@imdbRating, imdb_rating), imdb_votes = coalesce(@imdbVotes, imdb_votes),
+                tomatometer = coalesce(@tomatometer, tomatometer), metascore = coalesce(@metascore, metascore),
+                updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+            WHERE id = @titleId AND is_locked = 0;
+            """,
+            new { titleId, imdbRating, imdbVotes, tomatometer, metascore }) > 0;
+    }
+
+    /// <summary>Titres ayant un identifiant IMDb (pour l'actualisation des notes en masse).</summary>
+    public IReadOnlyList<(long TitleId, string ImdbId)> TitlesWithImdbId()
+    {
+        using var connection = database.Open();
+        return connection.Query<(long, string)>("SELECT id, imdb_id FROM title WHERE imdb_id IS NOT NULL AND is_locked = 0;").ToList();
+    }
+
     public long? FindBySource(TitleKind kind, long sourceId)
     {
         using var connection = database.Open();

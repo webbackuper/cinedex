@@ -13,8 +13,27 @@ public sealed class MetadataService(
     ImageStore images,
     ILogger<MetadataService> logger,
     SeriesRepository? series = null,
-    NfoService? nfo = null)
+    NfoService? nfo = null,
+    RatingsService? ratings = null)
 {
+    /// <summary>Notes IMDb / Rotten Tomatoes / Metacritic : un échec n'empêche jamais la mise à jour de la fiche.</summary>
+    private async Task EnrichRatingsAsync(long titleId, CancellationToken cancellationToken)
+    {
+        if (ratings is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await ratings.EnrichAsync(titleId, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidDataException or ArgumentException)
+        {
+            logger.LogWarning(ex, "Notes externes non récupérées pour le titre {TitleId}", titleId);
+        }
+    }
+
     /// <summary>
     /// Récupère saisons et épisodes d'une série liée à TMDb et les fusionne (saisons verrouillées épargnées).
     /// Renvoie le nombre de nouveaux épisodes.
@@ -59,6 +78,7 @@ public sealed class MetadataService(
             await SyncEpisodesAsync(id, record.SourceId, record, cancellationToken).ConfigureAwait(false);
         }
 
+        await EnrichRatingsAsync(id, cancellationToken).ConfigureAwait(false);
         nfo?.AfterMetadataUpdate(id);
         return (id, true);
     }
@@ -78,6 +98,7 @@ public sealed class MetadataService(
             await SyncEpisodesAsync(titleId, record.SourceId, record, cancellationToken).ConfigureAwait(false);
         }
 
+        await EnrichRatingsAsync(titleId, cancellationToken).ConfigureAwait(false);
         nfo?.AfterMetadataUpdate(titleId);
         return true;
     }

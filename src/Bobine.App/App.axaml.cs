@@ -121,6 +121,15 @@ public sealed class App : Application
                 },
                 sp.GetRequiredService<ILogger<TmdbClient>>());
         });
+        services.AddSingleton(sp =>
+        {
+            var secrets = sp.GetRequiredService<ISecretStore>();
+            return new Bobine.Metadata.Ratings.OmdbClient(
+                sp.GetRequiredService<HttpClient>(),
+                _ => ValueTask.FromResult(secrets.Read(SecretStore.OmdbKey)));
+        });
+        services.AddSingleton(sp => new Bobine.Metadata.Ratings.ImdbRatingsDataset(sp.GetRequiredService<HttpClient>(), paths.CacheDirectory));
+        services.AddSingleton<RatingsService>();
         services.AddSingleton<MetadataService>();
         services.AddSingleton<MediaFileRepository>();
         services.AddSingleton<SeriesRepository>();
@@ -141,7 +150,8 @@ public sealed class App : Application
             sp.GetRequiredService<MediaFileRepository>(),
             sp.GetRequiredService<LibraryImportService>(),
             sp.GetRequiredService<SettingsStore>(),
-            sp.GetRequiredService<NfoService>()));
+            sp.GetRequiredService<NfoService>(),
+            sp.GetRequiredService<RatingsService>()));
         return services.BuildServiceProvider();
     }
 }

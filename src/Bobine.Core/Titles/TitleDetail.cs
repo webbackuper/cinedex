@@ -41,6 +41,14 @@ public sealed record TitleDetail
 
     public double? ImdbRating { get; init; }
 
+    public int? ImdbVotes { get; init; }
+
+    /// <summary>Tomatometer de Rotten Tomatoes, en pourcentage.</summary>
+    public int? Tomatometer { get; init; }
+
+    /// <summary>Metascore de Metacritic, sur 100.</summary>
+    public int? Metascore { get; init; }
+
     public double? UserRating { get; init; }
 
     public string? Comments { get; init; }

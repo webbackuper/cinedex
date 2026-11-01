@@ -17,6 +17,10 @@
       <TextBlock Grid.Column="3" Text="Pays des certifications" VerticalAlignment="Center" Margin="0,0,8,0" />
       <TextBox Grid.Column="4" Text="{Binding Country}" PlaceholderText="FR" />
     </Grid>
+    <TextBlock Text="Notes IMDb, Rotten Tomatoes, Metacritic" FontSize="16" FontWeight="SemiBold" Margin="0,12,0,0" />
+    <TextBlock Text="{Binding OmdbState}" TextWrapping="Wrap" Opacity="0.8" />
+    <TextBox Text="{Binding NewOmdbKey}" PasswordChar="•" PlaceholderText="Clé API OMDb" />
+    <CheckBox Content="Compléter la note IMDb avec le fichier officiel IMDb (téléchargé au plus une fois par jour, ~9 Mo)" IsChecked="{Binding UseImdbDataset}" />
     <TextBlock Text="Fichiers vidéo" FontSize="16" FontWeight="SemiBold" Margin="0,12,0,0" />
     <TextBox Text="{Binding MediaInfoPath}" PlaceholderText="Chemin de MediaInfo CLI, MediaInfo.exe (vide : dossier tools/MediaInfo de Bobine, puis PATH)" />
     <TextBox Text="{Binding FfprobePath}" PlaceholderText="Repli : chemin de ffprobe (facultatif)" />

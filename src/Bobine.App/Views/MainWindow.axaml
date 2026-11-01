@@ -63,6 +63,14 @@
     <Style Selector="ListBox.titles ListBoxItem:selected /template/ ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource BobineAccentSoft}" />
     </Style>
+    <Style Selector="Border.rating">
+      <Setter Property="Background" Value="{DynamicResource BobineSurfaceAlt}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BobineBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="8,5" />
+      <Setter Property="Margin" Value="0,0,8,8" />
+    </Style>
     <Style Selector="ListBox.grid ListBoxItem">
       <Setter Property="Margin" Value="6" />
       <Setter Property="Padding" Value="6" />
@@ -131,6 +139,9 @@
               <MenuFlyout Placement="BottomEdgeAlignedRight">
                 <MenuItem Header="Mettre à jour via TMDb" Command="{Binding UpdateAllFromTmdbCommand}" InputGesture="Ctrl+Shift+U">
                   <MenuItem.Icon><controls:Icon Kind="cloud" Width="16" Height="16" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Actualiser les notes IMDb (fichier officiel)" Command="{Binding RefreshImdbRatingsCommand}">
+                  <MenuItem.Icon><controls:Icon Kind="star" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="Relire les infos techniques (MediaInfo)" Command="{Binding RefreshTechnicalCommand}">
                   <MenuItem.Icon><controls:Icon Kind="view" Width="16" Height="16" /></MenuItem.Icon>
@@ -396,6 +407,31 @@
                     <TextBlock Classes="muted" Text="TMDb" FontSize="12" VerticalAlignment="Center" />
                   </StackPanel>
                 </StackPanel>
+
+                <!-- Notes externes : IMDb, Rotten Tomatoes, Metacritic (via OMDb et le fichier officiel IMDb) -->
+                <WrapPanel>
+                  <Border Classes="rating" IsVisible="{Binding ImdbRating, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Note IMDb">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <Border Background="#F5C518" CornerRadius="3" Padding="4,0"><TextBlock Text="IMDb" FontWeight="Bold" FontSize="11" Foreground="Black" /></Border>
+                      <TextBlock Text="{Binding ImdbRating, StringFormat='{}{0:0.0}'}" FontWeight="SemiBold" Foreground="{DynamicResource BobineInk}" />
+                      <TextBlock Text="{Binding ImdbVotes, StringFormat='{}{0:N0} votes'}" Classes="muted" FontSize="11.5" VerticalAlignment="Center"
+                                 IsVisible="{Binding ImdbVotes, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                    </StackPanel>
+                  </Border>
+                  <Border Classes="rating" IsVisible="{Binding Tomatometer, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Tomatometer (Rotten Tomatoes)">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <Border Background="#FA320A" CornerRadius="3" Padding="4,0"><TextBlock Text="RT" FontWeight="Bold" FontSize="11" Foreground="White" /></Border>
+                      <TextBlock Text="{Binding Tomatometer, StringFormat='{}{0} %'}" FontWeight="SemiBold" Foreground="{DynamicResource BobineInk}" />
+                    </StackPanel>
+                  </Border>
+                  <Border Classes="rating" IsVisible="{Binding Metascore, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Metascore (Metacritic)">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <Border Background="#2B2B2B" CornerRadius="3" Padding="4,0"><TextBlock Text="MC" FontWeight="Bold" FontSize="11" Foreground="#FFCC33" /></Border>
+                      <TextBlock Text="{Binding Metascore}" FontWeight="SemiBold" Foreground="{DynamicResource BobineInk}" />
+                      <TextBlock Text="/ 100" Classes="muted" FontSize="11.5" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Border>
+                </WrapPanel>
 
                 <TextBlock Text="{Binding Tagline}" FontStyle="Italic" TextWrapping="Wrap" Classes="muted"
                            IsVisible="{Binding Tagline, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />

@@ -113,5 +113,10 @@ public sealed class MainWindowViewModelTests : IDisposable
         }
 
         public Task InformAsync(string title, string message) => Task.CompletedTask;
+
+        public Task<Bobine.Core.Metadata.MetadataSearchResult?> SearchMetadataAsync(MetadataSearchViewModel search) =>
+            Task.FromResult<Bobine.Core.Metadata.MetadataSearchResult?>(null);
+
+        public Task<bool> EditSettingsAsync(SettingsViewModel settings) => Task.FromResult(false);
     }
 }

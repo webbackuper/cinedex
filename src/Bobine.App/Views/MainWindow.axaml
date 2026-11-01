@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Bobine.App.ViewModels"
         xmlns:titles="using:Bobine.Core.Titles"
+        xmlns:views="using:Bobine.App.Views"
         x:Class="Bobine.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Bobine"
@@ -13,6 +14,8 @@
     <KeyBinding Gesture="F7" Command="{Binding PickRandomCommand}" />
     <KeyBinding Gesture="Alt+E" Command="{Binding EditCommand}" />
     <KeyBinding Gesture="F5" Command="{Binding ReloadCommand}" />
+    <KeyBinding Gesture="Ctrl+T" Command="{Binding AddFromTmdbCommand}" />
+    <KeyBinding Gesture="Ctrl+U" Command="{Binding LinkToTmdbCommand}" />
   </Window.KeyBindings>
 
   <DockPanel Margin="16">
@@ -22,7 +25,9 @@
       <ComboBox Width="200" Margin="0,0,8,0" ItemsSource="{Binding Filters}" SelectedItem="{Binding SelectedFilter}" ToolTip.Tip="Filtre" />
       <ComboBox Width="170" Margin="0,0,8,0" ItemsSource="{Binding Sorts}" SelectedItem="{Binding SelectedSort}" ToolTip.Tip="Trier par" />
       <ToggleButton Margin="0,0,8,0" IsChecked="{Binding SortDescending}" Content="Ordre inverse" />
-      <Button Content="Au hasard" Command="{Binding PickRandomCommand}" ToolTip.Tip="Un titre non vu au hasard (Ctrl+R)" />
+      <Button Margin="0,0,8,0" Content="Au hasard" Command="{Binding PickRandomCommand}" ToolTip.Tip="Un titre non vu au hasard (Ctrl+R)" />
+      <Button Margin="0,0,8,0" Content="Tout mettre à jour (TMDb)" Command="{Binding UpdateAllFromTmdbCommand}" />
+      <Button Content="Réglages" Command="{Binding OpenSettingsCommand}" />
     </WrapPanel>
 
     <!-- Actions -->
@@ -32,10 +37,12 @@
           <KeyBinding Gesture="Enter" Command="{Binding AddCommand}" />
         </TextBox.KeyBindings>
       </TextBox>
-      <Button Margin="0,0,16,0" Content="Ajouter" Command="{Binding AddCommand}" />
+      <Button Margin="0,0,8,0" Content="Ajouter" Command="{Binding AddCommand}" ToolTip.Tip="Ajout manuel" />
+      <Button Margin="0,0,16,0" Content="Ajouter depuis TMDb" Command="{Binding AddFromTmdbCommand}" ToolTip.Tip="Recherche le titre saisi sur TMDb (Ctrl+T)" />
       <Button Margin="0,0,8,0" Content="Modifier" Command="{Binding EditCommand}" ToolTip.Tip="Alt+E ou double-clic" />
       <Button Margin="0,0,8,0" Content="Vu / non vu" Command="{Binding ToggleSeenCommand}" ToolTip.Tip="Ctrl+S" />
       <Button Margin="0,0,8,0" Content="Favori" Command="{Binding ToggleFavoriteCommand}" ToolTip.Tip="Ctrl+D" />
+      <Button Margin="0,0,8,0" Content="Lier / mettre à jour (TMDb)" Command="{Binding LinkToTmdbCommand}" ToolTip.Tip="Ctrl+U" />
       <Button Content="Supprimer" Command="{Binding DeleteCommand}" ToolTip.Tip="Suppr" />
     </WrapPanel>
 
@@ -86,6 +93,9 @@
                      Text="Sélectionnez un titre pour voir sa fiche. Sélection multiple : Ctrl+clic ou Maj+clic." />
           <ScrollViewer IsVisible="{Binding HasDetail}">
             <StackPanel Spacing="16">
+            <Image Source="{Binding PosterPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=400}"
+                   MaxHeight="420" HorizontalAlignment="Left" Stretch="Uniform"
+                   IsVisible="{Binding PosterPath, Converter={x:Static ObjectConverters.IsNotNull}}" />
             <StackPanel Spacing="6" DataContext="{Binding Detail}" x:DataType="titles:TitleDetail">
               <TextBlock Text="{Binding Title}" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap" />
               <TextBlock Text="{Binding OriginalTitle}" Opacity="0.7" TextWrapping="Wrap" />
@@ -96,6 +106,7 @@
                 <TextBlock Text="{Binding Certification}" />
               </StackPanel>
               <TextBlock Text="{Binding UserRating, StringFormat='Ma note : {0}/10'}" />
+              <TextBlock Text="{Binding TmdbRating, StringFormat='TMDb : {0:0.0}/10'}" Opacity="0.8" />
               <TextBlock Text="{Binding Overview}" TextWrapping="Wrap" Margin="0,8,0,8" />
               <TextBlock Text="{Binding Copy.MediumCode, StringFormat='Support : {0}'}" Opacity="0.8" />
               <TextBlock Text="{Binding Copy.Location, StringFormat='Emplacement : {0}'}" Opacity="0.8" />

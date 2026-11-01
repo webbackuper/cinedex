@@ -6,6 +6,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <InvariantGlobalization>false</InvariantGlobalization>
     <SatelliteResourceLanguages>fr;en</SatelliteResourceLanguages>
   </PropertyGroup>

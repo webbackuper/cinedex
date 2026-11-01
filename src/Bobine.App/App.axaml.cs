@@ -1,10 +1,13 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Bobine.App.Security;
+using Bobine.App.Services;
 using Bobine.App.ViewModels;
 using Bobine.App.Views;
 using Bobine.Core;
 using Bobine.Data;
+using Bobine.Metadata.Tmdb;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -23,10 +26,14 @@ public sealed class App : Application
         {
             _services = ConfigureServices(AppPaths.Resolve());
             var window = new MainWindow();
+            var services = _services;
             var main = new MainWindowViewModel(
-                _services.GetRequiredService<TitleRepository>(),
-                _services.GetRequiredService<AppPaths>(),
-                window);
+                services.GetRequiredService<TitleRepository>(),
+                services.GetRequiredService<AppPaths>(),
+                window,
+                services.GetRequiredService<MetadataService>(),
+                services.GetRequiredService<ImageStore>(),
+                () => new SettingsViewModel(services.GetRequiredService<ISecretStore>(), services.GetRequiredService<SettingsStore>()));
             main.Load();
             window.DataContext = main;
             desktop.MainWindow = window;
@@ -67,6 +74,28 @@ public sealed class App : Application
         });
         services.AddSingleton<TitleRepository>();
         services.AddSingleton<SettingsStore>();
+        services.AddSingleton<MetadataRepository>();
+        services.AddSingleton(sp => new ImageStore(
+            sp.GetRequiredService<CatalogDatabase>(),
+            paths.CatalogImagesDirectory(AppPaths.DefaultCatalogName)));
+        services.AddSingleton(SecretStore.ForCurrentPlatform());
+        services.AddSingleton(_ => TmdbClient.CreateHttpClient());
+        services.AddSingleton(sp =>
+        {
+            var secrets = sp.GetRequiredService<ISecretStore>();
+            var settings = sp.GetRequiredService<SettingsStore>();
+            // Le jeton est relu à chaque appel : un changement dans les réglages s'applique sans redémarrer.
+            return new TmdbClient(
+                sp.GetRequiredService<HttpClient>(),
+                _ => ValueTask.FromResult(secrets.Read(SecretStore.TmdbToken)),
+                new TmdbOptions
+                {
+                    Language = settings.Get(SettingsViewModel.LanguageKey) ?? "fr-FR",
+                    CertificationCountry = settings.Get(SettingsViewModel.CountryKey) ?? "FR",
+                },
+                sp.GetRequiredService<ILogger<TmdbClient>>());
+        });
+        services.AddSingleton<MetadataService>();
         return services.BuildServiceProvider();
     }
 }

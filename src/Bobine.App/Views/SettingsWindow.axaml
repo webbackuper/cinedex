@@ -1,0 +1,29 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Bobine.App.ViewModels"
+        x:Class="Bobine.App.Views.SettingsWindow"
+        x:DataType="vm:SettingsViewModel"
+        Title="Réglages"
+        Width="620" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner">
+  <StackPanel Margin="20" Spacing="12">
+    <TextBlock Text="Source de données : TMDb" FontSize="16" FontWeight="SemiBold" />
+    <TextBlock Text="{Binding TokenState}" TextWrapping="Wrap" Opacity="0.8" />
+    <TextBox Text="{Binding NewToken}" PasswordChar="•" PlaceholderText="Jeton d'accès en lecture (eyJ...)" />
+    <Grid ColumnDefinitions="Auto,120,24,Auto,80" RowDefinitions="Auto">
+      <TextBlock Grid.Column="0" Text="Langue" VerticalAlignment="Center" Margin="0,0,8,0" />
+      <TextBox Grid.Column="1" Text="{Binding Language}" PlaceholderText="fr-FR" />
+      <TextBlock Grid.Column="3" Text="Pays des certifications" VerticalAlignment="Center" Margin="0,0,8,0" />
+      <TextBox Grid.Column="4" Text="{Binding Country}" PlaceholderText="FR" />
+    </Grid>
+    <TextBlock Text="{Binding Error}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" TextWrapping="Wrap"
+               IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+    <TextBlock FontSize="11" Opacity="0.6" TextWrapping="Wrap"
+               Text="Bobine utilise l'API TMDb. This product uses the TMDB API but is not endorsed or certified by TMDB. IMDb n'est utilisé que pour les identifiants et les liens." />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Content="Oublier le jeton" Click="OnForget" IsVisible="{Binding HasToken}" />
+      <Button Content="Annuler" IsCancel="True" Click="OnCancel" />
+      <Button Content="Enregistrer" IsDefault="True" Click="OnSave" />
+    </StackPanel>
+  </StackPanel>
+</Window>

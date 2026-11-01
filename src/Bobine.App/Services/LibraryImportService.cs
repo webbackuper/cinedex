@@ -71,7 +71,7 @@ public sealed class LibraryImportService(
     /// Rattache une partie supplémentaire (CD2, part2...) à un titre, numérotée après les parties existantes,
     /// puis lit ses propriétés techniques. Refuse un fichier absent, non vidéo ou déjà présent dans le catalogue.
     /// </summary>
-    public async Task<int> AddPartAsync(long titleId, string path, CancellationToken cancellationToken = default)
+    public async Task<int> AddPartAsync(long titleId, string path, IReadOnlySet<string>? videoExtensions = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         var full = Path.GetFullPath(path);
@@ -80,7 +80,7 @@ public sealed class LibraryImportService(
             throw new InvalidOperationException($"Fichier introuvable : {full}");
         }
 
-        if (!FileNameParser.IsVideo(full))
+        if (!FileNameParser.IsVideo(full, videoExtensions))
         {
             throw new InvalidOperationException($"Ce n'est pas un fichier vidéo reconnu : {Path.GetFileName(full)}");
         }

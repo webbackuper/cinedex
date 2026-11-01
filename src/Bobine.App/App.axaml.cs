@@ -62,7 +62,7 @@ public sealed class App : Application
             _window!,
             services.GetRequiredService<MetadataService>(),
             services.GetRequiredService<ImageStore>(),
-            () => new SettingsViewModel(services.GetRequiredService<ISecretStore>(), services.GetRequiredService<SettingsStore>()),
+            () => new SettingsViewModel(services.GetRequiredService<ISecretStore>(), services.GetRequiredService<SettingsStore>(), _paths!.DataRoot),
             services.GetRequiredService<MediaContext>(),
             catalogs);
         main.Load();

@@ -99,14 +99,14 @@
         </StackPanel>
 
         <StackPanel DockPanel.Dock="Bottom" Margin="8,8,8,14" Spacing="2">
-          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding AdvancedSearchCommand}"
+          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding AdvancedSearchCommand}" IsVisible="{Binding ShowRuleSearch}"
                   ToolTip.Tip="Chercher sur tous les champs : genre, notes, année, acteurs, MediaID… (Ctrl+Maj+F)">
             <StackPanel Orientation="Horizontal" Spacing="10">
               <controls:Icon Kind="funnel" Width="18" Height="18" />
               <TextBlock Text="Recherche multicritère" />
             </StackPanel>
           </Button>
-          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenPeopleCommand}" IsVisible="{Binding HasPeople}">
+          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenPeopleCommand}" IsVisible="{Binding ShowPeopleLink}">
             <StackPanel Orientation="Horizontal" Spacing="10">
               <controls:Icon Kind="about" Width="18" Height="18" />
               <TextBlock Text="Acteurs" />
@@ -154,7 +154,7 @@
 
             <!-- Sous-menu Définition : se déplie au clic, et reste ouvert tant qu'une de ses vues est choisie. -->
             <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Margin="8,2,8,0"
-                    Command="{Binding ToggleDefinitionsCommand}" ToolTip.Tip="Classer par définition de l'image">
+                    Command="{Binding ToggleDefinitionsCommand}" IsVisible="{Binding HasDefinitionFilters}" ToolTip.Tip="Classer par définition de l'image">
               <Grid ColumnDefinitions="Auto,*,Auto">
                 <controls:Icon Kind="view" Width="18" Height="18" Foreground="{DynamicResource BobineMuted}" />
                 <TextBlock Grid.Column="1" Margin="10,0,0,0" Text="Définition" Foreground="{DynamicResource BobineInk}" VerticalAlignment="Center" />

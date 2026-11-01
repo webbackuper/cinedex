@@ -56,7 +56,7 @@ public static partial class FileNameParser
 
     private static readonly ConcurrentDictionary<string, Regex> NoisePatterns = new(StringComparer.Ordinal);
 
-    public static bool IsVideo(string path) => VideoExtensions.Contains(Path.GetExtension(path));
+    public static bool IsVideo(string path, IReadOnlySet<string>? extensions = null) => (extensions ?? VideoExtensions).Contains(Path.GetExtension(path));
 
     /// <param name="path">Chemin ou nom du fichier.</param>
     /// <param name="noiseWords">Termes à retirer du titre ; null = <see cref="DefaultNoiseWords"/>.</param>

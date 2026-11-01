@@ -4,6 +4,9 @@ public sealed record ScanOptions
 {
     public bool Recursive { get; init; } = true;
 
+    /// <summary>Extensions des fichiers vidéo retenus (avec le point), modifiables dans les réglages.</summary>
+    public IReadOnlySet<string> VideoExtensions { get; init; } = FileNameParser.VideoExtensions;
+
     /// <summary>Fichiers ignorés s'ils contiennent l'un de ces mots (bandes-annonces, échantillons...).</summary>
     public IReadOnlyList<string> IgnoreKeywords { get; init; } = ["sample", "trailer", "-ts.", "featurette"];
 
@@ -76,7 +79,7 @@ public static class LibraryScanner
 
             foreach (var file in dir.EnumerateFiles("*", enumeration))
             {
-                if (FileNameParser.IsVideo(file.Name) && !Ignored(file.Name, options) && file.Length >= options.MinimumBytes)
+                if (FileNameParser.IsVideo(file.Name, options.VideoExtensions) && !Ignored(file.Name, options) && file.Length >= options.MinimumBytes)
                 {
                     AddCandidate(results, file, null, options, knownPaths);
                 }
@@ -111,7 +114,7 @@ public static class LibraryScanner
             {
                 results.AddRange(Scan(path, options, knownPaths, cancellationToken));
             }
-            else if (File.Exists(path) && FileNameParser.IsVideo(path))
+            else if (File.Exists(path) && FileNameParser.IsVideo(path, options.VideoExtensions))
             {
                 AddCandidate(results, new FileInfo(path), null, options, knownPaths);
             }

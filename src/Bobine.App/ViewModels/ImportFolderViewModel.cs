@@ -28,8 +28,13 @@ public sealed partial class CandidateRow(ScanCandidate candidate) : ObservableOb
 
 /// <summary>Ajout depuis le disque : choix du dossier, analyse, sélection, import avec progression.</summary>
 [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1001", Justification = "_cancel n'existe que pendant une opération et est libéré dans RunAsync.")]
-public sealed partial class ImportFolderViewModel(LibraryImportService import, bool ignoreBracketed = true, IReadOnlyList<string>? noiseWords = null) : ObservableObject
+public sealed partial class ImportFolderViewModel(LibraryImportService import, ScanSettings? defaults = null) : ObservableObject
 {
+    private readonly ScanSettings _defaults = defaults ?? new ScanSettings();
+
+    /// <summary>Extensions retenues (réglages), pour le filtre du sélecteur de fichiers.</summary>
+    public IReadOnlyList<string> VideoExtensions => _defaults.Extensions;
+
     private CancellationTokenSource? _cancel;
 
     public ObservableCollection<CandidateRow> Candidates { get; } = [];
@@ -38,17 +43,17 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, b
     [NotifyCanExecuteChangedFor(nameof(ScanCommand))]
     public partial string Folder { get; set; } = string.Empty;
 
-    [ObservableProperty] public partial bool Recursive { get; set; } = true;
+    [ObservableProperty] public partial bool Recursive { get; set; } = defaults?.Recursive ?? true;
 
-    [ObservableProperty] public partial bool IgnoreBracketed { get; set; } = ignoreBracketed;
+    [ObservableProperty] public partial bool IgnoreBracketed { get; set; } = defaults?.IgnoreBracketed ?? true;
 
-    [ObservableProperty] public partial bool UseTmdb { get; set; }
+    [ObservableProperty] public partial bool UseTmdb { get; set; } = defaults?.UseTmdb ?? false;
 
     [ObservableProperty] public partial bool UseFirstMatch { get; set; } = true;
 
-    [ObservableProperty] public partial bool ReadProperties { get; set; } = true;
+    [ObservableProperty] public partial bool ReadProperties { get; set; } = defaults?.ReadProperties ?? true;
 
-    [ObservableProperty] public partial bool WriteNfo { get; set; }
+    [ObservableProperty] public partial bool WriteNfo { get; set; } = defaults?.WriteNfo ?? false;
 
     [ObservableProperty] public partial bool RememberFolder { get; set; } = true;
 
@@ -60,11 +65,11 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, b
 
     [ObservableProperty] public partial string Message { get; set; } = "Choisissez un dossier à analyser, ou des fichiers vidéo (bouton ou glisser-déposer).";
 
-    private ScanOptions CurrentScanOptions => new()
+    private ScanOptions CurrentScanOptions => _defaults.ToScanOptions() with
     {
         Recursive = Recursive,
         IgnoreBracketed = IgnoreBracketed,
-        NoiseWords = [.. noiseWords ?? FileNameParser.DefaultNoiseWords, .. TitleEditorViewModel.SplitList(NoiseWords)],
+        NoiseWords = [.. _defaults.NoiseWords, .. TitleEditorViewModel.SplitList(NoiseWords)],
     };
 
     /// <summary>

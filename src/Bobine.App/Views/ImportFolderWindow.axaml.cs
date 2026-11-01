@@ -38,7 +38,10 @@ public sealed partial class ImportFolderWindow : Window
             AllowMultiple = true,
             FileTypeFilter =
             [
-                new FilePickerFileType("Fichiers vidéo") { Patterns = FileNameParser.VideoExtensions.Select(x => "*" + x).ToList() },
+                new FilePickerFileType("Fichiers vidéo")
+                {
+                    Patterns = ((DataContext as ImportFolderViewModel)?.VideoExtensions ?? [.. FileNameParser.VideoExtensions]).Select(x => "*" + x).ToList(),
+                },
                 FilePickerFileTypes.All,
             ],
         });

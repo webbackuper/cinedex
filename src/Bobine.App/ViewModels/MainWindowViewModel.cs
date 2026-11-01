@@ -56,6 +56,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _settings = settings;
         _media = media;
         _catalogs = catalogs;
+        ApplyDisplaySettings();
         SelectedFilter = Filters[0];
         SelectedSort = Sorts[0];
         SelectedTitles.CollectionChanged += (_, _) =>
@@ -71,7 +72,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public ObservableCollection<TitleSummary> SelectedTitles { get; } = [];
 
-    public IReadOnlyList<FilterItem> Filters { get; } =
+    /// <summary>Toutes les vues de la liste principale du bandeau ; celles masquées dans les réglages sont retirées de <see cref="Filters"/>.</summary>
+    public static IReadOnlyList<FilterItem> AllMainFilters { get; } =
     [
         new(QuickFilter.All, "Tous les titres"),
         new(QuickFilter.Owned, "Possédés"),
@@ -87,13 +89,48 @@ public sealed partial class MainWindowViewModel : ObservableObject
     ];
 
     /// <summary>Sous-menu « Définition » du bandeau gauche.</summary>
-    public IReadOnlyList<FilterItem> DefinitionFilters { get; } =
+    public static IReadOnlyList<FilterItem> AllDefinitionFilters { get; } =
     [
         new(QuickFilter.StandardDefinition, "Définition standard"),
         new(QuickFilter.HighDefinition, "Haute définition"),
         new(QuickFilter.UltraHighDefinition, "Ultra HD (4K)"),
         new(QuickFilter.ThreeD, "3D"),
     ];
+
+    /// <summary>Vues affichées dans le bandeau gauche (selon les réglages du catalogue).</summary>
+    [ObservableProperty]
+    public partial IReadOnlyList<FilterItem> Filters { get; private set; } = AllMainFilters;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasDefinitionFilters))]
+    public partial IReadOnlyList<FilterItem> DefinitionFilters { get; private set; } = AllDefinitionFilters;
+
+    public bool HasDefinitionFilters => DefinitionFilters.Count > 0;
+
+    private DisplaySettings _display = new();
+
+    public bool ShowRuleSearch => _display.ShowRuleSearch;
+
+    public bool ShowPeopleLink => HasPeople && _display.ShowPeople;
+
+    /// <summary>Relit les réglages d'affichage : vues visibles, liens, contenu pour adultes.</summary>
+    private void ApplyDisplaySettings()
+    {
+        _display = _media is null ? new DisplaySettings() : DisplaySettings.Load(_media.Settings);
+        Filters = AllMainFilters.Where(f => f.Value == QuickFilter.All || !_display.HiddenFilters.Contains(f.Value)).ToList();
+        DefinitionFilters = AllDefinitionFilters.Where(f => !_display.HiddenFilters.Contains(f.Value)).ToList();
+        OnPropertyChanged(nameof(ShowRuleSearch));
+        OnPropertyChanged(nameof(ShowPeopleLink));
+        if (SelectedFilter is not null && !Filters.Contains(SelectedFilter) && !DefinitionFilters.Contains(SelectedFilter))
+        {
+            SelectedFilter = Filters[0];
+        }
+        else
+        {
+            OnPropertyChanged(nameof(SelectedMainFilter));
+            OnPropertyChanged(nameof(SelectedDefinitionFilter));
+        }
+    }
 
     /// <summary>Sélection de la liste principale ; vide quand une vue du sous-menu est choisie (et inversement).</summary>
     public FilterItem? SelectedMainFilter
@@ -356,7 +393,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     partial void OnRulesChanged(RuleSearch? value) => Refresh();
 
-    private TitleQuery CurrentQuery => new(SearchText, SelectedFilter.Value, SelectedSort.Value, SortDescending, Rules: Rules);
+    private TitleQuery CurrentQuery => new(SearchText, SelectedFilter.Value, SelectedSort.Value, SortDescending, _display.HideAdult, Rules: Rules);
 
     private IReadOnlyList<long> SelectedIds => SelectedTitles.Select(t => t.Id).ToList();
 
@@ -367,7 +404,34 @@ public sealed partial class MainWindowViewModel : ObservableObject
         Refresh();
     }
 
-    partial void OnSearchTextChanged(string value) => Refresh();
+    private Avalonia.Threading.DispatcherTimer? _searchTimer;
+
+    /// <summary>
+    /// Recherche à la frappe : dans l'application, la liste n'est recalculée qu'après une courte pause de saisie
+    /// (une requête par mot plutôt qu'une par lettre) ; hors interface (tests), immédiatement.
+    /// </summary>
+    partial void OnSearchTextChanged(string value)
+    {
+        if (Avalonia.Application.Current is null || string.IsNullOrEmpty(value))
+        {
+            _searchTimer?.Stop();
+            Refresh();
+            return;
+        }
+
+        if (_searchTimer is null)
+        {
+            _searchTimer = new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
+            _searchTimer.Tick += (_, _) =>
+            {
+                _searchTimer.Stop();
+                Refresh();
+            };
+        }
+
+        _searchTimer.Stop();
+        _searchTimer.Start();
+    }
 
     partial void OnSelectedFilterChanged(FilterItem value)
     {
@@ -444,7 +508,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             },
             _media is null ? null : async path =>
             {
-                var part = await _media.Import.AddPartAsync(current.Id, path);
+                var part = await _media.Import.AddPartAsync(current.Id, path, videoExtensions: ScanSettings.Load(_media.Settings).ExtensionSet);
                 Status = $"Partie {part} rattachée à « {current.Title} »";
                 return MediaTextOf(current.Id);
             },
@@ -665,7 +729,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         if (_settings is not null)
         {
-            await _dialogs.EditSettingsAsync(_settings());
+            if (await _dialogs.EditSettingsAsync(_settings()))
+            {
+                ApplyDisplaySettings();
+                Refresh(selectIds: SelectedIds);
+            }
         }
     }
 
@@ -701,10 +769,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private async Task ImportFolderAsync()
     {
-        if (_media is not null && await _dialogs.ImportFolderAsync(new ImportFolderViewModel(
-                    _media.Import,
-                    _media.Settings.Get(MediaContext.IgnoreBracketedKey) != "false",
-                    MediaContext.NoiseWords(_media.Settings))))
+        if (_media is not null && await _dialogs.ImportFolderAsync(new ImportFolderViewModel(_media.Import, ScanSettings.Load(_media.Settings))))
         {
             Refresh(selectIds: SelectedIds);
         }

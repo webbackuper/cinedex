@@ -1,11 +1,26 @@
+using System.Collections.ObjectModel;
+using System.Globalization;
 using Bobine.App.Security;
+using Bobine.App.Services;
+using Bobine.Core.Titles;
 using Bobine.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Bobine.App.ViewModels;
 
+/// <summary>Une vue du bandeau gauche, affichée ou masquée.</summary>
+public sealed partial class FilterToggle(QuickFilter value, string label, bool isShown) : ObservableObject
+{
+    public QuickFilter Value { get; } = value;
+
+    public string Label { get; } = label;
+
+    [ObservableProperty]
+    public partial bool IsShown { get; set; } = isShown;
+}
+
 /// <summary>
-/// Réglages des sources de données. Le jeton TMDb va dans le coffre du système ; il n'est jamais réaffiché,
+/// Réglages de l'application, par onglets : général, bandeau gauche, import et scan, métadonnées, .nfo, lecture. Le jeton TMDb va dans le coffre du système ; il n'est jamais réaffiché,
 /// seule sa présence est indiquée.
 /// </summary>
 public sealed partial class SettingsViewModel : ObservableObject
@@ -16,10 +31,38 @@ public sealed partial class SettingsViewModel : ObservableObject
     private readonly ISecretStore _secrets;
     private readonly SettingsStore _settings;
 
-    public SettingsViewModel(ISecretStore secrets, SettingsStore settings)
+    private readonly string? _dataRoot;
+
+    public SettingsViewModel(ISecretStore secrets, SettingsStore settings, string? dataRoot = null)
     {
         _secrets = secrets;
         _settings = settings;
+        _dataRoot = dataRoot;
+
+        // Général : apparence commune à tous les catalogues (si l'emplacement des données est connu).
+        ThemeChoices = [new(AppTheme.System, "Comme le système"), new(AppTheme.Light, "Clair"), new(AppTheme.Dark, "Sombre")];
+        SelectedTheme = ThemeChoices.Single(c => c.Value == (dataRoot is null ? AppTheme.System : Appearance.Load(dataRoot)));
+
+        // Bandeau gauche.
+        var display = DisplaySettings.Load(settings);
+        MainFilterToggles = [.. MainWindowViewModel.AllMainFilters.Where(f => f.Value != QuickFilter.All)
+            .Select(f => new FilterToggle(f.Value, f.Label, !display.HiddenFilters.Contains(f.Value)))];
+        DefinitionFilterToggles = [.. MainWindowViewModel.AllDefinitionFilters
+            .Select(f => new FilterToggle(f.Value, f.Label, !display.HiddenFilters.Contains(f.Value)))];
+        ShowRuleSearch = display.ShowRuleSearch;
+        ShowPeople = display.ShowPeople;
+        HideAdult = display.HideAdult;
+
+        // Import et scan.
+        var scan = ScanSettings.Load(settings);
+        ExtensionsText = string.Join(' ', scan.Extensions);
+        MinimumMegabytes = scan.MinimumMegabytes;
+        IgnoreKeywordsText = string.Join('\n', scan.IgnoreKeywords);
+        Recursive = scan.Recursive;
+        DefaultUseTmdb = scan.UseTmdb;
+        DefaultReadProperties = scan.ReadProperties;
+        DefaultWriteNfo = scan.WriteNfo;
+
         Language = settings.Get(LanguageKey) ?? "fr-FR";
         Country = settings.Get(CountryKey) ?? "FR";
         FfprobePath = settings.Get(Services.MediaContext.FfprobeKey) ?? string.Empty;
@@ -39,6 +82,53 @@ public sealed partial class SettingsViewModel : ObservableObject
         UseImdbDataset = settings.Get(Services.RatingsService.UseDatasetKey) != "false";
         MaxActorsNumber = Services.MetadataService.ReadMaxActors(settings);
     }
+
+    public IReadOnlyList<Choice<AppTheme>> ThemeChoices { get; }
+
+    [ObservableProperty]
+    public partial Choice<AppTheme> SelectedTheme { get; set; }
+
+    public bool CanChooseTheme => _dataRoot is not null;
+
+    public string DataLocation => _dataRoot ?? "(inconnu)";
+
+    public ObservableCollection<FilterToggle> MainFilterToggles { get; }
+
+    public ObservableCollection<FilterToggle> DefinitionFilterToggles { get; }
+
+    [ObservableProperty]
+    public partial bool ShowRuleSearch { get; set; }
+
+    [ObservableProperty]
+    public partial bool ShowPeople { get; set; }
+
+    [ObservableProperty]
+    public partial bool HideAdult { get; set; }
+
+    /// <summary>Extensions des fichiers vidéo retenus, séparées par des espaces (« .mkv .mp4 »).</summary>
+    [ObservableProperty]
+    public partial string ExtensionsText { get; set; }
+
+    public void ResetExtensions() => ExtensionsText = string.Join(' ', new ScanSettings().Extensions);
+
+    [ObservableProperty]
+    public partial decimal? MinimumMegabytes { get; set; }
+
+    /// <summary>Fichiers ignorés au scan s'ils contiennent l'un de ces mots, un par ligne.</summary>
+    [ObservableProperty]
+    public partial string IgnoreKeywordsText { get; set; }
+
+    [ObservableProperty]
+    public partial bool Recursive { get; set; }
+
+    [ObservableProperty]
+    public partial bool DefaultUseTmdb { get; set; }
+
+    [ObservableProperty]
+    public partial bool DefaultReadProperties { get; set; }
+
+    [ObservableProperty]
+    public partial bool DefaultWriteNfo { get; set; }
 
     [ObservableProperty]
     public partial string FfprobePath { get; set; }
@@ -149,6 +239,20 @@ public sealed partial class SettingsViewModel : ObservableObject
             return false;
         }
 
+        var extensions = ScanSettings.NormalizeExtensions(ExtensionsText);
+        if (extensions.Count == 0)
+        {
+            Error = "Indiquez au moins une extension de fichier vidéo (ex. .mkv .mp4 .avi).";
+            return false;
+        }
+
+        var minimum = (int)Math.Round(MinimumMegabytes ?? 0);
+        if (minimum is < 0 or > 100_000)
+        {
+            Error = "Taille minimale : un nombre de Mo entre 0 et 100 000 est attendu.";
+            return false;
+        }
+
         var omdb = NewOmdbKey.Trim();
         if (omdb.Length > 0 && (omdb.Length is < 6 or > 64 || !omdb.All(char.IsAsciiLetterOrDigit)))
         {
@@ -164,7 +268,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         }
 
         _settings.Set(Services.RatingsService.UseDatasetKey, UseImdbDataset ? "true" : "false");
-        _settings.Set(Services.MetadataService.MaxActorsKey, maxActors.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        _settings.Set(Services.MetadataService.MaxActorsKey, maxActors.ToString(CultureInfo.InvariantCulture));
 
         if (token.Length > 0)
         {
@@ -180,8 +284,31 @@ public sealed partial class SettingsViewModel : ObservableObject
         _settings.Set(Services.MediaContext.PlayerKey, NullIfBlank(PlayerPath));
         _settings.Set(Services.MediaContext.PlayerArgsKey, NullIfBlank(PlayerArgs));
         _settings.Set(Services.MediaContext.MarkSeenOnPlayKey, MarkSeenOnPlay ? "true" : "false");
-        _settings.Set(Services.MediaContext.IgnoreBracketedKey, IgnoreBracketed ? "true" : "false");
-        _settings.Set(Services.MediaContext.NoiseWordsKey, string.Join('\n', Services.MediaContext.SplitLines(NoiseWordsText)));
+        new ScanSettings
+        {
+            Extensions = extensions,
+            MinimumMegabytes = minimum,
+            IgnoreKeywords = MediaContext.SplitLines(IgnoreKeywordsText),
+            Recursive = Recursive,
+            IgnoreBracketed = IgnoreBracketed,
+            NoiseWords = MediaContext.SplitLines(NoiseWordsText),
+            UseTmdb = DefaultUseTmdb,
+            ReadProperties = DefaultReadProperties,
+            WriteNfo = DefaultWriteNfo,
+        }.Save(_settings);
+        new DisplaySettings
+        {
+            HiddenFilters = MainFilterToggles.Concat(DefinitionFilterToggles).Where(t => !t.IsShown).Select(t => t.Value).ToHashSet(),
+            ShowRuleSearch = ShowRuleSearch,
+            ShowPeople = ShowPeople,
+            HideAdult = HideAdult,
+        }.Save(_settings);
+        if (_dataRoot is not null)
+        {
+            Appearance.Save(_dataRoot, SelectedTheme.Value);
+            Appearance.Apply(SelectedTheme.Value);
+        }
+
         _settings.Set(Services.NfoSettings.ReadKey, NfoReadOnScan ? "true" : "false");
         _settings.Set(Services.NfoSettings.WriteKey, NfoWriteAfterMetadata ? "true" : "false");
         _settings.Set(Services.NfoSettings.OverwriteKey, NfoOverwrite ? "true" : "false");

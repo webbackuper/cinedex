@@ -112,7 +112,75 @@ public sealed class MediaFileRepository(CatalogDatabase database)
     public IReadOnlyList<MediaFileEntry> FilesOf(long titleId)
     {
         using var connection = database.Open();
-        return All(connection, "WHERE c.title_id = @titleId", new { titleId });
+        return All(connection, "WHERE m.copy_id IS NOT NULL AND c.title_id = @titleId", new { titleId });
+    }
+
+    /// <summary>Rattache un fichier à un épisode ; relatif au dossier surveillé qui le contient, comme pour les films.</summary>
+    public long AttachEpisode(long episodeId, string fullPath, long? sizeBytes, int part = 1)
+    {
+        var full = Normalize(fullPath);
+        using var connection = database.Open();
+        using var transaction = connection.BeginTransaction();
+        var (rootId, stored) = Split(connection, transaction, full);
+        var id = connection.ExecuteScalar<long>(
+            """
+            INSERT INTO media_file (episode_id, scan_root_id, path, part_number, size_bytes, last_seen_at, is_missing)
+            VALUES (@episodeId, @rootId, @stored, @part, @sizeBytes, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 0)
+            ON CONFLICT DO UPDATE SET episode_id = excluded.episode_id, copy_id = NULL, size_bytes = excluded.size_bytes, is_missing = 0
+            RETURNING id;
+            """,
+            new { episodeId, rootId, stored, part, sizeBytes },
+            transaction);
+        transaction.Commit();
+        return id;
+    }
+
+    /// <summary>Résumé lisible des propriétés techniques du premier fichier d'un titre, ou null s'il n'a pas été analysé.</summary>
+    public string? TechnicalSummary(long titleId)
+    {
+        using var connection = database.Open();
+        var row = connection.QueryFirstOrDefault<(long Id, string? Container, string? Codec, long? Width, long? Height, double? Fps, long? Bits, string? Aspect, string? Hdr, long? Duration)>(
+            """
+            SELECT m.id, m.container, m.video_codec, m.width, m.height, m.frame_rate, m.bit_depth, m.aspect_ratio, m.hdr_formats, m.duration_seconds
+            FROM media_file m JOIN copy c ON c.id = m.copy_id
+            WHERE c.title_id = @titleId AND (m.video_codec IS NOT NULL OR m.container IS NOT NULL)
+            ORDER BY m.part_number LIMIT 1;
+            """,
+            new { titleId });
+        if (row.Id == 0)
+        {
+            return null;
+        }
+
+        var inv = System.Globalization.CultureInfo.InvariantCulture;
+        var parts = new List<string?>
+        {
+            row.Container,
+            row.Codec,
+            row.Width is null ? null : $"{row.Width}×{row.Height}",
+            row.Aspect,
+            row.Fps is null ? null : row.Fps.Value.ToString("0.###", inv) + " i/s",
+            row.Bits is null ? null : $"{row.Bits} bits",
+            row.Hdr,
+            row.Duration is null ? null : $"{row.Duration / 3600} h {row.Duration % 3600 / 60:00}",
+        };
+        var audio = connection.Query<(string? Language, string? Channels)>(
+            "SELECT language, channels FROM audio_track WHERE media_file_id = @Id ORDER BY position;", new { row.Id })
+            .Select(a => $"{a.Channels} {a.Language}".Trim())
+            .ToList();
+        var subs = connection.Query<string>("SELECT language FROM subtitle_track WHERE media_file_id = @Id ORDER BY position;", new { row.Id }).ToList();
+        var text = string.Join(" · ", parts.Where(p => !string.IsNullOrWhiteSpace(p)));
+        if (audio.Count > 0)
+        {
+            text += "\nAudio : " + string.Join(", ", audio);
+        }
+
+        if (subs.Count > 0)
+        {
+            text += "\nSous-titres : " + string.Join(", ", subs);
+        }
+
+        return text;
     }
 
     public void SaveProperties(long mediaFileId, MediaFileProperties p)
@@ -256,8 +324,12 @@ public sealed class MediaFileRepository(CatalogDatabase database)
     private static List<MediaFileEntry> All(SqliteConnection connection, string where = "", object? param = null) =>
         connection.Query<(long Id, long TitleId, string Path, string? Root, long Part, long Missing, long? Size)>(
                 $"""
-                SELECT m.id, c.title_id, m.path, r.path, m.part_number, m.is_missing, m.size_bytes
-                FROM media_file m JOIN copy c ON c.id = m.copy_id LEFT JOIN scan_root r ON r.id = m.scan_root_id
+                SELECT m.id, coalesce(c.title_id, s.title_id), m.path, r.path, m.part_number, m.is_missing, m.size_bytes
+                FROM media_file m
+                LEFT JOIN copy c ON c.id = m.copy_id
+                LEFT JOIN episode e ON e.id = m.episode_id
+                LEFT JOIN season s ON s.id = e.season_id
+                LEFT JOIN scan_root r ON r.id = m.scan_root_id
                 {where} ORDER BY m.part_number;
                 """,
                 param)

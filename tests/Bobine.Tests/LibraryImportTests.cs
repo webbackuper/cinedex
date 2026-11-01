@@ -30,7 +30,7 @@ public sealed class LibraryImportTests
         var result = await service.ImportAsync(candidates, new LibraryImportOptions(), null, TestContext.Current.CancellationToken);
 
         Assert.Equal(1, result.WithoutMetadata);
-        Assert.Equal(1, result.SkippedEpisodes);
+        Assert.Equal(1, result.Episodes);
         Assert.Contains(result.Messages, m => m.Contains("ffprobe", StringComparison.Ordinal));
         var heat = Assert.Single(titles.ListAll());
         Assert.Equal(("Heat", 1995), (heat.Title, heat.Year));

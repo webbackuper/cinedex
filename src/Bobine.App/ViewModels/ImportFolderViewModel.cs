@@ -40,7 +40,7 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import) :
 
     [ObservableProperty] public partial bool Recursive { get; set; } = true;
 
-    [ObservableProperty] public partial bool UseTmdb { get; set; } = true;
+    [ObservableProperty] public partial bool UseTmdb { get; set; }
 
     [ObservableProperty] public partial bool UseFirstMatch { get; set; } = true;
 
@@ -100,9 +100,9 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import) :
             Imported = true;
             Candidates.Clear();
             var summary = $"{result.Added} ajouté(s) avec TMDb, {result.WithoutMetadata} sans fiche TMDb, {result.Linked} déjà présent(s)";
-            if (result.SkippedEpisodes > 0)
+            if (result.Episodes > 0)
             {
-                summary += $", {result.SkippedEpisodes} épisode(s) laissé(s) pour les séries";
+                summary += $", {result.Episodes} épisode(s) laissé(s) pour les séries";
             }
 
             if (result.Failed > 0)

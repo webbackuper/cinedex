@@ -109,7 +109,14 @@ internal sealed record TmdbTv(
     TmdbPage<TmdbContentRating>? ContentRatings,
     TmdbExternalIds? ExternalIds,
     TmdbKeywords? Keywords,
-    TmdbPage<TmdbVideo>? Videos);
+    TmdbPage<TmdbVideo>? Videos,
+    IReadOnlyList<TmdbSeasonSummary>? Seasons = null);
+
+internal sealed record TmdbSeasonSummary(long Id, int SeasonNumber, string? Name, string? Overview, string? AirDate, int EpisodeCount, string? PosterPath);
+
+internal sealed record TmdbEpisode(long Id, int EpisodeNumber, string? Name, string? Overview, string? AirDate, int? Runtime, string? StillPath);
+
+internal sealed record TmdbSeason(long Id, int SeasonNumber, string? Name, string? Overview, string? AirDate, string? PosterPath, IReadOnlyList<TmdbEpisode>? Episodes);
 
 internal sealed record TmdbFindResult(IReadOnlyList<TmdbSearchItem>? MovieResults, IReadOnlyList<TmdbSearchItem>? TvResults);
 

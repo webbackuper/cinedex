@@ -1,0 +1,51 @@
+name: Paquets
+
+# Paquets autonomes par plate-forme, avec MediaInfo CLI embarqué (version et empreinte épinglées dans build/mediainfo.json).
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, rid: win-x64 }
+          - { os: windows-latest, rid: win-arm64 }
+          - { os: ubuntu-latest, rid: linux-x64 }
+          - { os: ubuntu-latest, rid: linux-arm64 }
+          - { os: macos-latest, rid: osx-arm64 }
+          - { os: macos-latest, rid: osx-x64 }
+    runs-on: ${{ matrix.os }}
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      DOTNET_NOLOGO: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Tests
+        if: matrix.rid == 'win-x64' || matrix.rid == 'linux-x64' || matrix.rid == 'osx-arm64'
+        run: dotnet test -c Release --project tests/Bobine.Tests
+      - name: Paquet ${{ matrix.rid }}
+        shell: pwsh
+        run: ./build/package.ps1 -Rid ${{ matrix.rid }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Bobine-${{ matrix.rid }}
+          path: |
+            publish/Bobine-*-${{ matrix.rid }}.zip
+            publish/Bobine-*-${{ matrix.rid }}.zip.sha256
+      - name: Publication sur la release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            publish/Bobine-*-${{ matrix.rid }}.zip
+            publish/Bobine-*-${{ matrix.rid }}.zip.sha256

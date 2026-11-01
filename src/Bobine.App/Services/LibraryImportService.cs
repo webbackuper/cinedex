@@ -21,7 +21,8 @@ public sealed record LibraryImportOptions
     public bool WriteNfo { get; init; }
 }
 
-public sealed record LibraryImportResult(int Added, int Linked, int WithoutMetadata, int SkippedEpisodes, int Failed, IReadOnlyList<string> Messages);
+/// <summary>Bilan d'un import ; Episodes = épisodes rattachés (ou laissés de côté si les séries ne sont pas gérées).</summary>
+public sealed record LibraryImportResult(int Added, int Linked, int WithoutMetadata, int Episodes, int Failed, IReadOnlyList<string> Messages);
 
 /// <summary>Ajoute au catalogue les fichiers trouvés par le scan : identification TMDb, fichier, jaquette locale, propriétés techniques.</summary>
 public sealed class LibraryImportService(
@@ -30,9 +31,36 @@ public sealed class LibraryImportService(
     ImageStore images,
     MetadataService? metadataService,
     Func<MediaProbe> probeFactory,
-    ILogger<LibraryImportService> logger)
+    ILogger<LibraryImportService> logger,
+    SeriesRepository? series = null)
 {
     public void RememberFolder(string folder) => files.AddScanRoot(folder, "movies");
+
+    /// <summary>Relit avec MediaInfo les propriétés techniques des fichiers des titres donnés ; renvoie le nombre de fichiers lus.</summary>
+    public async Task<(int Read, string Tool)> RefreshTechnicalAsync(IReadOnlyList<long> titleIds, IProgress<string>? progress, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(titleIds);
+        var probe = probeFactory();
+        if (!probe.IsAvailable)
+        {
+            return (0, probe.ToolName);
+        }
+
+        var read = 0;
+        var targets = titleIds.SelectMany(files.FilesOf).Where(f => File.Exists(f.FullPath)).ToList();
+        foreach (var file in targets)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            progress?.Report($"{probe.ToolName} {read + 1}/{targets.Count} : {Path.GetFileName(file.FullPath)}");
+            if (await probe.ProbeAsync(file.FullPath, cancellationToken).ConfigureAwait(false) is { } props)
+            {
+                files.SaveProperties(file.Id, ToProperties(props));
+                read++;
+            }
+        }
+
+        return (read, probe.ToolName);
+    }
 
     /// <summary>
     /// Vérifie tous les fichiers ; ceux qui manquent sont recherchés (même nom, même taille) dans les dossiers surveillés.
@@ -76,7 +104,7 @@ public sealed class LibraryImportService(
         var probe = options.ReadTechnicalProperties ? probeFactory() : null;
         if (probe is { IsAvailable: false })
         {
-            messages.Add("ffprobe introuvable : propriétés techniques non lues (installez FFmpeg ou indiquez son chemin dans les réglages).");
+            messages.Add("MediaInfo introuvable (ni ffprobe) : propriétés techniques non lues. Indiquez le chemin de MediaInfo dans les réglages.");
             probe = null;
         }
 
@@ -87,7 +115,6 @@ public sealed class LibraryImportService(
             progress?.Report($"{i + 1}/{candidates.Count} : {candidate.BestTitle}");
             if (candidate.Parsed.IsEpisode)
             {
-                episodes++;
                 continue;
             }
 
@@ -145,7 +172,55 @@ public sealed class LibraryImportService(
             }
         }
 
+        var episodeCandidates = candidates.Where(c => c.Parsed.IsEpisode).ToList();
+        if (series is null)
+        {
+            episodes = episodeCandidates.Count;
+        }
+        else
+        {
+            // Les épisodes sont regroupés par série (titre déduit du nom de fichier), puis rattachés un par un.
+            foreach (var group in episodeCandidates.GroupBy(c => c.Parsed.Title, StringComparer.OrdinalIgnoreCase))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                progress?.Report($"Série : {group.Key}");
+                try
+                {
+                    var titleId = await FindOrCreateSeriesAsync(group.Key, useTmdb, cancellationToken).ConfigureAwait(false);
+                    foreach (var episode in group)
+                    {
+                        var episodeId = series.FindEpisode(titleId, episode.Parsed.Season!.Value, episode.Parsed.Episode!.Value)
+                            ?? series.EnsureEpisode(titleId, episode.Parsed.Season.Value, episode.Parsed.Episode.Value);
+                        files.AttachEpisode(episodeId, episode.FullPath, episode.SizeBytes, episode.Parsed.Part ?? 1);
+                        episodes++;
+                    }
+                }
+                catch (Exception ex) when (ex is IOException or TmdbUnavailableException or TmdbAuthenticationException or HttpRequestException or KeyNotFoundException)
+                {
+                    failed += group.Count();
+                    messages.Add($"{group.Key} : {ex.Message}");
+                }
+            }
+        }
+
         return new LibraryImportResult(added, linked, manual, episodes, failed, messages);
+    }
+
+    private async Task<long> FindOrCreateSeriesAsync(string name, bool useTmdb, CancellationToken cancellationToken)
+    {
+        if (useTmdb)
+        {
+            var match = (await metadataService!.SearchAsync(name, cancellationToken).ConfigureAwait(false))
+                .FirstOrDefault(r => r.Kind == TitleKind.Series);
+            if (match is not null)
+            {
+                return (await metadataService.ImportAsync(match, ImportOptions.Default, cancellationToken).ConfigureAwait(false)).TitleId;
+            }
+        }
+
+        var existing = titles.Query(new TitleQuery(Filter: QuickFilter.Series))
+            .FirstOrDefault(t => string.Equals(t.Title, name, StringComparison.OrdinalIgnoreCase));
+        return existing?.Id ?? titles.Add(new NewTitle(TitleKind.Series, name));
     }
 
     /// <summary>

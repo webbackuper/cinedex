@@ -32,14 +32,22 @@ public sealed record MediaProperties
 }
 
 /// <summary>
-/// Lit les propriétés techniques d'un fichier avec ffprobe (FFmpeg). Exécuté sans shell, chemin passé en
-/// argument unique, délai et taille de sortie bornés. ffprobe est cherché dans le réglage puis dans le PATH.
+/// Lit les propriétés techniques d'un fichier avec MediaInfo (outil en ligne de commande, préféré) ou, à défaut,
+/// ffprobe (FFmpeg). Exécuté sans shell, chemin absolu passé en argument unique, délai et taille de sortie bornés.
+/// Chaque outil est cherché dans le réglage, puis dans le dossier « tools » à côté de Bobine, puis dans le PATH.
 /// </summary>
-public sealed class MediaProbe(string? ffprobePath = null)
+public sealed class MediaProbe(string? ffprobePath = null, string? mediaInfoPath = null)
 {
     private const int MaxOutputChars = 4 * 1024 * 1024;
 
-    public string? ExecutablePath { get; } = Resolve(ffprobePath);
+    public string? MediaInfoPath { get; } = Resolve(mediaInfoPath, OperatingSystem.IsWindows() ? "MediaInfo.exe" : "mediainfo", Path.Combine("tools", "MediaInfo"));
+
+    public string? FfprobePath { get; } = Resolve(ffprobePath, OperatingSystem.IsWindows() ? "ffprobe.exe" : "ffprobe", Path.Combine("tools", "ffmpeg"));
+
+    /// <summary>Outil retenu : MediaInfo s'il est présent, sinon ffprobe.</summary>
+    public string? ExecutablePath => MediaInfoPath ?? FfprobePath;
+
+    public string ToolName => MediaInfoPath is not null ? "MediaInfo" : FfprobePath is not null ? "ffprobe" : "aucun";
 
     public bool IsAvailable => ExecutablePath is not null;
 
@@ -50,6 +58,7 @@ public sealed class MediaProbe(string? ffprobePath = null)
             return null;
         }
 
+        var useMediaInfo = MediaInfoPath is not null;
         var info = new ProcessStartInfo(ExecutablePath)
         {
             RedirectStandardOutput = true,
@@ -57,7 +66,13 @@ public sealed class MediaProbe(string? ffprobePath = null)
             UseShellExecute = false,
             CreateNoWindow = true,
         };
-        foreach (var arg in new[] { "-v", "error", "-print_format", "json", "-show_format", "-show_streams", "--", file })
+
+        // Chemin absolu : il ne peut pas commencer par « - » et être pris pour une option.
+        var full = Path.GetFullPath(file);
+        string[] args = useMediaInfo
+            ? ["--Output=JSON", full]
+            : ["-v", "error", "-print_format", "json", "-show_format", "-show_streams", "--", full];
+        foreach (var arg in args)
         {
             info.ArgumentList.Add(arg);
         }
@@ -76,7 +91,7 @@ public sealed class MediaProbe(string? ffprobePath = null)
             _ = process.StandardError.ReadToEndAsync(timeout.Token);
             await process.WaitForExitAsync(timeout.Token).ConfigureAwait(false);
             var output = await outputTask.ConfigureAwait(false);
-            return process.ExitCode == 0 ? Parse(output) : null;
+            return process.ExitCode != 0 ? null : useMediaInfo ? ParseMediaInfo(output) : Parse(output);
         }
         catch (OperationCanceledException)
         {
@@ -161,7 +176,7 @@ public sealed class MediaProbe(string? ffprobePath = null)
         {
             if (builder.Length + read > MaxOutputChars)
             {
-                throw new InvalidDataException("Sortie de ffprobe trop volumineuse.");
+                throw new InvalidDataException("Sortie de l'outil d'analyse trop volumineuse.");
             }
 
             builder.Append(buffer, 0, read);
@@ -170,17 +185,93 @@ public sealed class MediaProbe(string? ffprobePath = null)
         return builder.ToString();
     }
 
-    private static string? Resolve(string? configured)
+    /// <summary>
+    /// Sortie JSON de MediaInfo : media.track[] avec @type General / Video / Audio / Text.
+    /// Les valeurs sont des chaînes ; les nombres sont lus en culture invariante.
+    /// </summary>
+    internal static MediaProperties? ParseMediaInfo(string json)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            if (!doc.RootElement.TryGetProperty("media", out var media) || media.ValueKind != JsonValueKind.Object ||
+                !media.TryGetProperty("track", out var trackList) || trackList.ValueKind != JsonValueKind.Array)
+            {
+                return null;
+            }
+
+            var tracks = trackList.EnumerateArray().ToList();
+            JsonElement First(string type) => tracks.FirstOrDefault(t => Str(t, "@type") == type);
+            var general = First("General");
+            var video = First("Video");
+            int? Number(JsonElement e, string name) =>
+                double.TryParse(Str(e, name), NumberStyles.Float, CultureInfo.InvariantCulture, out var v) ? (int)Math.Round(v) : null;
+            double? Decimal(JsonElement e, string name) =>
+                double.TryParse(Str(e, name), NumberStyles.Float, CultureInfo.InvariantCulture, out var v) ? Math.Round(v, 3) : null;
+
+            var hdr = new List<string>();
+            var hdrText = string.Join(' ', Str(video, "HDR_Format") ?? string.Empty, Str(video, "HDR_Format_Compatibility") ?? string.Empty, Str(video, "transfer_characteristics") ?? string.Empty);
+            if (hdrText.Contains("Dolby Vision", StringComparison.OrdinalIgnoreCase))
+            {
+                hdr.Add("Dolby Vision");
+            }
+
+            if (hdrText.Contains("HDR10+", StringComparison.OrdinalIgnoreCase) || hdrText.Contains("SMPTE ST 2094", StringComparison.OrdinalIgnoreCase))
+            {
+                hdr.Add("HDR10+");
+            }
+
+            if (hdrText.Contains("HDR10", StringComparison.OrdinalIgnoreCase) || hdrText.Contains("PQ", StringComparison.Ordinal) || hdrText.Contains("SMPTE ST 2086", StringComparison.OrdinalIgnoreCase))
+            {
+                hdr.Insert(0, "HDR10");
+            }
+
+            if (hdrText.Contains("HLG", StringComparison.OrdinalIgnoreCase))
+            {
+                hdr.Add("HLG");
+            }
+
+            var ratio = Decimal(video, "DisplayAspectRatio");
+            return new MediaProperties
+            {
+                Container = Str(general, "Format"),
+                VideoCodec = Str(video, "Format"),
+                Width = Number(video, "Width"),
+                Height = Number(video, "Height"),
+                FrameRate = Decimal(video, "FrameRate"),
+                BitDepth = Number(video, "BitDepth"),
+                AspectRatio = ratio is null ? null : ratio.Value.ToString("0.00", CultureInfo.InvariantCulture) + ":1",
+                HdrFormats = hdr.Distinct().ToList(),
+                DurationSeconds = Number(general, "Duration") ?? Number(video, "Duration"),
+                Audio = tracks.Where(t => Str(t, "@type") == "Audio")
+                    .Select(t => new AudioTrackInfo(Str(t, "Format_Commercial_IfAny") ?? Str(t, "Format"), Number(t, "Channels"), Str(t, "Language")))
+                    .ToList(),
+                SubtitleLanguages = tracks.Where(t => Str(t, "@type") == "Text")
+                    .Select(t => Str(t, "Language")).OfType<string>().Distinct().ToList(),
+            };
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    private static string? Resolve(string? configured, string executable, string bundledFolder)
     {
         if (!string.IsNullOrWhiteSpace(configured))
         {
             return File.Exists(configured) ? Path.GetFullPath(configured) : null;
         }
 
-        var name = OperatingSystem.IsWindows() ? "ffprobe.exe" : "ffprobe";
+        var bundled = Path.Combine(AppContext.BaseDirectory, bundledFolder, executable);
+        if (File.Exists(bundled))
+        {
+            return bundled;
+        }
+
         return (Environment.GetEnvironmentVariable("PATH") ?? string.Empty)
             .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
-            .Select(dir => Path.Combine(dir.Trim('"'), name))
+            .Select(dir => Path.Combine(dir.Trim('"'), executable))
             .FirstOrDefault(File.Exists);
     }
 

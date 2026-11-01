@@ -23,6 +23,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         Language = settings.Get(LanguageKey) ?? "fr-FR";
         Country = settings.Get(CountryKey) ?? "FR";
         FfprobePath = settings.Get(Services.MediaContext.FfprobeKey) ?? string.Empty;
+        MediaInfoPath = settings.Get(Services.MediaContext.MediaInfoKey) ?? string.Empty;
         PlayerPath = settings.Get(Services.MediaContext.PlayerKey) ?? string.Empty;
         PlayerArgs = settings.Get(Services.MediaContext.PlayerArgsKey) ?? string.Empty;
         MarkSeenOnPlay = settings.Get(Services.MediaContext.MarkSeenOnPlayKey) != "false";
@@ -31,6 +32,9 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     public partial string FfprobePath { get; set; }
+
+    [ObservableProperty]
+    public partial string MediaInfoPath { get; set; }
 
     [ObservableProperty]
     public partial string PlayerPath { get; set; }
@@ -79,7 +83,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             return false;
         }
 
-        foreach (var (path, label) in new[] { (FfprobePath, "ffprobe"), (PlayerPath, "lecteur externe") })
+        foreach (var (path, label) in new[] { (MediaInfoPath, "MediaInfo"), (FfprobePath, "ffprobe"), (PlayerPath, "lecteur externe") })
         {
             if (path.Trim().Length > 0 && !File.Exists(path.Trim()))
             {
@@ -98,6 +102,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         _settings.Set(LanguageKey, Language);
         _settings.Set(CountryKey, Country);
         _settings.Set(Services.MediaContext.FfprobeKey, NullIfBlank(FfprobePath));
+        _settings.Set(Services.MediaContext.MediaInfoKey, NullIfBlank(MediaInfoPath));
         _settings.Set(Services.MediaContext.PlayerKey, NullIfBlank(PlayerPath));
         _settings.Set(Services.MediaContext.PlayerArgsKey, NullIfBlank(PlayerArgs));
         _settings.Set(Services.MediaContext.MarkSeenOnPlayKey, MarkSeenOnPlay ? "true" : "false");

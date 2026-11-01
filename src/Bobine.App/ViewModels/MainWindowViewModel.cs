@@ -127,6 +127,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(PlayCommand), nameof(OpenFolderCommand))]
     public partial IReadOnlyList<MediaFileEntry> DetailFiles { get; set; } = [];
 
+    [ObservableProperty]
+    public partial string? TechnicalSummary { get; set; }
+
     public string DetailFilesText => string.Join('\n', DetailFiles.Select(f => (f.IsMissing ? "introuvable : " : string.Empty) + f.FullPath));
 
     partial void OnDetailFilesChanged(IReadOnlyList<MediaFileEntry> value) => OnPropertyChanged(nameof(DetailFilesText));
@@ -174,6 +177,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         Detail = SelectedTitles.Count == 1 ? _titles.Get(SelectedTitles[0].Id) : null;
         PosterPath = Detail is null ? null : _images?.PathFor(Detail.Id, "poster");
         DetailFiles = Detail is null || _media is null ? [] : _media.Files.FilesOf(Detail.Id);
+        TechnicalSummary = Detail is null ? null : _media?.Files.TechnicalSummary(Detail.Id);
         LinkToTmdbCommand.NotifyCanExecuteChanged();
         BorrowerText = Detail?.CurrentLoan is null ? _titles.LastBorrower() ?? string.Empty : string.Empty;
         EditCommand.NotifyCanExecuteChanged();
@@ -362,20 +366,33 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private bool CanLink() => CanUseMetadata() && Detail is not null;
 
+    /// <summary>
+    /// « Mettre à jour via TMDb » : la sélection, ou sinon tous les titres affichés. Met à jour les fiches
+    /// existantes (identification par titre et année pour les titres scannés) ; ne crée jamais d'entrée.
+    /// </summary>
     [RelayCommand(CanExecute = nameof(CanUseMetadata))]
     private async Task UpdateAllFromTmdbAsync()
     {
-        if (!await _dialogs.ConfirmAsync("Mise à jour par lot", "Mettre à jour depuis TMDb tous les titres déjà liés ? Les titres verrouillés sont ignorés."))
+        var ids = SelectedTitles.Count > 0 ? SelectedIds : Titles.Select(t => t.Id).ToList();
+        var scope = SelectedTitles.Count > 0 ? $"les {ids.Count} titre(s) sélectionné(s)" : $"les {ids.Count} titre(s) affiché(s)";
+        if (ids.Count == 0 || !await _dialogs.ConfirmAsync(
+                "Mettre à jour via TMDb",
+                $"Mettre à jour {scope} depuis TMDb ?\nLes fiches existantes sont complétées sur place, aucune entrée n'est créée. Les titres verrouillés sont ignorés."))
         {
             return;
         }
 
         await RunMetadataAsync(async () =>
         {
+            var targets = ids.Select(_titles.Get).OfType<TitleDetail>().ToList();
             var progress = new Progress<string>(message => Status = message);
-            var result = await _metadata!.UpdateAllAsync(ImportOptions.Default with { DownloadBackdrop = false }, progress, CancellationToken.None);
-            Refresh(selectIds: SelectedIds);
-            Status = $"{result.Updated} mis à jour, {result.Skipped} ignoré(s), {result.Failed} échec(s)";
+            var result = await _metadata!.UpdateTitlesAsync(targets, ImportOptions.Default, progress, CancellationToken.None);
+            Refresh(selectIds: ids);
+            Status = $"{result.Updated} mis à jour, {result.NotFound} non trouvé(s), {result.Duplicates} doublon(s) évité(s), {result.Skipped} ignoré(s), {result.Failed} échec(s)";
+            if (result.Messages is { Count: > 0 } messages)
+            {
+                await _dialogs.InformAsync("Mise à jour via TMDb", Status + "\n\n" + string.Join('\n', messages.Take(30)));
+            }
         });
     }
 
@@ -469,6 +486,31 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     private bool HasFiles() => DetailFiles.Count > 0;
+
+    /// <summary>Relit les infos techniques (MediaInfo) des fichiers de la sélection, ou de tous les titres affichés.</summary>
+    [RelayCommand]
+    private async Task RefreshTechnicalAsync()
+    {
+        if (_media is null)
+        {
+            return;
+        }
+
+        var ids = SelectedTitles.Count > 0 ? SelectedIds : Titles.Select(t => t.Id).ToList();
+        IsBusy = true;
+        try
+        {
+            var (read, tool) = await _media.Import.RefreshTechnicalAsync(ids, new Progress<string>(m => Status = m), CancellationToken.None);
+            Refresh(selectIds: SelectedIds);
+            Status = tool == "aucun"
+                ? "MediaInfo introuvable : indiquez son chemin dans les réglages."
+                : $"{read} fichier(s) analysé(s) avec {tool}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
 
     [RelayCommand]
     private async Task CheckFilesAsync()

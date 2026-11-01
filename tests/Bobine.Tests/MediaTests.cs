@@ -109,6 +109,51 @@ public sealed class MediaTests
     }
 
     [Fact]
+    public void Mediainfo_output_is_parsed()
+    {
+        var props = MediaProbe.ParseMediaInfo("""
+            {"creatingLibrary":{"name":"MediaInfoLib","version":"26.10"},
+             "media":{"@ref":"C:\\Films\\Heat.mkv","track":[
+               {"@type":"General","Format":"Matroska","Duration":"10234.560"},
+               {"@type":"Video","Format":"HEVC","Width":"3840","Height":"2160","FrameRate":"23.976","BitDepth":"10",
+                "DisplayAspectRatio":"2.400","HDR_Format":"Dolby Vision / SMPTE ST 2086","HDR_Format_Compatibility":"HDR10"},
+               {"@type":"Audio","Format":"MLP FBA","Format_Commercial_IfAny":"Dolby TrueHD with Dolby Atmos","Channels":"8","Language":"en"},
+               {"@type":"Audio","Format":"AC-3","Channels":"6","Language":"fr"},
+               {"@type":"Text","Language":"fr"},
+               {"@type":"Text","Language":"fr"}]}}
+            """)!;
+
+        Assert.Equal("Matroska", props.Container);
+        Assert.Equal("HEVC", props.VideoCodec);
+        Assert.Equal((3840, 2160), (props.Width, props.Height));
+        Assert.Equal(23.976, props.FrameRate);
+        Assert.Equal(10, props.BitDepth);
+        Assert.Equal("2.40:1", props.AspectRatio);
+        Assert.Equal(["HDR10", "Dolby Vision"], props.HdrFormats);
+        Assert.Equal(10235, props.DurationSeconds);
+        Assert.Equal("Dolby TrueHD with Dolby Atmos", props.Audio[0].Codec);
+        Assert.Equal(["fr"], props.SubtitleLanguages);
+        Assert.Null(MediaProbe.ParseMediaInfo("""{"media":null}"""));
+        Assert.Null(MediaProbe.ParseMediaInfo("pas du json"));
+    }
+
+    [Fact]
+    public async Task Bundled_mediainfo_is_found_and_run_when_present()
+    {
+        var bundled = Path.Combine(Path.GetTempPath(), "mi-test", "tools", "MediaInfo", "MediaInfo.exe");
+        Assert.SkipUnless(OperatingSystem.IsWindows() && File.Exists(bundled), "MediaInfo non installé par build/fetch-mediainfo.ps1 sur ce poste.");
+        using var temp = new TempDirectory();
+        var file = Path.Combine(temp.Path, "vide.mkv");
+        File.WriteAllBytes(file, [0x1A, 0x45, 0xDF, 0xA3, 0x9F, 0x42, 0x86, 0x81, 0x01]);
+
+        var probe = new MediaProbe(mediaInfoPath: bundled);
+        var props = await probe.ProbeAsync(file, TestContext.Current.CancellationToken);
+
+        Assert.Equal("MediaInfo", probe.ToolName);
+        Assert.NotNull(props); // Fichier factice : MediaInfo répond en JSON sans reconnaître de format.
+    }
+
+    [Fact]
     public void Ffprobe_output_is_parsed()
     {
         var props = MediaProbe.Parse("""

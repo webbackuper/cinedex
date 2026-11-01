@@ -33,7 +33,8 @@
       <Button Margin="0,0,8,0" Content="Recherche avancée" Command="{Binding AdvancedSearchCommand}" ToolTip.Tip="Ctrl+Maj+F" />
       <Button Margin="0,0,8,0" Content="Tout afficher" Command="{Binding ClearSearchCommand}" ToolTip.Tip="Efface recherche, filtre et critères (Échap)" />
       <Button Margin="0,0,8,0" Content="Au hasard" Command="{Binding PickRandomCommand}" ToolTip.Tip="Un titre non vu au hasard (Ctrl+R)" />
-      <Button Margin="0,0,8,0" Content="Tout mettre à jour (TMDb)" Command="{Binding UpdateAllFromTmdbCommand}" />
+      <Button Margin="0,0,8,0" Content="Mettre à jour via TMDb" Command="{Binding UpdateAllFromTmdbCommand}" ToolTip.Tip="Sélection, ou tous les titres affichés : complète les fiches existantes sans créer d'entrée" />
+      <Button Margin="0,0,8,0" Content="Relire les infos techniques" Command="{Binding RefreshTechnicalCommand}" ToolTip.Tip="MediaInfo sur la sélection, ou sur tous les titres affichés" />
       <Button Margin="0,0,8,0" Content="Vérifier les fichiers" Command="{Binding CheckFilesCommand}" ToolTip.Tip="Repère les fichiers absents et retrouve ceux qui ont été déplacés" />
       <Button Content="Réglages" Command="{Binding OpenSettingsCommand}" />
     </WrapPanel>
@@ -132,6 +133,12 @@
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
               <TextBlock Text="{Binding Comments}" TextWrapping="Wrap" Opacity="0.8" />
+            </StackPanel>
+
+            <!-- Infos techniques -->
+            <StackPanel Spacing="4" IsVisible="{Binding TechnicalSummary, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+              <TextBlock Text="Vidéo" FontWeight="SemiBold" />
+              <SelectableTextBlock Text="{Binding TechnicalSummary}" TextWrapping="Wrap" FontSize="12" Opacity="0.8" />
             </StackPanel>
 
             <!-- Fichiers -->

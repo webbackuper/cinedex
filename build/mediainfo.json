@@ -1,0 +1,50 @@
+{
+  "version": "26.10",
+  "source": "https://mediaarea.net/download/binary/mediainfo/26.10/",
+  "license": "BSD-2-Clause (MediaArea.net SARL), fichier LICENSE copié avec le binaire",
+  "note": "Empreintes SHA-256 relevées le 2026-11-01 sur les fichiers officiels ; binaire Windows signé MEDIAAREA.NET (Authenticode vérifié).",
+  "packages": {
+    "win-x64": {
+      "file": "MediaInfo_CLI_26.10_Windows_x64.zip",
+      "sha256": "4cc94bd272903914c04f4f9a9f53a6c94b5ea6c6454cf738d29fa182c41e8a29",
+      "kind": "zip",
+      "binary": "MediaInfo.exe",
+      "extra": ["LIBCURL.DLL", "LICENSE"]
+    },
+    "win-arm64": {
+      "file": "MediaInfo_CLI_26.10_Windows_ARM64.zip",
+      "sha256": "0667b568d96f098c3f23ef111dafa7d66f10e078ccb568b589975191131f8a0d",
+      "kind": "zip",
+      "binary": "MediaInfo.exe",
+      "extra": ["LIBCURL.DLL", "LICENSE"]
+    },
+    "linux-x64": {
+      "file": "MediaInfo_CLI_26.10_Lambda_x86_64.zip",
+      "sha256": "3087b8d4906a47d876a66a500b8a6af63de8e9da9992d295a702b4ca79fb3fdd",
+      "kind": "zip",
+      "binary": "bin/mediainfo",
+      "extra": ["LICENSE"]
+    },
+    "linux-arm64": {
+      "file": "MediaInfo_CLI_26.10_Lambda_arm64.zip",
+      "sha256": "8b67e2a2bd22c1fc596f1f774231dd8255f38b79c9fd0a6323d46da1e4c1cb11",
+      "kind": "zip",
+      "binary": "bin/mediainfo",
+      "extra": ["LICENSE"]
+    },
+    "osx-x64": {
+      "file": "MediaInfo_CLI_26.10_Mac.dmg",
+      "sha256": "2345a52f6e5281a15e9ef87acbe5756a9c4727d5629873c013f148a8f82525ab",
+      "kind": "dmg",
+      "binary": "usr/local/bin/mediainfo",
+      "extra": []
+    },
+    "osx-arm64": {
+      "file": "MediaInfo_CLI_26.10_Mac.dmg",
+      "sha256": "2345a52f6e5281a15e9ef87acbe5756a9c4727d5629873c013f148a8f82525ab",
+      "kind": "dmg",
+      "binary": "usr/local/bin/mediainfo",
+      "extra": []
+    }
+  }
+}

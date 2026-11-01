@@ -102,10 +102,21 @@ internal static partial class TmdbMapper
             GenreSourceIds = (tv.Genres ?? []).Select(g => g.Id).ToList(),
             Keywords = (tv.Keywords?.Results ?? []).Select(k => k.Name).ToList(),
             Credits = credits,
+            Seasons = (tv.Seasons ?? [])
+                .Select(s => new SeasonRecord(s.SeasonNumber, Clean(s.Name), Clean(s.Overview), DateOf(s.AirDate), s.EpisodeCount, s.PosterPath))
+                .ToList(),
             PosterPath = tv.PosterPath,
             BackdropPath = tv.BackdropPath,
         };
     }
+
+    public static IReadOnlyList<EpisodeRecord> ToEpisodes(TmdbSeason season) =>
+        (season.Episodes ?? [])
+            .Select(e => new EpisodeRecord(e.EpisodeNumber, Clean(e.Name), Clean(e.Overview), DateOf(e.AirDate), e.Runtime is > 0 ? e.Runtime : null, e.Id))
+            .ToList();
+
+    public static DateOnly? DateOf(string? date) =>
+        DateOnly.TryParseExact(date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var d) ? d : null;
 
     public static int? YearOf(string? date) =>
         date is { Length: >= 4 } && int.TryParse(date.AsSpan(0, 4), NumberStyles.None, CultureInfo.InvariantCulture, out var year) && year > 1800

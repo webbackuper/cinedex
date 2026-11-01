@@ -29,6 +29,10 @@ public sealed record MetadataCredit(
     int Order,
     string? ProfilePath);
 
+public sealed record SeasonRecord(int Number, string? Name, string? Overview, DateOnly? AirDate, int EpisodeCount, string? PosterPath);
+
+public sealed record EpisodeRecord(int Number, string? Name, string? Overview, DateOnly? AirDate, int? RuntimeMinutes, long SourceId);
+
 public sealed record MetadataSaga(long SourceId, string Name, string? PosterPath, string? BackdropPath);
 
 /// <summary>Fiche normalisée, indépendante de la source (aujourd'hui TMDb).</summary>
@@ -79,6 +83,9 @@ public sealed record MetadataRecord
     public IReadOnlyList<MetadataCredit> Credits { get; init; } = [];
 
     public MetadataSaga? Collection { get; init; }
+
+    /// <summary>Saisons d'une série (0 = épisodes spéciaux), sans le détail des épisodes.</summary>
+    public IReadOnlyList<SeasonRecord> Seasons { get; init; } = [];
 
     public string? PosterPath { get; init; }
 

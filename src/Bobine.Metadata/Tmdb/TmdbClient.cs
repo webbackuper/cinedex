@@ -135,6 +135,17 @@ public sealed partial class TmdbClient
         return TmdbMapper.ToRecord(tv, _options);
     }
 
+    /// <summary>Épisodes d'une saison (0 = épisodes spéciaux).</summary>
+    public async Task<IReadOnlyList<EpisodeRecord>> GetSeasonAsync(long tvId, int seasonNumber, CancellationToken cancellationToken = default)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(tvId);
+        ArgumentOutOfRangeException.ThrowIfNegative(seasonNumber);
+        var season = await GetAsync<TmdbSeason>(
+            $"tv/{tvId.ToString(CultureInfo.InvariantCulture)}/season/{seasonNumber.ToString(CultureInfo.InvariantCulture)}?language={Lang}",
+            cancellationToken).ConfigureAwait(false);
+        return TmdbMapper.ToEpisodes(season);
+    }
+
     /// <summary>Télécharge une image TMDb (affiche, fond, photo). Le chemin doit être un nom de fichier TMDb.</summary>
     public async Task<byte[]> DownloadImageAsync(string path, string size = "w500", CancellationToken cancellationToken = default)
     {

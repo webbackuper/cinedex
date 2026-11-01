@@ -98,14 +98,18 @@ public sealed class App : Application
         });
         services.AddSingleton<MetadataService>();
         services.AddSingleton<MediaFileRepository>();
+        services.AddSingleton<SeriesRepository>();
         services.AddSingleton(sp => new LibraryImportService(
             sp.GetRequiredService<TitleRepository>(),
             sp.GetRequiredService<MediaFileRepository>(),
             sp.GetRequiredService<ImageStore>(),
             sp.GetRequiredService<MetadataService>(),
-            // Relu à chaque import : un chemin ffprobe changé dans les réglages s'applique sans redémarrer.
-            () => new Bobine.Media.MediaProbe(sp.GetRequiredService<SettingsStore>().Get(MediaContext.FfprobeKey)),
-            sp.GetRequiredService<ILogger<LibraryImportService>>()));
+            // Relu à chaque import : un chemin MediaInfo ou ffprobe changé dans les réglages s'applique sans redémarrer.
+            () => new Bobine.Media.MediaProbe(
+                sp.GetRequiredService<SettingsStore>().Get(MediaContext.FfprobeKey),
+                sp.GetRequiredService<SettingsStore>().Get(MediaContext.MediaInfoKey)),
+            sp.GetRequiredService<ILogger<LibraryImportService>>(),
+            sp.GetRequiredService<SeriesRepository>()));
         services.AddSingleton(sp => new MediaContext(
             sp.GetRequiredService<MediaFileRepository>(),
             sp.GetRequiredService<LibraryImportService>(),

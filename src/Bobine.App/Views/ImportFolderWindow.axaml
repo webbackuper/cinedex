@@ -15,9 +15,10 @@
       </Grid>
       <WrapPanel>
         <CheckBox Margin="0,0,16,0" Content="Sous-dossiers" IsChecked="{Binding Recursive}" />
-        <CheckBox Margin="0,0,16,0" Content="Identifier avec TMDb" IsChecked="{Binding UseTmdb}" />
+        <CheckBox Margin="0,0,16,0" Content="Identifier avec TMDb dès l'import" IsChecked="{Binding UseTmdb}"
+                  ToolTip.Tip="Décoché : les fichiers sont ajoutés tels quels ; lancez ensuite « Mettre à jour via TMDb »." />
         <CheckBox Margin="0,0,16,0" Content="Premier résultat si plusieurs" IsChecked="{Binding UseFirstMatch}" />
-        <CheckBox Margin="0,0,16,0" Content="Propriétés techniques (ffprobe)" IsChecked="{Binding ReadProperties}" />
+        <CheckBox Margin="0,0,16,0" Content="Infos techniques (MediaInfo)" IsChecked="{Binding ReadProperties}" />
         <CheckBox Margin="0,0,16,0" Content="Créer les .nfo manquants" IsChecked="{Binding WriteNfo}" />
         <CheckBox Content="Surveiller ce dossier" IsChecked="{Binding RememberFolder}" />
       </WrapPanel>

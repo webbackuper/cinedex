@@ -11,8 +11,30 @@ public sealed class MetadataService(
     TmdbClient tmdb,
     MetadataRepository metadata,
     ImageStore images,
-    ILogger<MetadataService> logger)
+    ILogger<MetadataService> logger,
+    SeriesRepository? series = null)
 {
+    /// <summary>
+    /// Récupère saisons et épisodes d'une série liée à TMDb et les fusionne (saisons verrouillées épargnées).
+    /// Renvoie le nombre de nouveaux épisodes.
+    /// </summary>
+    public async Task<int> SyncEpisodesAsync(long titleId, long sourceId, MetadataRecord? record = null, CancellationToken cancellationToken = default)
+    {
+        if (series is null)
+        {
+            return 0;
+        }
+
+        record ??= await tmdb.GetDetailsAsync(TitleKind.Series, sourceId, cancellationToken).ConfigureAwait(false);
+        var episodes = new Dictionary<int, IReadOnlyList<EpisodeRecord>>();
+        foreach (var season in record.Seasons)
+        {
+            episodes[season.Number] = await tmdb.GetSeasonAsync(sourceId, season.Number, cancellationToken).ConfigureAwait(false);
+        }
+
+        return series.Merge(titleId, record.Seasons, episodes);
+    }
+
     public Task<IReadOnlyList<MetadataSearchResult>> SearchAsync(string text, CancellationToken cancellationToken = default)
     {
         var (title, year) = TitleText.SplitYear(text);
@@ -31,6 +53,11 @@ public sealed class MetadataService(
         var record = await tmdb.GetDetailsAsync(result.Kind, result.SourceId, cancellationToken).ConfigureAwait(false);
         var id = metadata.Create(record, options);
         await DownloadImagesAsync(id, record, options, cancellationToken).ConfigureAwait(false);
+        if (record.Kind == TitleKind.Series)
+        {
+            await SyncEpisodesAsync(id, record.SourceId, record, cancellationToken).ConfigureAwait(false);
+        }
+
         return (id, true);
     }
 
@@ -44,19 +71,31 @@ public sealed class MetadataService(
         }
 
         await DownloadImagesAsync(titleId, record, options, cancellationToken).ConfigureAwait(false);
+        if (record.Kind == TitleKind.Series)
+        {
+            await SyncEpisodesAsync(titleId, record.SourceId, record, cancellationToken).ConfigureAwait(false);
+        }
+
         return true;
     }
 
-    /// <summary>Met à jour tous les titres déjà liés à TMDb, en sautant les verrouillés.</summary>
-    public async Task<BatchResult> UpdateAllAsync(ImportOptions options, IProgress<string>? progress, CancellationToken cancellationToken)
+    /// <summary>
+    /// « Mettre à jour via TMDb » : enrichit les titres existants, sans jamais en créer.
+    /// Un titre déjà lié est rafraîchi ; un titre non lié est identifié par son titre et son année (à un an près),
+    /// puis mis à jour sur place. Les titres verrouillés sont ignorés ; un titre dont la fiche TMDb appartient
+    /// déjà à une autre entrée est signalé comme doublon et laissé intact.
+    /// </summary>
+    public async Task<BatchResult> UpdateTitlesAsync(IReadOnlyList<TitleDetail> targets, ImportOptions options, IProgress<string>? progress, CancellationToken cancellationToken)
     {
-        var linked = metadata.LinkedTitles();
-        int updated = 0, skipped = 0, failed = 0, index = 0;
-        foreach (var (titleId, kind, sourceId, locked) in linked)
+        ArgumentNullException.ThrowIfNull(targets);
+        int updated = 0, skipped = 0, failed = 0, notFound = 0, duplicates = 0;
+        var messages = new List<string>();
+        for (var i = 0; i < targets.Count; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            index++;
-            if (locked)
+            var title = targets[i];
+            progress?.Report($"TMDb {i + 1}/{targets.Count} : {title.Title}");
+            if (title.IsLocked)
             {
                 skipped++;
                 continue;
@@ -64,8 +103,19 @@ public sealed class MetadataService(
 
             try
             {
-                progress?.Report($"Mise à jour {index}/{linked.Count}");
-                if (await UpdateAsync(titleId, kind, sourceId, options, cancellationToken).ConfigureAwait(false))
+                var (kind, sourceId) = title.TmdbId is { } known
+                    ? (title.Kind, known)
+                    : await IdentifyAsync(title, cancellationToken).ConfigureAwait(false) is { } match
+                        ? (match.Kind, match.SourceId)
+                        : (title.Kind, 0L);
+                if (sourceId == 0)
+                {
+                    notFound++;
+                    messages.Add($"Non trouvé sur TMDb : {title.Title}{(title.Year is { } y ? $" ({y})" : string.Empty)}");
+                    continue;
+                }
+
+                if (await UpdateAsync(title.Id, kind, sourceId, options, cancellationToken).ConfigureAwait(false))
                 {
                     updated++;
                 }
@@ -74,14 +124,42 @@ public sealed class MetadataService(
                     skipped++;
                 }
             }
+            catch (DuplicateTitleException)
+            {
+                duplicates++;
+                messages.Add($"Déjà au catalogue sous une autre entrée : {title.Title}");
+            }
             catch (Exception ex) when (ex is TmdbUnavailableException or KeyNotFoundException or HttpRequestException)
             {
                 failed++;
-                logger.LogWarning(ex, "Échec de mise à jour du titre {TitleId}", titleId);
+                logger.LogWarning(ex, "Échec de mise à jour du titre {TitleId}", title.Id);
             }
         }
 
-        return new BatchResult(updated, skipped, failed);
+        return new BatchResult(updated, skipped, failed, notFound, duplicates, messages);
+    }
+
+    /// <summary>Recherche la fiche TMDb d'un titre saisi ou scanné : même type, année à un an près si connue, sinon premier résultat.</summary>
+    internal async Task<MetadataSearchResult?> IdentifyAsync(TitleDetail title, CancellationToken cancellationToken)
+    {
+        if (title.ImdbId is { } imdb)
+        {
+            var byImdb = await tmdb.SearchAsync(imdb, null, cancellationToken).ConfigureAwait(false);
+            if (byImdb.Count > 0)
+            {
+                return byImdb[0];
+            }
+        }
+
+        var results = (await tmdb.SearchAsync(title.Title, title.Year, cancellationToken).ConfigureAwait(false))
+            .Where(r => r.Kind == title.Kind)
+            .ToList();
+        if (title.Year is { } year)
+        {
+            return results.FirstOrDefault(r => r.Year is { } ry && Math.Abs(ry - year) <= 1);
+        }
+
+        return results.FirstOrDefault();
     }
 
     private async Task DownloadImagesAsync(long titleId, MetadataRecord record, ImportOptions options, CancellationToken cancellationToken)
@@ -111,4 +189,4 @@ public sealed class MetadataService(
     }
 }
 
-public sealed record BatchResult(int Updated, int Skipped, int Failed);
+public sealed record BatchResult(int Updated, int Skipped, int Failed, int NotFound = 0, int Duplicates = 0, IReadOnlyList<string>? Messages = null);

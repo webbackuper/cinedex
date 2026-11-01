@@ -6,6 +6,7 @@ namespace Bobine.App.Services;
 public sealed record MediaContext(MediaFileRepository Files, LibraryImportService Import, SettingsStore Settings)
 {
     public const string FfprobeKey = "media.ffprobe";
+    public const string MediaInfoKey = "media.mediainfo";
     public const string PlayerKey = "media.player";
     public const string PlayerArgsKey = "media.playerArgs";
     public const string MarkSeenOnPlayKey = "media.markSeenOnPlay";

@@ -1,0 +1,189 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Cinedex.App.ViewModels"
+        x:Class="Cinedex.App.Views.SettingsWindow"
+        x:DataType="vm:SettingsViewModel"
+        Title="Réglages"
+        Width="820" Height="680" MinWidth="620" MinHeight="460"
+        WindowStartupLocation="CenterOwner">
+  <Window.Styles>
+    <Style Selector="TextBlock.h">
+      <Setter Property="FontSize" Value="15" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Margin" Value="0,10,0,0" />
+    </Style>
+    <Style Selector="TextBlock.hint">
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="Opacity" Value="0.65" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+  </Window.Styles>
+
+  <DockPanel Margin="16">
+    <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,12,0,0">
+      <TextBlock Text="{Binding Error}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" TextWrapping="Wrap"
+                 IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="hint" VerticalAlignment="Center" Margin="0,0,16,0"
+                   Text="Les réglages d'import, d'affichage et de métadonnées sont propres au catalogue ouvert ; l'apparence vaut pour tous." />
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+          <Button Classes="tool" Content="Annuler" IsCancel="True" Click="OnCancel" />
+          <Button Classes="accent" Content="Enregistrer" IsDefault="True" Click="OnSave" />
+        </StackPanel>
+      </Grid>
+    </StackPanel>
+
+    <TabControl TabStripPlacement="Left">
+      <!-- Général -->
+      <TabItem Header="Général">
+        <ScrollViewer>
+          <StackPanel Spacing="10" Margin="12,0,0,0">
+            <TextBlock Classes="h" Text="Apparence" Margin="0" />
+            <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding CanChooseTheme}">
+              <TextBlock Text="Thème" VerticalAlignment="Center" />
+              <ComboBox ItemsSource="{Binding ThemeChoices}" SelectedItem="{Binding SelectedTheme}" MinWidth="200" />
+            </StackPanel>
+            <TextBlock Classes="h" Text="Contenu" />
+            <CheckBox Content="Masquer les titres marqués « contenu pour adultes » dans la liste" IsChecked="{Binding HideAdult}" />
+            <TextBlock Classes="h" Text="Données" />
+            <TextBlock Text="Catalogues, images, sauvegardes et journaux sont rangés dans :" />
+            <Grid ColumnDefinitions="*,Auto">
+              <SelectableTextBlock Text="{Binding DataLocation}" VerticalAlignment="Center" TextWrapping="Wrap" FontFamily="Consolas,Menlo,monospace" />
+              <Button Grid.Column="1" Classes="tool" Content="Ouvrir le dossier" Click="OnOpenData" Margin="8,0,0,0" />
+            </Grid>
+            <TextBlock Classes="hint" Text="Une sauvegarde de la base est faite automatiquement avant chaque mise à jour de son format. Les clés d'API ne sont jamais écrites dans ce dossier : elles sont dans le coffre du système." />
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- Bandeau gauche -->
+      <TabItem Header="Bandeau gauche">
+        <ScrollViewer>
+          <StackPanel Spacing="8" Margin="12,0,0,0">
+            <TextBlock Classes="h" Text="Vues affichées" Margin="0" />
+            <TextBlock Classes="hint" Text="« Tous les titres » est toujours affiché. Une vue masquée reste accessible par la recherche multicritère." />
+            <ItemsControl ItemsSource="{Binding MainFilterToggles}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:FilterToggle">
+                  <CheckBox Width="230" Content="{Binding Label}" IsChecked="{Binding IsShown}" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Classes="h" Text="Sous-menu Définition" />
+            <TextBlock Classes="hint" Text="Si toutes ces vues sont masquées, le sous-menu disparaît." />
+            <ItemsControl ItemsSource="{Binding DefinitionFilterToggles}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:FilterToggle">
+                  <CheckBox Width="230" Content="{Binding Label}" IsChecked="{Binding IsShown}" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Classes="h" Text="Liens" />
+            <CheckBox Content="Recherche multicritère" IsChecked="{Binding ShowRuleSearch}" />
+            <CheckBox Content="Acteurs" IsChecked="{Binding ShowPeople}" />
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- Import et scan -->
+      <TabItem Header="Import et scan">
+        <ScrollViewer>
+          <StackPanel Spacing="8" Margin="12,0,0,0">
+            <TextBlock Classes="h" Text="Fichiers retenus" Margin="0" />
+            <TextBlock Text="Extensions des fichiers vidéo (séparées par des espaces)" />
+            <TextBox Text="{Binding ExtensionsText}" TextWrapping="Wrap" FontFamily="Consolas,Menlo,monospace" />
+            <Button Classes="tool" Content="Rétablir les extensions par défaut" Click="OnResetExtensions" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="Taille minimale d'un fichier trouvé dans un dossier" VerticalAlignment="Center" />
+              <NumericUpDown Value="{Binding MinimumMegabytes}" Minimum="0" Maximum="100000" Increment="10" Width="130" FormatString="0" />
+              <TextBlock Text="Mo" VerticalAlignment="Center" />
+            </StackPanel>
+            <TextBlock Classes="hint" Text="Écarte les extraits et bandes-annonces. Un fichier choisi un par un est toujours proposé." />
+            <TextBlock Text="Fichiers ignorés s'ils contiennent l'un de ces mots (un par ligne)" Margin="0,6,0,0" />
+            <TextBox Text="{Binding IgnoreKeywordsText}" AcceptsReturn="True" Height="90" FontFamily="Consolas,Menlo,monospace" />
+            <CheckBox Content="Parcourir aussi les sous-dossiers" IsChecked="{Binding Recursive}" />
+
+            <TextBlock Classes="h" Text="Lecture du nom de fichier" />
+            <CheckBox Content="Ignorer le contenu entre ( ) et [ ] (l'année y est tout de même lue)" IsChecked="{Binding IgnoreBracketed}" />
+            <TextBlock Text="Termes retirés des titres (un par ligne, mots entiers, majuscules indifférentes)" />
+            <TextBox Text="{Binding NoiseWordsText}" AcceptsReturn="True" TextWrapping="NoWrap" Height="160" FontFamily="Consolas,Menlo,monospace" />
+            <Button Classes="tool" Content="Rétablir la liste par défaut" Click="OnResetNoiseWords" />
+
+            <TextBlock Classes="h" Text="Options cochées par défaut à l'import" />
+            <CheckBox Content="Rechercher la fiche sur TMDb pendant l'import" IsChecked="{Binding DefaultUseTmdb}" />
+            <CheckBox Content="Lire les infos techniques avec MediaInfo" IsChecked="{Binding DefaultReadProperties}" />
+            <CheckBox Content="Créer ou compléter le .nfo" IsChecked="{Binding DefaultWriteNfo}" />
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- Métadonnées -->
+      <TabItem Header="Métadonnées">
+        <ScrollViewer>
+          <StackPanel Spacing="10" Margin="12,0,0,0">
+            <TextBlock Classes="h" Text="TMDb" Margin="0" />
+            <TextBlock Text="{Binding TokenState}" TextWrapping="Wrap" Opacity="0.8" />
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBox Text="{Binding NewToken}" PasswordChar="•" PlaceholderText="Jeton d'accès en lecture (eyJ...)" />
+              <Button Grid.Column="1" Classes="tool" Margin="8,0,0,0" Content="Oublier le jeton" Click="OnForget" IsVisible="{Binding HasToken}" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto,120,24,Auto,80">
+              <TextBlock Grid.Column="0" Text="Langue" VerticalAlignment="Center" Margin="0,0,8,0" />
+              <TextBox Grid.Column="1" Text="{Binding Language}" PlaceholderText="fr-FR" />
+              <TextBlock Grid.Column="3" Text="Pays des certifications" VerticalAlignment="Center" Margin="0,0,8,0" />
+              <TextBox Grid.Column="4" Text="{Binding Country}" PlaceholderText="FR" />
+            </Grid>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="Acteurs gardés dans la distribution d'un film" VerticalAlignment="Center" />
+              <NumericUpDown Value="{Binding MaxActorsNumber}" Minimum="1" Maximum="200" Increment="5" Width="130" FormatString="0" />
+            </StackPanel>
+            <TextBlock Classes="hint" Text="Appliqué aux prochains imports et mises à jour TMDb. Pour les films déjà au catalogue, relancez « Mettre à jour via TMDb »." />
+
+            <TextBlock Classes="h" Text="Notes IMDb, Rotten Tomatoes, Metacritic" />
+            <TextBlock Text="{Binding OmdbState}" TextWrapping="Wrap" Opacity="0.8" />
+            <TextBox Text="{Binding NewOmdbKey}" PasswordChar="•" PlaceholderText="Clé API OMDb" />
+            <CheckBox Content="Compléter la note IMDb avec le fichier officiel IMDb (téléchargé au plus une fois par jour, ~9 Mo)" IsChecked="{Binding UseImdbDataset}" />
+            <TextBlock Classes="hint" Margin="0,8,0,0"
+                       Text="Cinedex utilise l'API TMDb. This product uses the TMDB API but is not endorsed or certified by TMDB. IMDb n'est utilisé que pour les identifiants, les liens et son fichier public de notes." />
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- .nfo -->
+      <TabItem Header="Fichiers .nfo">
+        <StackPanel Spacing="10" Margin="12,0,0,0">
+          <TextBlock Classes="h" Text="Fichiers .nfo (format Kodi)" Margin="0" />
+          <CheckBox Content="Lire le .nfo au scan d'un dossier et compléter la fiche" IsChecked="{Binding NfoReadOnScan}" />
+          <CheckBox Content="Créer ou compléter le .nfo après une mise à jour TMDb" IsChecked="{Binding NfoWriteAfterMetadata}" />
+          <CheckBox Content="Remplacer les valeurs déjà présentes dans le .nfo (sinon seuls les champs manquants sont ajoutés)" IsChecked="{Binding NfoOverwrite}" />
+          <CheckBox Content="Garder une copie .nfo.bak du fichier d'origine avant modification" IsChecked="{Binding NfoBackup}" />
+        </StackPanel>
+      </TabItem>
+
+      <!-- Lecture et outils -->
+      <TabItem Header="Lecture et outils">
+        <ScrollViewer>
+          <StackPanel Spacing="10" Margin="12,0,0,0">
+            <TextBlock Classes="h" Text="Infos techniques" Margin="0" />
+            <TextBox Text="{Binding MediaInfoPath}" PlaceholderText="Chemin de MediaInfo CLI (vide : MediaInfo fourni avec Cinedex, puis PATH)" />
+            <TextBox Text="{Binding FfprobePath}" PlaceholderText="Repli : chemin de ffprobe (facultatif)" />
+            <TextBlock Classes="h" Text="Lecture" />
+            <TextBox Text="{Binding PlayerPath}" PlaceholderText="Lecteur externe (vide : lecteur par défaut du système)" />
+            <TextBox Text="{Binding PlayerArgs}" PlaceholderText="Paramètres du lecteur, ex. --fullscreen %FILEPATH%" />
+            <CheckBox Content="Marquer comme vu à la lecture depuis Cinedex" IsChecked="{Binding MarkSeenOnPlay}" />
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+    </TabControl>
+  </DockPanel>
+</Window>

@@ -28,7 +28,7 @@ jobs:
       - name: Compilation
         run: dotnet build --no-restore -c Release
       - name: Tests
-        run: dotnet test --no-build -c Release --project tests/Bobine.Tests
+        run: dotnet test --no-build -c Release --project tests/Cinedex.Tests
       - name: Paquets vulnérables
         shell: bash
         run: |

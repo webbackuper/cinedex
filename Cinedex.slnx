@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Cinedex.App/Cinedex.App.csproj" />
+    <Project Path="src/Cinedex.Core/Cinedex.Core.csproj" />
+    <Project Path="src/Cinedex.Data/Cinedex.Data.csproj" />
+    <Project Path="src/Cinedex.Media/Cinedex.Media.csproj" />
+    <Project Path="src/Cinedex.Metadata/Cinedex.Metadata.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Cinedex.Tests/Cinedex.Tests.csproj" />
+  </Folder>
+</Solution>

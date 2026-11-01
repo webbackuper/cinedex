@@ -1,0 +1,133 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Cinedex.App.Controls"
+             x:Class="Cinedex.App.App"
+             RequestedThemeVariant="Default">
+  <!--
+    Palette « Cinedex » : papier chaud et encre brune, un seul accent terre cuite (la robe des moines,
+    en écho aux icônes Buddha). Thème clair et sombre suivent le réglage du système.
+  -->
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="CinedexBackground" Color="#F6F3EE" />
+          <SolidColorBrush x:Key="CinedexSidebar" Color="#EEE8DF" />
+          <SolidColorBrush x:Key="CinedexSurface" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="CinedexSurfaceAlt" Color="#FAF7F2" />
+          <SolidColorBrush x:Key="CinedexBorder" Color="#E3DCD1" />
+          <SolidColorBrush x:Key="CinedexInk" Color="#2B2622" />
+          <SolidColorBrush x:Key="CinedexMuted" Color="#7C7268" />
+          <SolidColorBrush x:Key="CinedexAccent" Color="#B4572C" />
+          <SolidColorBrush x:Key="CinedexAccentSoft" Color="#F4E3D7" />
+          <SolidColorBrush x:Key="CinedexHover" Color="#E7E0D5" />
+          <SolidColorBrush x:Key="CinedexPosterBack" Color="#E6DFD5" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="CinedexBackground" Color="#1C1A18" />
+          <SolidColorBrush x:Key="CinedexSidebar" Color="#171513" />
+          <SolidColorBrush x:Key="CinedexSurface" Color="#252220" />
+          <SolidColorBrush x:Key="CinedexSurfaceAlt" Color="#2A2724" />
+          <SolidColorBrush x:Key="CinedexBorder" Color="#38332E" />
+          <SolidColorBrush x:Key="CinedexInk" Color="#EDE7DF" />
+          <SolidColorBrush x:Key="CinedexMuted" Color="#A69B8E" />
+          <SolidColorBrush x:Key="CinedexAccent" Color="#E2895A" />
+          <SolidColorBrush x:Key="CinedexAccentSoft" Color="#3B2B21" />
+          <SolidColorBrush x:Key="CinedexHover" Color="#2F2B27" />
+          <SolidColorBrush x:Key="CinedexPosterBack" Color="#2E2A26" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme>
+      <FluentTheme.Palettes>
+        <ColorPaletteResources x:Key="Light" Accent="#B4572C" RegionColor="#F6F3EE" />
+        <ColorPaletteResources x:Key="Dark" Accent="#E2895A" RegionColor="#1C1A18" />
+      </FluentTheme.Palettes>
+    </FluentTheme>
+
+    <!-- Toutes les fenêtres (fiche, réglages, import, recherche...) partagent le fond « papier » et l'encre. -->
+    <Style Selector="Window">
+      <Setter Property="Background" Value="{DynamicResource CinedexBackground}" />
+      <Setter Property="Icon" Value="/Assets/cinedex.ico" />
+      <Setter Property="Foreground" Value="{DynamicResource CinedexInk}" />
+    </Style>
+    <Style Selector="TabItem">
+      <Setter Property="FontSize" Value="15" />
+    </Style>
+    <Style Selector="TextBox">
+      <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="ComboBox">
+      <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="ListBox">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <!-- Bouton plat à icône, utilisé partout dans les barres d'outils. -->
+    <Style Selector="Button.tool">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="8,6" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Foreground" Value="{DynamicResource CinedexInk}" />
+    </Style>
+    <Style Selector="Button.tool:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource CinedexHover}" />
+    </Style>
+    <Style Selector="Button.tool:disabled">
+      <Setter Property="Opacity" Value="0.35" />
+    </Style>
+    <Style Selector="Button.accent">
+      <Setter Property="Background" Value="{DynamicResource CinedexAccent}" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="12,7" />
+    </Style>
+    <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource CinedexAccent}" />
+      <Setter Property="Opacity" Value="0.9" />
+    </Style>
+    <Style Selector="ToggleButton.tool">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="8,6" />
+      <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="ToggleButton.tool:checked /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource CinedexAccentSoft}" />
+    </Style>
+    <Style Selector="ToggleButton.tool:checked controls|Icon">
+      <Setter Property="Foreground" Value="{DynamicResource CinedexAccent}" />
+    </Style>
+    <Style Selector="TextBlock.muted">
+      <Setter Property="Foreground" Value="{DynamicResource CinedexMuted}" />
+    </Style>
+    <Style Selector="TextBlock.section">
+      <Setter Property="Foreground" Value="{DynamicResource CinedexMuted}" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="LetterSpacing" Value="0.8" />
+      <Setter Property="Margin" Value="12,16,0,6" />
+    </Style>
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="{DynamicResource CinedexSurface}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource CinedexBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
+    </Style>
+    <Style Selector="Border.chip">
+      <Setter Property="Background" Value="{DynamicResource CinedexAccentSoft}" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="8,2" />
+      <Setter Property="Margin" Value="0,0,6,6" />
+    </Style>
+    <Style Selector="Border.chip > TextBlock">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource CinedexAccent}" />
+    </Style>
+  </Application.Styles>
+</Application>

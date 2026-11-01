@@ -15,7 +15,7 @@
     <NuGetAuditMode>all</NuGetAuditMode>
     <NuGetAuditLevel>low</NuGetAuditLevel>
     <Version>0.1.0</Version>
-    <Product>Bobine</Product>
-    <Company>Bobine</Company>
+    <Product>Cinedex</Product>
+    <Company>Cinedex</Company>
   </PropertyGroup>
 </Project>

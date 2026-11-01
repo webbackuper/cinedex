@@ -1,0 +1,60 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Cinedex.App.ViewModels"
+        x:Class="Cinedex.App.Views.ImportFolderWindow"
+        x:DataType="vm:ImportFolderViewModel"
+        Title="Ajouter depuis le disque"
+        Width="900" Height="640" MinWidth="640" MinHeight="460"
+        WindowStartupLocation="CenterOwner"
+        DragDrop.AllowDrop="True">
+  <DockPanel Margin="16">
+    <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
+      <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+        <TextBox Text="{Binding Folder}" PlaceholderText="Dossier de films (ex. D:\Films)" />
+        <Button Grid.Column="1" Margin="8,0,0,0" Content="Parcourir..." Click="OnBrowse" />
+        <Button Grid.Column="2" Margin="8,0,0,0" Content="Analyser" Command="{Binding ScanCommand}" />
+        <Button Grid.Column="3" Margin="16,0,0,0" Content="Choisir des fichiers…" Click="OnPickFiles"
+                ToolTip.Tip="Ajouter un ou plusieurs fichiers vidéo à la liste (vous pouvez aussi les glisser dans cette fenêtre)" />
+      </Grid>
+      <WrapPanel>
+        <CheckBox Margin="0,0,16,0" Content="Sous-dossiers" IsChecked="{Binding Recursive}" />
+        <CheckBox Margin="0,0,16,0" Content="Ignorer ( ) et [ ] dans les noms" IsChecked="{Binding IgnoreBracketed}"
+                  ToolTip.Tip="« Heat (1995) [Director's Cut] 1080p.mkv » donne « Heat », 1995. Relancez l'analyse après avoir changé l'option." />
+        <CheckBox Margin="0,0,16,0" Content="Identifier avec TMDb dès l'import" IsChecked="{Binding UseTmdb}"
+                  ToolTip.Tip="Décoché : les fichiers sont ajoutés tels quels ; lancez ensuite « Mettre à jour via TMDb »." />
+        <CheckBox Margin="0,0,16,0" Content="Premier résultat si plusieurs" IsChecked="{Binding UseFirstMatch}" />
+        <CheckBox Margin="0,0,16,0" Content="Infos techniques (MediaInfo)" IsChecked="{Binding ReadProperties}" />
+        <CheckBox Margin="0,0,16,0" Content="Créer ou compléter les .nfo" IsChecked="{Binding WriteNfo}" />
+        <CheckBox Content="Surveiller ce dossier" IsChecked="{Binding RememberFolder}" />
+      </WrapPanel>
+      <TextBox Text="{Binding NoiseWords}" PlaceholderText="Mots à retirer des noms de fichiers, séparés par des virgules (en plus des mots techniques usuels)" />
+    </StackPanel>
+
+    <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,12,0,0">
+      <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+      <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+        <Button Content="Tout cocher" Command="{Binding SelectAllCommand}" CommandParameter="{x:True}" />
+        <Button Content="Tout décocher" Command="{Binding SelectAllCommand}" CommandParameter="{x:False}" />
+        <Button Content="Interrompre" Command="{Binding CancelCommand}" IsVisible="{Binding IsBusy}" />
+        <Button Classes="tool" Content="Fermer" IsCancel="True" Click="OnClose" />
+        <Button Classes="accent" Content="Importer la sélection" IsDefault="True" Command="{Binding ImportCommand}" />
+      </StackPanel>
+    </StackPanel>
+
+    <ListBox ItemsSource="{Binding Candidates}">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="vm:CandidateRow">
+          <Grid ColumnDefinitions="Auto,*,60,180">
+            <CheckBox IsChecked="{Binding IsSelected}" VerticalAlignment="Center" />
+            <StackPanel Grid.Column="1" Margin="8,0">
+              <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+              <TextBlock Text="{Binding Path}" FontSize="11" Opacity="0.6" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+            <TextBlock Grid.Column="2" Text="{Binding Year}" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="3" Text="{Binding Hint}" VerticalAlignment="Center" Opacity="0.7" FontSize="12" />
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </DockPanel>
+</Window>

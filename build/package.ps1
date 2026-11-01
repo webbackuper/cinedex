@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-    Produit un paquet autonome de Bobine pour une plate-forme : exécutable unique + MediaInfo CLI embarqué,
+    Produit un paquet autonome de Cinedex pour une plate-forme : exécutable unique + MediaInfo CLI embarqué,
     puis une archive et son empreinte SHA-256.
 .EXAMPLE
     ./build/package.ps1 -Rid win-x64
@@ -19,15 +19,16 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $target = Join-Path $Output $Rid
 if (Test-Path $target) {
-    # Bobine en cours d'exécution depuis ce dossier : on s'arrête avant de supprimer quoi que ce soit.
-    foreach ($exe in Get-ChildItem -Path $target -Filter 'Bobine*' -File) {
+    # Cinedex en cours d'exécution depuis ce dossier : on s'arrête avant de supprimer quoi que ce soit.
+    # (Bobine* : nom de l'application avant son renommage.)
+    foreach ($exe in Get-ChildItem -Path $target -File | Where-Object { $_.Name -like 'Cinedex*' -or $_.Name -like 'Bobine*' }) {
         try { [IO.File]::Open($exe.FullName, 'Open', 'ReadWrite', 'None').Dispose() }
-        catch { throw "$($exe.FullName) est en cours d'utilisation : fermez Bobine ou utilisez -Output vers un autre dossier." }
+        catch { throw "$($exe.FullName) est en cours d'utilisation : fermez Cinedex ou utilisez -Output vers un autre dossier." }
     }
     Remove-Item -Recurse -Force $target
 }
 
-& $Dotnet publish (Join-Path $root 'src/Bobine.App') -c Release -r $Rid --self-contained `
+& $Dotnet publish (Join-Path $root 'src/Cinedex.App') -c Release -r $Rid --self-contained `
     -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o $target
 if ($LASTEXITCODE -ne 0) { throw "Échec de la publication pour $Rid" }
 # Symboles de débogage des bibliothèques natives (SkiaSharp, HarfBuzz) : inutiles à l'utilisateur, ~100 Mo.
@@ -37,7 +38,7 @@ Get-ChildItem -Path $target -Filter '*.pdb' | Remove-Item -Force
 
 Copy-Item (Join-Path $root 'README.md') $target
 $version = ([xml](Get-Content (Join-Path $root 'Directory.Build.props'))).Project.PropertyGroup.Version
-$archive = Join-Path $Output "Bobine-$version-$Rid.zip"
+$archive = Join-Path $Output "Cinedex-$version-$Rid.zip"
 if (Test-Path $archive) { Remove-Item -Force $archive }
 Compress-Archive -Path (Join-Path $target '*') -DestinationPath $archive
 $hash = (Get-FileHash -Algorithm SHA256 -Path $archive).Hash.ToLowerInvariant()

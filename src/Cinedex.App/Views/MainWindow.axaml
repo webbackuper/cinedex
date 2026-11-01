@@ -1,0 +1,585 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Cinedex.App.ViewModels"
+        xmlns:titles="using:Cinedex.Core.Titles"
+        xmlns:views="using:Cinedex.App.Views"
+        xmlns:controls="using:Cinedex.App.Controls"
+        xmlns:people="using:Cinedex.Core.People"
+        xmlns:services="using:Cinedex.App.Services"
+        x:Class="Cinedex.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Cinedex"
+        Width="1360" Height="820" MinWidth="960" MinHeight="560"
+        Background="{DynamicResource CinedexBackground}"
+        WindowStartupLocation="CenterScreen">
+  <Window.KeyBindings>
+    <KeyBinding Gesture="Ctrl+S" Command="{Binding ToggleSeenCommand}" />
+    <KeyBinding Gesture="Ctrl+D" Command="{Binding ToggleFavoriteCommand}" />
+    <KeyBinding Gesture="Ctrl+R" Command="{Binding PickRandomCommand}" />
+    <KeyBinding Gesture="F7" Command="{Binding PickRandomCommand}" />
+    <KeyBinding Gesture="Alt+E" Command="{Binding EditCommand}" />
+    <KeyBinding Gesture="F5" Command="{Binding ReloadCommand}" />
+    <KeyBinding Gesture="Ctrl+Shift+F" Command="{Binding AdvancedSearchCommand}" />
+    <KeyBinding Gesture="Escape" Command="{Binding ClearSearchCommand}" />
+    <KeyBinding Gesture="Ctrl+T" Command="{Binding AddFromTmdbCommand}" />
+    <KeyBinding Gesture="Ctrl+U" Command="{Binding LinkToTmdbCommand}" />
+    <KeyBinding Gesture="Ctrl+Shift+U" Command="{Binding UpdateAllFromTmdbCommand}" />
+    <KeyBinding Gesture="Ctrl+P" Command="{Binding PlayCommand}" />
+    <KeyBinding Gesture="Ctrl+O" Command="{Binding OpenFolderCommand}" />
+    <KeyBinding Gesture="Ctrl+H" Command="{Binding ImportFolderCommand}" />
+    <KeyBinding Gesture="Ctrl+D1" Command="{Binding ShowListCommand}" />
+    <KeyBinding Gesture="Ctrl+D2" Command="{Binding ShowGridCommand}" />
+  </Window.KeyBindings>
+
+  <Window.Styles>
+    <!-- Barre latérale : entrées plates, sélection en accent doux. -->
+    <Style Selector="ListBox.nav">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem">
+      <Setter Property="Padding" Value="12,7" />
+      <Setter Property="Margin" Value="8,1" />
+      <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem:selected /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource CinedexAccentSoft}" />
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem:selected controls|Icon">
+      <Setter Property="Foreground" Value="{DynamicResource CinedexAccent}" />
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem:selected TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource CinedexAccent}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <!-- Liste et grille de titres. -->
+    <Style Selector="ListBox.titles">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="ListBox.titles ListBoxItem">
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Margin" Value="0,1" />
+      <Setter Property="Padding" Value="10,6" />
+    </Style>
+    <Style Selector="ListBox.titles ListBoxItem:selected /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource CinedexAccentSoft}" />
+    </Style>
+    <Style Selector="Border.rating">
+      <Setter Property="Background" Value="{DynamicResource CinedexSurfaceAlt}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource CinedexBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="8,5" />
+      <Setter Property="Margin" Value="0,0,8,8" />
+    </Style>
+    <Style Selector="ListBox.grid ListBoxItem">
+      <Setter Property="Margin" Value="6" />
+      <Setter Property="Padding" Value="6" />
+      <Setter Property="Width" Value="172" />
+    </Style>
+  </Window.Styles>
+
+  <Grid ColumnDefinitions="232,*,372">
+    <!-- ======================= Barre latérale ======================= -->
+    <Border Grid.Column="0" Background="{DynamicResource CinedexSidebar}" BorderBrush="{DynamicResource CinedexBorder}" BorderThickness="0,0,1,0">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Margin="20,22,16,8" Spacing="2">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <Image Source="/Assets/cinedex.png" Width="30" Height="30" RenderOptions.BitmapInterpolationMode="HighQuality" />
+            <TextBlock Text="Cinedex" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
+          </StackPanel>
+          <Button Classes="tool" Margin="-8,8,0,0" Command="{Binding ManageCatalogsCommand}" ToolTip.Tip="Ouvrir, créer, renommer ou retirer un catalogue">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <controls:Icon Kind="database" Width="18" Height="18" />
+              <TextBlock Text="{Binding CatalogName}" FontSize="13" />
+              <controls:Icon Kind="chevron-down" Width="14" Height="14" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+
+        <StackPanel DockPanel.Dock="Bottom" Margin="8,8,8,14" Spacing="2">
+          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding AdvancedSearchCommand}" IsVisible="{Binding ShowRuleSearch}"
+                  ToolTip.Tip="Chercher sur tous les champs : genre, notes, année, acteurs, MediaID… (Ctrl+Maj+F)">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <controls:Icon Kind="funnel" Width="18" Height="18" />
+              <TextBlock Text="Recherche multicritère" />
+            </StackPanel>
+          </Button>
+          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenPeopleCommand}" IsVisible="{Binding ShowPeopleLink}">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <controls:Icon Kind="about" Width="18" Height="18" />
+              <TextBlock Text="Acteurs" />
+            </StackPanel>
+          </Button>
+          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" ToolTip.Tip="Mode clair, sombre ou comme le système">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <controls:Icon Kind="moon" Width="18" Height="18" />
+              <TextBlock Text="Apparence" />
+            </StackPanel>
+            <Button.Flyout>
+              <MenuFlyout Placement="RightEdgeAlignedBottom">
+                <MenuItem Header="Comme le système" ToggleType="Radio" IsChecked="{Binding IsSystemTheme, Mode=OneWay}"
+                          Command="{Binding SetThemeCommand}" CommandParameter="{x:Static services:AppTheme.System}" />
+                <MenuItem Header="Mode clair" ToggleType="Radio" IsChecked="{Binding IsLightTheme, Mode=OneWay}"
+                          Command="{Binding SetThemeCommand}" CommandParameter="{x:Static services:AppTheme.Light}" />
+                <MenuItem Header="Mode sombre" ToggleType="Radio" IsChecked="{Binding IsDarkTheme, Mode=OneWay}"
+                          Command="{Binding SetThemeCommand}" CommandParameter="{x:Static services:AppTheme.Dark}" />
+              </MenuFlyout>
+            </Button.Flyout>
+          </Button>
+          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenSettingsCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <controls:Icon Kind="options" Width="18" Height="18" />
+              <TextBlock Text="Réglages" />
+            </StackPanel>
+          </Button>
+          <TextBlock Classes="muted" FontSize="10.5" Margin="10,6,8,0" TextWrapping="Wrap" Text="{Binding DataLocation}" />
+        </StackPanel>
+
+        <ScrollViewer>
+          <StackPanel>
+            <TextBlock Classes="section" Text="BIBLIOTHÈQUE" />
+            <ListBox Classes="nav" ItemsSource="{Binding Filters}" SelectedItem="{Binding SelectedMainFilter}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:FilterItem">
+                  <StackPanel Orientation="Horizontal" Spacing="10">
+                    <controls:Icon Kind="{Binding Value, Converter={x:Static views:FilterIconConverter.Instance}}" Width="18" Height="18"
+                                   Foreground="{DynamicResource CinedexMuted}" />
+                    <TextBlock Text="{Binding Label}" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+
+            <!-- Sous-menu Définition : se déplie au clic, et reste ouvert tant qu'une de ses vues est choisie. -->
+            <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Margin="8,2,8,0"
+                    Command="{Binding ToggleDefinitionsCommand}" IsVisible="{Binding HasDefinitionFilters}" ToolTip.Tip="Classer par définition de l'image">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <controls:Icon Kind="view" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" />
+                <TextBlock Grid.Column="1" Margin="10,0,0,0" Text="Définition" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
+                <controls:Icon Grid.Column="2" Kind="chevron-down" Width="14" Height="14" Foreground="{DynamicResource CinedexMuted}"
+                               RenderTransformOrigin="50%,50%" RenderTransform="{Binding IsDefinitionExpanded, Converter={x:Static views:ExpandArrowConverter.Instance}}" />
+              </Grid>
+            </Button>
+            <ListBox Classes="nav" Margin="20,0,0,0" ItemsSource="{Binding DefinitionFilters}" SelectedItem="{Binding SelectedDefinitionFilter}"
+                     IsVisible="{Binding IsDefinitionExpanded}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:FilterItem">
+                  <StackPanel Orientation="Horizontal" Spacing="10">
+                    <controls:Icon Kind="{Binding Value, Converter={x:Static views:FilterIconConverter.Instance}}" Width="18" Height="18"
+                                   Foreground="{DynamicResource CinedexMuted}" />
+                    <TextBlock Text="{Binding Label}" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </StackPanel>
+        </ScrollViewer>
+      </DockPanel>
+    </Border>
+
+    <!-- ======================= Zone centrale ======================= -->
+    <DockPanel Grid.Column="1" Margin="20,16,12,0">
+      <!-- Barre d'outils -->
+      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6" Margin="12,0,0,0">
+          <Button Classes="tool" Command="{Binding PickRandomCommand}" ToolTip.Tip="Un titre non vu au hasard (Ctrl+R)">
+            <controls:Icon Kind="random" />
+          </Button>
+          <Button Classes="tool" ToolTip.Tip="Actions sur la sélection, ou sur tous les titres affichés">
+            <controls:Icon Kind="more" />
+            <Button.Flyout>
+              <MenuFlyout Placement="BottomEdgeAlignedRight">
+                <MenuItem Header="Mettre à jour via TMDb" Command="{Binding UpdateAllFromTmdbCommand}" InputGesture="Ctrl+Shift+U">
+                  <MenuItem.Icon><controls:Icon Kind="cloud" Width="16" Height="16" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Actualiser les notes IMDb (fichier officiel)" Command="{Binding RefreshImdbRatingsCommand}">
+                  <MenuItem.Icon><controls:Icon Kind="star" Width="16" Height="16" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Relire les infos techniques (MediaInfo)" Command="{Binding RefreshTechnicalCommand}">
+                  <MenuItem.Icon><controls:Icon Kind="view" Width="16" Height="16" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Écrire les .nfo" Command="{Binding WriteNfoCommand}">
+                  <MenuItem.Icon><controls:Icon Kind="document" Width="16" Height="16" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Vérifier les fichiers" Command="{Binding CheckFilesCommand}">
+                  <MenuItem.Icon><controls:Icon Kind="alert" Width="16" Height="16" /></MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="Rafraîchir (F5)" Command="{Binding ReloadCommand}">
+                  <MenuItem.Icon><controls:Icon Kind="sync" Width="16" Height="16" /></MenuItem.Icon>
+                </MenuItem>
+              </MenuFlyout>
+            </Button.Flyout>
+          </Button>
+          <Button Classes="tool" Command="{Binding ImportFolderCommand}" ToolTip.Tip="Ajouter depuis le disque : analyse un dossier de vidéos (Ctrl+H)">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <controls:Icon Kind="folder-plus" />
+              <TextBlock Text="Scanner" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button x:Name="AddButton" Classes="accent" ToolTip.Tip="Ajouter un titre (Alt+A)">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <controls:Icon Kind="add" Foreground="White" Width="18" Height="18" />
+              <TextBlock Text="Ajouter" VerticalAlignment="Center" />
+            </StackPanel>
+            <Button.Flyout>
+              <Flyout Placement="BottomEdgeAlignedRight">
+                <StackPanel Width="340" Spacing="10" Margin="4">
+                  <TextBlock Text="Ajouter un titre" FontWeight="SemiBold" />
+                  <TextBox x:Name="NewTitleBox" Text="{Binding NewTitleText}" PlaceholderText="Titre, ex. Heat (1995), ou tt0113277">
+                    <TextBox.KeyBindings>
+                      <KeyBinding Gesture="Enter" Command="{Binding AddFromTmdbCommand}" />
+                    </TextBox.KeyBindings>
+                  </TextBox>
+                  <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                    <Button Classes="tool" Command="{Binding AddCommand}" Content="À la main" />
+                    <Button Classes="accent" Command="{Binding AddFromTmdbCommand}">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <controls:Icon Kind="cloud" Foreground="White" Width="16" Height="16" />
+                        <TextBlock Text="Chercher sur TMDb" />
+                      </StackPanel>
+                    </Button>
+                  </StackPanel>
+                </StackPanel>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+        </StackPanel>
+        <DockPanel>
+          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
+            <Button Classes="tool" Command="{Binding AdvancedSearchCommand}" ToolTip.Tip="Recherche multicritère (Ctrl+Maj+F)">
+              <controls:Icon Kind="funnel" />
+            </Button>
+            <Button Classes="tool" Command="{Binding ClearSearchCommand}" ToolTip.Tip="Tout afficher : efface recherche, filtre et critères (Échap)"
+                    IsVisible="{Binding HasCriteria}">
+              <controls:Icon Kind="close" />
+            </Button>
+          </StackPanel>
+          <Border Classes="card" CornerRadius="10" MinWidth="150" Padding="10,0" Margin="0,0,6,0">
+            <DockPanel>
+              <controls:Icon DockPanel.Dock="Left" Kind="search" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" />
+              <TextBox x:Name="SearchBox" Text="{Binding SearchText}" PlaceholderText="Rechercher… (Ctrl+F)"
+                       BorderThickness="0" Background="Transparent" Margin="4,0,0,0" />
+            </DockPanel>
+          </Border>
+        </DockPanel>
+
+      </DockPanel>
+
+      <!-- Sous-barre : nombre de titres, tri, vue -->
+      <DockPanel DockPanel.Dock="Top" Margin="2,0,0,8">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="4">
+          <TextBlock Classes="muted" Text="Trier par" VerticalAlignment="Center" Margin="0,0,4,0" FontSize="12.5" />
+        <ComboBox Width="170" MinHeight="30" Padding="10,4" VerticalAlignment="Center" ItemsSource="{Binding Sorts}" SelectedItem="{Binding SelectedSort}" ToolTip.Tip="Trier par" />
+        <ToggleButton Classes="tool" IsChecked="{Binding SortDescending}" ToolTip.Tip="Ordre inverse">
+          <controls:Icon Kind="sort-direction" />
+        </ToggleButton>
+        <Border Width="1" Margin="6,6" Background="{DynamicResource CinedexBorder}" />
+        <ToggleButton Classes="tool" IsChecked="{Binding IsListView, Mode=OneWay}" Command="{Binding ShowListCommand}" ToolTip.Tip="Liste (Ctrl+1)">
+          <controls:Icon Kind="list" />
+        </ToggleButton>
+        <ToggleButton Classes="tool" IsChecked="{Binding IsGridView, Mode=OneWay}" Command="{Binding ShowGridCommand}" ToolTip.Tip="Affiches (Ctrl+2)">
+          <controls:Icon Kind="grid" />
+        </ToggleButton>
+        </StackPanel>
+        <TextBlock Text="{Binding Status}" Classes="muted" FontSize="12.5" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+      </DockPanel>
+
+      <!-- Barre d'état -->
+      <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" Margin="4,8,4,10">
+        <TextBlock Grid.Column="1" Classes="muted" FontSize="11.5" Text="Sélection multiple : Ctrl+clic ou Maj+clic" />
+      </Grid>
+
+      <Panel>
+        <!-- Vue liste -->
+        <ListBox Classes="titles" IsVisible="{Binding IsListView}" ItemsSource="{Binding Titles}" SelectedItems="{Binding SelectedTitles}"
+                 SelectionMode="Multiple" DoubleTapped="OnListDoubleTapped">
+          <ListBox.KeyBindings>
+            <KeyBinding Gesture="Delete" Command="{Binding DeleteCommand}" />
+          </ListBox.KeyBindings>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="titles:TitleSummary">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <Border Width="40" Height="60" CornerRadius="5" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
+                  <Panel>
+                    <controls:Icon Kind="default" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" Opacity="0.6" />
+                    <Image Source="{Binding PosterPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=80}" Stretch="UniformToFill" />
+                  </Panel>
+                </Border>
+                <StackPanel Grid.Column="1" Margin="14,0" VerticalAlignment="Center" Spacing="3">
+                  <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource CinedexInk}" />
+                  <TextBlock Text="{Binding Subtitle}" Classes="muted" FontSize="12.5" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                  <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding IsLoaned}" ToolTip.Tip="Prêté">
+                    <controls:Icon Kind="loan" Width="16" Height="16" Foreground="{DynamicResource CinedexMuted}" />
+                    <TextBlock Text="{Binding Borrower}" Classes="muted" FontSize="12" MaxWidth="110" TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                  <TextBlock Text="{Binding UserRating, StringFormat='{}{0:0.#}'}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}"
+                             IsVisible="{Binding UserRating, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Ma note" />
+                  <controls:Icon Kind="heart" Width="16" Height="16" Foreground="{DynamicResource CinedexAccent}" IsVisible="{Binding IsFavorite}" ToolTip.Tip="Favori" />
+                  <controls:Icon Kind="check" Width="16" Height="16" Foreground="{DynamicResource CinedexMuted}" IsVisible="{Binding IsSeen}" ToolTip.Tip="Vu" />
+                  <TextBlock Text="{Binding Number, StringFormat='n° {0}'}" Classes="muted" FontSize="11" MinWidth="40" TextAlignment="Right" />
+                </StackPanel>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- Vue affiches -->
+        <ListBox Classes="titles grid" IsVisible="{Binding IsGridView}" ItemsSource="{Binding Titles}" SelectedItems="{Binding SelectedTitles}"
+                 SelectionMode="Multiple" DoubleTapped="OnListDoubleTapped" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+          <ListBox.KeyBindings>
+            <KeyBinding Gesture="Delete" Command="{Binding DeleteCommand}" />
+          </ListBox.KeyBindings>
+          <ListBox.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ListBox.ItemsPanel>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="titles:TitleSummary">
+              <StackPanel Spacing="6">
+                <Border Height="234" CornerRadius="8" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
+                  <Panel>
+                    <StackPanel VerticalAlignment="Center" Spacing="8" Margin="12">
+                      <controls:Icon Kind="default" Width="36" Height="36" Foreground="{DynamicResource CinedexMuted}" Opacity="0.6" />
+                      <TextBlock Text="{Binding Title}" TextWrapping="Wrap" TextAlignment="Center" Classes="muted" FontSize="12" />
+                    </StackPanel>
+                    <Image Source="{Binding PosterPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=320}" Stretch="UniformToFill" />
+                    <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="6">
+                      <Border CornerRadius="10" Padding="4" Background="#CC1C1A18" IsVisible="{Binding IsFavorite}">
+                        <controls:Icon Kind="heart" Width="14" Height="14" Foreground="#F4B08A" />
+                      </Border>
+                      <Border CornerRadius="10" Padding="4" Background="#CC1C1A18" IsVisible="{Binding IsSeen}">
+                        <controls:Icon Kind="check" Width="14" Height="14" Foreground="White" />
+                      </Border>
+                    </StackPanel>
+                  </Panel>
+                </Border>
+                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource CinedexInk}" />
+                <TextBlock Text="{Binding Year}" Classes="muted" FontSize="12" Margin="0,-4,0,0" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- Catalogue vide -->
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12" IsVisible="{Binding IsEmpty}">
+          <controls:Icon Kind="library" Width="56" Height="56" Foreground="{DynamicResource CinedexMuted}" />
+          <TextBlock Text="Aucun titre ici pour l'instant" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="{DynamicResource CinedexInk}" />
+          <TextBlock Classes="muted" HorizontalAlignment="Center" TextAlignment="Center" MaxWidth="380" TextWrapping="Wrap"
+                     Text="Scannez un dossier de films, ajoutez un titre depuis TMDb, ou élargissez le filtre." />
+        </StackPanel>
+      </Panel>
+    </DockPanel>
+
+    <!-- ======================= Fiche ======================= -->
+    <Border Grid.Column="2" Margin="0,16,16,16" Classes="card" ClipToBounds="True">
+      <Panel>
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10" IsVisible="{Binding !HasDetail}" Margin="24">
+          <controls:Icon Kind="default" Width="44" Height="44" Foreground="{DynamicResource CinedexMuted}" />
+          <TextBlock Classes="muted" TextAlignment="Center" TextWrapping="Wrap" Text="Sélectionnez un titre pour voir sa fiche." />
+        </StackPanel>
+
+        <ScrollViewer IsVisible="{Binding HasDetail}">
+          <StackPanel>
+            <!-- Bandeau : image de fond fondue, affiche, titre -->
+            <Panel Height="230">
+              <Image Source="{Binding BackdropPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=800}" Stretch="UniformToFill" />
+              <Border>
+                <Border.Background>
+                  <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                    <GradientStop Offset="0" Color="#33000000" />
+                    <GradientStop Offset="1" Color="#E6141210" />
+                  </LinearGradientBrush>
+                </Border.Background>
+              </Border>
+              <Grid ColumnDefinitions="Auto,*" Margin="18" VerticalAlignment="Bottom">
+                <Border Width="92" Height="138" CornerRadius="6" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}" BoxShadow="0 4 14 0 #66000000">
+                  <Panel>
+                    <controls:Icon Kind="default" Width="28" Height="28" Foreground="{DynamicResource CinedexMuted}" />
+                    <Image Source="{Binding PosterPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=200}" Stretch="UniformToFill" />
+                  </Panel>
+                </Border>
+                <StackPanel Grid.Column="1" Margin="14,0,0,2" VerticalAlignment="Bottom" Spacing="4" DataContext="{Binding Detail}" x:DataType="titles:TitleDetail">
+                  <TextBlock Text="{Binding Title}" FontSize="21" FontWeight="SemiBold" Foreground="White" TextWrapping="Wrap" MaxLines="3" />
+                  <TextBlock Text="{Binding OriginalTitle}" FontSize="12.5" Foreground="#D9FFFFFF" TextTrimming="CharacterEllipsis" />
+                  <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="{Binding Year}" Foreground="#D9FFFFFF" FontSize="13" />
+                    <TextBlock Text="{Binding RuntimeText}" Foreground="#D9FFFFFF" FontSize="13" />
+                    <Border BorderBrush="#99FFFFFF" BorderThickness="1" CornerRadius="3" Padding="4,0"
+                            IsVisible="{Binding Certification, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                      <TextBlock Text="{Binding Certification}" Foreground="#D9FFFFFF" FontSize="11" />
+                    </Border>
+                  </StackPanel>
+                </StackPanel>
+              </Grid>
+            </Panel>
+
+            <StackPanel Margin="18,14,18,22" Spacing="16">
+              <!-- Actions -->
+              <WrapPanel>
+                <Button Classes="accent" Margin="0,0,8,8" Command="{Binding PlayCommand}" ToolTip.Tip="Lire (Ctrl+P)">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <controls:Icon Kind="play" Foreground="White" Width="18" Height="18" />
+                    <TextBlock Text="Lire" />
+                  </StackPanel>
+                </Button>
+                <Button Classes="accent" Margin="0,0,8,8" Command="{Binding OpenSeriesCommand}" IsVisible="{Binding IsSeries}" ToolTip.Tip="Saisons et épisodes">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <controls:Icon Kind="tv" Foreground="White" Width="18" Height="18" />
+                    <TextBlock Text="Épisodes" />
+                  </StackPanel>
+                </Button>
+                <Button Classes="tool" Margin="0,0,2,8" Command="{Binding ToggleSeenCommand}" ToolTip.Tip="Vu / pas vu (Ctrl+S)">
+                  <controls:Icon Kind="eye" />
+                </Button>
+                <Button Classes="tool" Margin="0,0,2,8" Command="{Binding ToggleFavoriteCommand}" ToolTip.Tip="Favori (Ctrl+D)">
+                  <controls:Icon Kind="heart" />
+                </Button>
+                <Button Classes="tool" Margin="0,0,2,8" Command="{Binding EditCommand}" ToolTip.Tip="Modifier la fiche (Alt+E)">
+                  <controls:Icon Kind="edit" />
+                </Button>
+                <Button Classes="tool" Margin="0,0,2,8" Command="{Binding LinkToTmdbCommand}" ToolTip.Tip="Lier ou mettre à jour depuis TMDb (Ctrl+U)">
+                  <controls:Icon Kind="cloud" />
+                </Button>
+                <Button Classes="tool" Margin="0,0,2,8" Command="{Binding OpenFolderCommand}" ToolTip.Tip="Ouvrir le dossier du fichier (Ctrl+O)">
+                  <controls:Icon Kind="folder" />
+                </Button>
+                <Button Classes="tool" Margin="0,0,2,8" Command="{Binding DeleteCommand}" ToolTip.Tip="Supprimer du catalogue (Suppr)">
+                  <controls:Icon Kind="delete" />
+                </Button>
+              </WrapPanel>
+
+              <StackPanel Spacing="10" DataContext="{Binding Detail}" x:DataType="titles:TitleDetail">
+                <!-- Notes -->
+                <StackPanel Orientation="Horizontal" Spacing="18">
+                  <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding UserRating, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <controls:Icon Kind="star" Width="18" Height="18" Foreground="{DynamicResource CinedexAccent}" />
+                    <TextBlock Text="{Binding UserRating, StringFormat='{}{0:0.#} / 10'}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
+                    <TextBlock Classes="muted" Text="ma note" FontSize="12" VerticalAlignment="Center" />
+                  </StackPanel>
+                  <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding TmdbRating, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <TextBlock Text="{Binding TmdbRating, StringFormat='{}{0:0.0}'}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
+                    <TextBlock Classes="muted" Text="TMDb" FontSize="12" VerticalAlignment="Center" />
+                  </StackPanel>
+                </StackPanel>
+
+                <!-- Notes externes : IMDb, Rotten Tomatoes, Metacritic (via OMDb et le fichier officiel IMDb) -->
+                <WrapPanel>
+                  <Border Classes="rating" IsVisible="{Binding ImdbRating, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Note IMDb">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <Border Background="#F5C518" CornerRadius="3" Padding="4,0"><TextBlock Text="IMDb" FontWeight="Bold" FontSize="11" Foreground="Black" /></Border>
+                      <TextBlock Text="{Binding ImdbRating, StringFormat='{}{0:0.0}'}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
+                      <TextBlock Text="{Binding ImdbVotes, StringFormat='{}{0:N0} votes'}" Classes="muted" FontSize="11.5" VerticalAlignment="Center"
+                                 IsVisible="{Binding ImdbVotes, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                    </StackPanel>
+                  </Border>
+                  <Border Classes="rating" IsVisible="{Binding Tomatometer, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Tomatometer (Rotten Tomatoes)">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <Border Background="#FA320A" CornerRadius="3" Padding="4,0"><TextBlock Text="RT" FontWeight="Bold" FontSize="11" Foreground="White" /></Border>
+                      <TextBlock Text="{Binding Tomatometer, StringFormat='{}{0} %'}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
+                    </StackPanel>
+                  </Border>
+                  <Border Classes="rating" IsVisible="{Binding Metascore, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Metascore (Metacritic)">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <Border Background="#2B2B2B" CornerRadius="3" Padding="4,0"><TextBlock Text="MC" FontWeight="Bold" FontSize="11" Foreground="#FFCC33" /></Border>
+                      <TextBlock Text="{Binding Metascore}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
+                      <TextBlock Text="/ 100" Classes="muted" FontSize="11.5" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Border>
+                </WrapPanel>
+
+                <TextBlock Text="{Binding Tagline}" FontStyle="Italic" TextWrapping="Wrap" Classes="muted"
+                           IsVisible="{Binding Tagline, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                <TextBlock Text="{Binding Overview}" TextWrapping="Wrap" LineHeight="21" Foreground="{DynamicResource CinedexInk}" />
+
+                <!-- Classement -->
+                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding CollectionName, Converter={x:Static ObjectConverters.IsNotNull}}">
+                  <controls:Icon Kind="library" Width="16" Height="16" Foreground="{DynamicResource CinedexMuted}" />
+                  <TextBlock Text="{Binding CollectionName}" Classes="muted" />
+                </StackPanel>
+                <ItemsControl ItemsSource="{Binding Tags}">
+                  <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <Border Classes="chip"><TextBlock Text="{Binding}" /></Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Text="{Binding Comments}" TextWrapping="Wrap" Classes="muted"
+                           IsVisible="{Binding Comments, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              </StackPanel>
+
+              <!-- Distribution et équipe : chaque personne ouvre sa fiche -->
+              <StackPanel Spacing="8" IsVisible="{Binding HasCast}">
+                <TextBlock Text="Distribution" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
+                <ItemsControl ItemsSource="{Binding Cast}">
+                  <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="people:CastMember">
+                      <Button Classes="tool" Width="104" Padding="4,6" Margin="0,0,4,4" VerticalContentAlignment="Top"
+                              Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenPersonCommand}" CommandParameter="{Binding}"
+                              ToolTip.Tip="{Binding Name, StringFormat='Fiche de {0}'}">
+                        <StackPanel Spacing="4" HorizontalAlignment="Center">
+                          <Border Width="56" Height="56" CornerRadius="28" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}" HorizontalAlignment="Center">
+                            <Panel>
+                              <controls:Icon Kind="about" Width="22" Height="22" Foreground="{DynamicResource CinedexMuted}" />
+                              <Image Source="{Binding PhotoPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=112}" Stretch="UniformToFill" />
+                            </Panel>
+                          </Border>
+                          <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding Character}" FontSize="11" Classes="muted" TextAlignment="Center" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+              <TextBlock Text="{Binding CrewText}" Classes="muted" TextWrapping="Wrap" FontSize="12.5" LineHeight="19"
+                         IsVisible="{Binding CrewText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+              <!-- Exemplaire et vidéo -->
+              <Border Background="{DynamicResource CinedexSurfaceAlt}" CornerRadius="10" Padding="14,12">
+                <StackPanel Spacing="6">
+                  <Grid ColumnDefinitions="Auto,*,Auto">
+                    <controls:Icon Kind="harddisk" Width="16" Height="16" Foreground="{DynamicResource CinedexMuted}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Margin="8,0,0,0" Text="Fichier et infos techniques" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
+                    <Button Grid.Column="2" Classes="tool" Content="Relire (MediaInfo)" Command="{Binding RefreshTechnicalCommand}"
+                            IsVisible="{Binding HasDetailFiles}" ToolTip.Tip="Relire codecs, résolution, pistes audio et sous-titres" />
+                  </Grid>
+                  <SelectableTextBlock Text="{Binding TechnicalSummary}" TextWrapping="Wrap" FontSize="12.5" LineHeight="19" Foreground="{DynamicResource CinedexMuted}" />
+                </StackPanel>
+              </Border>
+
+              <!-- Prêt -->
+              <Border Background="{DynamicResource CinedexSurfaceAlt}" CornerRadius="10" Padding="14,12">
+                <StackPanel Spacing="8">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <controls:Icon Kind="loan" Width="16" Height="16" Foreground="{DynamicResource CinedexMuted}" />
+                    <TextBlock Text="Prêt" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
+                  </StackPanel>
+                  <TextBlock Text="{Binding Detail.CurrentLoan.Borrower, StringFormat='Prêté à {0}'}" Foreground="{DynamicResource CinedexInk}"
+                             IsVisible="{Binding Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  <TextBlock Text="{Binding Detail.CurrentLoan.LoanedAt, StringFormat='depuis le {0:d}'}" Classes="muted"
+                             IsVisible="{Binding Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNull}}">
+                    <TextBox PlaceholderText="Emprunteur" Text="{Binding BorrowerText}" />
+                    <Button Grid.Column="1" Margin="8,0,0,0" Content="Prêter" Command="{Binding LendCommand}" />
+                  </Grid>
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Classes="tool" Content="Rendu" Command="{Binding ReturnLoanCommand}" />
+                    <Button Classes="tool" Content="Historique" Command="{Binding ShowLoanHistoryCommand}" />
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </StackPanel>
+        </ScrollViewer>
+      </Panel>
+    </Border>
+  </Grid>
+</Window>

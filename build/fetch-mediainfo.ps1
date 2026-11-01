@@ -1,7 +1,7 @@
 ﻿<#
 .SYNOPSIS
     Télécharge MediaInfo CLI (version épinglée dans mediainfo.json), vérifie son empreinte SHA-256 et
-    l'installe dans <Destination>/tools/MediaInfo, où Bobine le trouve sans réglage.
+    l'installe dans <Destination>/tools/MediaInfo, où Cinedex le trouve sans réglage.
 .DESCRIPTION
     Aucune installation système : seul le binaire et sa licence sont copiés. Toute empreinte différente
     de celle du manifeste arrête le script (fichier altéré ou substitué).
@@ -12,7 +12,7 @@
 param(
     [Parameter(Mandatory = $true)][string]$Rid,
     [Parameter(Mandatory = $true)][string]$Destination,
-    [string]$Cache = (Join-Path ([System.IO.Path]::GetTempPath()) 'bobine-mediainfo-cache')
+    [string]$Cache = (Join-Path ([System.IO.Path]::GetTempPath()) 'cinedex-mediainfo-cache')
 )
 
 $ErrorActionPreference = 'Stop'

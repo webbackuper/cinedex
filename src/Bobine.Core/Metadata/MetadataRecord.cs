@@ -118,7 +118,7 @@ public sealed record ImportOptions
 
     public bool OverwriteExistingImages { get; init; }
 
-    public int MaxActors { get; init; } = 15;
+    public int MaxActors { get; init; } = 25;
 
     public static ImportOptions Default { get; } = new();
 }

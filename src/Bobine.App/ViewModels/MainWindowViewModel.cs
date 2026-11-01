@@ -3,6 +3,7 @@ using System.Globalization;
 using Bobine.App.Services;
 using Bobine.Core;
 using Bobine.Core.Metadata;
+using Bobine.Core.People;
 using Bobine.Core.Titles;
 using Bobine.Data;
 using Bobine.Media;
@@ -160,6 +161,105 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     public partial string? TechnicalSummary { get; set; }
 
+    /// <summary>Distribution (acteurs, avec photo et personnage) du titre affiché.</summary>
+    public ObservableCollection<CastMember> Cast { get; } = [];
+
+    [ObservableProperty]
+    public partial string? CrewText { get; set; }
+
+    public bool HasCast => Cast.Count > 0;
+
+    public bool HasPeople => _media?.People is not null;
+
+    private void LoadCredits()
+    {
+        Cast.Clear();
+        CrewText = null;
+        if (Detail is not { } detail || _media?.People is not { } people)
+        {
+            OnPropertyChanged(nameof(HasCast));
+            return;
+        }
+
+        var credits = people.Repository.Credits(detail.Id);
+        foreach (var actor in credits.Where(c => c.Role == "actor"))
+        {
+            Cast.Add(actor with { PhotoPath = people.ResolvePhoto(actor.PhotoRelativePath) });
+        }
+
+        var crew = credits.Where(c => c.Role != "actor").GroupBy(c => c.RoleLabel)
+            .Select(g => $"{g.Key} : {string.Join(", ", g.Select(c => c.Name).Distinct())}");
+        CrewText = string.Join('\n', crew);
+        OnPropertyChanged(nameof(HasCast));
+
+        // Photos manquantes téléchargées en arrière-plan ; la distribution est rechargée si le titre est toujours affiché.
+        if (credits.Any(c => c.PhotoRelativePath is null && c.ProfilePath is not null))
+        {
+            _ = LoadCreditPhotosAsync(detail.Id, credits);
+        }
+    }
+
+    private async Task LoadCreditPhotosAsync(long titleId, IReadOnlyList<CastMember> credits)
+    {
+        try
+        {
+            if (await _media!.People!.EnsureCreditPhotosAsync(credits.Where(c => c.Role == "actor")) > 0 && Detail?.Id == titleId)
+            {
+                Avalonia.Threading.Dispatcher.UIThread.Post(LoadCredits);
+            }
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException)
+        {
+            // Pas de photo : la fiche reste utilisable.
+        }
+    }
+
+    /// <summary>Fiche d'une personne ; si l'un de ses titres y est choisi, il est sélectionné dans le catalogue.</summary>
+    [RelayCommand]
+    private async Task OpenPersonAsync(CastMember? member)
+    {
+        if (member is null || _media?.People is not { } people)
+        {
+            return;
+        }
+
+        var page = new PersonViewModel(people, member.PersonId);
+        if (await _dialogs.ShowPersonAsync(page) && page.ChosenTitleId is { } titleId)
+        {
+            GoToTitle(titleId);
+        }
+    }
+
+    [RelayCommand]
+    private async Task OpenPeopleAsync()
+    {
+        if (_media?.People is not { } people)
+        {
+            return;
+        }
+
+        var browser = new PeopleBrowserViewModel(people);
+        if (await _dialogs.ShowPeopleAsync(browser) && browser.ChosenTitleId is { } titleId)
+        {
+            GoToTitle(titleId);
+        }
+    }
+
+    /// <summary>Sélectionne un titre, en levant recherche et filtres s'il n'est pas affiché.</summary>
+    public void GoToTitle(long titleId)
+    {
+        if (Titles.All(t => t.Id != titleId))
+        {
+            _loaded = false;
+            SearchText = string.Empty;
+            SelectedFilter = Filters[0];
+            Criteria = null;
+            _loaded = true;
+        }
+
+        Refresh(selectId: titleId);
+    }
+
     public string DetailFilesText => string.Join('\n', DetailFiles.Select(f => (f.IsMissing ? "introuvable : " : string.Empty) + f.FullPath));
 
     partial void OnDetailFilesChanged(IReadOnlyList<MediaFileEntry> value) => OnPropertyChanged(nameof(DetailFilesText));
@@ -214,6 +314,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         BackdropPath = Detail is null ? null : _images?.PathFor(Detail.Id, "backdrop");
         DetailFiles = Detail is null || _media is null ? [] : _media.Files.FilesOf(Detail.Id);
         TechnicalSummary = Detail is null ? null : _media?.Files.TechnicalSummary(Detail.Id);
+        LoadCredits();
         LinkToTmdbCommand.NotifyCanExecuteChanged();
         OpenSeriesCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(IsSeries));

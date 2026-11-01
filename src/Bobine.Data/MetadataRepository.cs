@@ -237,11 +237,11 @@ public sealed class MetadataRepository(CatalogDatabase database)
             var personId = credit.SourcePersonId > 0
                 ? connection.ExecuteScalar<long>(
                     """
-                    INSERT INTO person (name, tmdb_id) VALUES (@Name, @SourcePersonId)
-                    ON CONFLICT (tmdb_id) DO UPDATE SET name = excluded.name
+                    INSERT INTO person (name, tmdb_id, profile_path) VALUES (@Name, @SourcePersonId, @ProfilePath)
+                    ON CONFLICT (tmdb_id) DO UPDATE SET name = excluded.name, profile_path = coalesce(excluded.profile_path, person.profile_path)
                     RETURNING id;
                     """,
-                    new { credit.Name, credit.SourcePersonId },
+                    new { credit.Name, credit.SourcePersonId, credit.ProfilePath },
                     transaction)
                 : connection.ExecuteScalar<long?>("SELECT id FROM person WHERE name = @Name AND tmdb_id IS NULL;", new { credit.Name }, transaction)
                   ?? connection.ExecuteScalar<long>("INSERT INTO person (name) VALUES (@Name) RETURNING id;", new { credit.Name }, transaction);

@@ -24,4 +24,8 @@ public interface IDialogs
     Task ManageCatalogsAsync(CatalogsViewModel catalogs);
 
     Task<bool> ShowSeriesAsync(SeriesViewModel series);
+
+    Task<bool> ShowPersonAsync(PersonViewModel person);
+
+    Task<bool> ShowPeopleAsync(PeopleBrowserViewModel people);
 }

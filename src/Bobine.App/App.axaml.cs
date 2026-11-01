@@ -130,6 +130,8 @@ public sealed class App : Application
         });
         services.AddSingleton(sp => new Bobine.Metadata.Ratings.ImdbRatingsDataset(sp.GetRequiredService<HttpClient>(), paths.CacheDirectory));
         services.AddSingleton<RatingsService>();
+        services.AddSingleton<PeopleRepository>();
+        services.AddSingleton<PeopleService>();
         services.AddSingleton<MetadataService>();
         services.AddSingleton<MediaFileRepository>();
         services.AddSingleton<SeriesRepository>();
@@ -152,7 +154,8 @@ public sealed class App : Application
             sp.GetRequiredService<SettingsStore>(),
             sp.GetRequiredService<NfoService>(),
             sp.GetRequiredService<RatingsService>(),
-            sp.GetRequiredService<SeriesRepository>()));
+            sp.GetRequiredService<SeriesRepository>(),
+            sp.GetRequiredService<PeopleService>()));
         return services.BuildServiceProvider();
     }
 }

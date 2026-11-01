@@ -135,6 +135,44 @@ public sealed partial class TmdbClient
         return TmdbMapper.ToRecord(tv, _options);
     }
 
+    /// <summary>
+    /// Fiche d'une personne (biographie, dates, lieu de naissance, photo, identifiant IMDb). La biographie est
+    /// demandée dans la langue choisie, puis en anglais si TMDb n'en a pas de traduction.
+    /// </summary>
+    public async Task<Core.People.PersonDetail> GetPersonAsync(long personId, CancellationToken cancellationToken = default)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(personId);
+        var id = personId.ToString(CultureInfo.InvariantCulture);
+        var person = await GetAsync<TmdbPerson>($"person/{id}?language={Lang}", cancellationToken).ConfigureAwait(false);
+        var biography = person.Biography;
+        if (string.IsNullOrWhiteSpace(biography) && !_options.Language.StartsWith("en", StringComparison.OrdinalIgnoreCase))
+        {
+            biography = (await GetAsync<TmdbPerson>($"person/{id}?language=en-US", cancellationToken).ConfigureAwait(false)).Biography;
+        }
+
+        return new Core.People.PersonDetail
+        {
+            Name = person.Name ?? string.Empty,
+            TmdbId = person.Id,
+            ImdbId = person.ImdbId is { } imdb && imdb.StartsWith("nm", StringComparison.Ordinal) && imdb[2..].All(char.IsAsciiDigit) ? imdb : null,
+            Biography = string.IsNullOrWhiteSpace(biography) ? null : biography.Trim(),
+            Birthday = TmdbMapper.DateOf(person.Birthday),
+            Deathday = TmdbMapper.DateOf(person.Deathday),
+            PlaceOfBirth = string.IsNullOrWhiteSpace(person.PlaceOfBirth) ? null : person.PlaceOfBirth.Trim(),
+            KnownFor = person.KnownForDepartment switch
+            {
+                "Acting" => "Interprétation",
+                "Directing" => "Réalisation",
+                "Writing" => "Scénario",
+                "Sound" => "Musique",
+                "Production" => "Production",
+                null or "" => null,
+                var other => other,
+            },
+            ProfilePath = person.ProfilePath,
+        };
+    }
+
     /// <summary>Épisodes d'une saison (0 = épisodes spéciaux).</summary>
     public async Task<IReadOnlyList<EpisodeRecord>> GetSeasonAsync(long tvId, int seasonNumber, CancellationToken cancellationToken = default)
     {

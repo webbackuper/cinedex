@@ -175,5 +175,9 @@ public sealed class MainWindowViewModelTests : IDisposable
         public Task ManageCatalogsAsync(CatalogsViewModel catalogs) => Task.CompletedTask;
 
         public Task<bool> ShowSeriesAsync(SeriesViewModel series) => Task.FromResult(false);
+
+        public Task<bool> ShowPersonAsync(PersonViewModel person) => Task.FromResult(false);
+
+        public Task<bool> ShowPeopleAsync(PeopleBrowserViewModel people) => Task.FromResult(false);
     }
 }

@@ -118,6 +118,17 @@ internal sealed record TmdbEpisode(long Id, int EpisodeNumber, string? Name, str
 
 internal sealed record TmdbSeason(long Id, int SeasonNumber, string? Name, string? Overview, string? AirDate, string? PosterPath, IReadOnlyList<TmdbEpisode>? Episodes);
 
+internal sealed record TmdbPerson(
+    long Id,
+    string? Name,
+    string? Biography,
+    string? Birthday,
+    string? Deathday,
+    string? PlaceOfBirth,
+    string? KnownForDepartment,
+    string? ProfilePath,
+    string? ImdbId);
+
 internal sealed record TmdbFindResult(IReadOnlyList<TmdbSearchItem>? MovieResults, IReadOnlyList<TmdbSearchItem>? TvResults);
 
 #pragma warning restore CA1812

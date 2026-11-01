@@ -59,6 +59,14 @@ public sealed record TitleDetail
 
     public IReadOnlyList<string> GenreCodes { get; init; } = [];
 
+    public IReadOnlyList<string> Tags { get; init; } = [];
+
+    public IReadOnlyList<string> Groups { get; init; } = [];
+
+    public long? CollectionId { get; init; }
+
+    public string? CollectionName { get; init; }
+
     public CopyInfo? Copy { get; init; }
 
     public DateTimeOffset? LastSeenAt { get; init; }

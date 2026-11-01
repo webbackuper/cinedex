@@ -7,7 +7,7 @@ using Microsoft.Data.Sqlite;
 namespace Bobine.Data;
 
 /// <summary>Lecture et écriture des titres, de leur exemplaire principal, des visionnages et des prêts.</summary>
-public sealed class TitleRepository(CatalogDatabase database)
+public sealed partial class TitleRepository(CatalogDatabase database)
 {
     // Exemplaire principal = le plus ancien. Les champs dérivés servent aux filtres SD / HD / UHD / 3D / fichiers.
     private const string BaseSelect = """
@@ -90,6 +90,11 @@ public sealed class TitleRepository(CatalogDatabase database)
             where.Add("t.is_adult = 0");
         }
 
+        if (query.Criteria is { IsEmpty: false } criteria)
+        {
+            AddCriteria(criteria, where, parameters);
+        }
+
         if (where.Count > 0)
         {
             sql.Append(" WHERE ").AppendJoin(" AND ", where);
@@ -133,6 +138,16 @@ public sealed class TitleRepository(CatalogDatabase database)
         var genres = connection.Query<string>(
             "SELECT g.code FROM title_genre tg JOIN genre g ON g.id = tg.genre_id WHERE tg.title_id = @id ORDER BY g.label;",
             new { id }).ToList();
+
+        var tags = connection.Query<string>(
+            "SELECT g.name FROM title_tag tt JOIN tag g ON g.id = tt.tag_id WHERE tt.title_id = @id ORDER BY g.name;",
+            new { id }).ToList();
+        var groups = connection.Query<string>(
+            "SELECT g.name FROM title_group tg JOIN user_group g ON g.id = tg.group_id WHERE tg.title_id = @id ORDER BY g.name;",
+            new { id }).ToList();
+        var collectionName = row.Collection_Id is null
+            ? null
+            : connection.ExecuteScalar<string?>("SELECT name FROM collection WHERE id = @Collection_Id;", new { row.Collection_Id });
 
         var copy = connection.QuerySingleOrDefault<CopyRow>(
             """
@@ -184,6 +199,10 @@ public sealed class TitleRepository(CatalogDatabase database)
             IsAdult = row.Is_Adult != 0,
             AddedAt = ParseTimestamp(row.Added_At),
             GenreCodes = genres,
+            Tags = tags,
+            Groups = groups,
+            CollectionId = row.Collection_Id,
+            CollectionName = collectionName,
             ViewCount = (int)row.View_Count,
             LastSeenAt = row.Last_Seen_At is null ? null : ParseTimestamp(row.Last_Seen_At),
             CurrentLoan = loan,
@@ -225,7 +244,7 @@ public sealed class TitleRepository(CatalogDatabase database)
                 spoken_languages = @SpokenLanguages, studio = @Studio, web_link = @WebLink, trailer_url = @TrailerUrl,
                 imdb_id = @ImdbId, user_rating = @UserRating, comments = @Comments,
                 is_owned = @IsOwned, is_favorite = @IsFavorite, is_shortlisted = @IsShortlisted,
-                is_locked = @IsLocked, is_adult = @IsAdult,
+                is_locked = @IsLocked, is_adult = @IsAdult, collection_id = @CollectionId,
                 updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
             WHERE id = @Id;
             """,
@@ -255,6 +274,7 @@ public sealed class TitleRepository(CatalogDatabase database)
                 detail.IsShortlisted,
                 detail.IsLocked,
                 detail.IsAdult,
+                detail.CollectionId,
             },
             transaction);
         if (updated == 0)
@@ -267,6 +287,9 @@ public sealed class TitleRepository(CatalogDatabase database)
             "INSERT INTO title_genre (title_id, genre_id) SELECT @Id, id FROM genre WHERE code = @Code;",
             detail.GenreCodes.Distinct(StringComparer.Ordinal).Select(code => new { detail.Id, Code = code }),
             transaction);
+
+        ReplaceLabels(connection, transaction, Label.Tag, detail.Id, detail.Tags);
+        ReplaceLabels(connection, transaction, Label.Group, detail.Id, detail.Groups);
 
         if (detail.Copy is { } copy)
         {
@@ -487,9 +510,9 @@ public sealed class TitleRepository(CatalogDatabase database)
         transaction.Commit();
     }
 
-    private static long MainCopyId(SqliteConnection connection, long titleId) =>
-        connection.ExecuteScalar<long?>("SELECT min(id) FROM copy WHERE title_id = @titleId;", new { titleId })
-        ?? connection.ExecuteScalar<long>("INSERT INTO copy (title_id) VALUES (@titleId) RETURNING id;", new { titleId });
+    private static long MainCopyId(SqliteConnection connection, long titleId, SqliteTransaction? transaction = null) =>
+        connection.ExecuteScalar<long?>("SELECT min(id) FROM copy WHERE title_id = @titleId;", new { titleId }, transaction)
+        ?? connection.ExecuteScalar<long>("INSERT INTO copy (title_id) VALUES (@titleId) RETURNING id;", new { titleId }, transaction);
 
     private static string ToDb(TitleKind kind) => kind == TitleKind.Series ? "series" : "movie";
 
@@ -605,6 +628,8 @@ public sealed class TitleRepository(CatalogDatabase database)
         public long Is_Adult { get; set; }
 
         public string Added_At { get; set; } = string.Empty;
+
+        public long? Collection_Id { get; set; }
 
         public long View_Count { get; set; }
 

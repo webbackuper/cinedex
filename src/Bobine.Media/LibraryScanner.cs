@@ -94,6 +94,36 @@ public static class LibraryScanner
         return results.OrderBy(r => r.FullPath, StringComparer.OrdinalIgnoreCase).ToList();
     }
 
+    /// <summary>
+    /// Candidats à partir de fichiers choisis un par un (ou d'éléments déposés : un dossier déposé est scanné).
+    /// Mêmes règles que le scan (nom, .nfo, jaquette locale, fichiers déjà connus ignorés), sans taille minimale :
+    /// un fichier choisi explicitement est toujours proposé, à condition d'être une vidéo.
+    /// </summary>
+    public static IReadOnlyList<ScanCandidate> FromPaths(IEnumerable<string> paths, ScanOptions? options = null, ISet<string>? knownPaths = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(paths);
+        options ??= new ScanOptions();
+        var results = new List<ScanCandidate>();
+        foreach (var path in paths.Select(Path.GetFullPath).Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (Directory.Exists(path))
+            {
+                results.AddRange(Scan(path, options, knownPaths, cancellationToken));
+            }
+            else if (File.Exists(path) && FileNameParser.IsVideo(path))
+            {
+                AddCandidate(results, new FileInfo(path), null, options, knownPaths);
+            }
+        }
+
+        return results
+            .GroupBy(r => r.FullPath, StringComparer.OrdinalIgnoreCase)
+            .Select(g => g.First())
+            .OrderBy(r => r.FullPath, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
     private static void AddCandidate(List<ScanCandidate> results, FileInfo file, string? nameOverride, ScanOptions options, ISet<string>? knownPaths)
     {
         if (knownPaths?.Contains(file.FullName) == true)

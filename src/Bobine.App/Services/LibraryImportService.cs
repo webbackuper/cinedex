@@ -89,6 +89,13 @@ public sealed class LibraryImportService(
         },
         cancellationToken);
 
+    /// <summary>Candidats à partir de fichiers choisis ou d'éléments déposés (fichiers vidéo et dossiers).</summary>
+    public Task<IReadOnlyList<ScanCandidate>> FromPathsAsync(IReadOnlyList<string> paths, ScanOptions options, CancellationToken cancellationToken = default)
+    {
+        var known = files.KnownPaths();
+        return Task.Run(() => LibraryScanner.FromPaths(paths, options, known, cancellationToken), cancellationToken);
+    }
+
     public Task<IReadOnlyList<ScanCandidate>> ScanAsync(string folder, ScanOptions options, CancellationToken cancellationToken = default)
     {
         var known = files.KnownPaths();

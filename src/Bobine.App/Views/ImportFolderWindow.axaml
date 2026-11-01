@@ -5,13 +5,16 @@
         x:DataType="vm:ImportFolderViewModel"
         Title="Ajouter depuis le disque"
         Width="900" Height="640" MinWidth="640" MinHeight="460"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        DragDrop.AllowDrop="True">
   <DockPanel Margin="16">
     <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
-      <Grid ColumnDefinitions="*,Auto,Auto">
+      <Grid ColumnDefinitions="*,Auto,Auto,Auto">
         <TextBox Text="{Binding Folder}" PlaceholderText="Dossier de films (ex. D:\Films)" />
         <Button Grid.Column="1" Margin="8,0,0,0" Content="Parcourir..." Click="OnBrowse" />
         <Button Grid.Column="2" Margin="8,0,0,0" Content="Analyser" Command="{Binding ScanCommand}" />
+        <Button Grid.Column="3" Margin="16,0,0,0" Content="Choisir des fichiers…" Click="OnPickFiles"
+                ToolTip.Tip="Ajouter un ou plusieurs fichiers vidéo à la liste (vous pouvez aussi les glisser dans cette fenêtre)" />
       </Grid>
       <WrapPanel>
         <CheckBox Margin="0,0,16,0" Content="Sous-dossiers" IsChecked="{Binding Recursive}" />

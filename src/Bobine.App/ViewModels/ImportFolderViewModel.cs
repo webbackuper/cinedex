@@ -58,7 +58,38 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, b
     [NotifyCanExecuteChangedFor(nameof(ScanCommand), nameof(ImportCommand))]
     public partial bool IsBusy { get; set; }
 
-    [ObservableProperty] public partial string Message { get; set; } = "Choisissez un dossier contenant des films, puis lancez l'analyse.";
+    [ObservableProperty] public partial string Message { get; set; } = "Choisissez un dossier à analyser, ou des fichiers vidéo (bouton ou glisser-déposer).";
+
+    private ScanOptions CurrentScanOptions => new()
+    {
+        Recursive = Recursive,
+        IgnoreBracketed = IgnoreBracketed,
+        NoiseWords = [.. noiseWords ?? FileNameParser.DefaultNoiseWords, .. TitleEditorViewModel.SplitList(NoiseWords)],
+    };
+
+    /// <summary>
+    /// Ajoute à la liste des fichiers choisis un par un ou déposés (un dossier déposé est analysé).
+    /// La liste existante est conservée : on peut combiner un dossier et quelques fichiers isolés.
+    /// </summary>
+    public async Task AddPathsAsync(IReadOnlyList<string> paths)
+    {
+        ArgumentNullException.ThrowIfNull(paths);
+        await RunAsync(async token =>
+        {
+            var known = new HashSet<string>(Candidates.Select(c => c.Path), StringComparer.OrdinalIgnoreCase);
+            var found = await import.FromPathsAsync(paths, CurrentScanOptions, token);
+            var added = 0;
+            foreach (var candidate in found.Where(c => known.Add(c.FullPath)))
+            {
+                Candidates.Add(new CandidateRow(candidate));
+                added++;
+            }
+
+            Message = added == 0
+                ? "Aucun nouveau fichier vidéo parmi les éléments choisis (déjà au catalogue ou pas une vidéo)."
+                : $"{added} fichier(s) ajouté(s) à la liste ({Candidates.Count} au total). Décochez ceux à ignorer, puis importez.";
+        });
+    }
 
     public bool Imported { get; private set; }
 
@@ -69,8 +100,7 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, b
         await RunAsync(async token =>
         {
             Message = "Analyse du dossier...";
-            var options = new ScanOptions { Recursive = Recursive, IgnoreBracketed = IgnoreBracketed, NoiseWords = [.. noiseWords ?? FileNameParser.DefaultNoiseWords, .. TitleEditorViewModel.SplitList(NoiseWords)] };
-            var found = await import.ScanAsync(Folder, options, token);
+            var found = await import.ScanAsync(Folder, CurrentScanOptions, token);
             foreach (var candidate in found)
             {
                 Candidates.Add(new CandidateRow(candidate));
@@ -90,7 +120,7 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, b
         var selected = Candidates.Where(c => c.IsSelected).Select(c => c.Candidate).ToList();
         await RunAsync(async token =>
         {
-            if (RememberFolder)
+            if (RememberFolder && Directory.Exists(Folder))
             {
                 // Avant l'import, pour que les fichiers soient enregistrés relativement à ce dossier.
                 import.RememberFolder(Folder);

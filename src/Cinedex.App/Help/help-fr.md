@@ -123,6 +123,7 @@ Plusieurs catalogues indépendants peuvent coexister (par exemple : films, séri
 - **Import et scan** : extensions vidéo, taille minimale, mots qui font ignorer un fichier, sous-dossiers, termes retirés des titres, options cochées par défaut.
 - **Métadonnées** : jeton TMDb, langue et pays, nombre d'acteurs, clé OMDb, fichier IMDb.
 - **Fichiers .nfo** et **Lecture et outils** (MediaInfo, lecteur externe, marquer comme vu à la lecture).
+- **Maintenance** : entretien de la base du catalogue ouvert (voir ci-dessous).
 - **Statistiques** : chiffres du catalogue ouvert (films, séries, épisodes, acteurs, réalisateurs, vus, favoris, prêtés, fichiers, taille des fichiers, durée totale des films, titres liés à TMDb, à vérifier) et répartitions par genre, décennie, définition, support et disque (MediaID).
 
 ## Économiseur d'écran
@@ -131,6 +132,19 @@ Quand la fenêtre de Cinedex est active mais que ni le clavier ni la souris n'on
 Une touche, un clic, la molette ou un mouvement de souris ferme le diaporama. Il ne démarre pas si Cinedex n'est pas au premier plan (par exemple pendant la lecture d'un film dans un autre logiciel) ni si aucun film n'a d'affiche ; les titres marqués « contenu pour adultes » en sont exclus quand ils sont masqués dans la liste.
 
 Tout se règle dans **Réglages > Économiseur d'écran** : activation, durée d'inactivité (1 à 240 minutes), intervalle entre deux affiches (2 à 300 secondes) et affichage du titre sous les affiches.
+
+## Maintenance de la base
+L'onglet **Réglages > Maintenance** affiche l'emplacement, la taille et le contenu de la base du catalogue ouvert, et propose :
+- **Renommer le catalogue…** : le catalogue ouvert change de nom ; les réglages se ferment et il est rouvert aussitôt.
+- **Sauvegarder maintenant** et **Ouvrir le dossier des sauvegardes**.
+- **Retirer les acteurs inutilisés** : personnes qui ne figurent plus dans aucun générique (le nombre est indiqué sur le bouton).
+- **Fusionner les doublons d'acteurs et de réalisateurs** : les fiches au nom identique (accents et majuscules ignorés) sont regroupées ; deux homonymes aux fiches TMDb ou IMDb différentes restent distincts.
+- **Trouver les films en double** : même identifiant IMDb, ou même titre et même année. Rien n'est supprimé ; un double-clic sur un titre l'affiche dans la liste.
+- **Renuméroter les films selon le tri actuel** : les exemplaires (colonne N°) sont numérotés de 1 à n dans l'ordre de tri de la liste principale (par exemple Titre ↑ ou Date d'ajout ↓).
+- **Supprimer les collections, tags et groupes vides** et **Nettoyer les images inutilisées** (affiches, fonds et photos que plus rien n'utilise).
+- **Vérifier l'intégrité de la base** et **Compacter et optimiser la base**.
+
+Ces opérations s'appliquent tout de suite, sans « Enregistrer ». Chacune de celles qui modifient la base demande confirmation et fait d'abord une sauvegarde dans le dossier des sauvegardes.
 
 ## Raccourcis clavier
 - **F1** : aide
@@ -150,6 +164,9 @@ Tout se règle dans **Réglages > Économiseur d'écran** : activation, durée d
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.2.6
+- Onglet **Maintenance** dans les Réglages : renommage du catalogue ouvert, sauvegarde, acteurs inutilisés, doublons d'acteurs et de réalisateurs, films en double, renumérotation selon le tri actuel, collections, tags et groupes vides, images inutilisées, contrôle d'intégrité et compactage.
+
 ### 0.2.5
 - **Économiseur d'écran** : diaporama plein écran des affiches après 5 minutes d'inactivité, quand la fenêtre de Cinedex est active. Activation, durée d'inactivité, intervalle et titres se règlent dans Réglages > Économiseur d'écran.
 

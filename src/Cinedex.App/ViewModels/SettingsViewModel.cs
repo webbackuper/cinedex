@@ -106,6 +106,11 @@ public sealed partial class SettingsViewModel : ObservableObject
         ScreenSaverShowTitles = saver.ShowTitles;
     }
 
+    /// <summary>Onglet Maintenance (absent hors catalogue, par exemple en test).</summary>
+    public MaintenanceViewModel? Maintenance { get; init; }
+
+    public bool HasMaintenance => Maintenance is not null;
+
     public IReadOnlyList<Choice<AppTheme>> ThemeChoices { get; }
 
     [ObservableProperty]

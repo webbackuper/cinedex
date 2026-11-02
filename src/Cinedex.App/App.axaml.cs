@@ -54,6 +54,12 @@ public sealed class App : Application
                         target.Show(_window);
                     }
 
+                    // CINEDEX_SNAPSHOT_RENAME=<nom> : renomme le catalogue ouvert (fermeture, renommage, réouverture) avant la capture.
+                    if (Environment.GetEnvironmentVariable("CINEDEX_SNAPSHOT_RENAME") is { Length: > 0 } renameTo)
+                    {
+                        RenameOpenCatalog(renameTo);
+                    }
+
                     // CINEDEX_SNAPSHOT_SCREENSAVER : capture du diaporama des affiches.
                     if (Environment.GetEnvironmentVariable("CINEDEX_SNAPSHOT_SCREENSAVER") is { Length: > 0 } &&
                         _window.DataContext is MainWindowViewModel main && main.CreateScreenSaver() is { } slideshow)
@@ -80,8 +86,18 @@ public sealed class App : Application
                         {
                             DataContext = new SettingsViewModel(
                                 services.GetRequiredService<ISecretStore>(), services.GetRequiredService<SettingsStore>(), _paths.DataRoot,
-                                services.GetRequiredService<StatisticsRepository>().Compute()),
+                                services.GetRequiredService<StatisticsRepository>().Compute())
+                            {
+                                Maintenance = new MaintenanceViewModel(
+                                    services.GetRequiredService<MaintenanceRepository>(), new CatalogManager(_paths), "catalogue",
+                                    _paths.BackupsDirectory, services.GetRequiredService<ImageStore>().ImagesDirectory),
+                            },
                         };
+                        if (Environment.GetEnvironmentVariable("CINEDEX_SNAPSHOT_DUPLICATES") is { Length: > 0 } &&
+                            settings.DataContext is SettingsViewModel { Maintenance: { } snapshotMaintenance })
+                        {
+                            snapshotMaintenance.FindDuplicatesCommand.Execute(null);
+                        }
                         // CINEDEX_SNAPSHOT_STATS=<n> : onglet de rang n plutôt que les statistiques.
                         settings.Opened += (_, _) =>
                         {
@@ -122,6 +138,33 @@ public sealed class App : Application
     }
 
     /// <summary>Ouvre un catalogue : ferme le précédent, reconstruit les services sur la nouvelle base, recharge la fenêtre.</summary>
+    /// <summary>
+    /// Renomme le catalogue ouvert : la base est fermée, son dossier renommé, puis le catalogue est rouvert.
+    /// En cas d'échec, l'ancien catalogue est rouvert tel quel.
+    /// </summary>
+    private void RenameOpenCatalog(string newName)
+    {
+        var manager = new CatalogManager(_paths!);
+        var current = manager.Current;
+        _services?.Dispose();
+        _services = null;
+        SqliteConnection.ClearAllPools();
+        var target = current;
+        try
+        {
+            target = manager.Rename(current, newName, openCatalog: null);
+            ActivityJournal.Current.Write($"Catalogue « {current} » renommé en « {target} »");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
+        {
+            ActivityJournal.Current.Write($"Renommage du catalogue « {current} » impossible : {ex.Message}");
+        }
+        finally
+        {
+            OpenCatalog(target);
+        }
+    }
+
     private void OpenCatalog(string name)
     {
         var previous = _services;
@@ -136,7 +179,7 @@ public sealed class App : Application
         ActivityJournal.Current.Write($"Catalogue ouvert : {name}");
 
         var services = _services;
-        var catalogs = new CatalogsViewModel(new CatalogManager(_paths!), name, OpenCatalog, services.GetRequiredService<SettingsStore>());
+        var catalogs = new CatalogsViewModel(new CatalogManager(_paths!), name, OpenCatalog, services.GetRequiredService<SettingsStore>(), RenameOpenCatalog);
         var main = new MainWindowViewModel(
             services.GetRequiredService<TitleRepository>(),
             services.GetRequiredService<AppPaths>(),
@@ -147,7 +190,15 @@ public sealed class App : Application
                 services.GetRequiredService<ISecretStore>(),
                 services.GetRequiredService<SettingsStore>(),
                 _paths!.DataRoot,
-                services.GetRequiredService<StatisticsRepository>().Compute()),
+                services.GetRequiredService<StatisticsRepository>().Compute())
+            {
+                Maintenance = new MaintenanceViewModel(
+                    services.GetRequiredService<MaintenanceRepository>(),
+                    new CatalogManager(_paths!),
+                    name,
+                    _paths!.BackupsDirectory,
+                    services.GetRequiredService<ImageStore>().ImagesDirectory),
+            },
             services.GetRequiredService<MediaContext>(),
             catalogs);
         main.Load();
@@ -221,6 +272,7 @@ public sealed class App : Application
         services.AddSingleton<PeopleService>();
         services.AddSingleton<MatchReviewRepository>();
         services.AddSingleton<StatisticsRepository>();
+        services.AddSingleton<MaintenanceRepository>();
         services.AddSingleton<CollectionRepository>();
         services.AddSingleton<CollectionService>();
         services.AddSingleton<MetadataService>();

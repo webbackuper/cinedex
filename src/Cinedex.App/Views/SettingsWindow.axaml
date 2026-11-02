@@ -230,6 +230,71 @@
           </StackPanel>
         </ScrollViewer>
       </TabItem>
+      <!-- Maintenance de la base du catalogue ouvert -->
+      <TabItem Header="Maintenance" IsVisible="{Binding HasMaintenance}">
+        <ScrollViewer DataContext="{Binding Maintenance}" x:DataType="vm:MaintenanceViewModel">
+          <StackPanel Spacing="10" Margin="12,0,16,0">
+            <TextBlock Classes="h" Text="Base de données" Margin="0" />
+            <SelectableTextBlock Text="{Binding InfoText}" FontSize="12" TextWrapping="Wrap" Opacity="0.8" />
+            <TextBlock Classes="hint" Text="Les opérations ci-dessous s'appliquent tout de suite au catalogue ouvert, sans passer par « Enregistrer ». Une sauvegarde de la base est faite avant chaque opération qui la modifie." />
+            <Border Padding="10" CornerRadius="8" Background="{DynamicResource CinedexSurfaceAlt}" IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+              <SelectableTextBlock Text="{Binding Message}" TextWrapping="Wrap" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}" />
+            </Border>
+
+            <TextBlock Classes="h" Text="Catalogue" />
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+              <TextBox Text="{Binding NewName}" PlaceholderText="Nouveau nom du catalogue" />
+              <Button Grid.Column="1" Classes="tool" Content="Renommer le catalogue…" Command="{Binding RenameCommand}" />
+            </Grid>
+            <WrapPanel>
+              <Button Classes="tool" Margin="0,0,8,8" Content="Sauvegarder maintenant" Command="{Binding BackupCommand}" />
+              <Button Classes="tool" Margin="0,0,8,8" Content="Ouvrir le dossier des sauvegardes" Click="OnOpenBackups" />
+            </WrapPanel>
+
+            <TextBlock Classes="h" Text="Acteurs et réalisateurs" />
+            <WrapPanel>
+              <Button Classes="tool" Margin="0,0,8,8" Content="{Binding UnusedPeopleLabel}" Command="{Binding RemoveUnusedPeopleCommand}"
+                      ToolTip.Tip="Personnes qui ne figurent plus dans le générique d'aucun film (films supprimés, distribution réduite)" />
+              <Button Classes="tool" Margin="0,0,8,8" Content="Fusionner les doublons d'acteurs et de réalisateurs…" Command="{Binding MergePeopleCommand}"
+                      ToolTip.Tip="Regroupe les fiches au nom identique ; les homonymes aux fiches TMDb ou IMDb différentes restent distincts" />
+            </WrapPanel>
+
+            <TextBlock Classes="h" Text="Films" />
+            <WrapPanel>
+              <Button Classes="tool" Margin="0,0,8,8" Content="Trouver les films en double" Command="{Binding FindDuplicatesCommand}"
+                      ToolTip.Tip="Même identifiant IMDb, ou même titre et même année ; rien n'est supprimé" />
+              <Button Classes="tool" Margin="0,0,8,8" Content="{Binding RenumberLabel}" Command="{Binding RenumberCommand}"
+                      ToolTip.Tip="Numérote les exemplaires (colonne N°) de 1 à n dans l'ordre de tri de la liste principale" />
+            </WrapPanel>
+            <ListBox ItemsSource="{Binding Duplicates}" SelectedItem="{Binding SelectedDuplicate}" MaxHeight="260" DoubleTapped="OnDuplicateChosen"
+                     IsVisible="{Binding Duplicates.Count}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:DuplicateRow">
+                  <Panel>
+                    <TextBlock Text="{Binding Text}" FontWeight="SemiBold" FontSize="12" Opacity="0.7" IsVisible="{Binding IsHeader}" />
+                    <TextBlock Text="{Binding Text}" Margin="14,0,0,0" IsVisible="{Binding !IsHeader}" ToolTip.Tip="Double-clic : afficher ce titre dans le catalogue" />
+                  </Panel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+
+            <TextBlock Classes="h" Text="Nettoyage" />
+            <WrapPanel>
+              <Button Classes="tool" Margin="0,0,8,8" Content="Supprimer les collections, tags et groupes vides…" Command="{Binding RemoveEmptyLabelsCommand}" />
+              <Button Classes="tool" Margin="0,0,8,8" Content="Nettoyer les images inutilisées…" Command="{Binding RemoveUnusedImagesCommand}"
+                      ToolTip.Tip="Affiches, fonds et photos que plus rien n'utilise, en base et sur le disque" />
+            </WrapPanel>
+
+            <TextBlock Classes="h" Text="Contrôle et optimisation" />
+            <WrapPanel>
+              <Button Classes="tool" Margin="0,0,8,8" Content="Vérifier l'intégrité de la base" Command="{Binding CheckIntegrityCommand}" />
+              <Button Classes="tool" Margin="0,0,8,8" Content="Compacter et optimiser la base" Command="{Binding OptimizeCommand}"
+                      ToolTip.Tip="Récupère la place libérée par les suppressions et accélère les recherches" />
+            </WrapPanel>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
       <!-- Statistiques du catalogue ouvert -->
       <TabItem Header="Statistiques" IsVisible="{Binding HasStatistics}">
         <ScrollViewer>

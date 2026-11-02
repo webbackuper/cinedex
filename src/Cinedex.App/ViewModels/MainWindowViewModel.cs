@@ -834,11 +834,40 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         if (_settings is not null)
         {
-            if (await _dialogs.EditSettingsAsync(_settings()))
+            var settings = _settings();
+            var maintenance = settings.Maintenance;
+            if (maintenance is not null)
+            {
+                // Renumérotation « selon le tri actuel » : tout le catalogue, dans l'ordre de tri de la liste.
+                var sort = SelectedSort;
+                var descending = SortDescending;
+                maintenance.CurrentOrder = (
+                    Tr.T(sort.Label) + (descending ? " ↓" : " ↑"),
+                    () => _titles.Query(new TitleQuery(null, QuickFilter.All, sort.Value, descending)).Select(t => t.Id).ToList());
+            }
+
+            var saved = await _dialogs.EditSettingsAsync(settings);
+            if (maintenance?.PendingRename is { } newName && _catalogs is not null)
+            {
+                // Le catalogue est fermé puis rouvert sous son nouveau nom : la fenêtre reçoit un nouveau contexte.
+                _catalogs.RenameCurrent(newName);
+                return;
+            }
+
+            if (saved)
             {
                 Journal("Réglages enregistrés");
                 ApplyDisplaySettings();
+            }
+
+            if (saved || maintenance?.Changed == true)
+            {
                 Refresh(selectIds: SelectedIds);
+            }
+
+            if (maintenance?.PendingTitleId is { } titleId)
+            {
+                GoToTitle(titleId);
             }
         }
     }

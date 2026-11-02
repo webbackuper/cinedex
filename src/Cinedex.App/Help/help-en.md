@@ -123,6 +123,7 @@ Several independent catalogs can coexist (for example: films, series, a relative
 - **Import and scan**: video extensions, minimum size, words that make a file ignored, subfolders, terms removed from titles, options checked by default.
 - **Metadata**: TMDb token, language and country, number of actors, OMDb key, IMDb file.
 - **.nfo files** and **Playback and tools** (MediaInfo, external player, mark as watched on playback).
+- **Maintenance**: upkeep of the open catalog's database (see below).
 - **Statistics**: figures for the open catalog (films, series, episodes, actors, directors, watched, favorites, lent, files, file size, total film runtime, titles linked to TMDb, to review) and breakdowns by genre, decade, definition, medium and drive (MediaID).
 
 ## Screen saver
@@ -131,6 +132,19 @@ When the Cinedex window is active but neither the keyboard nor the mouse has bee
 Any key, click, wheel turn or mouse movement closes the slideshow. It does not start when Cinedex is not in the foreground (for example while a film plays in another program) or when no film has a poster; titles marked as adult content are left out when they are hidden in the list.
 
 Everything is set in **Settings > Screen saver**: on or off, idle time (1 to 240 minutes), interval between posters (2 to 300 seconds) and the title under the posters.
+
+## Database maintenance
+The **Settings > Maintenance** tab shows the location, size and contents of the open catalog's database, and offers:
+- **Rename the catalog…**: the open catalog gets a new name; Settings close and it reopens right away.
+- **Back up now** and **Open the backups folder**.
+- **Remove unused actors**: people who no longer appear in any credits (the number is shown on the button).
+- **Merge duplicate actors and directors**: records with the same name (ignoring accents and capitals) are grouped; two namesakes with different TMDb or IMDb records stay separate.
+- **Find duplicate films**: same IMDb ID, or same title and same year. Nothing is deleted; double-clicking a title shows it in the list.
+- **Renumber the films in the current sort order**: copies (No. column) are numbered from 1 to n in the sort order of the main list (for example Title ↑ or Date added ↓).
+- **Delete empty collections, tags and groups** and **Clean up unused images** (posters, backdrops and photos nothing uses any more).
+- **Check database integrity** and **Compact and optimize the database**.
+
+These operations apply immediately, without “Save”. Each one that changes the database asks for confirmation and first makes a backup in the backups folder.
 
 ## Keyboard shortcuts
 - **F1**: help
@@ -150,6 +164,9 @@ Everything is set in **Settings > Screen saver**: on or off, idle time (1 to 240
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.2.6
+- **Maintenance** tab in Settings: rename the open catalog, back up, unused actors, duplicate actors and directors, duplicate films, renumbering in the current sort order, empty collections, tags and groups, unused images, integrity check and compaction.
+
 ### 0.2.5
 - **Screen saver**: full-screen slideshow of the posters after 5 minutes of inactivity while the Cinedex window is active. On/off, idle time, interval and titles are set in Settings > Screen saver.
 

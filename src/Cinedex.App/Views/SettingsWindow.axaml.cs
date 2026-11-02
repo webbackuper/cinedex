@@ -9,6 +9,34 @@ public sealed partial class SettingsWindow : Window
 {
     public SettingsWindow() => InitializeComponent();
 
+    /// <summary>Branche l'onglet Maintenance : confirmations et fermeture demandée (renommage, titre à afficher).</summary>
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+        if (DataContext is SettingsViewModel { Maintenance: { } maintenance })
+        {
+            maintenance.Confirm = (title, message) => MessageWindow.ShowAsync(this, title, message, confirm: true);
+            maintenance.CloseRequested += (_, _) => Close(false);
+        }
+    }
+
+    private void OnOpenBackups(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is SettingsViewModel { Maintenance: { } maintenance })
+        {
+            Directory.CreateDirectory(maintenance.BackupsDirectory);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(maintenance.BackupsDirectory) { UseShellExecute = true })?.Dispose();
+        }
+    }
+
+    private void OnDuplicateChosen(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is SettingsViewModel { Maintenance: { SelectedDuplicate: { } row } maintenance })
+        {
+            maintenance.ShowDuplicate(row);
+        }
+    }
+
     /// <summary>Ouvre directement l'onglet Statistiques (le dernier).</summary>
     public void ShowStatistics() => Tabs.SelectedIndex = Tabs.ItemCount - 1;
 

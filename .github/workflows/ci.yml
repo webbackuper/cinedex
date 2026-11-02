@@ -31,11 +31,12 @@ jobs:
         shell: bash
         run: |
           set +e
-          dotnet test --no-build -c Release --project tests/Cinedex.Tests 2>&1 | tee test.log
+          dotnet test --no-build -c Release --project tests/Cinedex.Tests --no-ansi --no-progress 2>&1 | tee test.log
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
             # Tests en échec remontés en annotation, lisibles sans ouvrir le journal complet.
-            summary=$(grep -E -A8 '^[[:space:]]*(failed|échec) ' test.log | head -80 | tr -d '\r' | awk '{ printf "%s%%0A", $0 }')
+            summary=$(grep -E -A8 '(failed|échec) ' test.log | head -80 | tr -d '\r' | awk '{ printf "%s%%0A", $0 }')
+            if [ -z "$summary" ]; then summary=$(tail -40 test.log | tr -d '\r' | awk '{ printf "%s%%0A", $0 }'); fi
             echo "::error title=Tests en échec::${summary}"
           fi
           exit $status

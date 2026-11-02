@@ -26,8 +26,8 @@ jobs:
       DOTNET_CLI_TELEMETRY_OPTOUT: "1"
       DOTNET_NOLOGO: "1"
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
       - name: Tests
@@ -36,7 +36,7 @@ jobs:
       - name: Paquet ${{ matrix.rid }}
         shell: pwsh
         run: ./build/package.ps1 -Rid ${{ matrix.rid }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: Cinedex-${{ matrix.rid }}
           path: |

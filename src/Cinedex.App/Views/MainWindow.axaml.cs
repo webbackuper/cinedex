@@ -164,6 +164,21 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
     public Task<bool> ShowPersonAsync(PersonViewModel person) =>
         new PersonWindow { DataContext = person }.ShowDialog<bool>(this);
 
+    private HelpWindow? _help;
+
+    public void ShowHelp(HelpViewModel help)
+    {
+        if (_help is { IsVisible: true })
+        {
+            _help.Activate();
+            return;
+        }
+
+        _help = new HelpWindow { DataContext = help };
+        _help.Closed += (_, _) => _help = null;
+        _help.Show(this);
+    }
+
     public Task<bool> ShowMatchReviewAsync(MatchReviewViewModel review) =>
         new MatchReviewWindow { DataContext = review }.ShowDialog<bool>(this);
 

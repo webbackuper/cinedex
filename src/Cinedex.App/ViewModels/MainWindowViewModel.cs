@@ -121,6 +121,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public string ReviewLabel => Tr.F("À vérifier ({0})", ReviewCount);
 
+    /// <summary>Aide (F1) dans la langue de l'interface : français, sinon anglais.</summary>
+    [RelayCommand]
+    private void OpenHelp() => _dialogs.ShowHelp(new HelpViewModel(HelpDocument.Load(Cinedex.Core.Localization.Tr.Current.Code)));
+
     [RelayCommand]
     private async Task OpenReviewAsync()
     {

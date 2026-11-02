@@ -36,7 +36,7 @@ public static class UiTranslator
 
         if (Tr.IsRightToLeft && app is not null)
         {
-            // Arabe, ourdou : toutes les fenêtres en écriture de droite à gauche.
+            // Arabe : toutes les fenêtres en écriture de droite à gauche.
             app.Styles.Add(new Style(x => x.OfType<Window>())
             {
                 Setters = { new Setter(Visual.FlowDirectionProperty, FlowDirection.RightToLeft) },

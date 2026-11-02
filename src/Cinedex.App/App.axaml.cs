@@ -44,10 +44,18 @@ public sealed class App : Application
                 // Outil de développement : capture de la fenêtre principale (vérification des traductions), puis sortie.
                 _window.Opened += async (_, _) =>
                 {
+                    // CINEDEX_SNAPSHOT_HELP : capture de la fenêtre d'aide à la place.
+                    Avalonia.Controls.Window target = _window;
+                    if (Environment.GetEnvironmentVariable("CINEDEX_SNAPSHOT_HELP") is { Length: > 0 })
+                    {
+                        target = new HelpWindow { DataContext = new HelpViewModel(HelpDocument.Load(Cinedex.Core.Localization.Tr.Current.Code)) };
+                        target.Show(_window);
+                    }
+
                     await Task.Delay(2500);
-                    var size = new Avalonia.PixelSize((int)_window.Bounds.Width, (int)_window.Bounds.Height);
+                    var size = new Avalonia.PixelSize((int)target.Bounds.Width, (int)target.Bounds.Height);
                     using var bitmap = new Avalonia.Media.Imaging.RenderTargetBitmap(size);
-                    bitmap.Render(_window);
+                    bitmap.Render(target);
                     using (var file = File.Create(snapshot))
                     {
                         bitmap.Save(file, new Avalonia.Media.Imaging.PngBitmapEncoderOptions());

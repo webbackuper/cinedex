@@ -1,0 +1,143 @@
+# Aide de Cinedex
+
+## Bienvenue
+Cinedex catalogue votre vidéothèque : films et séries sur disques durs et clés USB, DVD, Blu-ray et autres supports. Il retrouve les fiches sur TMDb (résumé, affiche, distribution, genres), lit les infos techniques des fichiers avec MediaInfo, suit ce que vous avez vu et ce que vous avez prêté.
+
+Pour commencer :
+- **Réglages > Métadonnées** : collez votre jeton TMDb (gratuit sur themoviedb.org, Paramètres > API > « Jeton d'accès en lecture »).
+- **Ajouter depuis le disque** (Ctrl+H) : choisissez un dossier de films, ou des fichiers, puis **Analyser** et **Importer la sélection**.
+- Les films sans ambiguïté sont reliés à TMDb ; pour les autres, la fenêtre **À vérifier** vous propose les candidats à la fin.
+
+Cette aide s'ouvre avec **F1** ou le lien **Aide** en bas du bandeau gauche. La zone de recherche, en haut, filtre les rubriques.
+
+## Ajouter des films depuis un disque
+**Ajouter depuis le disque** (Ctrl+H) ouvre la fenêtre d'import.
+- **Parcourir...** puis **Analyser** : parcourt un dossier (et ses sous-dossiers) à la recherche de vidéos.
+- **Choisir des fichiers…** : ajoute un ou plusieurs fichiers précis. Vous pouvez aussi glisser des fichiers ou des dossiers dans la fenêtre.
+- Décochez les fichiers à ignorer, puis **Importer la sélection**.
+
+Options de l'import :
+- **Identifier avec TMDb dès l'import** : cherche la fiche de chaque film. Sinon, les films sont ajoutés avec leur seul titre, et vous lancerez plus tard « Mettre à jour via TMDb ».
+- **Infos techniques (MediaInfo)** : lit codecs, résolution, durée, pistes audio et sous-titres.
+- **Ignorer ( ) et [ ] dans les noms** : « 17 fois Cécile Cassard (Christophe Honoré - 2002).mp4 » donne le titre « 17 fois Cécile Cassard » ; l'année entre parenthèses est tout de même lue.
+- Les termes de diffusion (1080p, x265, TrueHD, VOSTFR, etc.) sont retirés des titres. La liste se modifie dans **Réglages > Import et scan**.
+
+Les fichiers déjà au catalogue ne sont jamais importés deux fois. Les extraits et bandes-annonces (fichiers trop petits, ou nommés sample, trailer…) sont écartés.
+
+## Disques USB et MediaID
+Chaque fichier garde le **MediaID**, le nom du disque sur lequel il a été trouvé (celui affiché par « Propriétés » dans Windows).
+- Donnez un nom distinct à chacun de vos disques USB : Cinedex les reconnaît ainsi même si leur lettre change (E:, F:…).
+- Deux disques différents peuvent contenir un fichier au même chemin : ils ne sont pas confondus.
+- Si vous lancez un film dont le disque est débranché, Cinedex vous dit quel disque brancher.
+- Le MediaID se modifie dans la fiche du film, onglet **Fichier**, et se cherche avec la recherche multicritère.
+
+## Fiches TMDb et « À vérifier »
+Cinedex relie chaque titre à sa fiche TMDb :
+- Si le .nfo ou le nom de fichier contient un identifiant TMDb ou IMDb (tt…), la bonne fiche est prise directement. Ces films sont traités en premier.
+- Sinon, Cinedex cherche le titre et l'année : un seul résultat à un an près est relié automatiquement.
+- Dans tous les autres cas (plusieurs résultats, aucun à la bonne année, film sans année), Cinedex ne devine pas : le titre va dans **À vérifier**.
+
+La fenêtre **À vérifier** s'ouvre d'elle-même à la fin d'un import ou d'une mise à jour, et reste accessible par l'entrée « À vérifier (N) » du bandeau gauche. Pour chaque titre :
+- **Choisir** sous le bon candidat (affiche, année, titre original, résumé) ;
+- **Voir sur TMDb ↗** pour ouvrir un candidat dans le navigateur, ou **Voir toutes les propositions sur TMDb ↗** ;
+- **Autre recherche…** pour chercher par titre original ou identifiant IMDb ;
+- **Aucun ne correspond** : le titre reste au catalogue, sans fiche.
+
+Pour un titre isolé : **Lier ou mettre à jour depuis TMDb** (Ctrl+U). Pour plusieurs titres : **Mettre à jour via TMDb** (Ctrl+Maj+U) sur la sélection ou sur tous les titres affichés. Une mise à jour complète les fiches existantes et ne crée jamais de doublon. Un titre **verrouillé** n'est jamais modifié depuis Internet.
+
+## Notes IMDb, Rotten Tomatoes et Metacritic
+- **TMDb** : note fournie avec la fiche.
+- **IMDb** : lue dans le fichier public officiel d'IMDb (téléchargé au plus une fois par jour) et, si vous avez une clé, via OMDb.
+- **Rotten Tomatoes** et **Metacritic** : via OMDb. Créez une clé gratuite sur omdbapi.com et collez-la dans **Réglages > Métadonnées**.
+
+Si une API atteint sa limite pendant un import, Cinedex vous propose de terminer sans elle ou d'interrompre.
+
+## La fiche d'un film
+Un clic sur un titre affiche sa fiche dans le panneau de droite ; un double-clic (ou Alt+E) ouvre la fiche complète, modifiable, avec ses onglets :
+- **Fiche** : titres, année, durée, résumé, pays, studio, identifiant IMDb, bande-annonce.
+- **Notes** : votre note et les notes TMDb, IMDb, Rotten Tomatoes, Metacritic.
+- **Distribution** : acteurs avec leur photo et leur rôle ; un clic ouvre la fiche de l'acteur. L'équipe (réalisation, scénario, musique) suit.
+- **Fichier** : emplacement complet, MediaID, taille, durée, conteneur, codecs vidéo et audio, langues, sous-titres. **Relire les infos techniques** relance MediaInfo. **Ajouter une partie** rattache un CD2, part2… au même film.
+- **Exemplaire** : support, boîtier, version, emplacement, prix, et la gestion complète du **prêt** (prêter, rendre, historique).
+- **Genres**, **Classement** (collection, tags, groupes) et **Statut** (vu, favori, possédé, verrouillé, contenu adulte, commentaires).
+
+Les durées s'affichent en heures et minutes.
+
+## Acteurs
+Les acteurs de chaque fiche TMDb sont conservés (nombre réglable dans **Réglages > Métadonnées**). Le lien **Acteurs** du bandeau gauche liste toutes les personnes du catalogue ; la fiche d'un acteur montre sa biographie, ses liens TMDb et IMDb, et tous ses films présents au catalogue.
+
+## Séries
+Une série liée à TMDb récupère ses saisons et épisodes. Le bouton **Saisons et épisodes** de la fiche permet de rattacher les fichiers d'un dossier (noms S01E02 ou 1x02), de marquer des épisodes vus et de les lire.
+
+## Rechercher et trier
+- La zone **Rechercher…** (Ctrl+F) cherche dans les titres et les résumés.
+- **Trier par** classe la liste ; le bouton voisin inverse l'ordre.
+- **Liste** (Ctrl+1) ou **Affiches** (Ctrl+2) change la présentation.
+- **Échap** efface la recherche, le filtre et les critères.
+
+**Recherche multicritère** (Ctrl+Maj+F, ou le lien du bandeau gauche) combine des conditions sur tous les champs : genre, notes, année, durée, acteur, réalisateur, MediaID, codec, pistes audio, prêt, vu… Les conditions se combinent par ET ou par OU, et le nombre de films trouvés s'affiche pendant la saisie.
+
+Exemple : Genre est Comédie, puis Note IMDb > 7, puis Année ≥ 2000.
+
+## Le bandeau gauche
+- **Bibliothèque** : vues rapides (possédés, liste de souhaits, vus, favoris, prêtés, fichiers vidéo…).
+- **Définition** : sous-menu Définition standard, Haute définition, Ultra HD (4K), 3D.
+- En bas : **À vérifier**, **Recherche multicritère**, **Acteurs**, **Apparence**, **Réglages** et **Aide**.
+
+Les vues et liens affichés se choisissent dans **Réglages > Bandeau gauche**.
+
+## Prêts
+Dans le panneau de droite ou l'onglet **Exemplaire** de la fiche : saisissez l'emprunteur (les noms déjà utilisés sont proposés) et la date, puis **Prêter**. **Marquer comme rendu** clôt le prêt. L'historique garde tous les prêts du titre ; une ligne erronée peut être effacée. La vue **Prêtés** du bandeau liste les titres dehors.
+
+## Fichiers .nfo
+Cinedex lit et écrit les fichiers .nfo au format Kodi (Réglages > Fichiers .nfo) :
+- à l'import, un .nfo présent à côté du film complète sa fiche, et ses identifiants servent à trouver la bonne fiche TMDb ;
+- après une mise à jour TMDb, le .nfo peut être créé ou complété, avec une copie .nfo.bak de sécurité.
+
+## Apparence, langue et fenêtre
+- **Apparence** (bandeau gauche) ou **Réglages > Général** : mode clair, sombre ou comme le système.
+- **Langue de l'interface** : français, anglais, chinois, hindi, espagnol, arabe, portugais, russe, allemand, japonais. Elle s'applique au redémarrage, proposé tout de suite.
+- **Fenêtre au démarrage** : agrandie à l'écran (par défaut), plein écran, ou taille de la dernière fois. **F11** bascule le plein écran.
+- La langue des résumés et genres TMDb se règle à part (Réglages > Métadonnées, fr-FR par défaut).
+
+## Catalogues
+Plusieurs catalogues indépendants peuvent coexister (par exemple : films, séries, collection d'un proche). Le menu sous le logo permet d'en ouvrir, créer, renommer ou retirer. Un catalogue retiré est déplacé dans les sauvegardes, jamais effacé.
+
+## Réglages
+- **Général** : thème, langue, fenêtre au démarrage, contenu adulte, dossier des données.
+- **Bandeau gauche** : vues et liens affichés.
+- **Import et scan** : extensions vidéo, taille minimale, mots qui font ignorer un fichier, sous-dossiers, termes retirés des titres, options cochées par défaut.
+- **Métadonnées** : jeton TMDb, langue et pays, nombre d'acteurs, clé OMDb, fichier IMDb.
+- **Fichiers .nfo** et **Lecture et outils** (MediaInfo, lecteur externe, marquer comme vu à la lecture).
+
+## Raccourcis clavier
+- **F1** : aide
+- **Ctrl+F** : rechercher ; **Ctrl+Maj+F** : recherche multicritère ; **Échap** : tout afficher
+- **Ctrl+H** : ajouter depuis le disque ; **Alt+A** : ajouter un titre ; **Ctrl+T** : chercher sur TMDb
+- **Ctrl+U** : lier ou mettre à jour depuis TMDb ; **Ctrl+Maj+U** : mettre à jour via TMDb
+- **Alt+E** ou double-clic : modifier la fiche ; **Suppr** : supprimer du catalogue
+- **Ctrl+P** : lire ; **Ctrl+O** : ouvrir le dossier du fichier
+- **Ctrl+S** : vu / pas vu ; **Ctrl+D** : favori ; **Ctrl+R** ou **F7** : un titre non vu au hasard
+- **Ctrl+1** : liste ; **Ctrl+2** : affiches ; **F5** : rafraîchir ; **F11** : plein écran
+
+## Données, sauvegardes et sécurité
+- Les catalogues, images et journaux sont dans le dossier des données (Réglages > Général > Ouvrir le dossier). En mode portable, un fichier portable.flag à côté de Cinedex.exe place les données dans un sous-dossier data.
+- Une sauvegarde de la base est faite automatiquement avant chaque mise à jour de son format.
+- Les clés TMDb et OMDb sont rangées dans le coffre sécurisé du système (Gestionnaire d'identifiants de Windows), jamais dans les fichiers de Cinedex.
+- Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
+
+## Nouveautés
+### 0.2.0
+- Nouveau nom : Bobine devient **Cinedex**, avec une nouvelle icône. Les données, catalogues et clés sont repris automatiquement.
+- Interface en 10 langues, choisies dans les Réglages ; arabe de droite à gauche.
+- Aide intégrée (F1).
+- Fenêtre **À vérifier** : plus de fiche TMDb devinée ; les identifiants connus sont traités d'abord, les choix proposés à la fin, avec liens vers TMDb.
+- **MediaID** : nom du disque de chaque fichier, disques USB reconnus quelle que soit leur lettre.
+- **Recherche multicritère** sur tous les champs, combinée par ET ou OU.
+- Fiche complète : notes, distribution cliquable, fichier et infos MediaInfo, parties CD1/CD2, gestion du prêt.
+- Réglages par onglets ; bandeau gauche personnalisable avec sous-menu Définition ; mode sombre ; fenêtre agrandie au démarrage et F11.
+- Durées en heures et minutes ; notes IMDb, Rotten Tomatoes et Metacritic.
+- Plus rapide sur les grands catalogues (index de base de données, recherche à la frappe).
+
+### 0.1.0
+- Première version : catalogue, import de dossiers, fiches TMDb, séries, prêts, plusieurs catalogues, fichiers .nfo.

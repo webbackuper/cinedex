@@ -119,5 +119,9 @@ public sealed class AppSettingsTests : IDisposable
         public Task<bool> ShowPeopleAsync(PeopleBrowserViewModel people) => Task.FromResult(false);
 
         public Task<bool> ShowMatchReviewAsync(MatchReviewViewModel review) => Task.FromResult(false);
+
+        public void ShowHelp(HelpViewModel help)
+        {
+        }
     }
 }

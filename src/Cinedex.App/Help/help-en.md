@@ -1,0 +1,143 @@
+# Cinedex help
+
+## Welcome
+Cinedex catalogs your video library: films and series on hard drives and USB drives, DVDs, Blu-rays and other media. It fetches entries from TMDb (summary, poster, cast, genres), reads the technical details of your files with MediaInfo, and keeps track of what you have watched and lent.
+
+To get started:
+- **Settings > Metadata**: paste your TMDb token (free on themoviedb.org, Settings > API > "API Read Access Token").
+- **Add from disk** (Ctrl+H): choose a folder of films, or individual files, then **Scan** and **Import the selection**.
+- Unambiguous films are linked to TMDb; for the others, the **To review** window shows you the candidates at the end.
+
+This help opens with **F1** or the **Help** link at the bottom of the left sidebar. The search box at the top filters the topics.
+
+## Adding films from a disk
+**Add from disk** (Ctrl+H) opens the import window.
+- **Browse...** then **Scan**: looks for videos in a folder (and its subfolders).
+- **Choose files…**: adds one or more specific files. You can also drag files or folders into the window.
+- Uncheck the files to skip, then **Import the selection**.
+
+Import options:
+- **Identify with TMDb during import**: looks up each film's entry. Otherwise films are added with their title only, and you can run "Update from TMDb" later.
+- **Technical info (MediaInfo)**: reads codecs, resolution, runtime, audio tracks and subtitles.
+- **Ignore ( ) and [ ] in names**: "17 fois Cécile Cassard (Christophe Honoré - 2002).mp4" gives the title "17 fois Cécile Cassard"; the year in brackets is still read.
+- Release terms (1080p, x265, TrueHD, VOSTFR, etc.) are removed from titles. The list can be edited in **Settings > Import and scan**.
+
+Files already in the catalog are never imported twice. Samples and trailers (files that are too small, or named sample, trailer…) are skipped.
+
+## USB drives and MediaID
+Each file keeps its **MediaID**: the name of the drive it was found on (the name shown in "Properties" in Windows).
+- Give each USB drive a distinct name: Cinedex then recognizes it even if its drive letter changes (E:, F:…).
+- Two different drives may hold a file at the same path: they are not mixed up.
+- If you play a film whose drive is unplugged, Cinedex tells you which drive to plug in.
+- The MediaID can be edited in the film's details, **File** tab, and searched with advanced search.
+
+## TMDb entries and "To review"
+Cinedex links each title to its TMDb entry:
+- If the .nfo or the file name contains a TMDb or IMDb ID (tt…), the right entry is taken directly. These films are processed first.
+- Otherwise Cinedex searches by title and year: a single result within one year is linked automatically.
+- In every other case (several results, none with the right year, no year), Cinedex does not guess: the title goes to **To review**.
+
+The **To review** window opens by itself at the end of an import or update, and stays available from the "To review (N)" entry in the left sidebar. For each title:
+- **Choose** under the right candidate (poster, year, original title, summary);
+- **See on TMDb ↗** opens a candidate in the browser, **See all suggestions on TMDb ↗** opens the whole search;
+- **Other search…** to search by original title or IMDb ID;
+- **None of these**: the title stays in the catalog without an entry.
+
+For a single title: **Link or update from TMDb** (Ctrl+U). For several titles: **Update from TMDb** (Ctrl+Shift+U) on the selection or on all displayed titles. An update completes existing entries and never creates duplicates. A **locked** title is never changed from the Internet.
+
+## IMDb, Rotten Tomatoes and Metacritic ratings
+- **TMDb**: rating provided with the entry.
+- **IMDb**: read from IMDb's official public file (downloaded at most once a day) and, if you have a key, through OMDb.
+- **Rotten Tomatoes** and **Metacritic**: through OMDb. Create a free key on omdbapi.com and paste it in **Settings > Metadata**.
+
+If an API reaches its limit during an import, Cinedex offers to finish without it or to stop.
+
+## A film's details
+A click on a title shows its details in the right panel; a double-click (or Alt+E) opens the full, editable entry with its tabs:
+- **Details**: titles, year, runtime, summary, countries, studio, IMDb ID, trailer.
+- **Ratings**: your rating and the TMDb, IMDb, Rotten Tomatoes and Metacritic ratings.
+- **Cast**: actors with their photo and role; a click opens the actor's page. The crew (directing, screenplay, music) follows.
+- **File**: full location, MediaID, size, runtime, container, video and audio codecs, languages, subtitles. **Reread technical info** runs MediaInfo again. **Add a part** attaches a CD2, part2… to the same film.
+- **Copy**: medium, case, version, location, price, and full **loan** management (lend, return, history).
+- **Genres**, **Organization** (collection, tags, groups) and **Status** (watched, favorite, owned, locked, adult content, comments).
+
+Runtimes are shown in hours and minutes.
+
+## Actors
+The actors of each TMDb entry are kept (the number can be set in **Settings > Metadata**). The **Actors** link in the left sidebar lists everyone in the catalog; an actor's page shows the biography, TMDb and IMDb links, and all their films in the catalog.
+
+## Series
+A series linked to TMDb gets its seasons and episodes. The **Seasons and episodes** button on the details attaches the files from a folder (names S01E02 or 1x02), marks episodes as watched and plays them.
+
+## Search and sort
+- The **Search…** box (Ctrl+F) searches titles and summaries.
+- **Sort by** orders the list; the button next to it reverses the order.
+- **List** (Ctrl+1) or **Posters** (Ctrl+2) changes the layout.
+- **Esc** clears the search, the filter and the criteria.
+
+**Advanced search** (Ctrl+Shift+F, or the link in the left sidebar) combines conditions on every field: genre, ratings, year, runtime, actor, director, MediaID, codec, audio tracks, loan, watched… Conditions are combined with AND or OR, and the number of matching films is shown as you type.
+
+Example: Genre is Comedy, then IMDb rating > 7, then Year ≥ 2000.
+
+## The left sidebar
+- **Library**: quick views (owned, wishlist, watched, favorites, lent, video files…).
+- **Definition**: submenu Standard definition, High definition, Ultra HD (4K), 3D.
+- At the bottom: **To review**, **Advanced search**, **Actors**, **Appearance**, **Settings** and **Help**.
+
+The views and links shown are chosen in **Settings > Left sidebar**.
+
+## Loans
+In the right panel or the **Copy** tab of the details: enter the borrower (names already used are suggested) and the date, then **Lend**. **Mark as returned** closes the loan. The history keeps every loan of the title; a wrong line can be deleted. The **Lent** view in the sidebar lists the titles that are out.
+
+## .nfo files
+Cinedex reads and writes .nfo files in Kodi format (Settings > .nfo files):
+- on import, a .nfo next to the film completes its entry, and its IDs are used to find the right TMDb entry;
+- after a TMDb update, the .nfo can be created or completed, with a .nfo.bak safety copy.
+
+## Appearance, language and window
+- **Appearance** (left sidebar) or **Settings > General**: light mode, dark mode or same as the system.
+- **Interface language**: French, English, Chinese, Hindi, Spanish, Arabic, Portuguese, Russian, German, Japanese. It applies on restart, which is offered right away.
+- **Window at startup**: maximized (default), full screen, or the size from last time. **F11** toggles full screen.
+- The language of TMDb summaries and genres is set separately (Settings > Metadata, fr-FR by default).
+
+## Catalogs
+Several independent catalogs can coexist (for example: films, series, a relative's collection). The menu under the logo opens, creates, renames or removes them. A removed catalog is moved to the backups, never erased.
+
+## Settings
+- **General**: theme, language, window at startup, adult content, data folder.
+- **Left sidebar**: views and links shown.
+- **Import and scan**: video extensions, minimum size, words that make a file ignored, subfolders, terms removed from titles, options checked by default.
+- **Metadata**: TMDb token, language and country, number of actors, OMDb key, IMDb file.
+- **.nfo files** and **Playback and tools** (MediaInfo, external player, mark as watched on playback).
+
+## Keyboard shortcuts
+- **F1**: help
+- **Ctrl+F**: search; **Ctrl+Shift+F**: advanced search; **Esc**: show all
+- **Ctrl+H**: add from disk; **Alt+A**: add a title; **Ctrl+T**: search TMDb
+- **Ctrl+U**: link or update from TMDb; **Ctrl+Shift+U**: update from TMDb
+- **Alt+E** or double-click: edit the entry; **Del**: delete from the catalog
+- **Ctrl+P**: play; **Ctrl+O**: open the file's folder
+- **Ctrl+S**: watched / not watched; **Ctrl+D**: favorite; **Ctrl+R** or **F7**: a random unwatched title
+- **Ctrl+1**: list; **Ctrl+2**: posters; **F5**: refresh; **F11**: full screen
+
+## Data, backups and security
+- Catalogs, images and logs are in the data folder (Settings > General > Open the folder). In portable mode, a portable.flag file next to Cinedex.exe puts the data in a data subfolder.
+- A backup of the database is made automatically before each update of its format.
+- The TMDb and OMDb keys are stored in the system's secure vault (Windows Credential Manager), never in Cinedex's files.
+- Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
+
+## What's new
+### 0.2.0
+- New name: Bobine becomes **Cinedex**, with a new icon. Data, catalogs and keys are carried over automatically.
+- Interface in 10 languages, chosen in Settings; Arabic right to left.
+- Built-in help (F1).
+- **To review** window: no more guessed TMDb entries; known IDs are processed first, choices offered at the end, with links to TMDb.
+- **MediaID**: drive name of each file, USB drives recognized whatever their letter.
+- **Advanced search** on every field, combined with AND or OR.
+- Full details: ratings, clickable cast, file and MediaInfo details, CD1/CD2 parts, loan management.
+- Settings in tabs; customizable left sidebar with a Definition submenu; dark mode; window maximized at startup and F11.
+- Runtimes in hours and minutes; IMDb, Rotten Tomatoes and Metacritic ratings.
+- Faster on large catalogs (database indexes, search as you type).
+
+### 0.1.0
+- First version: catalog, folder import, TMDb entries, series, loans, several catalogs, .nfo files.

@@ -19,6 +19,7 @@
     <KeyBinding Gesture="F7" Command="{Binding PickRandomCommand}" />
     <KeyBinding Gesture="Alt+E" Command="{Binding EditCommand}" />
     <KeyBinding Gesture="F5" Command="{Binding ReloadCommand}" />
+    <KeyBinding Gesture="F1" Command="{Binding OpenHelpCommand}" />
     <KeyBinding Gesture="Ctrl+Shift+F" Command="{Binding AdvancedSearchCommand}" />
     <KeyBinding Gesture="Escape" Command="{Binding ClearSearchCommand}" />
     <KeyBinding Gesture="Ctrl+T" Command="{Binding AddFromTmdbCommand}" />
@@ -139,6 +140,12 @@
             <StackPanel Orientation="Horizontal" Spacing="10">
               <controls:Icon Kind="options" Width="18" Height="18" />
               <TextBlock Text="Réglages" />
+            </StackPanel>
+          </Button>
+          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenHelpCommand}" ToolTip.Tip="Aide de Cinedex (F1)">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <controls:Icon Kind="help" Width="18" Height="18" />
+              <TextBlock Text="Aide" />
             </StackPanel>
           </Button>
           <TextBlock Classes="muted" FontSize="10.5" Margin="10,6,8,0" TextWrapping="Wrap" Text="{Binding DataLocation}" />

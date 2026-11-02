@@ -10,7 +10,7 @@ namespace Cinedex.Tests;
 public sealed class LocalizationSerialGroup;
 
 /// <summary>
-/// Les 16 langues : dictionnaires cohérents avec le catalogue des textes, paramètres identiques, interface traduite.
+/// Les 10 langues : dictionnaires cohérents avec le catalogue des textes, paramètres identiques, interface traduite.
 /// Hors parallélisme : la langue choisie est globale et changerait les messages attendus par les autres tests.
 /// </summary>
 [Collection(nameof(LocalizationTests))]
@@ -27,11 +27,11 @@ public sealed partial class LocalizationTests
     public static TheoryData<string> Languages => [.. Tr.Languages.Select(l => l.Code).Where(c => c != Tr.SourceLanguage)];
 
     [Fact]
-    public void Sixteen_languages_are_offered()
+    public void Ten_languages_are_offered()
     {
-        Assert.Equal(16, Tr.Languages.Count);
-        Assert.Equal(16, Tr.Languages.Select(l => l.Code).Distinct().Count());
-        Assert.Equal(["ar", "ur"], Tr.Languages.Where(l => l.RightToLeft).Select(l => l.Code));
+        Assert.Equal(10, Tr.Languages.Count);
+        Assert.Equal(10, Tr.Languages.Select(l => l.Code).Distinct().Count());
+        Assert.Equal(["ar"], Tr.Languages.Where(l => l.RightToLeft).Select(l => l.Code));
     }
 
     [Theory]

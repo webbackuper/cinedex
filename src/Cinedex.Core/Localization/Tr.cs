@@ -20,7 +20,7 @@ public static class Tr
 {
     public const string SourceLanguage = "fr";
 
-    /// <summary>Les 16 langues les plus parlées (anglais, mandarin, hindi, espagnol, français, arabe…).</summary>
+    /// <summary>Les dix langues proposées : parmi les plus parlées au monde (anglais, mandarin, hindi, espagnol, français, arabe…).</summary>
     public static IReadOnlyList<UiLanguage> Languages { get; } =
     [
         new("fr", "Français"),
@@ -28,17 +28,11 @@ public static class Tr
         new("zh-Hans", "中文（简体）"),
         new("hi", "हिन्दी"),
         new("es", "Español"),
-        new("ar", "العربية", RightToLeft: true),
-        new("bn", "বাংলা"),
+        new("ar", "العربية", RightToLeft: true),
         new("pt", "Português"),
-        new("ru", "Русский"),
-        new("ur", "اردو", RightToLeft: true),
-        new("id", "Bahasa Indonesia"),
+        new("ru", "Русский"),
         new("de", "Deutsch"),
-        new("ja", "日本語"),
-        new("mr", "मराठी"),
-        new("te", "తెలుగు"),
-        new("tr", "Türkçe"),
+        new("ja", "日本語"),
     ];
 
     private static IReadOnlyDictionary<string, string> _strings = FrozenDictionary<string, string>.Empty;

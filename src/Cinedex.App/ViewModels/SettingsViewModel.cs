@@ -104,7 +104,7 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     public partial Choice<StartupWindowMode> SelectedStartup { get; set; }
 
-    /// <summary>Les 16 langues proposées, chacune écrite dans sa propre langue.</summary>
+    /// <summary>Les langues proposées, chacune écrite dans sa propre langue.</summary>
     public static IReadOnlyList<Cinedex.Core.Localization.UiLanguage> LanguageChoices => Cinedex.Core.Localization.Tr.Languages;
 
     [ObservableProperty]

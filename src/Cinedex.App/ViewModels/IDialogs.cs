@@ -30,4 +30,7 @@ public interface IDialogs
     Task<bool> ShowPeopleAsync(PeopleBrowserViewModel people);
 
     Task<bool> ShowMatchReviewAsync(MatchReviewViewModel review);
+
+    /// <summary>Ouvre l'aide (fenêtre indépendante, non bloquante) ou la ramène au premier plan.</summary>
+    void ShowHelp(HelpViewModel help);
 }

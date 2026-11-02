@@ -35,7 +35,7 @@ jobs:
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
             # Tests en échec remontés en annotation, lisibles sans ouvrir le journal complet.
-            summary=$(grep -E -A8 '^\s*(failed|échec) ' test.log | head -80 | sed ':a;N;$!ba;s/%/%25/g;s///g;s/
+            summary=$(grep -E -A8 '^\s*(failed|échec) ' test.log | head -80 | tr -d '' | sed ':a;N;$!ba;s/%/%25/g;s/
 /%0A/g')
             echo "::error title=Tests en échec::${summary}"
           fi

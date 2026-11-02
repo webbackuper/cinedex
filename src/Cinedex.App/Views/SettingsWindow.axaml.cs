@@ -9,7 +9,7 @@ public sealed partial class SettingsWindow : Window
 {
     public SettingsWindow() => InitializeComponent();
 
-    private void OnSave(object? sender, RoutedEventArgs e)
+    private async void OnSave(object? sender, RoutedEventArgs e)
     {
         if (DataContext is SettingsViewModel settings)
         {
@@ -17,6 +17,16 @@ public sealed partial class SettingsWindow : Window
             {
                 if (settings.Save())
                 {
+                    // Nouvelle langue : elle s'applique au redémarrage, proposé tout de suite.
+                    if (settings.LanguageChanged &&
+                        await MessageWindow.ShowAsync(this, "Langue de l'interface", "Redémarrer Cinedex maintenant pour changer de langue ?", confirm: true) &&
+                        Environment.ProcessPath is { } exe)
+                    {
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exe) { UseShellExecute = false })?.Dispose();
+                        (Avalonia.Application.Current?.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime)?.Shutdown();
+                        return;
+                    }
+
                     Close(true);
                 }
             }

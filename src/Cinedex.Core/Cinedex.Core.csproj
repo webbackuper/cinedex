@@ -2,4 +2,7 @@
   <PropertyGroup>
     <RootNamespace>Cinedex.Core</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\Lang\*.json" LogicalName="Cinedex.Core.Localization.Lang.%(Filename)%(Extension)" />
+  </ItemGroup>
 </Project>

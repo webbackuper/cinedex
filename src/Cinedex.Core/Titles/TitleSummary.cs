@@ -29,7 +29,7 @@ public sealed record TitleSummary(
     public string Subtitle => string.Join(" · ", new[]
     {
         Year?.ToString(System.Globalization.CultureInfo.CurrentCulture),
-        Kind == TitleKind.Series ? "Série" : null,
+        Kind == TitleKind.Series ? Localization.Tr.T("Série") : null,
         Medium,
         TitleText.FormatRuntime(RuntimeMinutes),
     }.Where(p => !string.IsNullOrEmpty(p)));

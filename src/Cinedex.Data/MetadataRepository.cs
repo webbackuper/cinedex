@@ -2,6 +2,7 @@ using Cinedex.Core.Metadata;
 using Cinedex.Core.Titles;
 using Dapper;
 using Microsoft.Data.Sqlite;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.Data;
 
@@ -41,7 +42,7 @@ public sealed class MetadataRepository(CatalogDatabase database)
         using var connection = database.Open();
         using var transaction = connection.BeginTransaction();
         var locked = connection.ExecuteScalar<long?>("SELECT is_locked FROM title WHERE id = @titleId;", new { titleId }, transaction)
-            ?? throw new KeyNotFoundException($"Titre {titleId} introuvable.");
+            ?? throw new KeyNotFoundException(Tr.F("Titre {0} introuvable.", titleId));
         if (locked != 0)
         {
             return false;

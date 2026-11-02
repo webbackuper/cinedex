@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.App.Services;
 
@@ -18,7 +19,7 @@ public interface IApiLimitPrompt
 
 /// <summary>Opération interrompue par l'utilisateur après une limite d'API.</summary>
 public sealed class ApiLimitAbortedException(ExternalApi api, string reason)
-    : OperationCanceledException($"Opération interrompue : {reason}")
+    : OperationCanceledException(Tr.F("Opération interrompue : {0}", reason))
 {
     public ExternalApi Api { get; } = api;
 }

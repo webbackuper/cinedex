@@ -1,4 +1,5 @@
 using System.Globalization;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.Core.Titles;
 
@@ -23,7 +24,7 @@ public static class TitleText
     public static string FormatRuntime(int? minutes) => minutes switch
     {
         null or <= 0 => string.Empty,
-        < 60 => $"{minutes} min",
+        < 60 => Tr.F("{0} min", minutes),
         _ when minutes % 60 == 0 => $"{minutes / 60} h",
         _ => $"{minutes / 60} h {minutes % 60:00}",
     };
@@ -32,7 +33,7 @@ public static class TitleText
     public static string FormatDuration(int seconds) => seconds switch
     {
         < 60 => $"{seconds} s",
-        < 3600 => $"{seconds / 60} min {seconds % 60:00} s",
-        _ => $"{seconds / 3600} h {seconds % 3600 / 60:00} min {seconds % 60:00} s",
+        < 3600 => Tr.F("{0} min {1:00} s", seconds / 60, seconds % 60),
+        _ => Tr.F("{0} h {1:00} min {2:00} s", seconds / 3600, seconds % 3600 / 60, seconds % 60),
     };
 }

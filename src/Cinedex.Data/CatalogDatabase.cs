@@ -2,6 +2,7 @@ using Dapper;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.Data;
 
@@ -90,7 +91,7 @@ public sealed class CatalogDatabase
 public sealed record MigrationResult(int SchemaVersion, IReadOnlyList<int> AppliedVersions, string? BackupPath);
 
 public sealed class CatalogCorruptedException(string path, string detail)
-    : Exception($"La base « {path} » est endommagée : {detail}")
+    : Exception(Tr.F("La base « {0} » est endommagée : {1}", path, detail))
 {
     public string DatabasePath { get; } = path;
 }

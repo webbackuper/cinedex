@@ -8,6 +8,7 @@ using Cinedex.Data;
 using Cinedex.Metadata.Tmdb;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.App.ViewModels;
 
@@ -22,7 +23,7 @@ public sealed partial class TmdbCandidate(MetadataSearchResult result) : Observa
     {
         Result.Year?.ToString(CultureInfo.CurrentCulture) ?? "année inconnue",
         Result.OriginalTitle is { } o && o != Result.Title ? o : null,
-        Result.Rating is > 0 ? $"TMDb {Result.Rating.Value.ToString("0.0", CultureInfo.CurrentCulture)}" : null,
+        Result.Rating is > 0 ? Tr.F("TMDb {0}", Result.Rating.Value.ToString("0.0", CultureInfo.CurrentCulture)) : null,
     }.Where(p => p is not null));
 
     public string Overview => string.IsNullOrWhiteSpace(Result.Overview) ? "Pas de résumé sur TMDb." : Result.Overview;
@@ -46,7 +47,7 @@ public sealed class ReviewItem(MatchReview review)
 
     public string? FilePath => Review.FilePath;
 
-    public string SearchText => $"Cherché sur TMDb : « {Review.Query} » · {Review.Candidates.Count} possibilité(s)";
+    public string SearchText => Tr.F("Cherché sur TMDb : « {0} » · {1} possibilité(s)", Review.Query, Review.Candidates.Count);
 
     public string SearchUrl => TmdbLinks.Search(Review.Query);
 
@@ -114,7 +115,7 @@ public sealed partial class MatchReviewViewModel : ObservableObject
         {
             await Metadata.UpdateAsync(item.TitleId, result.Kind, result.SourceId, ImportOptions.Default);
             _reviews.Remove(item.TitleId);
-            Done(item, $"« {item.Header} » lié à « {result.Title} »{(result.Year is { } y ? $" ({y})" : string.Empty)}.");
+            Done(item, Tr.F("« {0} » lié à « {1} »{2}.", item.Header, result.Title, (result.Year is { } y ? $" ({y})" : string.Empty)));
         }
         catch (DuplicateTitleException ex)
         {
@@ -131,7 +132,7 @@ public sealed partial class MatchReviewViewModel : ObservableObject
     private Task DismissAsync() => RunAsync(item =>
     {
         _reviews.Remove(item.TitleId);
-        Done(item, $"« {item.Header} » laissé sans fiche TMDb (Ctrl+U sur le titre pour le lier plus tard).");
+        Done(item, Tr.F("« {0} » laissé sans fiche TMDb (Ctrl+U sur le titre pour le lier plus tard).", item.Header));
         return Task.CompletedTask;
     });
 
@@ -170,7 +171,7 @@ public sealed partial class MatchReviewViewModel : ObservableObject
         {
             0 => "Plus rien à vérifier.",
             1 => "1 titre à vérifier.",
-            var n => $"{n} titres à vérifier.",
+            var n => Tr.F("{0} titres à vérifier.", n),
         };
         Message = prefix is null ? rest : $"{prefix} {rest}";
     }

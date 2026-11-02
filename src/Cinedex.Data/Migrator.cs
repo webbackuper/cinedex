@@ -3,6 +3,7 @@ using System.Reflection;
 using Dapper;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.Data;
 
@@ -27,7 +28,7 @@ internal sealed class Migrator(ILogger logger)
         if (current > latest)
         {
             throw new InvalidOperationException(
-                $"La base est en version de schéma {current}, plus récente que cette application ({latest}). Mettez Cinedex à jour.");
+                Tr.F("La base est en version de schéma {0}, plus récente que cette application ({1}). Mettez Cinedex à jour.", current, latest));
         }
 
         return All.Where(m => m.Version > current).ToList();
@@ -41,7 +42,7 @@ internal sealed class Migrator(ILogger logger)
             using var transaction = connection.BeginTransaction();
             connection.Execute(migration.Sql, transaction: transaction);
             // PRAGMA n'accepte pas de paramètre ; la valeur vient d'un entier parsé, pas d'une saisie.
-            connection.Execute($"PRAGMA user_version = {migration.Version.ToString(CultureInfo.InvariantCulture)};", transaction: transaction);
+            connection.Execute(Tr.F("PRAGMA user_version = {0};", migration.Version.ToString(CultureInfo.InvariantCulture)), transaction: transaction);
             transaction.Commit();
             logger.LogInformation("Migration {Version} ({Name}) appliquée", migration.Version, migration.Name);
             applied.Add(migration.Version);
@@ -60,7 +61,7 @@ internal sealed class Migrator(ILogger logger)
             var separator = fileName.IndexOf('_', StringComparison.Ordinal);
             if (separator <= 0 || !int.TryParse(fileName[..separator], NumberStyles.None, CultureInfo.InvariantCulture, out var version))
             {
-                throw new InvalidOperationException($"Nom de migration invalide : {fileName}");
+                throw new InvalidOperationException(Tr.F("Nom de migration invalide : {0}", fileName));
             }
 
             using var stream = assembly.GetManifestResourceStream(resource)!;
@@ -73,7 +74,7 @@ internal sealed class Migrator(ILogger logger)
         {
             if (migrations[i].Version != i + 1)
             {
-                throw new InvalidOperationException($"Les migrations doivent être numérotées sans trou à partir de 1 (trouvé {migrations[i].Version}).");
+                throw new InvalidOperationException(Tr.F("Les migrations doivent être numérotées sans trou à partir de 1 (trouvé {0}).", migrations[i].Version));
             }
         }
 

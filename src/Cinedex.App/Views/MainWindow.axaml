@@ -481,7 +481,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="6">
                       <Border Background="#F5C518" CornerRadius="3" Padding="4,0"><TextBlock Text="IMDb" FontWeight="Bold" FontSize="11" Foreground="Black" /></Border>
                       <TextBlock Text="{Binding ImdbRating, StringFormat='{}{0:0.0}'}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
-                      <TextBlock Text="{Binding ImdbVotes, StringFormat='{}{0:N0} votes'}" Classes="muted" FontSize="11.5" VerticalAlignment="Center"
+                      <TextBlock Text="{Binding ImdbVotes, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='{}{0:N0} votes'}" Classes="muted" FontSize="11.5" VerticalAlignment="Center"
                                  IsVisible="{Binding ImdbVotes, Converter={x:Static ObjectConverters.IsNotNull}}" />
                     </StackPanel>
                   </Border>
@@ -530,7 +530,7 @@
                     <DataTemplate x:DataType="people:CastMember">
                       <Button Classes="tool" Width="104" Padding="4,6" Margin="0,0,4,4" VerticalContentAlignment="Top"
                               Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenPersonCommand}" CommandParameter="{Binding}"
-                              ToolTip.Tip="{Binding Name, StringFormat='Fiche de {0}'}">
+                              ToolTip.Tip="{Binding Name, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='Fiche de {0}'}">
                         <StackPanel Spacing="4" HorizontalAlignment="Center">
                           <Border Width="56" Height="56" CornerRadius="28" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}" HorizontalAlignment="Center">
                             <Panel>
@@ -569,9 +569,9 @@
                     <controls:Icon Kind="loan" Width="16" Height="16" Foreground="{DynamicResource CinedexMuted}" />
                     <TextBlock Text="Prêt" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
                   </StackPanel>
-                  <TextBlock Text="{Binding Detail.CurrentLoan.Borrower, StringFormat='Prêté à {0}'}" Foreground="{DynamicResource CinedexInk}"
+                  <TextBlock Text="{Binding Detail.CurrentLoan.Borrower, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='Prêté à {0}'}" Foreground="{DynamicResource CinedexInk}"
                              IsVisible="{Binding Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                  <TextBlock Text="{Binding Detail.CurrentLoan.LoanedAt, StringFormat='depuis le {0:d}'}" Classes="muted"
+                  <TextBlock Text="{Binding Detail.CurrentLoan.LoanedAt, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='depuis le {0:d}'}" Classes="muted"
                              IsVisible="{Binding Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNotNull}}" />
                   <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNull}}">
                     <TextBox PlaceholderText="Emprunteur" Text="{Binding BorrowerText}" />

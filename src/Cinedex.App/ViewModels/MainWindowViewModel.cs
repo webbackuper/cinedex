@@ -10,6 +10,7 @@ using Cinedex.Media;
 using Cinedex.Metadata.Tmdb;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.App.ViewModels;
 
@@ -118,7 +119,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public bool HasReviews => ReviewCount > 0;
 
-    public string ReviewLabel => $"À vérifier ({ReviewCount})";
+    public string ReviewLabel => Tr.F("À vérifier ({0})", ReviewCount);
 
     [RelayCommand]
     private async Task OpenReviewAsync()
@@ -379,7 +380,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public bool IsEmpty => _loaded && Titles.Count == 0;
 
-    public string DataLocation => _paths.IsPortable ? $"Mode portable : {_paths.DataRoot}" : _paths.DataRoot;
+    public string DataLocation => _paths.IsPortable ? Tr.F("Mode portable : {0}", _paths.DataRoot) : _paths.DataRoot;
 
     /// <summary>Apparence choisie (commune à tous les catalogues), appliquée et mémorisée dès qu'elle change.</summary>
     public AppTheme Theme
@@ -524,13 +525,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
             _media is null ? null : async () =>
             {
                 var (_, tool) = await _media.Import.RefreshTechnicalAsync([current.Id], new Progress<string>(m => Status = m), CancellationToken.None);
-                Status = tool == "aucun" ? "MediaInfo introuvable : indiquez son chemin dans les réglages." : "Infos techniques relues avec " + tool;
+                Status = tool == "aucun" ? "MediaInfo introuvable : indiquez son chemin dans les réglages." : Tr.F("Infos techniques relues avec {0}", tool);
                 return MediaTextOf(current.Id);
             },
             _media is null ? null : async path =>
             {
                 var part = await _media.Import.AddPartAsync(current.Id, path, videoExtensions: ScanSettings.Load(_media.Settings).ExtensionSet);
-                Status = $"Partie {part} rattachée à « {current.Title} »";
+                Status = Tr.F("Partie {0} rattachée à « {1} »", part, current.Title);
                 return MediaTextOf(current.Id);
             },
             _media?.People,
@@ -575,13 +576,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         var ids = SelectedIds;
         var question = ids.Count == 1
-            ? $"Supprimer « {SelectedTitles[0].Title} » du catalogue ?"
-            : $"Supprimer {ids.Count} titres du catalogue ?";
-        if (await _dialogs.ConfirmAsync("Supprimer", question + "\nLes fichiers vidéo sur le disque ne sont pas touchés."))
+            ? Tr.F("Supprimer « {0} » du catalogue ?", SelectedTitles[0].Title)
+            : Tr.F("Supprimer {0} titres du catalogue ?", ids.Count);
+        if (await _dialogs.ConfirmAsync("Supprimer", question + "\n" + Tr.T("Les fichiers vidéo sur le disque ne sont pas touchés.")))
         {
             var count = _titles.Delete(ids);
             Refresh();
-            Status = $"{count} titre(s) supprimé(s)";
+            Status = Tr.F("{0} titre(s) supprimé(s)", count);
         }
     }
 
@@ -613,7 +614,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         Refresh(selectId: pick.Id);
-        Status = $"Au hasard : {pick.Title}";
+        Status = Tr.F("Au hasard : {0}", pick.Title);
     }
 
     [RelayCommand(CanExecute = nameof(CanLend))]
@@ -652,10 +653,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var history = _titles.LoanHistory(Detail.Id);
         var text = history.Count == 0
             ? "Aucun prêt enregistré pour ce titre."
-            : string.Join('\n', history.Select(l =>
-                $"{l.Borrower} : du {l.LoanedAt.ToLocalTime():d} " +
-                (l.ReturnedAt is { } r ? $"au {r.ToLocalTime():d} ({(r - l.LoanedAt).Days} j)" : "à aujourd'hui, pas encore rendu")));
-        await _dialogs.InformAsync($"Historique des prêts : {Detail.Title}", text);
+            : string.Join('\n', history.Select(LoanLine.Describe));
+        await _dialogs.InformAsync(Tr.F("Historique des prêts : {0}", Detail.Title), text);
     }
 
     /// <summary>Recherche sur TMDb (texte saisi ou boîte de recherche) et importe le titre choisi.</summary>
@@ -673,7 +672,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             var (id, created) = await _metadata!.ImportAsync(choice, ImportOptions.Default);
             NewTitleText = string.Empty;
             Refresh(selectId: id);
-            Status = created ? $"« {choice.Title} » ajouté depuis TMDb" : $"« {choice.Title} » est déjà dans le catalogue";
+            Status = created ? Tr.F("« {0} » ajouté depuis TMDb", choice.Title) : Tr.F("« {0} » est déjà dans le catalogue", choice.Title);
         });
     }
 
@@ -721,10 +720,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private async Task UpdateAllFromTmdbAsync()
     {
         var ids = SelectedTitles.Count > 0 ? SelectedIds : Titles.Select(t => t.Id).ToList();
-        var scope = SelectedTitles.Count > 0 ? $"les {ids.Count} titre(s) sélectionné(s)" : $"les {ids.Count} titre(s) affiché(s)";
+        var scope = SelectedTitles.Count > 0 ? Tr.F("les {0} titre(s) sélectionné(s)", ids.Count) : Tr.F("les {0} titre(s) affiché(s)", ids.Count);
         if (ids.Count == 0 || !await _dialogs.ConfirmAsync(
                 "Mettre à jour via TMDb",
-                $"Mettre à jour {scope} depuis TMDb ?\nLes fiches existantes sont complétées sur place, aucune entrée n'est créée. Les titres verrouillés sont ignorés."))
+                Tr.F("Mettre à jour {0} depuis TMDb ?\nLes fiches existantes sont complétées sur place, aucune entrée n'est créée. Les titres verrouillés sont ignorés.", scope)))
         {
             return;
         }
@@ -735,7 +734,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             var progress = new Progress<string>(message => Status = message);
             var result = await _metadata!.UpdateTitlesAsync(targets, ImportOptions.Default, progress, CancellationToken.None);
             Refresh(selectIds: ids);
-            Status = $"{result.Updated} mis à jour, {result.ToReview} à vérifier, {result.NotFound} non trouvé(s), {result.Duplicates} doublon(s) évité(s), {result.Skipped} ignoré(s), {result.Failed} échec(s)";
+            Status = Tr.F("{0} mis à jour, {1} à vérifier, {2} non trouvé(s), {3} doublon(s) évité(s), {4} ignoré(s), {5} échec(s)", result.Updated, result.ToReview, result.NotFound, result.Duplicates, result.Skipped, result.Failed);
             if (result.ToReview > 0)
             {
                 // Les titres sans ambiguïté sont à jour ; il ne reste que les choix à faire.
@@ -816,7 +815,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// <summary>Fichier absent : le plus souvent un disque USB débranché, nommé par son MediaID.</summary>
     private string MissingMediaMessage() =>
         DetailFiles.Select(f => f.VolumeLabel).FirstOrDefault(l => l is not null) is { } label
-            ? $"Fichier introuvable : branchez le disque « {label} »."
+            ? Tr.F("Fichier introuvable : branchez le disque « {0} ».", label)
             : "Fichier introuvable : le disque est peut-être débranché.";
 
     /// <summary>Lit le premier fichier présent ; marque le titre comme vu si le réglage le demande (par défaut).</summary>
@@ -899,11 +898,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             var count = await ratings.RefreshAllImdbAsync(new Progress<string>(m => Status = m));
             Refresh(selectIds: SelectedIds);
-            Status = $"Notes IMDb actualisées pour {count} titre(s)";
+            Status = Tr.F("Notes IMDb actualisées pour {0} titre(s)", count);
         }
         catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidDataException)
         {
-            Status = $"Fichier IMDb indisponible : {ex.Message}";
+            Status = Tr.F("Fichier IMDb indisponible : {0}", ex.Message);
         }
         finally
         {
@@ -922,7 +921,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         var ids = SelectedTitles.Count > 0 ? SelectedIds : Titles.Select(t => t.Id).ToList();
         var written = ids.Sum(id => nfo.WriteForTitle(id));
-        Status = $"{written} fichier(s) .nfo créé(s) ou complété(s)";
+        Status = Tr.F("{0} fichier(s) .nfo créé(s) ou complété(s)", written);
     }
 
     /// <summary>Relit les infos techniques (MediaInfo) des fichiers de la sélection, ou de tous les titres affichés.</summary>
@@ -942,7 +941,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             Refresh(selectIds: SelectedIds);
             Status = tool == "aucun"
                 ? "MediaInfo introuvable : indiquez son chemin dans les réglages."
-                : $"{read} fichier(s) analysé(s) avec {tool}";
+                : Tr.F("{0} fichier(s) analysé(s) avec {1}", read, tool);
         }
         finally
         {
@@ -963,7 +962,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         try
         {
             var (missing, relinked) = await _media.Import.CheckFilesAsync();
-            Status = $"{missing} fichier(s) introuvable(s) (disque non branché ?), {relinked} retrouvé(s) après déplacement";
+            Status = Tr.F("{0} fichier(s) introuvable(s) (disque non branché ?), {1} retrouvé(s) après déplacement", missing, relinked);
             Refresh(selectIds: SelectedIds);
         }
         finally
@@ -980,7 +979,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             _titles.ApplyBulk(ids.ToList(), edit.Build());
             Refresh(selectIds: ids);
-            Status = $"{ids.Count} titres modifiés";
+            Status = Tr.F("{0} titres modifiés", ids.Count);
         }
     }
 
@@ -1005,7 +1004,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public string CatalogName => _catalogs?.Current ?? AppPaths.DefaultCatalogName;
 
-    public string CatalogLabel => $"Catalogue : {_catalogs?.Current ?? AppPaths.DefaultCatalogName}";
+    public string CatalogLabel => Tr.F("Catalogue : {0}", _catalogs?.Current ?? AppPaths.DefaultCatalogName);
 
     [RelayCommand]
     private async Task ManageCatalogsAsync()
@@ -1051,10 +1050,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         _refreshing = false;
         OnSelectionChanged();
-        var label = SelectedFilter.Value == QuickFilter.All && string.IsNullOrWhiteSpace(SearchText)
-            ? "dans le catalogue"
-            : "trouvé(s)";
-        Status = string.Create(CultureInfo.CurrentCulture, $"{Titles.Count} titre(s) {label}");
+        Status = SelectedFilter.Value == QuickFilter.All && string.IsNullOrWhiteSpace(SearchText)
+            ? Tr.F("{0} titre(s) dans le catalogue", Titles.Count)
+            : Tr.F("{0} titre(s) trouvé(s)", Titles.Count);
         OnPropertyChanged(nameof(IsEmpty));
     }
 

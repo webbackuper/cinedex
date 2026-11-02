@@ -3,6 +3,7 @@ using Cinedex.App.Services;
 using Cinedex.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.App.ViewModels;
 
@@ -92,7 +93,7 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, S
 
             Message = added == 0
                 ? "Aucun nouveau fichier vidéo parmi les éléments choisis (déjà au catalogue ou pas une vidéo)."
-                : $"{added} fichier(s) ajouté(s) à la liste ({Candidates.Count} au total). Décochez ceux à ignorer, puis importez.";
+                : Tr.F("{0} fichier(s) ajouté(s) à la liste ({1} au total). Décochez ceux à ignorer, puis importez.", added, Candidates.Count);
         });
     }
 
@@ -116,7 +117,7 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, S
 
             Message = found.Count == 0
                 ? "Aucun nouveau fichier vidéo (les fichiers déjà au catalogue sont ignorés)."
-                : $"{found.Count} nouveau(x) fichier(s). Décochez ceux à ignorer, puis importez.";
+                : Tr.F("{0} nouveau(x) fichier(s). Décochez ceux à ignorer, puis importez.", found.Count);
         });
     }
 
@@ -140,20 +141,20 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, S
             Imported = true;
             ToReview += result.ToReview;
             Candidates.Clear();
-            var summary = $"{result.Added} ajouté(s) avec TMDb, {result.WithoutMetadata} sans fiche TMDb (dont {result.FromNfo} complété(s) par leur .nfo), {result.Linked} déjà présent(s)";
+            var summary = Tr.F("{0} ajouté(s) avec TMDb, {1} sans fiche TMDb (dont {2} complété(s) par leur .nfo), {3} déjà présent(s)", result.Added, result.WithoutMetadata, result.FromNfo, result.Linked);
             if (result.ToReview > 0)
             {
-                summary += $", {result.ToReview} à vérifier : les choix vous seront proposés à la fermeture de cette fenêtre";
+                summary += Tr.F(", {0} à vérifier : les choix vous seront proposés à la fermeture de cette fenêtre", result.ToReview);
             }
 
             if (result.Episodes > 0)
             {
-                summary += $", {result.Episodes} épisode(s) laissé(s) pour les séries";
+                summary += Tr.F(", {0} épisode(s) laissé(s) pour les séries", result.Episodes);
             }
 
             if (result.Failed > 0)
             {
-                summary += $", {result.Failed} échec(s)";
+                summary += Tr.F(", {0} échec(s)", result.Failed);
             }
 
             Message = string.Join("\n", [summary + ".", .. result.Messages.Take(5)]);
@@ -184,7 +185,7 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, S
         }
         catch (ApiLimitAbortedException ex)
         {
-            Message = ex.Message + " Les fichiers déjà traités restent dans le catalogue.";
+            Message = ex.Message + " " + Tr.T("Les fichiers déjà traités restent dans le catalogue.");
             Imported = true;
         }
         catch (OperationCanceledException)

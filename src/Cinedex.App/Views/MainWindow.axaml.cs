@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Cinedex.App.Services;
 using Cinedex.App.ViewModels;
 using Cinedex.Core.Metadata;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.App.Views;
 
@@ -150,10 +151,10 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
         };
         return Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => MessageWindow.ShowAsync(
             this,
-            $"Limite atteinte : {name}",
-            $"{reason}\n\nSi vous continuez sans {name} : {consequence}",
+            Tr.F("Limite atteinte : {0}", name),
+            Tr.F("{0}\n\nSi vous continuez sans {1} : {2}", reason, name, consequence),
             confirm: true,
-            okLabel: $"Continuer sans {name}",
+            okLabel: Tr.F("Continuer sans {0}", name),
             cancelLabel: "Interrompre"));
     }
 

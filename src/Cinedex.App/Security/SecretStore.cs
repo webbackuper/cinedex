@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.App.Security;
 
@@ -86,7 +87,7 @@ internal sealed partial class WindowsCredentialStore(string appName) : ISecretSt
         if (!CredRead(Target(name), CredTypeGeneric, 0, out var handle))
         {
             var error = Marshal.GetLastPInvokeError();
-            return error == ErrorNotFound ? null : throw new InvalidOperationException($"Lecture du coffre impossible (erreur {error}).");
+            return error == ErrorNotFound ? null : throw new InvalidOperationException(Tr.F("Lecture du coffre impossible (erreur {0}).", error));
         }
 
         try
@@ -128,7 +129,7 @@ internal sealed partial class WindowsCredentialStore(string appName) : ISecretSt
             };
             if (!CredWrite(ref credential, 0))
             {
-                throw new InvalidOperationException($"Écriture dans le coffre impossible (erreur {Marshal.GetLastPInvokeError()}).");
+                throw new InvalidOperationException(Tr.F("Écriture dans le coffre impossible (erreur {0}).", Marshal.GetLastPInvokeError()));
             }
         }
         finally
@@ -236,7 +237,7 @@ internal static class Tool
 
         try
         {
-            using var process = Process.Start(info) ?? throw new InvalidOperationException($"{file} n'a pas démarré.");
+            using var process = Process.Start(info) ?? throw new InvalidOperationException(Tr.F("{0} n'a pas démarré.", file));
             if (stdin is not null)
             {
                 process.StandardInput.Write(stdin);
@@ -249,7 +250,7 @@ internal static class Tool
         }
         catch (System.ComponentModel.Win32Exception ex)
         {
-            throw new InvalidOperationException($"Coffre à secrets indisponible : l'outil « {file} » est introuvable.", ex);
+            throw new InvalidOperationException(Tr.F("Coffre à secrets indisponible : l'outil « {0} » est introuvable.", file), ex);
         }
     }
 
@@ -257,7 +258,7 @@ internal static class Tool
     {
         if (result.Code != 0)
         {
-            throw new InvalidOperationException($"Le coffre à secrets a refusé l'opération (code {result.Code}).");
+            throw new InvalidOperationException(Tr.F("Le coffre à secrets a refusé l'opération (code {0}).", result.Code));
         }
     }
 }

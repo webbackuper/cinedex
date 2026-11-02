@@ -3,6 +3,7 @@ using Cinedex.Core.Titles;
 using Cinedex.Data;
 using Cinedex.Metadata.Tmdb;
 using Microsoft.Extensions.Logging;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.App.Services;
 
@@ -144,7 +145,7 @@ public sealed class MetadataService(
         {
             cancellationToken.ThrowIfCancellationRequested();
             var title = targets[i];
-            progress?.Report($"TMDb {i + 1}/{targets.Count} : {title.Title}");
+            progress?.Report(Tr.F("TMDb {0}/{1} : {2}", i + 1, targets.Count, title.Title));
             if (title.IsLocked)
             {
                 skipped++;
@@ -167,7 +168,7 @@ public sealed class MetadataService(
                     // Plusieurs fiches possibles ou année inconnue : on ne devine pas, l'utilisateur choisira.
                     reviews?.Add(title.Id, identification.Query, identification.Candidates);
                     toReview++;
-                    messages.Add($"À vérifier ({identification.Candidates.Count} possibilités) : {title.Title}{(title.Year is { } ty ? $" ({ty})" : string.Empty)}");
+                    messages.Add(Tr.F("À vérifier ({0} possibilités) : {1}{2}", identification.Candidates.Count, title.Title, (title.Year is { } ty ? $" ({ty})" : string.Empty)));
                     continue;
                 }
 
@@ -179,7 +180,7 @@ public sealed class MetadataService(
                 if (sourceId == 0)
                 {
                     notFound++;
-                    messages.Add($"Non trouvé sur TMDb : {title.Title}{(title.Year is { } y ? $" ({y})" : string.Empty)}");
+                    messages.Add(Tr.F("Non trouvé sur TMDb : {0}{1}", title.Title, (title.Year is { } y ? $" ({y})" : string.Empty)));
                     continue;
                 }
 
@@ -195,13 +196,13 @@ public sealed class MetadataService(
             catch (DuplicateTitleException)
             {
                 duplicates++;
-                messages.Add($"Déjà au catalogue sous une autre entrée : {title.Title}");
+                messages.Add(Tr.F("Déjà au catalogue sous une autre entrée : {0}", title.Title));
             }
             catch (Exception ex) when (gate is not null && ex is TmdbRateLimitException or TmdbAuthenticationException)
             {
                 // Limite TMDb ou jeton refusé : l'utilisateur choisit de terminer sans TMDb ou d'interrompre.
                 await gate.ReportLimitAsync(ExternalApi.Tmdb, ex.Message).ConfigureAwait(false);
-                messages.Add($"TMDb écarté : {ex.Message}");
+                messages.Add(Tr.F("TMDb écarté : {0}", ex.Message));
                 i--;
             }
             catch (Exception ex) when (ex is TmdbUnavailableException or KeyNotFoundException or HttpRequestException)

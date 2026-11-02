@@ -1,6 +1,7 @@
 using Cinedex.Core.Titles;
 using Dapper;
 using Microsoft.Data.Sqlite;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.Data;
 
@@ -194,7 +195,7 @@ public sealed partial class TitleRepository
             var codes = c.GenreCodes.Distinct(StringComparer.Ordinal).ToList();
             where.Add(c.GenreMatch switch
             {
-                GenreMatch.All => $"{matches} = @GenreCount",
+                GenreMatch.All => Tr.F("{0} = @GenreCount", matches),
                 GenreMatch.None => $"{matches} = 0",
                 _ => $"{matches} > 0",
             });

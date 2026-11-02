@@ -1,5 +1,6 @@
 using Cinedex.Core.Titles;
 using Dapper;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.Data;
 
@@ -94,7 +95,7 @@ public sealed partial class TitleRepository
         var e = sql.Expression;
         if (field.Kind == FieldKind.Flag)
         {
-            return rule.Operator == RuleOperator.IsFalse ? $"NOT ({e})" : e;
+            return rule.Operator == RuleOperator.IsFalse ? Tr.F("NOT ({0})", e) : e;
         }
 
         object? value = null;
@@ -122,13 +123,13 @@ public sealed partial class TitleRepository
         }
 
         var text = field.Kind != FieldKind.Number;
-        var notEmpty = text ? $"({e} IS NOT NULL AND {e} <> '')" : $"{e} IS NOT NULL";
+        var notEmpty = text ? Tr.F("({0} IS NOT NULL AND {1} <> '')", e, e) : Tr.F("{0} IS NOT NULL", e);
 
         // Test « positif » sur une valeur ; les négations s'expriment autour (NOT EXISTS pour un champ multiple).
         var positive = rule.Operator switch
         {
-            RuleOperator.Contains or RuleOperator.NotContains => $"{e} LIKE {name} ESCAPE '!'",
-            RuleOperator.Equals or RuleOperator.NotEquals => text ? $"{e} = {name} COLLATE NOCASE" : $"{e} = {name}",
+            RuleOperator.Contains or RuleOperator.NotContains => Tr.F("{0} LIKE {1} ESCAPE '!'", e, name),
+            RuleOperator.Equals or RuleOperator.NotEquals => text ? Tr.F("{0} = {1} COLLATE NOCASE", e, name) : $"{e} = {name}",
             RuleOperator.Greater => $"{e} > {name}",
             RuleOperator.GreaterOrEqual => $"{e} >= {name}",
             RuleOperator.Less => $"{e} < {name}",
@@ -143,6 +144,6 @@ public sealed partial class TitleRepository
             return negated ? "NOT " + exists : exists;
         }
 
-        return negated ? $"NOT coalesce({positive}, 0)" : positive;
+        return negated ? Tr.F("NOT coalesce({0}, 0)", positive) : positive;
     }
 }

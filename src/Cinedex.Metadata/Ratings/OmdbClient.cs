@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.Metadata.Ratings;
 
@@ -53,7 +54,7 @@ public sealed partial class OmdbClient(HttpClient http, Func<CancellationToken, 
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new OmdbException($"OMDb a répondu {(int)response.StatusCode}.");
+                throw new OmdbException(Tr.F("OMDb a répondu {0}.", (int)response.StatusCode));
             }
 
             body = await response.Content.ReadFromJsonAsync<OmdbResponse>(cancellationToken).ConfigureAwait(false);

@@ -1,3 +1,5 @@
+using Cinedex.Core.Localization;
+
 namespace Cinedex.Media;
 
 public sealed record ScanOptions
@@ -53,7 +55,7 @@ public static class LibraryScanner
         var rootDir = new DirectoryInfo(Path.GetFullPath(root));
         if (!rootDir.Exists)
         {
-            throw new DirectoryNotFoundException($"Dossier introuvable : {root}");
+            throw new DirectoryNotFoundException(Tr.F("Dossier introuvable : {0}", root));
         }
 
         var enumeration = new EnumerationOptions

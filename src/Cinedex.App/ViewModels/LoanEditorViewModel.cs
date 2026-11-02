@@ -3,14 +3,23 @@ using Cinedex.Core.Titles;
 using Cinedex.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.App.ViewModels;
 
 /// <summary>Une ligne de l'historique des prêts, prête à afficher.</summary>
 public sealed record LoanLine(Loan Loan)
 {
-    public string Text => $"{Loan.Borrower} : du {Loan.LoanedAt.ToLocalTime():d} " +
-        (Loan.ReturnedAt is { } r ? $"au {r.ToLocalTime():d} ({Math.Max(0, (r - Loan.LoanedAt).Days)} j)" : "à aujourd'hui, pas encore rendu");
+    public string Text => Describe(Loan);
+
+    /// <summary>« Marie : du 01/10/2026 au 12/10/2026 (11 j) », ou « … à aujourd'hui, pas encore rendu ».</summary>
+    public static string Describe(Loan loan)
+    {
+        ArgumentNullException.ThrowIfNull(loan);
+        return loan.ReturnedAt is { } r
+            ? Tr.F("{0} : du {1:d} au {2:d} ({3} j)", loan.Borrower, loan.LoanedAt.ToLocalTime(), r.ToLocalTime(), Math.Max(0, (r - loan.LoanedAt).Days))
+            : Tr.F("{0} : du {1:d} à aujourd'hui, pas encore rendu", loan.Borrower, loan.LoanedAt.ToLocalTime());
+    }
 }
 
 /// <summary>
@@ -48,7 +57,7 @@ public sealed partial class LoanEditorViewModel : ObservableObject
     public bool IsLoaned => Current is not null;
 
     public string StatusText => Current is { } loan
-        ? $"Prêté à {loan.Borrower} depuis le {loan.LoanedAt.ToLocalTime():d}"
+        ? Tr.F("Prêté à {0} depuis le {1:d}", loan.Borrower, loan.LoanedAt.ToLocalTime())
         : "Disponible";
 
     [ObservableProperty]

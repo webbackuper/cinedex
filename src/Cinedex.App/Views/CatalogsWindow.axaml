@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="using:Cinedex.App.Views"
         xmlns:vm="using:Cinedex.App.ViewModels"
         xmlns:data="using:Cinedex.Data"
         x:Class="Cinedex.App.Views.CatalogsWindow"
@@ -10,7 +11,7 @@
   <DockPanel Margin="16">
     <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Margin="0,0,0,8"
                Text="Chaque catalogue est une base indépendante, avec ses titres, ses images et ses réglages. Un nouveau catalogue reprend les réglages du catalogue ouvert." />
-    <TextBlock DockPanel.Dock="Top" Margin="0,0,0,12" FontWeight="SemiBold" Text="{Binding Current, StringFormat='Catalogue ouvert : {0}'}" />
+    <TextBlock DockPanel.Dock="Top" Margin="0,0,0,12" FontWeight="SemiBold" Text="{Binding Current, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='Catalogue ouvert : {0}'}" />
 
     <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,12,0,0">
       <TextBox Text="{Binding NameText}" PlaceholderText="Nom (nouveau catalogue ou nouveau nom)" />
@@ -30,7 +31,7 @@
         <DataTemplate x:DataType="data:CatalogEntry">
           <Grid ColumnDefinitions="*,Auto">
             <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
-            <TextBlock Grid.Column="1" Text="{Binding LastModifiedUtc, StringFormat='modifié le {0:d}'}" Opacity="0.6" FontSize="12" />
+            <TextBlock Grid.Column="1" Text="{Binding LastModifiedUtc, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='modifié le {0:d}'}" Opacity="0.6" FontSize="12" />
           </Grid>
         </DataTemplate>
       </ListBox.ItemTemplate>

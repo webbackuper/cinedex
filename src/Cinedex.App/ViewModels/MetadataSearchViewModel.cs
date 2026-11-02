@@ -5,6 +5,7 @@ using Cinedex.Core.Titles;
 using Cinedex.Metadata.Tmdb;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.App.ViewModels;
 
@@ -70,7 +71,7 @@ public sealed partial class MetadataSearchViewModel : ObservableObject
             }
 
             Selected = Results.FirstOrDefault();
-            Message = Results.Count == 0 ? "Aucun résultat. Essayez le titre original ou l'identifiant IMDb." : $"{Results.Count} résultat(s)";
+            Message = Results.Count == 0 ? "Aucun résultat. Essayez le titre original ou l'identifiant IMDb." : Tr.F("{0} résultat(s)", Results.Count);
         }
         catch (Exception ex) when (ex is TmdbAuthenticationException or TmdbUnavailableException or HttpRequestException or TaskCanceledException or KeyNotFoundException)
         {

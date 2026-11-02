@@ -7,6 +7,7 @@ using Cinedex.Core.Titles;
 using Cinedex.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.App.ViewModels;
 
@@ -39,7 +40,7 @@ public sealed partial class FileVolumeRow(MediaFileEntry file) : ObservableObjec
 {
     public MediaFileEntry File { get; } = file;
 
-    public string Header => (File.Part > 1 ? $"Partie {File.Part} : " : string.Empty) + File.FullPath;
+    public string Header => (File.Part > 1 ? Tr.F("Partie {0} : ", File.Part) : string.Empty) + File.FullPath;
 
     [ObservableProperty]
     public partial string MediaId { get; set; } = file.VolumeLabel ?? string.Empty;
@@ -206,7 +207,7 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         }
     }
 
-    public string WindowTitle => $"Modifier : {_original.Title}";
+    public string WindowTitle => Tr.F("Modifier : {0}", _original.Title);
 
     public string? PosterPath { get; }
 
@@ -224,13 +225,13 @@ public sealed partial class TitleEditorViewModel : ObservableObject
     /// <summary>Identifiants en lecture seule : TMDb (rempli par la mise à jour) et date d'ajout.</summary>
     public string SourceText => string.Join(" · ", new[]
     {
-        _original.TmdbId is { } tmdb ? $"TMDb {tmdb}" : "Pas lié à TMDb",
-        $"ajouté le {_original.AddedAt.ToLocalTime():d}",
+        _original.TmdbId is { } tmdb ? Tr.F("TMDb {0}", tmdb) : "Pas lié à TMDb",
+        Tr.F("ajouté le {0:d}", _original.AddedAt.ToLocalTime()),
     });
 
     public string SeenText => _original.ViewCount == 0
         ? "Jamais vu"
-        : $"Vu {_original.ViewCount} fois" + (_original.LastSeenAt is { } last ? $", dernière fois le {last.ToLocalTime():d}" : string.Empty);
+        : Tr.F("Vu {0} fois", _original.ViewCount) + (_original.LastSeenAt is { } last ? Tr.F(", dernière fois le {0:d}", last.ToLocalTime()) : string.Empty);
 
     /// <summary>Gestion du prêt dans l'onglet Exemplaire (absente si la fiche est ouverte sans catalogue).</summary>
     public LoanEditorViewModel? Loans { get; }
@@ -240,7 +241,7 @@ public sealed partial class TitleEditorViewModel : ObservableObject
     /// <summary>Durée saisie en minutes, affichée aussi en heures : « 112 » donne « soit 1 h 52 ».</summary>
     public string RuntimeText =>
         int.TryParse(Runtime?.Trim(), NumberStyles.Integer, CultureInfo.CurrentCulture, out var minutes) && minutes > 0
-            ? "soit " + TitleText.FormatRuntime(minutes)
+            ? Tr.F("soit {0}", TitleText.FormatRuntime(minutes))
             : string.Empty;
 
     partial void OnRuntimeChanged(string value) => OnPropertyChanged(nameof(RuntimeText));
@@ -373,7 +374,7 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         var errors = new List<string>();
         if (string.IsNullOrWhiteSpace(Title))
         {
-            errors.Add("Le titre est obligatoire.");
+            errors.Add(Tr.T("Le titre est obligatoire."));
         }
 
         var year = ParseInt(Year, "Année", 1870, 2100, errors);
@@ -390,19 +391,19 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         var imdb = ImdbId.Trim();
         if (imdb.Length > 0 && !IsImdbId(imdb))
         {
-            errors.Add("L'identifiant IMDb doit avoir la forme tt1234567.");
+            errors.Add(Tr.T("L'identifiant IMDb doit avoir la forme tt1234567."));
         }
 
         var link = WebLink.Trim();
         if (link.Length > 0 && !IsWebLink(link))
         {
-            errors.Add("Le lien web doit commencer par https:// ou http://.");
+            errors.Add(Tr.T("Le lien web doit commencer par https:// ou http://."));
         }
 
         var trailer = TrailerUrl.Trim();
         if (trailer.Length > 0 && !IsWebLink(trailer))
         {
-            errors.Add("La bande-annonce doit être un lien https:// ou http://.");
+            errors.Add(Tr.T("La bande-annonce doit être un lien https:// ou http://."));
         }
 
         if (errors.Count > 0)
@@ -491,7 +492,7 @@ public sealed partial class TitleEditorViewModel : ObservableObject
             return value;
         }
 
-        errors.Add($"{field} : nombre entier attendu entre {min} et {max}.");
+        errors.Add(Tr.F("{0} : nombre entier attendu entre {1} et {2}.", Tr.T(field), min, max));
         return null;
     }
 
@@ -509,7 +510,7 @@ public sealed partial class TitleEditorViewModel : ObservableObject
             return value;
         }
 
-        errors.Add($"{field} : nombre attendu entre {min} et {max}.");
+        errors.Add(Tr.F("{0} : nombre attendu entre {1} et {2}.", Tr.T(field), min, max));
         return null;
     }
 }

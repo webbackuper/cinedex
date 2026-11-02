@@ -116,7 +116,7 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="people:CastMember">
                   <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="4,3" Margin="0,1"
-                          Click="OnOpenPerson" Cursor="Hand" ToolTip.Tip="{Binding Name, StringFormat='Fiche de {0}'}">
+                          Click="OnOpenPerson" Cursor="Hand" ToolTip.Tip="{Binding Name, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='Fiche de {0}'}">
                     <Grid ColumnDefinitions="40,*,*">
                       <Border Width="32" Height="40" CornerRadius="4" ClipToBounds="True" Background="{DynamicResource CinedexSurfaceAlt}">
                         <Image Source="{Binding PhotoPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=64}" Stretch="UniformToFill" />
@@ -210,7 +210,6 @@
               <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding !IsLoaned}">
                 <AutoCompleteBox Width="240" Text="{Binding BorrowerText}" ItemsSource="{Binding Borrowers}"
                                  FilterMode="ContainsOrdinal" Watermark="Emprunteur" />
-                <TextBlock Text="le" VerticalAlignment="Center" />
                 <CalendarDatePicker SelectedDate="{Binding LoanDate}" Width="150" />
                 <Button Classes="accent" Content="Prêter" Command="{Binding LendCommand}" />
               </StackPanel>

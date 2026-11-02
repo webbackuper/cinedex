@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using Cinedex.Core.Titles;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.App.ViewModels;
 
@@ -160,7 +161,7 @@ public sealed partial class RuleSearchViewModel : ObservableObject
             {
                 0 => "Aucun film ne correspond.",
                 1 => "1 film correspond.",
-                var n => $"{n} films correspondent.",
+                var n => Tr.F("{0} films correspondent.", n),
             };
     }
 }

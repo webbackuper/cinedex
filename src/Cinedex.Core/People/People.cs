@@ -1,4 +1,5 @@
 using Cinedex.Core.Titles;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.Core.People;
 
@@ -60,8 +61,8 @@ public sealed record PersonDetail
             var end = Deathday ?? DateOnly.FromDateTime(DateTime.Today);
             var age = end.Year - Birthday.Value.Year - (end < Birthday.Value.AddYears(end.Year - Birthday.Value.Year) ? 1 : 0);
             var text = Deathday is { } d
-                ? $"{Birthday.Value.ToString("D", culture)} – {d.ToString("D", culture)} ({age} ans)"
-                : $"Né(e) le {Birthday.Value.ToString("D", culture)} ({age} ans)";
+                ? Tr.F("{0} – {1} ({2} ans)", Birthday.Value.ToString("D", culture), d.ToString("D", culture), age)
+                : Tr.F("Né(e) le {0} ({1} ans)", Birthday.Value.ToString("D", culture), age);
             return PlaceOfBirth is null ? text : $"{text}, {PlaceOfBirth}";
         }
     }
@@ -77,7 +78,7 @@ public sealed record PersonCredit(long TitleId, string Title, int? Year, TitleKi
         Year?.ToString(System.Globalization.CultureInfo.CurrentCulture),
         Role switch
         {
-            "actor" => Character is null ? "Acteur" : $"rôle : {Character}",
+            "actor" => Character is null ? "Acteur" : Tr.F("rôle : {0}", Character),
             "director" => "Réalisation",
             "writer" => "Scénario",
             "composer" => "Musique",
@@ -91,5 +92,5 @@ public sealed record PersonSummary(long Id, string Name, int TitleCount, string?
 {
     public string? PhotoPath { get; init; }
 
-    public string CountLabel => TitleCount <= 1 ? "1 titre" : $"{TitleCount} titres";
+    public string CountLabel => TitleCount <= 1 ? "1 titre" : Tr.F("{0} titres", TitleCount);
 }

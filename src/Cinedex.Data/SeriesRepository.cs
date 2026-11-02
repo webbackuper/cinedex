@@ -2,14 +2,15 @@ using System.Globalization;
 using Cinedex.Core.Metadata;
 using Dapper;
 using Microsoft.Data.Sqlite;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.Data;
 
 public sealed record SeasonView(long Id, int Number, string Name, DateOnly? AirDate, bool IsLocked, int EpisodeCount, int SeenCount, int FileCount)
 {
-    public string Label => Number == 0 ? "Épisodes spéciaux" : string.IsNullOrWhiteSpace(Name) ? $"Saison {Number}" : Name;
+    public string Label => Number == 0 ? "Épisodes spéciaux" : string.IsNullOrWhiteSpace(Name) ? Tr.F("Saison {0}", Number) : Name;
 
-    public string Progress => $"{SeenCount}/{EpisodeCount} vus";
+    public string Progress => Tr.F("{0}/{1} vus", SeenCount, EpisodeCount);
 }
 
 public sealed record EpisodeView(long Id, long SeasonId, int SeasonNumber, int Number, string? Name, string? Overview, DateOnly? AirDate, bool IsSeen, string? FilePath)

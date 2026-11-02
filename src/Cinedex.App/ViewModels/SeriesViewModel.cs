@@ -5,6 +5,7 @@ using Cinedex.Media;
 using Cinedex.Metadata.Tmdb;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.App.ViewModels;
 
@@ -26,7 +27,7 @@ public sealed partial class EpisodeRow : ObservableObject
 
     public string Code => Episode.Code;
 
-    public string Name => Episode.Name ?? $"Épisode {Episode.Number}";
+    public string Name => Episode.Name ?? Tr.F("Épisode {0}", Episode.Number);
 
     public string Aired => Episode.AirDate?.ToString("d", System.Globalization.CultureInfo.CurrentCulture) ?? string.Empty;
 
@@ -115,7 +116,7 @@ public sealed partial class SeriesViewModel : ObservableObject
             var added = await _metadata!.SyncEpisodesAsync(_titleId, _tmdbId!.Value);
             Changed = true;
             Reload();
-            Message = $"{added} nouvel(s) épisode(s).";
+            Message = Tr.F("{0} nouvel(s) épisode(s).", added);
         }
         catch (Exception ex) when (ex is TmdbAuthenticationException or TmdbUnavailableException or HttpRequestException or KeyNotFoundException)
         {
@@ -188,7 +189,7 @@ public sealed partial class SeriesViewModel : ObservableObject
 
         Changed = true;
         Reload(SelectedSeason?.Id);
-        Message = attached == 0 ? "Aucun épisode reconnu (noms attendus : S01E02 ou 1x02)." : $"{attached} fichier(s) d'épisode rattaché(s).";
+        Message = attached == 0 ? "Aucun épisode reconnu (noms attendus : S01E02 ou 1x02)." : Tr.F("{0} fichier(s) d'épisode rattaché(s).", attached);
         return attached;
     }
 

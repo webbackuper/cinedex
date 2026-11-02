@@ -5,6 +5,7 @@ using Cinedex.App.Services;
 using Cinedex.Core.Titles;
 using Cinedex.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.App.ViewModels;
 
@@ -48,6 +49,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             new(StartupWindowMode.FullScreen, "Plein écran (F11 pour en sortir)"),
             new(StartupWindowMode.LastSize, "Taille et position de la dernière fois"),
         ];
+        SelectedLanguage = Cinedex.Core.Localization.Tr.Languages.First(l => l.Code == (dataRoot is null ? Cinedex.Core.Localization.Tr.Current.Code : LanguagePreference.Load(dataRoot)));
         SelectedStartup = StartupChoices.Single(c => c.Value == (dataRoot is null ? StartupWindowMode.Maximized : WindowPlacement.Load(dataRoot).Mode));
 
         // Bandeau gauche.
@@ -101,6 +103,15 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     public partial Choice<StartupWindowMode> SelectedStartup { get; set; }
+
+    /// <summary>Les 16 langues proposées, chacune écrite dans sa propre langue.</summary>
+    public static IReadOnlyList<Cinedex.Core.Localization.UiLanguage> LanguageChoices => Cinedex.Core.Localization.Tr.Languages;
+
+    [ObservableProperty]
+    public partial Cinedex.Core.Localization.UiLanguage SelectedLanguage { get; set; }
+
+    /// <summary>Vrai après un enregistrement qui change la langue : elle s'applique au redémarrage.</summary>
+    public bool LanguageChanged { get; private set; }
 
     public string DataLocation => _dataRoot ?? "(inconnu)";
 
@@ -239,7 +250,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         {
             if (path.Trim().Length > 0 && !File.Exists(path.Trim()))
             {
-                Error = $"Chemin du {label} introuvable : {path}";
+                Error = Tr.F("Chemin du {0} introuvable : {1}", label, path);
                 return false;
             }
         }
@@ -320,6 +331,8 @@ public sealed partial class SettingsViewModel : ObservableObject
             Appearance.Save(_dataRoot, SelectedTheme.Value);
             Appearance.Apply(SelectedTheme.Value);
             (WindowPlacement.Load(_dataRoot) with { Mode = SelectedStartup.Value }).Save(_dataRoot);
+            LanguageChanged = SelectedLanguage.Code != Cinedex.Core.Localization.Tr.Current.Code;
+            LanguagePreference.Save(_dataRoot, SelectedLanguage.Code);
         }
 
         _settings.Set(Services.NfoSettings.ReadKey, NfoReadOnScan ? "true" : "false");

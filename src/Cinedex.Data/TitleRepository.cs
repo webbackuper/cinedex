@@ -3,6 +3,7 @@ using System.Text;
 using Cinedex.Core.Titles;
 using Dapper;
 using Microsoft.Data.Sqlite;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.Data;
 
@@ -295,7 +296,7 @@ public sealed partial class TitleRepository(CatalogDatabase database)
             transaction);
         if (updated == 0)
         {
-            throw new KeyNotFoundException($"Titre {detail.Id} introuvable.");
+            throw new KeyNotFoundException(Tr.F("Titre {0} introuvable.", detail.Id));
         }
 
         connection.Execute("DELETE FROM title_genre WHERE title_id = @Id;", new { detail.Id }, transaction);
@@ -519,8 +520,8 @@ public sealed partial class TitleRepository(CatalogDatabase database)
             _ => throw new ArgumentOutOfRangeException(nameof(sort), sort, null),
         };
         return column is null
-            ? $"t.sort_title {direction}, t.year {direction}"
-            : $"{column} IS NULL, {column} {direction}, t.sort_title ASC";
+            ? Tr.F("t.sort_title {0}, t.year {1}", direction, direction)
+            : Tr.F("{0} IS NULL, {1} {2}, t.sort_title ASC", column, column, direction);
     }
 
     private void SetFlag(IEnumerable<long> ids, string column, bool value)

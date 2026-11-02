@@ -8,6 +8,7 @@ using Cinedex.Core.Metadata;
 using Cinedex.Core.Titles;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.Metadata.Tmdb;
 
@@ -280,7 +281,7 @@ public sealed partial class TmdbClient
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw new TmdbUnavailableException($"TMDb a répondu {(int)response.StatusCode}.");
+                    throw new TmdbUnavailableException(Tr.F("TMDb a répondu {0}.", (int)response.StatusCode));
                 }
 
                 return await response.Content.ReadFromJsonAsync<T>(Json, cancellationToken).ConfigureAwait(false)

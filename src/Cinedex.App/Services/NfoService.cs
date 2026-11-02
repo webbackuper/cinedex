@@ -3,6 +3,7 @@ using Cinedex.Core.Titles;
 using Cinedex.Data;
 using Cinedex.Media;
 using Microsoft.Extensions.Logging;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.App.Services;
 
@@ -46,7 +47,7 @@ public sealed class NfoService(
     public void ApplyToTitle(long titleId, NfoInfo nfo)
     {
         ArgumentNullException.ThrowIfNull(nfo);
-        var current = titles.Get(titleId) ?? throw new KeyNotFoundException($"Titre {titleId} introuvable.");
+        var current = titles.Get(titleId) ?? throw new KeyNotFoundException(Tr.F("Titre {0} introuvable.", titleId));
         var record = ToRecord(nfo, current);
         try
         {

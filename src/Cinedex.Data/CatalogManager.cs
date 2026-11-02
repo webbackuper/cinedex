@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Cinedex.Core;
 using Microsoft.Data.Sqlite;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.Data;
 
@@ -51,7 +52,7 @@ public sealed class CatalogManager(AppPaths paths)
         var safe = AppPaths.SanitizeName(name);
         if (!Exists(safe))
         {
-            throw new DirectoryNotFoundException($"Catalogue introuvable : {safe}");
+            throw new DirectoryNotFoundException(Tr.F("Catalogue introuvable : {0}", safe));
         }
 
         Directory.CreateDirectory(paths.DataRoot);
@@ -68,7 +69,7 @@ public sealed class CatalogManager(AppPaths paths)
         var safe = AppPaths.SanitizeName(name);
         if (Exists(safe))
         {
-            throw new InvalidOperationException($"Le catalogue « {safe} » existe déjà.");
+            throw new InvalidOperationException(Tr.F("Le catalogue « {0} » existe déjà.", safe));
         }
 
         new CatalogDatabase(paths.CatalogDatabasePath(safe)).Initialize(paths.BackupsDirectory);
@@ -88,12 +89,12 @@ public sealed class CatalogManager(AppPaths paths)
 
         if (!Exists(from))
         {
-            throw new DirectoryNotFoundException($"Catalogue introuvable : {from}");
+            throw new DirectoryNotFoundException(Tr.F("Catalogue introuvable : {0}", from));
         }
 
         if (Directory.Exists(paths.CatalogDirectory(to)))
         {
-            throw new InvalidOperationException($"Le catalogue « {to} » existe déjà.");
+            throw new InvalidOperationException(Tr.F("Le catalogue « {0} » existe déjà.", to));
         }
 
         SqliteConnection.ClearAllPools();
@@ -117,7 +118,7 @@ public sealed class CatalogManager(AppPaths paths)
 
         if (!Exists(safe))
         {
-            throw new DirectoryNotFoundException($"Catalogue introuvable : {safe}");
+            throw new DirectoryNotFoundException(Tr.F("Catalogue introuvable : {0}", safe));
         }
 
         SqliteConnection.ClearAllPools();

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using Cinedex.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.App.ViewModels;
 
@@ -74,7 +75,7 @@ public sealed partial class CatalogsViewModel : ObservableObject
         Run(() =>
         {
             var name = _manager.Rename(Selected!.Name, NameText, Current);
-            Message = $"Catalogue renommé en « {name} ».";
+            Message = Tr.F("Catalogue renommé en « {0} ».", name);
             NameText = string.Empty;
             Reload();
         });
@@ -88,7 +89,7 @@ public sealed partial class CatalogsViewModel : ObservableObject
         Run(() =>
         {
             var where = _manager.Remove(Selected!.Name, Current);
-            Message = $"Catalogue retiré. Une copie complète est conservée dans {where}.";
+            Message = Tr.F("Catalogue retiré. Une copie complète est conservée dans {0}.", where);
             Reload();
         });
     }

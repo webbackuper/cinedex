@@ -1,6 +1,7 @@
 using Cinedex.Data;
 using Cinedex.Metadata.Ratings;
 using Microsoft.Extensions.Logging;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.App.Services;
 
@@ -68,7 +69,7 @@ public sealed class RatingsService(
                 logger.LogWarning(ex, "Fichier des notes IMDb indisponible");
                 if (gate is not null)
                 {
-                    await gate.ReportLimitAsync(ExternalApi.ImdbDataset, "Le fichier officiel des notes IMDb est indisponible : " + ex.Message).ConfigureAwait(false);
+                    await gate.ReportLimitAsync(ExternalApi.ImdbDataset, Tr.F("Le fichier officiel des notes IMDb est indisponible : {0}", ex.Message)).ConfigureAwait(false);
                 }
             }
         }
@@ -88,7 +89,7 @@ public sealed class RatingsService(
         progress?.Report("Téléchargement du fichier des notes IMDb (au plus une fois par jour)...");
         await dataset.RefreshAsync(TimeSpan.FromDays(1), cancellationToken).ConfigureAwait(false);
         var targets = metadata.TitlesWithImdbId();
-        progress?.Report($"Lecture des notes de {targets.Count} titre(s)...");
+        progress?.Report(Tr.F("Lecture des notes de {0} titre(s)...", targets.Count));
         var found = await dataset.LookupAsync(targets.Select(t => t.ImdbId), cancellationToken).ConfigureAwait(false);
         var updated = 0;
         foreach (var (titleId, imdbId) in targets)

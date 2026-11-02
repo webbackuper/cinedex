@@ -12,6 +12,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.App;
 
@@ -32,10 +33,28 @@ public sealed class App : Application
             _paths.EnsureCreated();
             _serilog = CreateLogger(_paths);
             Services.Appearance.Apply(Services.Appearance.Load(_paths.DataRoot));
+            Cinedex.Core.Localization.Tr.Use(LanguagePreference.Load(_paths.DataRoot));
+            UiTranslator.Install(this);
             _window = new MainWindow();
             _window.ApplyStartupPlacement(_paths.DataRoot);
             OpenCatalog(new CatalogManager(_paths).Current);
             desktop.MainWindow = _window;
+            if (Environment.GetEnvironmentVariable("CINEDEX_SNAPSHOT") is { Length: > 0 } snapshot)
+            {
+                // Outil de développement : capture de la fenêtre principale (vérification des traductions), puis sortie.
+                _window.Opened += async (_, _) =>
+                {
+                    await Task.Delay(2500);
+                    var size = new Avalonia.PixelSize((int)_window.Bounds.Width, (int)_window.Bounds.Height);
+                    using var bitmap = new Avalonia.Media.Imaging.RenderTargetBitmap(size);
+                    bitmap.Render(_window);
+                    using (var file = File.Create(snapshot))
+                    {
+                        bitmap.Save(file, new Avalonia.Media.Imaging.PngBitmapEncoderOptions());
+                    }
+                    desktop.Shutdown();
+                };
+            }
             desktop.ShutdownRequested += (_, _) =>
             {
                 _services?.Dispose();
@@ -53,6 +72,9 @@ public sealed class App : Application
         _services = ConfigureServices(_paths!, name, _serilog!, _window);
         previous?.Dispose();
         SqliteConnection.ClearAllPools();
+
+        // Base créée au premier accès : on l'ouvre avant de la mémoriser comme catalogue courant (premier lancement).
+        _services.GetRequiredService<CatalogDatabase>();
         new CatalogManager(_paths!).SetCurrent(name);
 
         var services = _services;
@@ -68,7 +90,7 @@ public sealed class App : Application
             catalogs);
         main.Load();
         _window!.DataContext = main;
-        _window.Title = $"Cinedex · {name}";
+        _window.Title = Tr.F("Cinedex · {0}", name);
     }
 
     private static Serilog.Core.Logger CreateLogger(AppPaths paths)

@@ -1,5 +1,6 @@
 using Dapper;
 using Microsoft.Data.Sqlite;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.Data;
 
@@ -31,30 +32,30 @@ public sealed record MediaFileDetail(
         var culture = System.Globalization.CultureInfo.CurrentCulture;
         var lines = new List<string>
         {
-            (File.Part > 1 ? $"Partie {File.Part} : " : "Emplacement : ") + File.FullPath + (File.IsMissing ? "  (introuvable)" : string.Empty),
-            "MediaID : " + (File.VolumeLabel ?? "(disque sans nom)"),
+            (File.Part > 1 ? Tr.F("Partie {0} : ", File.Part) : Tr.T("Emplacement : ")) + File.FullPath + (File.IsMissing ? "  " + Tr.T("(introuvable)") : string.Empty),
+            "MediaID : " + (File.VolumeLabel ?? Tr.T("(disque sans nom)")),
         };
         if (File.SizeBytes is { } size)
         {
-            lines.Add("Taille : " + (size >= 1L << 30
-                ? (size / (double)(1L << 30)).ToString("0.00", culture) + " Go"
-                : (size / (double)(1L << 20)).ToString("0", culture) + " Mo"));
+            lines.Add(size >= 1L << 30
+                ? Tr.F("Taille : {0:0.00} Go", size / (double)(1L << 30))
+                : Tr.F("Taille : {0:0} Mo", size / (double)(1L << 20)));
         }
 
         if (!HasTechnical)
         {
-            lines.Add("Infos techniques pas encore lues : utilisez « Relire les infos techniques ».");
+            lines.Add(Tr.T("Infos techniques pas encore lues : utilisez « Relire les infos techniques »."));
             return string.Join('\n', lines);
         }
 
         if (DurationSeconds is > 0)
         {
-            lines.Add("Durée : " + Cinedex.Core.Titles.TitleText.FormatDuration(DurationSeconds.Value));
+            lines.Add(Tr.T("Durée : ") + Cinedex.Core.Titles.TitleText.FormatDuration(DurationSeconds.Value));
         }
 
         if (Container is not null)
         {
-            lines.Add("Conteneur : " + Container);
+            lines.Add(Tr.T("Conteneur : ") + Container);
         }
 
         var video = new[]
@@ -63,22 +64,22 @@ public sealed record MediaFileDetail(
             Width is null ? null : $"{Width}×{Height}",
             AspectRatio,
             FrameRate is null ? null : FrameRate.Value.ToString("0.###", culture) + " i/s",
-            BitDepth is null ? null : $"{BitDepth} bits",
+            BitDepth is null ? null : Tr.F("{0} bits", BitDepth),
             HdrFormats,
         }.Where(p => !string.IsNullOrWhiteSpace(p)).ToList();
         if (video.Count > 0)
         {
-            lines.Add("Vidéo : " + string.Join(" · ", video));
+            lines.Add(Tr.T("Vidéo : ") + string.Join(" · ", video));
         }
 
         if (Audio.Count > 0)
         {
-            lines.Add("Audio : " + string.Join(", ", Audio));
+            lines.Add(Tr.T("Audio : ") + string.Join(", ", Audio));
         }
 
         if (Subtitles.Count > 0)
         {
-            lines.Add("Sous-titres : " + string.Join(", ", Subtitles));
+            lines.Add(Tr.T("Sous-titres : ") + string.Join(", ", Subtitles));
         }
 
         return string.Join('\n', lines);
@@ -263,7 +264,7 @@ public sealed class MediaFileRepository(CatalogDatabase database)
             row.Width is null ? null : $"{row.Width}×{row.Height}",
             row.Aspect,
             row.Fps is null ? null : row.Fps.Value.ToString("0.###", inv) + " i/s",
-            row.Bits is null ? null : $"{row.Bits} bits",
+            row.Bits is null ? null : Tr.F("{0} bits", row.Bits),
             row.Hdr,
             row.Duration is null ? null : $"{row.Duration / 3600} h {row.Duration % 3600 / 60:00}",
         };
@@ -275,12 +276,12 @@ public sealed class MediaFileRepository(CatalogDatabase database)
         var text = string.Join(" · ", parts.Where(p => !string.IsNullOrWhiteSpace(p)));
         if (audio.Count > 0)
         {
-            text += "\nAudio : " + string.Join(", ", audio);
+            text += "\n" + Tr.T("Audio : ") + string.Join(", ", audio);
         }
 
         if (subs.Count > 0)
         {
-            text += "\nSous-titres : " + string.Join(", ", subs);
+            text += "\n" + Tr.T("Sous-titres : ") + string.Join(", ", subs);
         }
 
         return text;

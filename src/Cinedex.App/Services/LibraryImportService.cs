@@ -4,6 +4,7 @@ using Cinedex.Data;
 using Cinedex.Media;
 using Cinedex.Metadata.Tmdb;
 using Microsoft.Extensions.Logging;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.App.Services;
 
@@ -77,17 +78,17 @@ public sealed class LibraryImportService(
         var full = Path.GetFullPath(path);
         if (!File.Exists(full))
         {
-            throw new InvalidOperationException($"Fichier introuvable : {full}");
+            throw new InvalidOperationException(Tr.F("Fichier introuvable : {0}", full));
         }
 
         if (!FileNameParser.IsVideo(full, videoExtensions))
         {
-            throw new InvalidOperationException($"Ce n'est pas un fichier vidéo reconnu : {Path.GetFileName(full)}");
+            throw new InvalidOperationException(Tr.F("Ce n'est pas un fichier vidéo reconnu : {0}", Path.GetFileName(full)));
         }
 
         if (files.KnownPaths().Contains(full))
         {
-            throw new InvalidOperationException($"Ce fichier est déjà dans le catalogue : {Path.GetFileName(full)}");
+            throw new InvalidOperationException(Tr.F("Ce fichier est déjà dans le catalogue : {0}", Path.GetFileName(full)));
         }
 
         var existing = files.FilesOf(titleId);
@@ -158,7 +159,7 @@ public sealed class LibraryImportService(
         var probe = options.ReadTechnicalProperties ? probeFactory() : null;
         if (probe is { IsAvailable: false })
         {
-            messages.Add("MediaInfo introuvable (ni ffprobe) : propriétés techniques non lues. Indiquez le chemin de MediaInfo dans les réglages.");
+            messages.Add(Tr.T("MediaInfo introuvable (ni ffprobe) : propriétés techniques non lues. Indiquez le chemin de MediaInfo dans les réglages."));
             probe = null;
         }
 
@@ -238,7 +239,7 @@ public sealed class LibraryImportService(
                     await gate.ReportLimitAsync(ExternalApi.Tmdb, ex.Message).ConfigureAwait(false);
                 }
 
-                messages.Add($"TMDb écarté : {ex.Message}");
+                messages.Add(Tr.F("TMDb écarté : {0}", ex.Message));
                 useTmdb = false;
                 i--;
             }
@@ -261,7 +262,7 @@ public sealed class LibraryImportService(
             foreach (var group in episodeCandidates.GroupBy(c => c.Parsed.Title, StringComparer.OrdinalIgnoreCase))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                progress?.Report($"Série : {group.Key}");
+                progress?.Report(Tr.F("Série : {0}", group.Key));
                 try
                 {
                     var titleId = await FindOrCreateSeriesAsync(group.Key, useTmdb, cancellationToken).ConfigureAwait(false);
@@ -278,7 +279,7 @@ public sealed class LibraryImportService(
                     await gate!.ReportLimitAsync(ExternalApi.Tmdb, ex.Message).ConfigureAwait(false);
                     useTmdb = false;
                     failed += group.Count();
-                    messages.Add($"{group.Key} : TMDb écarté ({ex.Message}), à relancer avec « Mettre à jour via TMDb ».");
+                    messages.Add(Tr.F("{0} : TMDb écarté ({1}), à relancer avec « Mettre à jour via TMDb ».", group.Key, ex.Message));
                 }
                 catch (Exception ex) when (ex is IOException or TmdbUnavailableException or TmdbAuthenticationException or HttpRequestException or KeyNotFoundException)
                 {

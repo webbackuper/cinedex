@@ -1,5 +1,6 @@
 using Cinedex.Core.Titles;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.App.ViewModels;
 
@@ -11,7 +12,7 @@ public sealed partial class BulkEditViewModel : ObservableObject
 {
     public BulkEditViewModel(int count, IReadOnlyList<RefItem> media, IReadOnlyList<CollectionInfo> collections)
     {
-        Header = $"Modifier {count} titres. Seuls les champs renseignés sont appliqués.";
+        Header = Tr.F("Modifier {0} titres. Seuls les champs renseignés sont appliqués.", count);
         Media = [new(null, "(ne pas modifier)"), .. media.Select(m => new Choice<string?>(m.Code, m.Label))];
         Collections = [new(null, "(ne pas modifier)"), new(0, "(retirer de la collection)"), .. collections.Select(c => new Choice<long?>(c.Id, c.Name))];
         SelectedMedium = Media[0];

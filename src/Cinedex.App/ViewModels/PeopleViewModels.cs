@@ -3,6 +3,7 @@ using Cinedex.App.Services;
 using Cinedex.Core.People;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Cinedex.Core.Localization;
 
 namespace Cinedex.App.ViewModels;
 
@@ -50,7 +51,7 @@ public sealed partial class PersonViewModel : ObservableObject
     {
         0 => "Aucun titre du catalogue",
         1 => "1 titre dans le catalogue",
-        var n => $"{n} titres dans le catalogue",
+        var n => Tr.F("{0} titres dans le catalogue", n),
     };
 
     /// <summary>Complète la fiche depuis TMDb (biographie, photo) si nécessaire.</summary>

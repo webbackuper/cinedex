@@ -44,6 +44,11 @@
               <ComboBox ItemsSource="{Binding ThemeChoices}" SelectedItem="{Binding SelectedTheme}" MinWidth="200" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding CanChooseTheme}">
+              <TextBlock Text="Langue de l'interface" VerticalAlignment="Center" />
+              <ComboBox ItemsSource="{Binding LanguageChoices}" SelectedItem="{Binding SelectedLanguage}" MinWidth="220" />
+              <TextBlock Text="(au redémarrage)" VerticalAlignment="Center" Opacity="0.65" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding CanChooseTheme}">
               <TextBlock Text="Fenêtre au démarrage" VerticalAlignment="Center" />
               <ComboBox ItemsSource="{Binding StartupChoices}" SelectedItem="{Binding SelectedStartup}" MinWidth="300" />
             </StackPanel>

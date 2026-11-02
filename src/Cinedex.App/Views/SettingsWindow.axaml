@@ -57,6 +57,10 @@
             <TextBlock Classes="h" Text="Contenu" />
             <CheckBox Content="Masquer les titres marqués « contenu pour adultes » dans la liste" IsChecked="{Binding HideAdult}" />
             <CheckBox Content="Infobulle au survol d'un film : titre, genres, note IMDb et synopsis" IsChecked="{Binding ShowTooltips}" />
+            <TextBlock Classes="h" Text="Collections" />
+            <CheckBox Content="Gérer les collections (sagas TMDb)" IsChecked="{Binding ManageCollections}" />
+            <TextBlock Classes="hint" TextWrapping="Wrap"
+                       Text="Ajoute le lien « Collections » au bandeau gauche et télécharge depuis TMDb la présentation, la liste des films, l'affiche et le décor de chaque saga, après chaque import. Les films manquants de vos sagas y sont signalés." />
             <TextBlock Classes="h" Text="Données" />
             <TextBlock Text="Catalogues, images, sauvegardes et journaux sont rangés dans :" />
             <Grid ColumnDefinitions="*,Auto">

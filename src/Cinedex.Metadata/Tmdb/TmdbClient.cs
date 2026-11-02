@@ -74,6 +74,7 @@ public sealed partial class TmdbClient
             PooledConnectionLifetime = TimeSpan.FromMinutes(10),
             Proxy = proxy,
             UseProxy = true,
+            ConnectCallback = ConnectAsync,
         };
         return new HttpClient(handler, disposeHandler: true)
         {
@@ -82,6 +83,34 @@ public sealed partial class TmdbClient
             DefaultRequestHeaders = { { "User-Agent", "Cinedex/0.1 (+https://github.com/webbackuper/cinedex)" } },
         };
 #pragma warning restore CA2000
+    }
+
+    /// <summary>
+    /// Connexion TCP en essayant IPv4 d'abord, chaque adresse avec un délai court : sur certains réseaux, IPv6 est
+    /// annoncé par le DNS mais injoignable, et chaque requête attendrait sinon le délai complet avant d'échouer.
+    /// </summary>
+    private static async ValueTask<Stream> ConnectAsync(SocketsHttpConnectionContext context, CancellationToken cancellationToken)
+    {
+        var addresses = await Dns.GetHostAddressesAsync(context.DnsEndPoint.Host, cancellationToken).ConfigureAwait(false);
+        Exception? last = null;
+        foreach (var address in addresses.OrderBy(a => a.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? 0 : 1))
+        {
+            var socket = new System.Net.Sockets.Socket(address.AddressFamily, System.Net.Sockets.SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp) { NoDelay = true };
+            try
+            {
+                using var attempt = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                attempt.CancelAfter(TimeSpan.FromSeconds(6));
+                await socket.ConnectAsync(new IPEndPoint(address, context.DnsEndPoint.Port), attempt.Token).ConfigureAwait(false);
+                return new System.Net.Sockets.NetworkStream(socket, ownsSocket: true);
+            }
+            catch (Exception ex) when (ex is System.Net.Sockets.SocketException || (ex is OperationCanceledException && !cancellationToken.IsCancellationRequested))
+            {
+                socket.Dispose();
+                last = ex;
+            }
+        }
+
+        throw new HttpRequestException($"Connexion impossible à {context.DnsEndPoint.Host}.", last);
     }
 
     /// <summary>
@@ -186,6 +215,37 @@ public sealed partial class TmdbClient
             $"tv/{tvId.ToString(CultureInfo.InvariantCulture)}/season/{seasonNumber.ToString(CultureInfo.InvariantCulture)}?language={Lang}",
             cancellationToken).ConfigureAwait(false);
         return TmdbMapper.ToEpisodes(season);
+    }
+
+    /// <summary>
+    /// Fiche d'une collection (saga) : présentation, affiche, décor et films, du plus ancien au plus récent.
+    /// La présentation est demandée en anglais si TMDb n'en a pas dans la langue choisie.
+    /// </summary>
+    public async Task<CollectionRecord> GetCollectionAsync(long collectionId, CancellationToken cancellationToken = default)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(collectionId);
+        var id = collectionId.ToString(CultureInfo.InvariantCulture);
+        var collection = await GetAsync<TmdbCollection>($"collection/{id}?language={Lang}", cancellationToken).ConfigureAwait(false);
+        var overview = collection.Overview;
+        if (string.IsNullOrWhiteSpace(overview) && !_options.Language.StartsWith("en", StringComparison.OrdinalIgnoreCase))
+        {
+            overview = (await GetAsync<TmdbCollection>($"collection/{id}?language=en-US", cancellationToken).ConfigureAwait(false)).Overview;
+        }
+
+        var parts = (collection.Parts ?? [])
+            .Select(p => new CollectionPart(p.Id, p.Title ?? p.OriginalTitle ?? "?", TmdbMapper.YearOf(p.ReleaseDate), p.PosterPath))
+            .OrderBy(p => p.Year ?? int.MaxValue)
+            .ThenBy(p => p.Title, StringComparer.CurrentCulture)
+            .ToList();
+        return new CollectionRecord(collection.Id, collection.Name ?? "?", string.IsNullOrWhiteSpace(overview) ? null : overview.Trim(), collection.PosterPath, collection.BackdropPath, parts);
+    }
+
+    /// <summary>Recherche une collection par son nom (pour celles créées à la main ou reprises d'EMDB).</summary>
+    public async Task<IReadOnlyList<MetadataSaga>> SearchCollectionsAsync(string name, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        var page = await GetAsync<TmdbPage<TmdbSearchItem>>($"search/collection?query={Uri.EscapeDataString(name.Trim())}&language={Lang}", cancellationToken).ConfigureAwait(false);
+        return [.. (page.Results ?? []).Select(r => new MetadataSaga(r.Id, r.Name ?? r.OriginalName ?? "?", r.PosterPath, null))];
     }
 
     /// <summary>Télécharge une image TMDb (affiche, fond, photo). Le chemin doit être un nom de fichier TMDb.</summary>

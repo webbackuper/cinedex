@@ -66,6 +66,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         ShowPeople = display.ShowPeople;
         HideAdult = display.HideAdult;
         ShowTooltips = display.ShowTooltips;
+        ManageCollections = display.ManageCollections;
         JournalEnabled = ActivityJournal.Current.Enabled;
 
         // Import et scan.
@@ -136,6 +137,10 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool ShowTooltips { get; set; }
+
+    /// <summary>Collections (sagas TMDb) : lien du bandeau gauche, fiche et décors téléchargés après chaque import.</summary>
+    [ObservableProperty]
+    public partial bool ManageCollections { get; set; }
 
     /// <summary>Journal des actions (fichier journal-AAAA-MM-JJ.log du dossier des journaux).</summary>
     [ObservableProperty]
@@ -372,6 +377,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             ShowPeople = ShowPeople,
             HideAdult = HideAdult,
             ShowTooltips = ShowTooltips,
+            ManageCollections = ManageCollections,
         }.Save(_settings);
         ActivityJournal.Current.SetEnabled(JournalEnabled);
         if (_dataRoot is not null)

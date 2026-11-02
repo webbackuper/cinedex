@@ -197,7 +197,7 @@ public sealed class MetadataRepository(CatalogDatabase database)
                 ? connection.ExecuteScalar<long>(
                     """
                     INSERT INTO collection (name, sort_key, tmdb_id) VALUES (@Name, @SortKey, @SourceId)
-                    ON CONFLICT (tmdb_id) DO UPDATE SET name = excluded.name
+                    ON CONFLICT (tmdb_id) DO UPDATE SET name = collection.name
                     RETURNING id;
                     """,
                     new { collection.Name, SortKey = SortTitle.Compute(collection.Name), collection.SourceId },

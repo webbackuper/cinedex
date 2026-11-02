@@ -106,6 +106,7 @@ public sealed record DisplaySettings
     public const string ShowPeopleKey = "ui.showPeople";
     public const string HideAdultKey = "ui.hideAdult";
     public const string ShowTooltipsKey = "ui.showTooltips";
+    public const string CollectionsKey = "collections.enabled";
 
     /// <summary>Vues masquées dans le bandeau gauche (« Tous les titres » reste toujours visible).</summary>
     public IReadOnlySet<QuickFilter> HiddenFilters { get; init; } = new HashSet<QuickFilter>();
@@ -118,6 +119,12 @@ public sealed record DisplaySettings
 
     /// <summary>Infobulle (titre, genres, note IMDb, synopsis) au survol d'un film de la liste ; désactivée par défaut.</summary>
     public bool ShowTooltips { get; init; }
+
+    /// <summary>
+    /// Gestion des collections (sagas TMDb) : lien « Collections » du bandeau gauche, fiche et décors des sagas
+    /// téléchargés depuis TMDb après chaque import. Activée par défaut.
+    /// </summary>
+    public bool ManageCollections { get; init; } = true;
 
     public static DisplaySettings Load(SettingsStore settings)
     {
@@ -135,6 +142,7 @@ public sealed record DisplaySettings
             ShowPeople = settings.Get(ShowPeopleKey) != "false",
             HideAdult = settings.Get(HideAdultKey) == "true",
             ShowTooltips = settings.Get(ShowTooltipsKey) == "true",
+            ManageCollections = settings.Get(CollectionsKey) != "false",
         };
     }
 
@@ -146,5 +154,6 @@ public sealed record DisplaySettings
         settings.Set(ShowPeopleKey, ScanSettings.Flag(ShowPeople));
         settings.Set(HideAdultKey, ScanSettings.Flag(HideAdult));
         settings.Set(ShowTooltipsKey, ScanSettings.Flag(ShowTooltips));
+        settings.Set(CollectionsKey, ScanSettings.Flag(ManageCollections));
     }
 }

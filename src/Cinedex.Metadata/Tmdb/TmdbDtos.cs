@@ -129,6 +129,8 @@ internal sealed record TmdbPerson(
     string? ProfilePath,
     string? ImdbId);
 
+internal sealed record TmdbCollection(long Id, string? Name, string? Overview, string? PosterPath, string? BackdropPath, IReadOnlyList<TmdbSearchItem>? Parts);
+
 internal sealed record TmdbFindResult(IReadOnlyList<TmdbSearchItem>? MovieResults, IReadOnlyList<TmdbSearchItem>? TvResults);
 
 #pragma warning restore CA1812

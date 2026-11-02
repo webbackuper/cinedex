@@ -120,6 +120,13 @@
               <TextBlock Text="Acteurs" />
             </StackPanel>
           </Button>
+          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenCollectionsCommand}" IsVisible="{Binding ShowCollections}"
+                  ToolTip.Tip="Sagas et coffrets : films possédés, films manquants, décors TMDb">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <controls:Icon Kind="collection" Width="18" Height="18" />
+              <TextBlock Text="Collections" />
+            </StackPanel>
+          </Button>
           <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" ToolTip.Tip="Mode clair, sombre ou comme le système">
             <StackPanel Orientation="Horizontal" Spacing="10">
               <controls:Icon Kind="moon" Width="18" Height="18" />

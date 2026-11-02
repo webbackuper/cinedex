@@ -66,6 +66,17 @@ Les durées s'affichent en heures et minutes.
 ## Acteurs
 Les acteurs de chaque fiche TMDb sont conservés (nombre réglable dans **Réglages > Métadonnées**). Le lien **Acteurs** du bandeau gauche liste toutes les personnes du catalogue ; la fiche d'un acteur montre sa biographie, ses liens TMDb et IMDb, et tous ses films présents au catalogue.
 
+## Collections
+Une **collection** regroupe les films d'une saga ou d'un coffret (Retour vers le futur, Le Seigneur des anneaux…). Elle est créée à l'import d'un film lié à TMDb qui appartient à une saga, ou à la main dans l'onglet **Classement** de la fiche.
+
+Le lien **Collections** du bandeau gauche ouvre la liste des collections avec, pour chacune, son décor, son affiche, sa présentation et tous les films de la saga dans l'ordre de sortie :
+- les films **du catalogue** portent une coche ; un clic affiche le film dans la liste principale ;
+- les films **manquants** sont grisés avec leur affiche TMDb ; un clic ouvre leur fiche sur TMDb.
+
+La case **Seulement les collections incomplètes** ne garde que les sagas auxquelles il manque des films. **Actualiser depuis TMDb** relit la fiche de la collection choisie, **Renommer…** change son nom et **Supprimer la collection…** la retire (ses films restent au catalogue). **Tout compléter depuis TMDb** retrouve par leur nom les collections créées à la main ou reprises d'EMDB, puis télécharge les fiches et décors qui manquent.
+
+La gestion des collections s'active ou se désactive dans **Réglages > Général** (activée par défaut). Désactivée, le lien disparaît du bandeau et les fiches de collection ne sont plus téléchargées à l'import.
+
 ## Séries
 Une série liée à TMDb récupère ses saisons et épisodes. Le bouton **Saisons et épisodes** de la fiche permet de rattacher les fichiers d'un dossier (noms S01E02 ou 1x02), de marquer des épisodes vus et de les lire.
 
@@ -84,7 +95,7 @@ Exemple : Genre est Comédie, puis Note IMDb > 7, puis Année ≥ 2000.
 ## Le bandeau gauche
 - **Bibliothèque** : vues rapides (possédés, liste de souhaits, vus, favoris, prêtés, fichiers vidéo…).
 - **Définition** : sous-menu Définition standard, Haute définition, Ultra HD (4K), 3D.
-- En bas : **À vérifier**, **Recherche multicritère**, **Acteurs**, **Apparence**, **Réglages** et **Aide**.
+- En bas : **À vérifier**, **Recherche multicritère**, **Acteurs**, **Collections**, **Apparence**, **Réglages** et **Aide**.
 
 Les vues et liens affichés se choisissent dans **Réglages > Bandeau gauche**.
 
@@ -131,6 +142,10 @@ Plusieurs catalogues indépendants peuvent coexister (par exemple : films, séri
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.2.4
+- Gestion des **collections** (sagas TMDb) : présentation, affiche et décor téléchargés depuis TMDb, films possédés et films manquants de chaque saga, lien **Collections** dans le bandeau gauche. À activer ou désactiver dans Réglages > Général.
+- Connexion à TMDb plus fiable sur les réseaux où IPv6 est annoncé mais ne fonctionne pas.
+
 ### 0.2.3
 - Onglet **Statistiques** dans les Réglages : chiffres clés du catalogue et répartitions par genre, décennie, définition, support et disque.
 

@@ -205,6 +205,8 @@ public sealed class MainWindowViewModelTests : IDisposable
 
         public Task<bool> ShowMatchReviewAsync(MatchReviewViewModel review) => Task.FromResult(false);
 
+        public Task<bool> ShowCollectionsAsync(CollectionsViewModel collections) => Task.FromResult(false);
+
         public void ShowHelp(HelpViewModel help)
         {
         }

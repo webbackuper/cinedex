@@ -49,6 +49,8 @@ public static class TmdbLinks
     public static string Title(TitleKind kind, long sourceId) =>
         $"https://www.themoviedb.org/{(kind == TitleKind.Series ? "tv" : "movie")}/{sourceId}?language=fr-FR";
 
+    public static string Collection(long sourceId) => $"https://www.themoviedb.org/collection/{sourceId}?language=fr-FR";
+
     public static string Search(string query, TitleKind? kind = TitleKind.Movie) =>
         $"https://www.themoviedb.org/search{(kind switch { TitleKind.Movie => "/movie", TitleKind.Series => "/tv", _ => string.Empty })}?query={Uri.EscapeDataString(query ?? string.Empty)}&language=fr-FR";
 }

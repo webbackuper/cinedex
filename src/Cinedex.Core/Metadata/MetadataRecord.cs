@@ -122,3 +122,9 @@ public sealed record ImportOptions
 
     public static ImportOptions Default { get; } = new();
 }
+
+/// <summary>Un film d'une collection selon la source (présent ou non dans le catalogue).</summary>
+public sealed record CollectionPart(long SourceId, string Title, int? Year, string? PosterPath);
+
+/// <summary>Fiche d'une collection (saga) : présentation, affiche, décor et liste de ses films.</summary>
+public sealed record CollectionRecord(long SourceId, string Name, string? Overview, string? PosterPath, string? BackdropPath, IReadOnlyList<CollectionPart> Parts);

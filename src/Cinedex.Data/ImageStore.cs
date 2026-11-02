@@ -85,6 +85,27 @@ public sealed class ImageStore(CatalogDatabase database, string imagesDirectory)
         return relative is null ? null : ResolveInside(relative);
     }
 
+    /// <summary>Associe une image à une collection (affiche ou décor), en remplaçant l'éventuelle précédente.</summary>
+    public void AttachToCollection(long collectionId, long imageId, string role)
+    {
+        using var connection = database.Open();
+        using var transaction = connection.BeginTransaction();
+        connection.Execute("DELETE FROM title_image WHERE collection_id = @collectionId AND role = @role;", new { collectionId, role }, transaction);
+        connection.Execute(
+            "INSERT INTO title_image (collection_id, image_id, role) VALUES (@collectionId, @imageId, @role);",
+            new { collectionId, imageId, role },
+            transaction);
+        transaction.Commit();
+    }
+
+    public bool HasCollectionImage(long collectionId, string role)
+    {
+        using var connection = database.Open();
+        return connection.ExecuteScalar<bool>(
+            "SELECT EXISTS (SELECT 1 FROM title_image WHERE collection_id = @collectionId AND role = @role);",
+            new { collectionId, role });
+    }
+
     /// <summary>Résout un chemin relatif en refusant toute sortie du dossier des images.</summary>
     public string? ResolveInside(string relative)
     {

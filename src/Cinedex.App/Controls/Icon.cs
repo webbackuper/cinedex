@@ -53,6 +53,7 @@ public sealed class Icon : Control
         ["chevron-down"] = "M6.5 9.5 L12 15 L17.5 9.5",
         ["sort-direction"] = "M8 4 V20 M4.5 7.5 L8 4 L11.5 7.5 M16 20 V4 M12.5 16.5 L16 20 L19.5 16.5",
         ["more"] = "M5 12 H5.5 M11.75 12 H12.25 M18.5 12 H19",
+        ["collection"] = "M8.5 3.5 H20.5 V15.5 H8.5 Z M5.5 6.5 V18.5 H17.5 M3 9.5 V21 H14.5",
         ["library"] = "M4 5 H8 V20 H4 Z M10 5 H14 V20 H10 Z M15.6 6.2 L19.3 5.3 L22 19.2 L18.3 20.1 Z",
         ["close"] = "M6.5 6.5 L17.5 17.5 M17.5 6.5 L6.5 17.5",
         ["clock"] = "M21 12 A 9 9 0 1 1 3 12 A 9 9 0 1 1 21 12 Z M12 7 V12 L15.5 14",

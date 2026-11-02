@@ -149,6 +149,29 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public bool ShowPeopleLink => HasPeople && _display.ShowPeople;
 
+    /// <summary>Lien « Collections » du bandeau gauche (Réglages > Général, activé par défaut).</summary>
+    public bool ShowCollections => _metadata?.Collections is not null && _display.ManageCollections;
+
+    [RelayCommand]
+    private async Task OpenCollectionsAsync()
+    {
+        if (_metadata?.Collections is not { } collections)
+        {
+            return;
+        }
+
+        var browser = new CollectionsViewModel(collections);
+        var chosen = await _dialogs.ShowCollectionsAsync(browser) && browser.ChosenTitleId is not null;
+        if (chosen)
+        {
+            GoToTitle(browser.ChosenTitleId!.Value);
+        }
+        else if (browser.Changed)
+        {
+            Refresh(selectIds: SelectedIds);
+        }
+    }
+
     /// <summary>Relit les réglages d'affichage : vues visibles, liens, contenu pour adultes.</summary>
     private void ApplyDisplaySettings()
     {
@@ -158,6 +181,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(ShowRuleSearch));
         OnPropertyChanged(nameof(ShowTooltips));
         OnPropertyChanged(nameof(ShowPeopleLink));
+        OnPropertyChanged(nameof(ShowCollections));
         if (SelectedFilter is not null && !Filters.Contains(SelectedFilter) && !DefinitionFilters.Contains(SelectedFilter))
         {
             SelectedFilter = Filters[0];

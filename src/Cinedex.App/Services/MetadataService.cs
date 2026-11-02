@@ -18,8 +18,12 @@ public sealed class MetadataService(
     RatingsService? ratings = null,
     SettingsStore? settings = null,
     ApiGate? gate = null,
-    MatchReviewRepository? reviews = null)
+    MatchReviewRepository? reviews = null,
+    CollectionService? collections = null)
 {
+    /// <summary>Collections (sagas TMDb) : fiche et décors lus après chaque import si la gestion est activée.</summary>
+    public CollectionService? Collections => collections;
+
     /// <summary>Liste « À vérifier » des rapprochements ambigus (absente hors catalogue, par exemple en test).</summary>
     public MatchReviewRepository? Reviews => reviews;
 
@@ -95,6 +99,7 @@ public sealed class MetadataService(
         var record = await tmdb.GetDetailsAsync(result.Kind, result.SourceId, cancellationToken).ConfigureAwait(false);
         var id = metadata.Create(record, options with { MaxActors = MaxActors });
         await DownloadImagesAsync(id, record, options, cancellationToken).ConfigureAwait(false);
+        await CompleteCollectionAsync(id, cancellationToken).ConfigureAwait(false);
         if (record.Kind == TitleKind.Series)
         {
             await SyncEpisodesAsync(id, record.SourceId, record, cancellationToken).ConfigureAwait(false);
@@ -115,6 +120,7 @@ public sealed class MetadataService(
         }
 
         await DownloadImagesAsync(titleId, record, options, cancellationToken).ConfigureAwait(false);
+        await CompleteCollectionAsync(titleId, cancellationToken).ConfigureAwait(false);
         if (record.Kind == TitleKind.Series)
         {
             await SyncEpisodesAsync(titleId, record.SourceId, record, cancellationToken).ConfigureAwait(false);
@@ -236,6 +242,9 @@ public sealed class MetadataService(
             .ToList();
         return Identification.Decide(results, title.Year, query);
     }
+
+    private Task CompleteCollectionAsync(long titleId, CancellationToken cancellationToken) =>
+        collections?.CompleteForTitleAsync(titleId, cancellationToken) ?? Task.CompletedTask;
 
     private async Task DownloadImagesAsync(long titleId, MetadataRecord record, ImportOptions options, CancellationToken cancellationToken)
     {

@@ -31,6 +31,8 @@ public interface IDialogs
 
     Task<bool> ShowMatchReviewAsync(MatchReviewViewModel review);
 
+    Task<bool> ShowCollectionsAsync(CollectionsViewModel collections);
+
     /// <summary>Ouvre l'aide (fenêtre indépendante, non bloquante) ou la ramène au premier plan.</summary>
     void ShowHelp(HelpViewModel help);
 }

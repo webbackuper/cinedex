@@ -54,6 +54,18 @@ public sealed class App : Application
                         target.Show(_window);
                     }
 
+                    // CINEDEX_SNAPSHOT_COLLECTIONS : capture de la fenêtre des collections.
+                    if (Environment.GetEnvironmentVariable("CINEDEX_SNAPSHOT_COLLECTIONS") is { Length: > 0 } && _services?.GetRequiredService<CollectionService>() is { } collectionService)
+                    {
+                        var collections = new CollectionsViewModel(collectionService);
+                        target = new CollectionsWindow { DataContext = collections };
+                        target.Show(_window);
+                        if (Environment.GetEnvironmentVariable("CINEDEX_SNAPSHOT_COLLECTIONS") == "sync")
+                        {
+                            collections.SyncCommand.Execute(null);
+                        }
+                    }
+
                     if (Environment.GetEnvironmentVariable("CINEDEX_SNAPSHOT_STATS") is { Length: > 0 } && _services is { } services)
                     {
                         var settings = new SettingsWindow
@@ -67,7 +79,8 @@ public sealed class App : Application
                         target.Show(_window);
                     }
 
-                    await Task.Delay(2500);
+                    // CINEDEX_SNAPSHOT_DELAY : attente avant la capture, en millisecondes (téléchargements TMDb).
+                    await Task.Delay(int.TryParse(Environment.GetEnvironmentVariable("CINEDEX_SNAPSHOT_DELAY"), out var delay) ? delay : 2500);
                     var size = new Avalonia.PixelSize((int)target.Bounds.Width, (int)target.Bounds.Height);
                     using var bitmap = new Avalonia.Media.Imaging.RenderTargetBitmap(size);
                     bitmap.Render(target);
@@ -189,6 +202,8 @@ public sealed class App : Application
         services.AddSingleton<PeopleService>();
         services.AddSingleton<MatchReviewRepository>();
         services.AddSingleton<StatisticsRepository>();
+        services.AddSingleton<CollectionRepository>();
+        services.AddSingleton<CollectionService>();
         services.AddSingleton<MetadataService>();
         services.AddSingleton<MediaFileRepository>();
         services.AddSingleton<SeriesRepository>();

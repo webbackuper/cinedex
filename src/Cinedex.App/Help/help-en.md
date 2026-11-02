@@ -66,6 +66,17 @@ Runtimes are shown in hours and minutes.
 ## Actors
 The actors of each TMDb entry are kept (the number can be set in **Settings > Metadata**). The **Actors** link in the left sidebar lists everyone in the catalog; an actor's page shows the biography, TMDb and IMDb links, and all their films in the catalog.
 
+## Collections
+A **collection** groups the films of a saga or box set (Back to the Future, The Lord of the Rings…). It is created when a film linked to TMDb that belongs to a saga is imported, or by hand in the **Organization** tab of the details.
+
+The **Collections** link in the left sidebar opens the list of collections, each with its backdrop, poster, overview and every film of the saga in release order:
+- films **in the catalog** carry a check mark; a click shows the film in the main list;
+- **missing** films are dimmed with their TMDb poster; a click opens their TMDb page.
+
+**Only incomplete collections** keeps the sagas that are missing films. **Refresh from TMDb** reloads the chosen collection, **Rename…** changes its name and **Delete the collection…** removes it (its films stay in the catalog). **Complete all from TMDb** finds by name the collections created by hand or brought over from EMDB, then downloads the missing records and backdrops.
+
+Collection management is turned on or off in **Settings > General** (on by default). When it is off, the link disappears from the sidebar and collection records are no longer downloaded during imports.
+
 ## Series
 A series linked to TMDb gets its seasons and episodes. The **Seasons and episodes** button on the details attaches the files from a folder (names S01E02 or 1x02), marks episodes as watched and plays them.
 
@@ -84,7 +95,7 @@ Example: Genre is Comedy, then IMDb rating > 7, then Year ≥ 2000.
 ## The left sidebar
 - **Library**: quick views (owned, wishlist, watched, favorites, lent, video files…).
 - **Definition**: submenu Standard definition, High definition, Ultra HD (4K), 3D.
-- At the bottom: **To review**, **Advanced search**, **Actors**, **Appearance**, **Settings** and **Help**.
+- At the bottom: **To review**, **Advanced search**, **Actors**, **Collections**, **Appearance**, **Settings** and **Help**.
 
 The views and links shown are chosen in **Settings > Left sidebar**.
 
@@ -131,6 +142,10 @@ Several independent catalogs can coexist (for example: films, series, a relative
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.2.4
+- **Collections** (TMDb sagas): overview, poster and backdrop downloaded from TMDb, owned and missing films of each saga, and a **Collections** link in the left sidebar. Turn it on or off in Settings > General.
+- More reliable connection to TMDb on networks where IPv6 is advertised but does not work.
+
 ### 0.2.3
 - **Statistics** tab in Settings: key figures for the catalog and breakdowns by genre, decade, definition, medium and drive.
 

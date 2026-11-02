@@ -239,11 +239,82 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
     public Task<bool> ShowMatchReviewAsync(MatchReviewViewModel review) =>
         new MatchReviewWindow { DataContext = review }.ShowDialog<bool>(this);
 
+    public Task<bool> ShowSeriesTrackingAsync(SeriesTrackingViewModel tracking) =>
+        new SeriesTrackingWindow { DataContext = tracking }.ShowDialog<bool>(this);
+
     public Task<bool> ShowCollectionsAsync(CollectionsViewModel collections) =>
         new CollectionsWindow { DataContext = collections }.ShowDialog<bool>(this);
 
     public Task<bool> ShowPeopleAsync(PeopleBrowserViewModel people) =>
         new PeopleWindow { DataContext = people }.ShowDialog<bool>(this);
+
+    /// <summary>Clic sur une affiche : sélection (Ctrl pour ajouter ou retirer, Maj pour une plage).</summary>
+    private void OnPosterPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm || sender is not Control { DataContext: Cinedex.Core.Titles.TitleSummary title } ||
+            !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            return;
+        }
+
+        var toggle = e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta);
+        vm.SelectInGrid(vm.Titles.IndexOf(title), toggle, e.KeyModifiers.HasFlag(KeyModifiers.Shift));
+        PosterScroll.Focus();
+    }
+
+    /// <summary>
+    /// Clavier dans la grille d'affiches : flèches (Maj pour étendre), Début, Fin, pages, Entrée pour ouvrir la fiche,
+    /// Suppr pour supprimer, Ctrl+A pour tout sélectionner.
+    /// </summary>
+    private void OnGridKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm)
+        {
+            return;
+        }
+
+        var columns = Math.Max(1, (int)((PosterScroll.Viewport.Width + 8) / (172 + 8)));
+        var rows = Math.Max(1, (int)(PosterScroll.Viewport.Height / (300 + 8)));
+        var extend = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
+        int? delta = e.Key switch
+        {
+            Key.Left => -1,
+            Key.Right => 1,
+            Key.Up => -columns,
+            Key.Down => columns,
+            Key.PageUp => -columns * rows,
+            Key.PageDown => columns * rows,
+            Key.Home => int.MinValue / 2,
+            Key.End => int.MaxValue / 2,
+            _ => null,
+        };
+        if (delta is { } move)
+        {
+            var index = vm.MoveInGrid(move, extend);
+            if (index >= 0 && PosterGrid.GetOrCreateElement(index) is { } element)
+            {
+                element.BringIntoView();
+            }
+
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Enter && vm.EditCommand.CanExecute(null))
+        {
+            vm.EditCommand.Execute(null);
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Delete && vm.DeleteCommand.CanExecute(null))
+        {
+            vm.DeleteCommand.Execute(null);
+            e.Handled = true;
+        }
+        else if (e.Key == Key.A && e.KeyModifiers.HasFlag(KeyModifiers.Control))
+        {
+            vm.SelectInGrid(0, toggle: false, extend: false);
+            vm.SelectInGrid(vm.Titles.Count - 1, toggle: false, extend: true);
+            e.Handled = true;
+        }
+    }
 
     private void OnListDoubleTapped(object? sender, RoutedEventArgs e)
     {

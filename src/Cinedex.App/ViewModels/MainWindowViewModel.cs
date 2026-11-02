@@ -62,6 +62,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         SelectedSort = Sorts[0];
         SelectedTitles.CollectionChanged += (_, _) =>
         {
+            SelectedIdSet = SelectedTitles.Select(t => t.Id).ToHashSet();
             if (!_refreshing)
             {
                 OnSelectionChanged();
@@ -69,7 +70,86 @@ public sealed partial class MainWindowViewModel : ObservableObject
         };
     }
 
-    public ObservableCollection<TitleSummary> Titles { get; } = [];
+    /// <summary>Identifiants sélectionnés : la grille d'affiches (virtualisée) s'en sert pour marquer la sélection.</summary>
+    [ObservableProperty]
+    public partial IReadOnlySet<long> SelectedIdSet { get; private set; } = new HashSet<long>();
+
+    private int _gridAnchor = -1;
+
+    /// <summary>
+    /// Clic dans la grille d'affiches : sélection simple, Ctrl pour ajouter ou retirer un titre, Maj pour une plage
+    /// depuis le dernier titre cliqué.
+    /// </summary>
+    public void SelectInGrid(int index, bool toggle, bool extend)
+    {
+        if (index < 0 || index >= Titles.Count)
+        {
+            return;
+        }
+
+        var title = Titles[index];
+        if (extend && _gridAnchor >= 0 && _gridAnchor < Titles.Count)
+        {
+            var (from, to) = _gridAnchor <= index ? (_gridAnchor, index) : (index, _gridAnchor);
+            SetSelection(Titles.Skip(from).Take(to - from + 1));
+            return;
+        }
+
+        if (toggle)
+        {
+            if (!SelectedTitles.Remove(title))
+            {
+                SelectedTitles.Add(title);
+            }
+        }
+        else
+        {
+            SetSelection([title]);
+        }
+
+        _gridAnchor = index;
+    }
+
+    /// <summary>Déplacement au clavier dans la grille ; renvoie le rang du titre choisi.</summary>
+    public int MoveInGrid(int delta, bool extend)
+    {
+        if (Titles.Count == 0)
+        {
+            return -1;
+        }
+
+        var current = SelectedTitles.Count > 0 ? Titles.IndexOf(SelectedTitles[^1]) : -1;
+        var target = current < 0 ? 0 : Math.Clamp(current + delta, 0, Titles.Count - 1);
+        if (extend)
+        {
+            var anchor = _gridAnchor;
+            SelectInGrid(target, toggle: false, extend: true);
+            _gridAnchor = anchor;
+        }
+        else
+        {
+            SelectInGrid(target, toggle: false, extend: false);
+        }
+
+        return target;
+    }
+
+    private void SetSelection(IEnumerable<TitleSummary> titles)
+    {
+        _refreshing = true;
+        SelectedTitles.Clear();
+        foreach (var title in titles)
+        {
+            SelectedTitles.Add(title);
+        }
+
+        _refreshing = false;
+        SelectedIdSet = SelectedTitles.Select(t => t.Id).ToHashSet();
+        OnSelectionChanged();
+    }
+
+    /// <summary>Titres affichés ; remplacés d'un bloc à chaque relecture (une seule notification pour 10 000 lignes).</summary>
+    public TitleCollection Titles { get; } = [];
 
     public ObservableCollection<TitleSummary> SelectedTitles { get; } = [];
 
@@ -148,6 +228,59 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     public bool ShowPeopleLink => HasPeople && _display.ShowPeople;
+
+    /// <summary>Mises à jour automatiques (version installée) ; absent en test.</summary>
+    public UpdateService? Updates { get; set; }
+
+    /// <summary>Version plus récente trouvée au démarrage : un bouton du bandeau gauche propose de l'installer.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasUpdate), nameof(UpdateLabel))]
+    public partial string? UpdateVersion { get; private set; }
+
+    public bool HasUpdate => UpdateVersion is not null;
+
+    public string UpdateLabel => Tr.F("Mise à jour {0} disponible", UpdateVersion ?? string.Empty);
+
+    /// <summary>Recherche discrète d'une mise à jour au démarrage (si la préférence est activée).</summary>
+    public async Task CheckForUpdatesAtStartupAsync()
+    {
+        if (Updates is not { IsInstalled: true } updates || !UpdatePreferences.Load(_paths.DataRoot).CheckAtStartup)
+        {
+            return;
+        }
+
+        try
+        {
+            UpdateVersion = await updates.CheckAsync();
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidOperationException or TaskCanceledException)
+        {
+            // Hors ligne ou GitHub injoignable : on réessaiera au prochain démarrage.
+            Journal($"Recherche de mise à jour impossible : {ex.Message}");
+        }
+    }
+
+    /// <summary>Télécharge la mise à jour trouvée, puis redémarre Cinedex dessus (après confirmation).</summary>
+    [RelayCommand]
+    private async Task InstallUpdateAsync()
+    {
+        if (Updates is not { } updates || UpdateVersion is not { } version ||
+            !await _dialogs.ConfirmAsync(Tr.T("Mise à jour"), Tr.F("Installer Cinedex {0} maintenant ? Cinedex se ferme et redémarre sur la nouvelle version.", version)))
+        {
+            return;
+        }
+
+        try
+        {
+            await updates.DownloadAsync(p => Avalonia.Threading.Dispatcher.UIThread.Post(() => Status = Tr.F("Téléchargement de la mise à jour : {0} %", p)));
+            Journal($"Mise à jour vers {version}");
+            updates.ApplyAndRestart();
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidOperationException or TaskCanceledException)
+        {
+            Status = Tr.F("Mise à jour impossible : {0}", ex.Message);
+        }
+    }
 
     private bool _backupRunning;
 
@@ -703,7 +836,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var markSeen = SelectedTitles.Any(t => !t.IsSeen);
         _titles.SetSeen(ids, markSeen, DateTimeOffset.Now);
         Journal($"Marqué {(markSeen ? "vu" : "non vu")} : {Names(SelectedTitles.ToList())}");
-        Refresh(selectIds: ids);
+        RefreshTitles(ids);
     }
 
     [RelayCommand(CanExecute = nameof(HasSelection))]
@@ -713,7 +846,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var favorite = SelectedTitles.Any(t => !t.IsFavorite);
         _titles.SetFavorite(ids, favorite);
         Journal($"{(favorite ? "Ajouté aux" : "Retiré des")} favoris : {Names(SelectedTitles.ToList())}");
-        Refresh(selectIds: ids);
+        RefreshTitles(ids);
     }
 
     [RelayCommand]
@@ -737,7 +870,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             _titles.Lend(Detail!.Id, BorrowerText, DateTimeOffset.Now);
             Journal($"Prêté à {BorrowerText.Trim()} : {Detail.Title}");
-            Refresh(selectId: Detail.Id);
+            RefreshTitles([Detail.Id]);
         }
         catch (InvalidOperationException ex)
         {
@@ -752,7 +885,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         _titles.Return(Detail!.Id, DateTimeOffset.Now);
         Journal($"Rendu : {Detail.Title}");
-        Refresh(selectId: Detail.Id);
+        RefreshTitles([Detail.Id]);
     }
 
     private bool CanReturn() => Detail is { CurrentLoan: not null };
@@ -1052,6 +1185,50 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public bool IsSeriesSelected() => Detail?.Kind == TitleKind.Series && _media?.Series is not null;
 
+    /// <summary>Séries avec des épisodes diffusés non vus (lien « Suivi des séries » du bandeau gauche).</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SeriesTrackingLabel))]
+    public partial int SeriesToWatch { get; private set; }
+
+    [ObservableProperty]
+    public partial bool HasSeries { get; private set; }
+
+    public string SeriesTrackingLabel => SeriesToWatch > 0 ? Tr.F("Suivi des séries ({0})", SeriesToWatch) : Tr.T("Suivi des séries");
+
+    private void UpdateSeriesTracking()
+    {
+        if (_media?.Series is not { } series)
+        {
+            return;
+        }
+
+        var (count, toWatch) = series.CountToWatch(DateOnly.FromDateTime(DateTime.Now));
+        HasSeries = count > 0;
+        SeriesToWatch = toWatch;
+    }
+
+    /// <summary>Suivi des séries : épisodes à regarder, prochaines diffusions.</summary>
+    [RelayCommand]
+    private async Task OpenSeriesTrackingAsync()
+    {
+        if (_media?.Series is not { } series)
+        {
+            return;
+        }
+
+        var tracking = new SeriesTrackingViewModel(series, _metadata, relative => relative is null ? null : _images?.ResolveInside(relative));
+        var chosen = await _dialogs.ShowSeriesTrackingAsync(tracking) && tracking.ChosenTitleId is not null;
+        UpdateSeriesTracking();
+        if (chosen)
+        {
+            GoToTitle(tracking.ChosenTitleId!.Value);
+        }
+        else if (tracking.Changed)
+        {
+            Refresh(selectIds: SelectedIds);
+        }
+    }
+
     /// <summary>Actualise les notes IMDb de tout le catalogue depuis le fichier officiel (sans consommer le quota OMDb).</summary>
     [RelayCommand]
     private async Task RefreshImdbRatingsAsync()
@@ -1203,18 +1380,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         ReviewCount = _metadata?.Reviews?.Count() ?? 0;
+        UpdateSeriesTracking();
 
         var keep = selectIds ?? (selectId is { } one ? [one] : []);
         _refreshing = true;
-        Titles.Clear();
-        foreach (var title in _titles.Query(CurrentQuery))
-        {
-            Titles.Add(title with
-            {
-                PosterPath = title.PosterRelativePath is { } poster && _images is not null ? _images.ResolveInside(poster) : null,
-                CustomSubtitle = Columns.Subtitle(title),
-            });
-        }
+        Titles.ReplaceAll(_titles.Query(CurrentQuery).Select(Prepare));
 
         SelectedTitles.Clear();
         foreach (var title in Titles.Where(t => keep.Contains(t.Id)))
@@ -1231,4 +1401,56 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     internal static (string Title, int? Year) ParseTitleAndYear(string input) => TitleText.SplitYear(input);
+
+    /// <summary>Ligne prête à afficher : chemin absolu de l'affiche, ligne secondaire selon les colonnes choisies.</summary>
+    private TitleSummary Prepare(TitleSummary title) => title with
+    {
+        PosterPath = title.PosterRelativePath is { } poster && _images is not null ? _images.ResolveInside(poster) : null,
+        CustomSubtitle = Columns.Subtitle(title),
+    };
+
+    /// <summary>
+    /// Met à jour quelques titres de la liste sans tout relire (favori, vu, prêt) : chaque ligne est remplacée en
+    /// place, ou retirée si elle ne correspond plus au filtre. Si un titre doit apparaître dans la liste, toute la
+    /// liste est relue pour le placer au bon rang.
+    /// </summary>
+    private void RefreshTitles(IReadOnlyList<long> ids, IReadOnlyList<long>? selectIds = null)
+    {
+        if (!_loaded)
+        {
+            return;
+        }
+
+        var current = Titles.Select((t, i) => (t.Id, i)).Where(x => ids.Contains(x.Id)).ToDictionary(x => x.Id, x => x.i);
+        var fresh = _titles.Query(CurrentQuery with { Ids = ids }).ToDictionary(t => t.Id);
+        if (fresh.Keys.Any(id => !current.ContainsKey(id)))
+        {
+            Refresh(selectIds: selectIds ?? ids);
+            return;
+        }
+
+        _refreshing = true;
+        foreach (var (id, index) in current.OrderByDescending(x => x.Value))
+        {
+            if (fresh.TryGetValue(id, out var title))
+            {
+                Titles[index] = Prepare(title);
+            }
+            else
+            {
+                Titles.RemoveAt(index);
+            }
+        }
+
+        var keep = selectIds ?? ids;
+        SelectedTitles.Clear();
+        foreach (var title in Titles.Where(t => keep.Contains(t.Id)))
+        {
+            SelectedTitles.Add(title);
+        }
+
+        _refreshing = false;
+        OnSelectionChanged();
+        OnPropertyChanged(nameof(IsEmpty));
+    }
 }

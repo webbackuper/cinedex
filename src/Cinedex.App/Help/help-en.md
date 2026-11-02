@@ -80,6 +80,8 @@ Collection management is turned on or off in **Settings > General** (on by defau
 ## Series
 A series linked to TMDb gets its seasons and episodes. The **Seasons and episodes** button on the details attaches the files from a folder (names S01E02 or 1x02), marks episodes as watched and plays them.
 
+**Series tracker** (left sidebar link, with the number of series that have episodes to watch) shows for each series its progress (episodes watched out of episodes aired), the **next episode to watch** — the **Seen** button marks it and moves to the next one — and the **next announced airing**. On the right, the calendar of episodes announced for the next 60 days. **Refresh from TMDb** fetches new episodes and dates for airing series. Double-clicking a series shows it in the catalog.
+
 ## Search and sort
 - The **Search…** box (Ctrl+F) searches titles and summaries.
 - **Sort by** orders the list; the button next to it reverses the order.
@@ -160,6 +162,16 @@ These operations apply immediately, without “Save”. Each one that changes th
 - **Ctrl+P**: play; **Ctrl+O**: open the file's folder
 - **Ctrl+S**: watched / not watched; **Ctrl+D**: favorite; **Ctrl+R** or **F7**: a random unwatched title
 - **Ctrl+1**: list; **Ctrl+2**: posters; **F5**: refresh; **F11**: full screen
+- In the poster view: **arrows** to move (with **Shift** to extend the selection), **Home**/**End**, **Page Up**/**Page Down**, **Enter** to open the details, **Ctrl+A** to select all, **Ctrl+click** and **Shift+click** for multiple selection.
+
+## Accessibility
+Every button is announced by name to screen readers (Narrator, NVDA, VoiceOver), including icon-only buttons; posters in the grid are announced with their title and year. Text colors meet the recommended contrast (WCAG AA) in light and dark theme, whatever the accent or menu color. All main navigation works from the keyboard (see shortcuts).
+
+## Large catalogs
+Cinedex is built for catalogs of more than 10,000 films: only the visible rows and posters are created, posters are decoded in the background, and marking a film watched or favorite updates only its row. Performance is checked with every version on a 12,000-film catalog.
+
+## Installation and updates
+**Cinedex-win-Setup.exe** installs Cinedex for the user (no administrator rights) with a shortcut on the desktop and in the Start menu. The installed version checks at startup whether a new version is published: an **Update available** button then appears in the left sidebar; it installs in a few seconds (only changed files are downloaded) and Cinedex restarts on it. **Settings > General > Updates** lets you check on demand or turn off the check at startup. Catalogs and settings are never touched by an update. The portable version (.zip archive) is still available and is updated by hand; Linux (AppImage) and macOS (.pkg) have their own installer too.
 
 ## Backups
 **Settings > Backups** makes complete backups of the open catalog: a .zip archive containing, as chosen, the **database** (records, ratings, loans, files, catalog settings), the **images** (posters, backdrops, photos) and the **shared preferences** (appearance, language, window, log), with a manifest.
@@ -183,6 +195,12 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.0
+- **Large catalogs**: virtualized list and posters (only visible items exist), posters loaded in the background, targeted updates; tested on 12,000 films.
+- **Installation and automatic updates** (Cinedex-win-Setup.exe), Linux and macOS versions.
+- **Series tracker**: episodes to watch, Seen button, calendar of upcoming airings.
+- **Accessibility**: screen-reader names for every button, checked contrast, poster view from the keyboard.
+
 ### 0.3.1
 - **Network** tab in Settings: HTTP or HTTPS proxy (server:port), off by default, with a connection test.
 

@@ -78,20 +78,6 @@
         "resolved": "12.1.4",
         "contentHash": "9ajC+Ff+U9S21JJKGbJgnwp9fY+zwJG+bSEC//o/vJU2M6IEMRGp+D1+AUoqTR79FAA/iDYgf4f4EF4PZKhZsg=="
       },
-      "Avalonia.Skia": {
-        "type": "Transitive",
-        "resolved": "12.1.4",
-        "contentHash": "BA6B1Up9AcX4JmnskD6FyxF+ZEowXDhGvzw1lG+Xx6sQO0VyOE2yDoAmD/S2EsYZUukPfRUJmIyjeM//WdZAxA==",
-        "dependencies": {
-          "Avalonia": "12.1.4",
-          "HarfBuzzSharp": "8.3.1.3",
-          "HarfBuzzSharp.NativeAssets.Linux": "8.3.1.3",
-          "HarfBuzzSharp.NativeAssets.WebAssembly": "8.3.1.3",
-          "SkiaSharp": "3.119.4",
-          "SkiaSharp.NativeAssets.Linux": "3.119.4",
-          "SkiaSharp.NativeAssets.WebAssembly": "3.119.4"
-        }
-      },
       "Avalonia.Win32": {
         "type": "Transitive",
         "resolved": "12.1.4",
@@ -387,17 +373,19 @@
         "type": "Project",
         "dependencies": {
           "Avalonia": "[12.1.4, )",
+          "Avalonia.Controls.ItemsRepeater": "[12.0.0, )",
           "Avalonia.Desktop": "[12.1.4, )",
           "Avalonia.Fonts.Inter": "[12.1.4, )",
           "Avalonia.Themes.Fluent": "[12.1.4, )",
-          "Cinedex.Core": "[0.1.0, )",
-          "Cinedex.Data": "[0.1.0, )",
-          "Cinedex.Media": "[0.1.0, )",
-          "Cinedex.Metadata": "[0.1.0, )",
+          "Cinedex.Core": "[0.4.0, )",
+          "Cinedex.Data": "[0.4.0, )",
+          "Cinedex.Media": "[0.4.0, )",
+          "Cinedex.Metadata": "[0.4.0, )",
           "CommunityToolkit.Mvvm": "[8.4.2, )",
           "Microsoft.Extensions.DependencyInjection": "[10.0.14, )",
           "Serilog.Extensions.Logging": "[10.0.0, )",
-          "Serilog.Sinks.File": "[7.0.0, )"
+          "Serilog.Sinks.File": "[7.0.0, )",
+          "Velopack": "[1.2.161, )"
         }
       },
       "cinedex.core": {
@@ -406,7 +394,7 @@
       "cinedex.data": {
         "type": "Project",
         "dependencies": {
-          "Cinedex.Core": "[0.1.0, )",
+          "Cinedex.Core": "[0.4.0, )",
           "Dapper": "[2.1.89, )",
           "Microsoft.Data.Sqlite": "[10.0.14, )",
           "Microsoft.Extensions.Logging": "[10.0.14, )"
@@ -415,14 +403,14 @@
       "cinedex.media": {
         "type": "Project",
         "dependencies": {
-          "Cinedex.Core": "[0.1.0, )",
+          "Cinedex.Core": "[0.4.0, )",
           "Microsoft.Extensions.Logging": "[10.0.14, )"
         }
       },
       "cinedex.metadata": {
         "type": "Project",
         "dependencies": {
-          "Cinedex.Core": "[0.1.0, )",
+          "Cinedex.Core": "[0.4.0, )",
           "Microsoft.Extensions.Logging": "[10.0.14, )"
         }
       },
@@ -435,6 +423,15 @@
           "Avalonia.BuildServices": "11.3.2",
           "Avalonia.Remote.Protocol": "12.1.4",
           "MicroCom.Runtime": "0.11.6"
+        }
+      },
+      "Avalonia.Controls.ItemsRepeater": {
+        "type": "CentralTransitive",
+        "requested": "[12.0.0, )",
+        "resolved": "12.0.0",
+        "contentHash": "Xf54lAaLU29x50Gl6pHK3UUgGrewkH/Jb6YLSkz/bxj+h1pSutNEsw+1qZ7dcsaRipB9sNLTGzSsQCKBmTD9aQ==",
+        "dependencies": {
+          "Avalonia": "12.0.0"
         }
       },
       "Avalonia.Desktop": {
@@ -458,6 +455,21 @@
         "contentHash": "PqzIALObVJ3ZUpfYDkoNNkijaVBUGVrHqAyWPkE39aJrPukbMv49aGMhS+c5HiW1s+/iuo3fW+ISOk34GOc0iw==",
         "dependencies": {
           "Avalonia": "12.1.4"
+        }
+      },
+      "Avalonia.Skia": {
+        "type": "CentralTransitive",
+        "requested": "[12.1.4, )",
+        "resolved": "12.1.4",
+        "contentHash": "BA6B1Up9AcX4JmnskD6FyxF+ZEowXDhGvzw1lG+Xx6sQO0VyOE2yDoAmD/S2EsYZUukPfRUJmIyjeM//WdZAxA==",
+        "dependencies": {
+          "Avalonia": "12.1.4",
+          "HarfBuzzSharp": "8.3.1.3",
+          "HarfBuzzSharp.NativeAssets.Linux": "8.3.1.3",
+          "HarfBuzzSharp.NativeAssets.WebAssembly": "8.3.1.3",
+          "SkiaSharp": "3.119.4",
+          "SkiaSharp.NativeAssets.Linux": "3.119.4",
+          "SkiaSharp.NativeAssets.WebAssembly": "3.119.4"
         }
       },
       "Avalonia.Themes.Fluent": {
@@ -530,6 +542,12 @@
         "dependencies": {
           "Serilog": "4.2.0"
         }
+      },
+      "Velopack": {
+        "type": "CentralTransitive",
+        "requested": "[1.2.161, )",
+        "resolved": "1.2.161",
+        "contentHash": "OpHNacIumnkhaaX3ZlQ/TCR4YPOJvud2/PAOoWb6o+mIrLwIVA275I5wAgt4q/1O2VrJeDwR1qFQyqzG4lUArg=="
       }
     }
   }

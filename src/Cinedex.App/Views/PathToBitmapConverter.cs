@@ -27,6 +27,20 @@ public sealed class PathToBitmapConverter : IValueConverter
         }
 
         var width = parameter is string p && int.TryParse(p, NumberStyles.None, CultureInfo.InvariantCulture, out var w) ? w : 400;
+        return TryGetCached(path, width, out var cached) ? cached : Load(path, width);
+    }
+
+    /// <summary>Image déjà décodée à cette largeur (sans accès disque).</summary>
+    public static bool TryGetCached(string path, int width, out Bitmap? bitmap)
+    {
+        var found = Cache.TryGetValue((path, width), out var cached);
+        bitmap = cached;
+        return found;
+    }
+
+    /// <summary>Décode l'image à la largeur demandée et la garde en cache ; utilisable hors du fil de l'interface.</summary>
+    public static Bitmap? Load(string path, int width)
+    {
         var key = (path, width);
         if (Cache.TryGetValue(key, out var cached))
         {

@@ -18,6 +18,30 @@ public sealed record EpisodeView(long Id, long SeasonId, int SeasonNumber, int N
     public string Code => $"S{SeasonNumber:00}E{Number:00}";
 }
 
+/// <summary>
+/// Suivi d'une série : épisodes diffusés et vus, prochain épisode à regarder, prochaine diffusion annoncée.
+/// </summary>
+public sealed record SeriesTracking(
+    long TitleId,
+    string Title,
+    string? Status,
+    long? TmdbId,
+    string? PosterRelativePath,
+    int Aired,
+    int Seen,
+    EpisodeView? NextToWatch,
+    EpisodeView? NextAiring)
+{
+    public int ToWatch => Math.Max(0, Aired - Seen);
+
+    public double Ratio => Aired == 0 ? 0 : (double)Seen / Aired;
+
+    public bool IsRunning => Status == "continuing";
+}
+
+/// <summary>Un épisode à venir d'une série du catalogue (calendrier des diffusions).</summary>
+public sealed record UpcomingEpisode(long TitleId, string Series, EpisodeView Episode);
+
 /// <summary>Saisons, épisodes, visionnage par épisode et fichiers d'épisodes d'une série.</summary>
 public sealed class SeriesRepository(CatalogDatabase database)
 {
@@ -93,6 +117,84 @@ public sealed class SeriesRepository(CatalogDatabase database)
                 new { titleId })
             .Select(s => new SeasonView(s.Id, (int)s.Number, s.Name ?? string.Empty, Parse(s.AirDate), s.Locked != 0, (int)s.Episodes, (int)s.Seen, (int)s.Files))
             .ToList();
+    }
+
+    /// <summary>
+    /// Suivi de toutes les séries du catalogue à la date donnée : épisodes diffusés (saisons normales, date passée)
+    /// et vus, prochain épisode diffusé non vu, prochaine diffusion. Les séries à regarder viennent en premier.
+    /// </summary>
+    public IReadOnlyList<SeriesTracking> Tracking(DateOnly today)
+    {
+        using var connection = database.Open();
+        var day = Format(today);
+        var series = connection.Query<(long Id, string Title, string? Status, long? TmdbId, string? Poster, long Aired, long Seen)>(
+                """
+                SELECT t.id, t.title, t.series_status, t.tmdb_id,
+                       (SELECT i.rel_path FROM title_image ti JOIN image i ON i.id = ti.image_id WHERE ti.title_id = t.id AND ti.role = 'poster'),
+                       (SELECT count(*) FROM episode e JOIN season s ON s.id = e.season_id
+                        WHERE s.title_id = t.id AND s.season_number > 0 AND e.air_date IS NOT NULL AND e.air_date <= @day),
+                       (SELECT count(*) FROM episode e JOIN season s ON s.id = e.season_id
+                        WHERE s.title_id = t.id AND s.season_number > 0 AND e.air_date IS NOT NULL AND e.air_date <= @day
+                          AND EXISTS (SELECT 1 FROM viewing v WHERE v.episode_id = e.id))
+                FROM title t WHERE t.kind = 'series' ORDER BY t.sort_title;
+                """,
+                new { day })
+            .ToList();
+
+        var result = new List<SeriesTracking>(series.Count);
+        foreach (var s in series)
+        {
+            var next = QueryEpisodes(
+                connection,
+                """
+                s.title_id = @id AND s.season_number > 0 AND e.air_date IS NOT NULL AND e.air_date <= @day
+                AND NOT EXISTS (SELECT 1 FROM viewing v WHERE v.episode_id = e.id)
+                """,
+                new { id = s.Id, day }).FirstOrDefault();
+            var airing = QueryEpisodes(connection, "s.title_id = @id AND s.season_number > 0 AND e.air_date > @day", new { id = s.Id, day })
+                .OrderBy(e => e.AirDate)
+                .FirstOrDefault();
+            result.Add(new SeriesTracking(s.Id, s.Title, s.Status, s.TmdbId, s.Poster, (int)s.Aired, (int)s.Seen, next, airing));
+        }
+
+        return [.. result.OrderByDescending(r => r.ToWatch > 0).ThenBy(r => r.Title, StringComparer.CurrentCultureIgnoreCase)];
+    }
+
+    /// <summary>Nombre de séries du catalogue, et de celles qui ont des épisodes diffusés non vus (une seule requête).</summary>
+    public (int Series, int ToWatch) CountToWatch(DateOnly today)
+    {
+        using var connection = database.Open();
+        return connection.QuerySingle<(int, int)>(
+            """
+            SELECT (SELECT count(*) FROM title WHERE kind = 'series'),
+                   (SELECT count(DISTINCT s.title_id) FROM episode e JOIN season s ON s.id = e.season_id JOIN title t ON t.id = s.title_id
+                    WHERE t.kind = 'series' AND s.season_number > 0 AND e.air_date IS NOT NULL AND e.air_date <= @day
+                      AND NOT EXISTS (SELECT 1 FROM viewing v WHERE v.episode_id = e.id));
+            """,
+            new { day = Format(today) });
+    }
+
+    /// <summary>Épisodes des séries du catalogue diffusés dans les jours à venir, par date.</summary>
+    public IReadOnlyList<UpcomingEpisode> Upcoming(DateOnly today, int days)
+    {
+        using var connection = database.Open();
+        var titles = connection.Query<(long Id, string Title)>("SELECT id, title FROM title WHERE kind = 'series';").ToDictionary(t => t.Id, t => t.Title);
+        var episodes = connection.Query<(long EpisodeId, long TitleId)>(
+                """
+                SELECT e.id, s.title_id FROM episode e JOIN season s ON s.id = e.season_id
+                WHERE s.season_number > 0 AND e.air_date > @from AND e.air_date <= @to;
+                """,
+                new { from = Format(today), to = Format(today.AddDays(days)) })
+            .ToList();
+        var result = new List<UpcomingEpisode>();
+        foreach (var group in episodes.GroupBy(e => e.TitleId))
+        {
+            var ids = group.Select(e => e.EpisodeId).ToList();
+            result.AddRange(QueryEpisodes(connection, "e.id IN (SELECT value FROM json_each(@ids))", new { ids = System.Text.Json.JsonSerializer.Serialize(ids) })
+                .Select(e => new UpcomingEpisode(group.Key, titles.GetValueOrDefault(group.Key, "?"), e)));
+        }
+
+        return [.. result.OrderBy(u => u.Episode.AirDate).ThenBy(u => u.Series, StringComparer.CurrentCultureIgnoreCase)];
     }
 
     public IReadOnlyList<EpisodeView> Episodes(long seasonId)

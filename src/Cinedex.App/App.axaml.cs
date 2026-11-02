@@ -22,8 +22,13 @@ public sealed class App : Application
     private Serilog.Core.Logger? _serilog;
     private AppPaths? _paths;
     private MainWindow? _window;
+    private readonly UpdateService _updates = new();
 
-    public override void Initialize() => AvaloniaXamlLoader.Load(this);
+    public override void Initialize()
+    {
+        AvaloniaXamlLoader.Load(this);
+        AccessibleNames.Install();
+    }
 
     public override void OnFrameworkInitializationCompleted()
     {
@@ -221,6 +226,7 @@ public sealed class App : Application
                 _paths!.DataRoot,
                 services.GetRequiredService<StatisticsRepository>().Compute())
             {
+                Updates = _updates,
                 Maintenance = new MaintenanceViewModel(
                     services.GetRequiredService<MaintenanceRepository>(),
                     new CatalogManager(_paths!),
@@ -232,7 +238,9 @@ public sealed class App : Application
             },
             services.GetRequiredService<MediaContext>(),
             catalogs);
+        main.Updates = _updates;
         main.Load();
+        _ = main.CheckForUpdatesAtStartupAsync();
         _window!.DataContext = main;
         _window.Title = Tr.F("Cinedex · {0}", name);
     }

@@ -33,6 +33,10 @@ jobs:
           set +e
           dotnet test --no-build -c Release --project tests/Cinedex.Tests --no-ansi --no-progress 2>&1 | tee test.log
           status=${PIPESTATUS[0]}
+          # Tests d'interface : vraies fenêtres rendues sans écran (Avalonia Headless + Skia), pilotées au clavier et à la souris.
+          dotnet test --no-build -c Release --project tests/Cinedex.UiTests --no-ansi --no-progress 2>&1 | tee -a test.log
+          ui=${PIPESTATUS[0]}
+          if [ "$ui" -ne 0 ]; then status=$ui; fi
           if [ "$status" -ne 0 ]; then
             # Tests en échec remontés en annotation, lisibles sans ouvrir le journal complet.
             summary=$(grep -E -A8 '(failed|échec) ' test.log | head -80 | tr -d '\r' | awk '{ printf "%s%%0A", $0 }')

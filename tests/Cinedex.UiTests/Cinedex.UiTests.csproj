@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CA1707</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Avalonia.Headless" />
+    <PackageReference Include="Avalonia.Skia" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Catalogue de test volumineux et dossiers temporaires, partagés avec les tests unitaires. -->
+    <Compile Include="..\Cinedex.Tests\CatalogSeeder.cs" Link="Shared\CatalogSeeder.cs" />
+    <Compile Include="..\Cinedex.Tests\TempDirectory.cs" Link="Shared\TempDirectory.cs" />
+    <None Include="..\..\src\Cinedex.App\Assets\cinedex.png" Link="Assets\poster.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Cinedex.App\Cinedex.App.csproj" />
+  </ItemGroup>
+</Project>

@@ -8,5 +8,6 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Cinedex.Tests/Cinedex.Tests.csproj" />
+    <Project Path="tests/Cinedex.UiTests/Cinedex.UiTests.csproj" />
   </Folder>
 </Solution>

@@ -87,7 +87,8 @@ public sealed record TitleQuery(
     bool Descending = false,
     bool HideAdult = false,
     SearchCriteria? Criteria = null,
-    RuleSearch? Rules = null)
+    RuleSearch? Rules = null,
+    IReadOnlyCollection<long>? Ids = null)
 {
     public static TitleQuery Default { get; } = new();
 }

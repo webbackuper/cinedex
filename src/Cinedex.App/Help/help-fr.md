@@ -80,6 +80,8 @@ La gestion des collections s'active ou se désactive dans **Réglages > Généra
 ## Séries
 Une série liée à TMDb récupère ses saisons et épisodes. Le bouton **Saisons et épisodes** de la fiche permet de rattacher les fichiers d'un dossier (noms S01E02 ou 1x02), de marquer des épisodes vus et de les lire.
 
+**Suivi des séries** (lien du bandeau gauche, avec le nombre de séries qui ont des épisodes à regarder) montre pour chaque série la progression (épisodes vus sur épisodes diffusés), le **prochain épisode à regarder** — le bouton **Vu** le marque et passe au suivant — et la **prochaine diffusion** annoncée. À droite, le calendrier des épisodes annoncés dans les 60 prochains jours. **Actualiser depuis TMDb** récupère les nouveaux épisodes et dates des séries en cours. Un double-clic sur une série l'affiche dans le catalogue.
+
 ## Rechercher et trier
 - La zone **Rechercher…** (Ctrl+F) cherche dans les titres et les résumés.
 - **Trier par** classe la liste ; le bouton voisin inverse l'ordre.
@@ -160,6 +162,16 @@ Ces opérations s'appliquent tout de suite, sans « Enregistrer ». Chacune de c
 - **Ctrl+P** : lire ; **Ctrl+O** : ouvrir le dossier du fichier
 - **Ctrl+S** : vu / pas vu ; **Ctrl+D** : favori ; **Ctrl+R** ou **F7** : un titre non vu au hasard
 - **Ctrl+1** : liste ; **Ctrl+2** : affiches ; **F5** : rafraîchir ; **F11** : plein écran
+- Dans la vue affiches : **flèches** pour se déplacer (avec **Maj** pour étendre la sélection), **Début**/**Fin**, **Pg préc.**/**Pg suiv.**, **Entrée** pour ouvrir la fiche, **Ctrl+A** pour tout sélectionner, **Ctrl+clic** et **Maj+clic** pour une sélection multiple.
+
+## Accessibilité
+Chaque bouton est annoncé par son nom aux lecteurs d'écran (Narrateur, NVDA, VoiceOver), y compris les boutons à icône seule ; les affiches de la grille sont annoncées par leur titre et leur année. Les couleurs du texte respectent les contrastes recommandés (WCAG AA) en thème clair et sombre, quelle que soit la couleur d'accent ou de menu choisie. Toute la navigation principale se fait au clavier (voir les raccourcis).
+
+## Grands catalogues
+Cinedex est conçu pour des catalogues de plus de 10 000 films : seules les lignes et affiches visibles sont créées, les affiches sont décodées en arrière-plan, et marquer un film vu ou favori ne met à jour que sa ligne. Les performances sont vérifiées à chaque version sur un catalogue de 12 000 films.
+
+## Installation et mises à jour
+**Cinedex-win-Setup.exe** installe Cinedex pour l'utilisateur (sans droits d'administrateur) avec un raccourci sur le bureau et dans le menu Démarrer. La version installée vérifie au démarrage si une nouvelle version est publiée : un bouton **Mise à jour disponible** apparaît alors dans le bandeau gauche ; elle s'installe en quelques secondes (seuls les fichiers modifiés sont téléchargés) et Cinedex redémarre dessus. **Réglages > Général > Mises à jour** permet de rechercher à la demande ou de désactiver la recherche au démarrage. Les catalogues et réglages ne sont jamais touchés par une mise à jour. La version portable (archive .zip) reste disponible et se met à jour à la main ; Linux (AppImage) et macOS (.pkg) ont aussi leur programme d'installation.
 
 ## Sauvegardes
 **Réglages > Sauvegardes** crée des sauvegardes complètes du catalogue ouvert : une archive .zip qui contient, au choix, la **base de données** (fiches, notes, prêts, fichiers, réglages du catalogue), les **images** (affiches, fonds, photos, décors) et les **préférences communes** (apparence, langue, fenêtre, journal), avec un manifeste.
@@ -183,6 +195,12 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.0
+- **Grands catalogues** : liste et affiches virtualisées (seuls les éléments visibles existent), affiches chargées en arrière-plan, mises à jour ciblées ; testé sur 12 000 films.
+- **Installation et mises à jour automatiques** (Cinedex-win-Setup.exe), versions Linux et macOS.
+- **Suivi des séries** : épisodes à regarder, bouton Vu, calendrier des prochaines diffusions.
+- **Accessibilité** : noms lus par les lecteurs d'écran pour tous les boutons, contrastes vérifiés, vue affiches au clavier.
+
 ### 0.3.1
 - Onglet **Réseau** dans les Réglages : proxy HTTP ou HTTPS (serveur:port), désactivé par défaut, avec test de connexion.
 

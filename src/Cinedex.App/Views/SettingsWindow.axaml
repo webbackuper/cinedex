@@ -65,6 +65,17 @@
             <CheckBox Content="Gérer les collections (sagas TMDb)" IsChecked="{Binding ManageCollections}" />
             <TextBlock Classes="hint" TextWrapping="Wrap"
                        Text="Ajoute le lien « Collections » au bandeau gauche et télécharge depuis TMDb la présentation, la liste des films, l'affiche et le décor de chaque saga, après chaque import. Les films manquants de vos sagas y sont signalés." />
+            <TextBlock Classes="h" Text="Mises à jour" />
+            <TextBlock Text="{Binding CurrentVersion}" />
+            <TextBlock Classes="hint" Text="{Binding UpdateIntro}" />
+            <StackPanel Spacing="8" IsVisible="{Binding CanUpdate}">
+              <CheckBox Content="Rechercher les mises à jour au démarrage" IsChecked="{Binding CheckUpdatesAtStartup}" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Classes="tool" Content="Rechercher maintenant" Command="{Binding CheckUpdatesCommand}" />
+                <Button Classes="accent" Content="Installer et redémarrer" Command="{Binding InstallUpdateCommand}" IsVisible="{Binding UpdateReady}" />
+              </StackPanel>
+              <TextBlock Text="{Binding UpdateMessage}" Classes="hint" IsVisible="{Binding UpdateMessage, Converter={x:Static ObjectConverters.IsNotNull}}" />
+            </StackPanel>
             <TextBlock Classes="h" Text="Données" />
             <TextBlock Text="Catalogues, images, sauvegardes et journaux sont rangés dans :" />
             <Grid ColumnDefinitions="*,Auto">

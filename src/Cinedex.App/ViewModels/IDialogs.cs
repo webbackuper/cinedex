@@ -33,6 +33,8 @@ public interface IDialogs
 
     Task<bool> ShowCollectionsAsync(CollectionsViewModel collections);
 
+    Task<bool> ShowSeriesTrackingAsync(SeriesTrackingViewModel tracking);
+
     /// <summary>Ouvre l'aide (fenêtre indépendante, non bloquante) ou la ramène au premier plan.</summary>
     void ShowHelp(HelpViewModel help);
 }

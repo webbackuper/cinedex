@@ -104,6 +104,13 @@ public sealed partial class TitleRepository(CatalogDatabase database)
             where.Add(rulesClause);
         }
 
+        if (query.Ids is { } ids)
+        {
+            // Mise à jour ciblée de quelques lignes de la liste (favori, vu, prêt…), sans tout relire.
+            where.Add("t.id IN (SELECT value FROM json_each(@Ids))");
+            parameters.Add("Ids", System.Text.Json.JsonSerializer.Serialize(ids));
+        }
+
         if (where.Count > 0)
         {
             sql.Append(" WHERE ").AppendJoin(" AND ", where);

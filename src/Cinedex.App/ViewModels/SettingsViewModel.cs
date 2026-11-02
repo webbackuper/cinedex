@@ -105,6 +105,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         MarkSeenOnPlay = settings.Get(Services.MediaContext.MarkSeenOnPlayKey) != "false";
 
         // Réseau : proxy commun à tous les catalogues.
+        CheckUpdatesAtStartup = dataRoot is null || UpdatePreferences.Load(dataRoot).CheckAtStartup;
         var proxy = dataRoot is null ? ProxySettings.Current : ProxySettings.Load(dataRoot);
         ProxyEnabled = proxy.Enabled;
         ProxyTypes = [new(false, "HTTP"), new(true, "HTTPS")];
@@ -128,6 +129,76 @@ public sealed partial class SettingsViewModel : ObservableObject
         ScreenSaverIdleMinutes = saver.IdleMinutes;
         ScreenSaverIntervalSeconds = saver.IntervalSeconds;
         ScreenSaverShowTitles = saver.ShowTitles;
+    }
+
+    /// <summary>Mises à jour automatiques (version installée) ; absent en test.</summary>
+    public UpdateService? Updates
+    {
+        get;
+        init
+        {
+            field = value;
+            OnPropertyChanged(nameof(CanUpdate));
+            OnPropertyChanged(nameof(UpdateIntro));
+        }
+    }
+
+    public bool CanUpdate => Updates?.IsInstalled == true;
+
+    public string CurrentVersion => Updates is null && _dataRoot is null ? string.Empty : Tr.F("Version installée : {0}", typeof(SettingsViewModel).Assembly.GetName().Version?.ToString(3) ?? "?");
+
+    public string UpdateIntro => CanUpdate
+        ? Tr.T("Les nouvelles versions publiées sur GitHub s'installent en quelques secondes ; seuls les fichiers modifiés sont téléchargés.")
+        : Tr.T("Version portable : les mises à jour automatiques sont réservées à la version installée (Cinedex-win-Setup.exe). Téléchargez sinon la nouvelle archive sur GitHub.");
+
+    [ObservableProperty]
+    public partial bool CheckUpdatesAtStartup { get; set; } = true;
+
+    [ObservableProperty]
+    public partial string? UpdateMessage { get; set; }
+
+    [ObservableProperty]
+    public partial bool UpdateReady { get; set; }
+
+    [CommunityToolkit.Mvvm.Input.RelayCommand]
+    private async Task CheckUpdatesAsync()
+    {
+        if (Updates is not { IsInstalled: true } updates)
+        {
+            return;
+        }
+
+        UpdateMessage = Tr.T("Recherche en cours…");
+        try
+        {
+            var version = await updates.CheckAsync();
+            UpdateReady = version is not null;
+            UpdateMessage = version is null ? Tr.T("Cinedex est à jour.") : Tr.F("Version {0} disponible.", version);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidOperationException or TaskCanceledException)
+        {
+            UpdateMessage = Tr.F("Recherche impossible : {0}", ex.Message);
+        }
+    }
+
+    [CommunityToolkit.Mvvm.Input.RelayCommand]
+    private async Task InstallUpdateAsync()
+    {
+        if (Updates is not { AvailableVersion: { } version } updates)
+        {
+            return;
+        }
+
+        try
+        {
+            await updates.DownloadAsync(p => Avalonia.Threading.Dispatcher.UIThread.Post(() => UpdateMessage = Tr.F("Téléchargement : {0} %", p)));
+            ActivityJournal.Current.Write($"Mise à jour vers {version}");
+            updates.ApplyAndRestart();
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidOperationException or TaskCanceledException)
+        {
+            UpdateMessage = Tr.F("Mise à jour impossible : {0}", ex.Message);
+        }
     }
 
     /// <summary>Onglet Maintenance (absent hors catalogue, par exemple en test).</summary>
@@ -591,6 +662,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         {
             var proxySettings = new ProxySettings { Enabled = ProxyEnabled, UseHttps = SelectedProxyType.Value, Address = (ProxyAddress ?? string.Empty).Trim() };
             proxySettings.Save(_dataRoot);
+            new UpdatePreferences { CheckAtStartup = CheckUpdatesAtStartup }.Save(_dataRoot);
             ProxySettings.Current = proxySettings;
             Appearance.Save(_dataRoot, SelectedTheme.Value);
             Appearance.Apply(SelectedTheme.Value);

@@ -111,6 +111,7 @@ Plusieurs catalogues indépendants peuvent coexister (par exemple : films, séri
 - **Import et scan** : extensions vidéo, taille minimale, mots qui font ignorer un fichier, sous-dossiers, termes retirés des titres, options cochées par défaut.
 - **Métadonnées** : jeton TMDb, langue et pays, nombre d'acteurs, clé OMDb, fichier IMDb.
 - **Fichiers .nfo** et **Lecture et outils** (MediaInfo, lecteur externe, marquer comme vu à la lecture).
+- **Statistiques** : chiffres du catalogue ouvert (films, séries, épisodes, acteurs, réalisateurs, vus, favoris, prêtés, fichiers, taille des fichiers, durée totale des films, titres liés à TMDb, à vérifier) et répartitions par genre, décennie, définition, support et disque (MediaID).
 
 ## Raccourcis clavier
 - **F1** : aide
@@ -130,6 +131,9 @@ Plusieurs catalogues indépendants peuvent coexister (par exemple : films, séri
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.2.3
+- Onglet **Statistiques** dans les Réglages : chiffres clés du catalogue et répartitions par genre, décennie, définition, support et disque.
+
 ### 0.2.2
 - Journal des actions : chaque action faite dans Cinedex est notée (activé par défaut), avec export du journal du jour (Réglages > Général).
 

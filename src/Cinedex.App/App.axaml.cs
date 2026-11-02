@@ -54,6 +54,19 @@ public sealed class App : Application
                         target.Show(_window);
                     }
 
+                    if (Environment.GetEnvironmentVariable("CINEDEX_SNAPSHOT_STATS") is { Length: > 0 } && _services is { } services)
+                    {
+                        var settings = new SettingsWindow
+                        {
+                            DataContext = new SettingsViewModel(
+                                services.GetRequiredService<ISecretStore>(), services.GetRequiredService<SettingsStore>(), _paths.DataRoot,
+                                services.GetRequiredService<StatisticsRepository>().Compute()),
+                        };
+                        settings.Opened += (_, _) => settings.ShowStatistics();
+                        target = settings;
+                        target.Show(_window);
+                    }
+
                     await Task.Delay(2500);
                     var size = new Avalonia.PixelSize((int)target.Bounds.Width, (int)target.Bounds.Height);
                     using var bitmap = new Avalonia.Media.Imaging.RenderTargetBitmap(size);
@@ -98,7 +111,11 @@ public sealed class App : Application
             _window!,
             services.GetRequiredService<MetadataService>(),
             services.GetRequiredService<ImageStore>(),
-            () => new SettingsViewModel(services.GetRequiredService<ISecretStore>(), services.GetRequiredService<SettingsStore>(), _paths!.DataRoot),
+            () => new SettingsViewModel(
+                services.GetRequiredService<ISecretStore>(),
+                services.GetRequiredService<SettingsStore>(),
+                _paths!.DataRoot,
+                services.GetRequiredService<StatisticsRepository>().Compute()),
             services.GetRequiredService<MediaContext>(),
             catalogs);
         main.Load();
@@ -171,6 +188,7 @@ public sealed class App : Application
         services.AddSingleton<PeopleRepository>();
         services.AddSingleton<PeopleService>();
         services.AddSingleton<MatchReviewRepository>();
+        services.AddSingleton<StatisticsRepository>();
         services.AddSingleton<MetadataService>();
         services.AddSingleton<MediaFileRepository>();
         services.AddSingleton<SeriesRepository>();

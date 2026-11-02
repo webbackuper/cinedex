@@ -9,6 +9,9 @@ public sealed partial class SettingsWindow : Window
 {
     public SettingsWindow() => InitializeComponent();
 
+    /// <summary>Ouvre directement l'onglet Statistiques (le dernier).</summary>
+    public void ShowStatistics() => Tabs.SelectedIndex = Tabs.ItemCount - 1;
+
     private async void OnSave(object? sender, RoutedEventArgs e)
     {
         if (DataContext is SettingsViewModel settings)

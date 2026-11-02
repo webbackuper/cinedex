@@ -111,6 +111,7 @@ Several independent catalogs can coexist (for example: films, series, a relative
 - **Import and scan**: video extensions, minimum size, words that make a file ignored, subfolders, terms removed from titles, options checked by default.
 - **Metadata**: TMDb token, language and country, number of actors, OMDb key, IMDb file.
 - **.nfo files** and **Playback and tools** (MediaInfo, external player, mark as watched on playback).
+- **Statistics**: figures for the open catalog (films, series, episodes, actors, directors, watched, favorites, lent, files, file size, total film runtime, titles linked to TMDb, to review) and breakdowns by genre, decade, definition, medium and drive (MediaID).
 
 ## Keyboard shortcuts
 - **F1**: help
@@ -130,6 +131,9 @@ Several independent catalogs can coexist (for example: films, series, a relative
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.2.3
+- **Statistics** tab in Settings: key figures for the catalog and breakdowns by genre, decade, definition, medium and drive.
+
 ### 0.2.2
 - Activity log: every action taken in Cinedex is recorded (on by default), and today's log can be exported (Settings > General).
 

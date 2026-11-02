@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Cinedex.App.ViewModels"
+        xmlns:data="using:Cinedex.Data"
         x:Class="Cinedex.App.Views.SettingsWindow"
         x:DataType="vm:SettingsViewModel"
         Title="Réglages"
@@ -33,7 +34,7 @@
       </Grid>
     </StackPanel>
 
-    <TabControl TabStripPlacement="Left">
+    <TabControl x:Name="Tabs" TabStripPlacement="Left">
       <!-- Général -->
       <TabItem Header="Général">
         <ScrollViewer>
@@ -199,6 +200,91 @@
             <TextBox Text="{Binding PlayerPath}" PlaceholderText="Lecteur externe (vide : lecteur par défaut du système)" />
             <TextBox Text="{Binding PlayerArgs}" PlaceholderText="Paramètres du lecteur, ex. --fullscreen %FILEPATH%" />
             <CheckBox Content="Marquer comme vu à la lecture depuis Cinedex" IsChecked="{Binding MarkSeenOnPlay}" />
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+      <!-- Statistiques du catalogue ouvert -->
+      <TabItem Header="Statistiques" IsVisible="{Binding HasStatistics}">
+        <ScrollViewer>
+          <StackPanel Spacing="14" Margin="12,0,0,0">
+            <ItemsControl ItemsSource="{Binding StatCards}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:StatCard">
+                  <Border Width="150" Margin="0,0,10,10" Padding="12,10" CornerRadius="10" Background="{DynamicResource CinedexSurfaceAlt}"
+                          BorderBrush="{DynamicResource CinedexBorder}" BorderThickness="1">
+                    <StackPanel Spacing="2">
+                      <TextBlock Text="{Binding Value}" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}" />
+                      <TextBlock Text="{Binding Label}" FontSize="12" Opacity="0.75" TextWrapping="Wrap" />
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Classes="h" Text="Par genre" />
+            <ItemsControl ItemsSource="{Binding Statistics.Genres}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="data:StatCount">
+                  <Grid ColumnDefinitions="200,*,60" Margin="0,2">
+                    <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <ProgressBar Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding Ratio}" Height="10" MinWidth="0" Margin="8,0" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2" Text="{Binding Count}" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Classes="h" Text="Par décennie" />
+            <ItemsControl ItemsSource="{Binding Statistics.Decades}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="data:StatCount">
+                  <Grid ColumnDefinitions="200,*,60" Margin="0,2">
+                    <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <ProgressBar Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding Ratio}" Height="10" MinWidth="0" Margin="8,0" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2" Text="{Binding Count}" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Classes="h" Text="Par définition" />
+            <ItemsControl ItemsSource="{Binding Statistics.Definitions}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="data:StatCount">
+                  <Grid ColumnDefinitions="200,*,60" Margin="0,2">
+                    <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <ProgressBar Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding Ratio}" Height="10" MinWidth="0" Margin="8,0" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2" Text="{Binding Count}" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Classes="h" Text="Par support" />
+            <ItemsControl ItemsSource="{Binding Statistics.Media}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="data:StatCount">
+                  <Grid ColumnDefinitions="200,*,60" Margin="0,2">
+                    <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <ProgressBar Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding Ratio}" Height="10" MinWidth="0" Margin="8,0" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2" Text="{Binding Count}" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Classes="h" Text="Par disque (MediaID)" />
+            <ItemsControl ItemsSource="{Binding Statistics.Disks}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="data:StatCount">
+                  <Grid ColumnDefinitions="200,*,60" Margin="0,2">
+                    <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <ProgressBar Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding Ratio}" Height="10" MinWidth="0" Margin="8,0" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2" Text="{Binding Count}" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
           </StackPanel>
         </ScrollViewer>
       </TabItem>

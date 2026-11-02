@@ -9,6 +9,9 @@ using Cinedex.Core.Localization;
 
 namespace Cinedex.App.ViewModels;
 
+/// <summary>Un chiffre clé de l'onglet Statistiques : valeur mise en forme et libellé.</summary>
+public sealed record StatCard(string Value, string Label);
+
 /// <summary>Une vue du bandeau gauche, affichée ou masquée.</summary>
 public sealed partial class FilterToggle(QuickFilter value, string label, bool isShown) : ObservableObject
 {
@@ -34,8 +37,9 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     private readonly string? _dataRoot;
 
-    public SettingsViewModel(ISecretStore secrets, SettingsStore settings, string? dataRoot = null)
+    public SettingsViewModel(ISecretStore secrets, SettingsStore settings, string? dataRoot = null, CatalogStatistics? statistics = null)
     {
+        Statistics = statistics;
         _secrets = secrets;
         _settings = settings;
         _dataRoot = dataRoot;
@@ -141,6 +145,34 @@ public sealed partial class SettingsViewModel : ObservableObject
     public partial string? JournalMessage { get; set; }
 
     public static string JournalFolder => ActivityJournal.Current.LogsDirectory;
+
+    /// <summary>Statistiques du catalogue ouvert (onglet Statistiques) ; absentes hors catalogue.</summary>
+    public CatalogStatistics? Statistics { get; }
+
+    public bool HasStatistics => Statistics is not null;
+
+    public IReadOnlyList<StatCard> StatCards => Statistics is not { } s ? [] :
+    [
+        new(Number(s.Films), Tr.T("Films")),
+        new(Number(s.Series), Tr.T("Séries")),
+        new(Number(s.Episodes), Tr.T("Épisodes")),
+        new(Number(s.Actors), Tr.T("Acteurs")),
+        new(Number(s.Directors), Tr.T("Réalisateurs")),
+        new(Number(s.Seen), Tr.T("Vus")),
+        new(Number(s.Favorites), Tr.T("Favoris")),
+        new(Number(s.Loaned), Tr.T("Prêtés")),
+        new(Number(s.Files), Tr.T("Fichiers vidéo")),
+        new(Size(s.TotalBytes), Tr.T("Taille des fichiers")),
+        new(Number(s.FilmMinutes / 60) + " h", Tr.T("Durée totale des films")),
+        new(Number(s.LinkedToTmdb), Tr.T("Liés à TMDb")),
+        new(Number(s.ToReview), Tr.T("À vérifier")),
+    ];
+
+    private static string Number(long value) => value.ToString("N0", CultureInfo.CurrentCulture);
+
+    private static string Size(long bytes) => bytes >= 1L << 40
+        ? Tr.F("{0:0.00} To", bytes / (double)(1L << 40))
+        : Tr.F("{0:0.0} Go", bytes / (double)(1L << 30));
 
     /// <summary>Extensions des fichiers vidéo retenus, séparées par des espaces (« .mkv .mp4 »).</summary>
     [ObservableProperty]

@@ -1,0 +1,38 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Cinedex.App.ViewModels"
+        xmlns:views="using:Cinedex.App.Views"
+        x:Class="Cinedex.App.Views.ScreenSaverWindow"
+        x:DataType="vm:ScreenSaverViewModel"
+        Title="Cinedex"
+        SystemDecorations="None" WindowState="FullScreen" Topmost="True" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner" Background="Black" Cursor="None">
+  <TransitioningContentControl Content="{Binding Current}">
+    <TransitioningContentControl.PageTransition>
+      <CrossFade Duration="0:0:1.2" />
+    </TransitioningContentControl.PageTransition>
+    <TransitioningContentControl.ContentTemplate>
+      <DataTemplate x:DataType="vm:ScreenSaverSlide">
+        <Panel Background="Black">
+          <!-- Fond : le décor du film, flouté et assombri -->
+          <Image Source="{Binding BackgroundPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=960}"
+                 Stretch="UniformToFill" Opacity="0.4">
+            <Image.Effect>
+              <BlurEffect Radius="40" />
+            </Image.Effect>
+          </Image>
+          <Grid RowDefinitions="*,Auto" Margin="60,50">
+            <Border HorizontalAlignment="Center" VerticalAlignment="Center" CornerRadius="10" ClipToBounds="True" BoxShadow="0 12 48 0 #A0000000">
+              <Image Source="{Binding PosterPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=900}" Stretch="Uniform" />
+            </Border>
+            <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,22,0,0" Spacing="4"
+                        IsVisible="{Binding $parent[Window].((vm:ScreenSaverViewModel)DataContext).ShowTitles}">
+              <TextBlock Text="{Binding Title}" FontSize="30" FontWeight="SemiBold" Foreground="White" TextAlignment="Center" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding YearText}" FontSize="18" Foreground="#B0FFFFFF" TextAlignment="Center" />
+            </StackPanel>
+          </Grid>
+        </Panel>
+      </DataTemplate>
+    </TransitioningContentControl.ContentTemplate>
+  </TransitioningContentControl>
+</Window>

@@ -157,3 +157,57 @@ public sealed record DisplaySettings
         settings.Set(CollectionsKey, ScanSettings.Flag(ManageCollections));
     }
 }
+
+/// <summary>
+/// Économiseur d'écran : diaporama des affiches lancé après une période d'inactivité, quand la fenêtre de Cinedex
+/// est active. Propre à chaque catalogue ; activé par défaut.
+/// </summary>
+public sealed record ScreenSaverSettings
+{
+    public const string EnabledKey = "screensaver.enabled";
+    public const string IdleMinutesKey = "screensaver.idleMinutes";
+    public const string IntervalSecondsKey = "screensaver.intervalSeconds";
+    public const string ShowTitlesKey = "screensaver.showTitles";
+
+    public const int MinIdleMinutes = 1;
+    public const int MaxIdleMinutes = 240;
+    public const int MinIntervalSeconds = 2;
+    public const int MaxIntervalSeconds = 300;
+
+    public bool Enabled { get; init; } = true;
+
+    /// <summary>Minutes sans clavier ni souris avant le diaporama (1 à 240).</summary>
+    public int IdleMinutes { get; init; } = 5;
+
+    /// <summary>Secondes d'affichage de chaque affiche (2 à 300).</summary>
+    public int IntervalSeconds { get; init; } = 8;
+
+    /// <summary>Titre et année sous chaque affiche.</summary>
+    public bool ShowTitles { get; init; } = true;
+
+    public static ScreenSaverSettings Load(SettingsStore settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        return new ScreenSaverSettings
+        {
+            Enabled = settings.Get(EnabledKey) != "false",
+            IdleMinutes = Read(settings, IdleMinutesKey, 5, MinIdleMinutes, MaxIdleMinutes),
+            IntervalSeconds = Read(settings, IntervalSecondsKey, 8, MinIntervalSeconds, MaxIntervalSeconds),
+            ShowTitles = settings.Get(ShowTitlesKey) != "false",
+        };
+    }
+
+    public void Save(SettingsStore settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        settings.Set(EnabledKey, ScanSettings.Flag(Enabled));
+        settings.Set(IdleMinutesKey, Math.Clamp(IdleMinutes, MinIdleMinutes, MaxIdleMinutes).ToString(System.Globalization.CultureInfo.InvariantCulture));
+        settings.Set(IntervalSecondsKey, Math.Clamp(IntervalSeconds, MinIntervalSeconds, MaxIntervalSeconds).ToString(System.Globalization.CultureInfo.InvariantCulture));
+        settings.Set(ShowTitlesKey, ScanSettings.Flag(ShowTitles));
+    }
+
+    private static int Read(SettingsStore settings, string key, int fallback, int min, int max) =>
+        int.TryParse(settings.Get(key), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var value)
+            ? Math.Clamp(value, min, max)
+            : fallback;
+}

@@ -12,6 +12,9 @@ public sealed partial class SettingsWindow : Window
     /// <summary>Ouvre directement l'onglet Statistiques (le dernier).</summary>
     public void ShowStatistics() => Tabs.SelectedIndex = Tabs.ItemCount - 1;
 
+    /// <summary>Onglet choisi par son rang (capture de vérification).</summary>
+    public void ShowTab(int index) => Tabs.SelectedIndex = Math.Clamp(index, 0, Tabs.ItemCount - 1);
+
     private async void OnSave(object? sender, RoutedEventArgs e)
     {
         if (DataContext is SettingsViewModel settings)

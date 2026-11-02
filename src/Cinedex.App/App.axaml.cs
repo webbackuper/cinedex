@@ -54,6 +54,14 @@ public sealed class App : Application
                         target.Show(_window);
                     }
 
+                    // CINEDEX_SNAPSHOT_SCREENSAVER : capture du diaporama des affiches.
+                    if (Environment.GetEnvironmentVariable("CINEDEX_SNAPSHOT_SCREENSAVER") is { Length: > 0 } &&
+                        _window.DataContext is MainWindowViewModel main && main.CreateScreenSaver() is { } slideshow)
+                    {
+                        target = new ScreenSaverWindow { DataContext = slideshow };
+                        target.Show(_window);
+                    }
+
                     // CINEDEX_SNAPSHOT_COLLECTIONS : capture de la fenêtre des collections.
                     if (Environment.GetEnvironmentVariable("CINEDEX_SNAPSHOT_COLLECTIONS") is { Length: > 0 } && _services?.GetRequiredService<CollectionService>() is { } collectionService)
                     {
@@ -74,7 +82,18 @@ public sealed class App : Application
                                 services.GetRequiredService<ISecretStore>(), services.GetRequiredService<SettingsStore>(), _paths.DataRoot,
                                 services.GetRequiredService<StatisticsRepository>().Compute()),
                         };
-                        settings.Opened += (_, _) => settings.ShowStatistics();
+                        // CINEDEX_SNAPSHOT_STATS=<n> : onglet de rang n plutôt que les statistiques.
+                        settings.Opened += (_, _) =>
+                        {
+                            if (int.TryParse(Environment.GetEnvironmentVariable("CINEDEX_SNAPSHOT_STATS"), out var tab))
+                            {
+                                settings.ShowTab(tab);
+                            }
+                            else
+                            {
+                                settings.ShowStatistics();
+                            }
+                        };
                         target = settings;
                         target.Show(_window);
                     }

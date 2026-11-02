@@ -117,12 +117,20 @@ Cinedex reads and writes .nfo files in Kodi format (Settings > .nfo files):
 Several independent catalogs can coexist (for example: films, series, a relative's collection). The menu under the logo opens, creates, renames or removes them. A removed catalog is moved to the backups, never erased.
 
 ## Settings
-- **General**: theme, language, window at startup, adult content, tooltips, data folder, activity log.
+- **General**: theme, language, window at startup, adult content, tooltips, collections, data folder, activity log.
+- **Screen saver**: on or off, idle time, slideshow interval, titles under the posters.
 - **Left sidebar**: views and links shown.
 - **Import and scan**: video extensions, minimum size, words that make a file ignored, subfolders, terms removed from titles, options checked by default.
 - **Metadata**: TMDb token, language and country, number of actors, OMDb key, IMDb file.
 - **.nfo files** and **Playback and tools** (MediaInfo, external player, mark as watched on playback).
 - **Statistics**: figures for the open catalog (films, series, episodes, actors, directors, watched, favorites, lent, files, file size, total film runtime, titles linked to TMDb, to review) and breakdowns by genre, decade, definition, medium and drive (MediaID).
+
+## Screen saver
+When the Cinedex window is active but neither the keyboard nor the mouse has been used for **5 minutes**, a full-screen slideshow of the catalog's posters starts: each poster is shown over the film's blurred backdrop, with its title and year, then fades into the next one. Posters play in random order, each once before starting again.
+
+Any key, click, wheel turn or mouse movement closes the slideshow. It does not start when Cinedex is not in the foreground (for example while a film plays in another program) or when no film has a poster; titles marked as adult content are left out when they are hidden in the list.
+
+Everything is set in **Settings > Screen saver**: on or off, idle time (1 to 240 minutes), interval between posters (2 to 300 seconds) and the title under the posters.
 
 ## Keyboard shortcuts
 - **F1**: help
@@ -142,6 +150,9 @@ Several independent catalogs can coexist (for example: films, series, a relative
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.2.5
+- **Screen saver**: full-screen slideshow of the posters after 5 minutes of inactivity while the Cinedex window is active. On/off, idle time, interval and titles are set in Settings > Screen saver.
+
 ### 0.2.4
 - **Collections** (TMDb sagas): overview, poster and backdrop downloaded from TMDb, owned and missing films of each saga, and a **Collections** link in the left sidebar. Turn it on or off in Settings > General.
 - More reliable connection to TMDb on networks where IPv6 is advertised but does not work.

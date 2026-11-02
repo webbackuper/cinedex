@@ -97,6 +97,13 @@ public sealed partial class SettingsViewModel : ObservableObject
         HasOmdbKey = SafeRead(SecretStore.OmdbKey) is not null;
         UseImdbDataset = settings.Get(Services.RatingsService.UseDatasetKey) != "false";
         MaxActorsNumber = Services.MetadataService.ReadMaxActors(settings);
+
+        // Économiseur d'écran.
+        var saver = ScreenSaverSettings.Load(settings);
+        ScreenSaverEnabled = saver.Enabled;
+        ScreenSaverIdleMinutes = saver.IdleMinutes;
+        ScreenSaverIntervalSeconds = saver.IntervalSeconds;
+        ScreenSaverShowTitles = saver.ShowTitles;
     }
 
     public IReadOnlyList<Choice<AppTheme>> ThemeChoices { get; }
@@ -263,6 +270,19 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     public partial bool UseImdbDataset { get; set; }
 
+    /// <summary>Diaporama des affiches après une période d'inactivité, quand la fenêtre de Cinedex est active.</summary>
+    [ObservableProperty]
+    public partial bool ScreenSaverEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial decimal? ScreenSaverIdleMinutes { get; set; }
+
+    [ObservableProperty]
+    public partial decimal? ScreenSaverIntervalSeconds { get; set; }
+
+    [ObservableProperty]
+    public partial bool ScreenSaverShowTitles { get; set; }
+
     /// <summary>Nombre d'acteurs gardés dans la distribution à chaque import ou mise à jour TMDb.</summary>
     [ObservableProperty]
     public partial decimal? MaxActorsNumber { get; set; }
@@ -313,6 +333,20 @@ public sealed partial class SettingsViewModel : ObservableObject
             return false;
         }
 
+        var idleMinutes = (int)Math.Round(ScreenSaverIdleMinutes ?? 0);
+        if (idleMinutes is < ScreenSaverSettings.MinIdleMinutes or > ScreenSaverSettings.MaxIdleMinutes)
+        {
+            Error = Tr.F("Économiseur d'écran : une inactivité entre {0} et {1} minutes est attendue.", ScreenSaverSettings.MinIdleMinutes, ScreenSaverSettings.MaxIdleMinutes);
+            return false;
+        }
+
+        var intervalSeconds = (int)Math.Round(ScreenSaverIntervalSeconds ?? 0);
+        if (intervalSeconds is < ScreenSaverSettings.MinIntervalSeconds or > ScreenSaverSettings.MaxIntervalSeconds)
+        {
+            Error = Tr.F("Économiseur d'écran : un intervalle entre {0} et {1} secondes est attendu.", ScreenSaverSettings.MinIntervalSeconds, ScreenSaverSettings.MaxIntervalSeconds);
+            return false;
+        }
+
         var extensions = ScanSettings.NormalizeExtensions(ExtensionsText);
         if (extensions.Count == 0)
         {
@@ -343,6 +377,13 @@ public sealed partial class SettingsViewModel : ObservableObject
 
         _settings.Set(Services.RatingsService.UseDatasetKey, UseImdbDataset ? "true" : "false");
         _settings.Set(Services.MetadataService.MaxActorsKey, maxActors.ToString(CultureInfo.InvariantCulture));
+        new ScreenSaverSettings
+        {
+            Enabled = ScreenSaverEnabled,
+            IdleMinutes = idleMinutes,
+            IntervalSeconds = intervalSeconds,
+            ShowTitles = ScreenSaverShowTitles,
+        }.Save(_settings);
 
         if (token.Length > 0)
         {

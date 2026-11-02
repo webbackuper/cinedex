@@ -117,12 +117,20 @@ Cinedex lit et écrit les fichiers .nfo au format Kodi (Réglages > Fichiers .nf
 Plusieurs catalogues indépendants peuvent coexister (par exemple : films, séries, collection d'un proche). Le menu sous le logo permet d'en ouvrir, créer, renommer ou retirer. Un catalogue retiré est déplacé dans les sauvegardes, jamais effacé.
 
 ## Réglages
-- **Général** : thème, langue, fenêtre au démarrage, contenu adulte, infobulles, dossier des données, journal des actions.
+- **Général** : thème, langue, fenêtre au démarrage, contenu adulte, infobulles, collections, dossier des données, journal des actions.
+- **Économiseur d'écran** : activation, durée d'inactivité, intervalle du diaporama, titres sous les affiches.
 - **Bandeau gauche** : vues et liens affichés.
 - **Import et scan** : extensions vidéo, taille minimale, mots qui font ignorer un fichier, sous-dossiers, termes retirés des titres, options cochées par défaut.
 - **Métadonnées** : jeton TMDb, langue et pays, nombre d'acteurs, clé OMDb, fichier IMDb.
 - **Fichiers .nfo** et **Lecture et outils** (MediaInfo, lecteur externe, marquer comme vu à la lecture).
 - **Statistiques** : chiffres du catalogue ouvert (films, séries, épisodes, acteurs, réalisateurs, vus, favoris, prêtés, fichiers, taille des fichiers, durée totale des films, titres liés à TMDb, à vérifier) et répartitions par genre, décennie, définition, support et disque (MediaID).
+
+## Économiseur d'écran
+Quand la fenêtre de Cinedex est active mais que ni le clavier ni la souris n'ont servi depuis **5 minutes**, un diaporama plein écran des affiches du catalogue démarre : chaque affiche s'affiche sur le décor flouté du film, avec son titre et son année, puis laisse la place à la suivante en fondu. Les affiches passent dans un ordre aléatoire, toutes une fois avant de recommencer.
+
+Une touche, un clic, la molette ou un mouvement de souris ferme le diaporama. Il ne démarre pas si Cinedex n'est pas au premier plan (par exemple pendant la lecture d'un film dans un autre logiciel) ni si aucun film n'a d'affiche ; les titres marqués « contenu pour adultes » en sont exclus quand ils sont masqués dans la liste.
+
+Tout se règle dans **Réglages > Économiseur d'écran** : activation, durée d'inactivité (1 à 240 minutes), intervalle entre deux affiches (2 à 300 secondes) et affichage du titre sous les affiches.
 
 ## Raccourcis clavier
 - **F1** : aide
@@ -142,6 +150,9 @@ Plusieurs catalogues indépendants peuvent coexister (par exemple : films, séri
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.2.5
+- **Économiseur d'écran** : diaporama plein écran des affiches après 5 minutes d'inactivité, quand la fenêtre de Cinedex est active. Activation, durée d'inactivité, intervalle et titres se règlent dans Réglages > Économiseur d'écran.
+
 ### 0.2.4
 - Gestion des **collections** (sagas TMDb) : présentation, affiche et décor téléchargés depuis TMDb, films possédés et films manquants de chaque saga, lien **Collections** dans le bandeau gauche. À activer ou désactiver dans Réglages > Général.
 - Connexion à TMDb plus fiable sur les réseaux où IPv6 est annoncé mais ne fonctionne pas.

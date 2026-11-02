@@ -33,3 +33,6 @@ public sealed record BulkEdit
 public sealed record CollectionInfo(long Id, string Name, int Count);
 
 public sealed record LabelInfo(string Name, string? Color, int Count);
+
+/// <summary>Une affiche du diaporama : titre, année, chemins relatifs de l'affiche et du fond.</summary>
+public sealed record PosterSlide(long TitleId, string Title, int? Year, string PosterRelativePath, string? BackdropRelativePath);

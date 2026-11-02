@@ -13,6 +13,8 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
 {
     private string? _dataRoot;
     private WindowState _beforeFullScreen = WindowState.Maximized;
+    private readonly IdleMonitor _idle = new();
+    private readonly Avalonia.Threading.DispatcherTimer _idleTimer = new() { Interval = TimeSpan.FromSeconds(5) };
 
     public MainWindow()
     {
@@ -36,6 +38,42 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
                 NewTitleBox.Focus();
             }),
         });
+
+        // Économiseur d'écran : toute action au clavier ou à la souris dans la fenêtre remet l'inactivité à zéro,
+        // y compris quand un contrôle a déjà traité l'événement.
+        AddHandler(KeyDownEvent, (_, _) => _idle.Touch(), RoutingStrategies.Tunnel, handledEventsToo: true);
+        AddHandler(PointerMovedEvent, (_, _) => _idle.Touch(), RoutingStrategies.Tunnel, handledEventsToo: true);
+        AddHandler(PointerPressedEvent, (_, _) => _idle.Touch(), RoutingStrategies.Tunnel, handledEventsToo: true);
+        AddHandler(PointerWheelChangedEvent, (_, _) => _idle.Touch(), RoutingStrategies.Tunnel, handledEventsToo: true);
+        Activated += (_, _) => _idle.Touch();
+        _idleTimer.Tick += (_, _) => StartScreenSaverIfIdle();
+        Opened += (_, _) => _idleTimer.Start();
+        Closed += (_, _) => _idleTimer.Stop();
+    }
+
+    /// <summary>Lance le diaporama des affiches si la fenêtre est active et inactive depuis la durée réglée.</summary>
+    private void StartScreenSaverIfIdle()
+    {
+        if (DataContext is not MainWindowViewModel vm || !_idle.ShouldStart(vm.ScreenSaver, IsActive))
+        {
+            return;
+        }
+
+        if (vm.CreateScreenSaver() is not { } slideshow)
+        {
+            _idle.Touch(); // Aucune affiche : on réessaiera après une nouvelle période d'inactivité.
+            return;
+        }
+
+        _idle.IsShowing = true;
+        var saver = new ScreenSaverWindow { DataContext = slideshow };
+        saver.Closed += (_, _) =>
+        {
+            _idle.IsShowing = false;
+            _idle.Touch();
+            Activate();
+        };
+        saver.Show(this);
     }
 
     /// <summary>

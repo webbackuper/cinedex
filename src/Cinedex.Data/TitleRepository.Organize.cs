@@ -47,6 +47,27 @@ public sealed partial class TitleRepository
             .ToList();
     }
 
+    /// <summary>
+    /// Titres qui ont une affiche, pour le diaporama de l'économiseur d'écran : chemins relatifs de l'affiche et,
+    /// s'il existe, du fond.
+    /// </summary>
+    public IReadOnlyList<PosterSlide> PosterSlides(bool hideAdult)
+    {
+        using var connection = database.Open();
+        return connection.Query<(long Id, string Title, long? Year, string Poster, string? Backdrop)>(
+                """
+                SELECT t.id, t.title, t.year, i.rel_path,
+                       (SELECT b.rel_path FROM title_image tb JOIN image b ON b.id = tb.image_id WHERE tb.title_id = t.id AND tb.role = 'backdrop')
+                FROM title t
+                JOIN title_image ti ON ti.title_id = t.id AND ti.role = 'poster'
+                JOIN image i ON i.id = ti.image_id
+                WHERE @hideAdult = 0 OR t.is_adult = 0;
+                """,
+                new { hideAdult })
+            .Select(r => new PosterSlide(r.Id, r.Title, (int?)r.Year, r.Poster, r.Backdrop))
+            .ToList();
+    }
+
     public long CreateCollection(string name)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);

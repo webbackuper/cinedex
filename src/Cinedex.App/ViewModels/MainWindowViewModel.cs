@@ -149,6 +149,32 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public bool ShowPeopleLink => HasPeople && _display.ShowPeople;
 
+    /// <summary>Économiseur d'écran (Réglages > Économiseur) : relu avec les autres réglages d'affichage.</summary>
+    public ScreenSaverSettings ScreenSaver { get; private set; } = new();
+
+    /// <summary>Diaporama des affiches du catalogue, ou null s'il n'y a aucune affiche à montrer.</summary>
+    public ScreenSaverViewModel? CreateScreenSaver()
+    {
+        if (_images is null)
+        {
+            return null;
+        }
+
+        var slides = _titles.PosterSlides(_display.HideAdult)
+            .Select(p => _images.ResolveInside(p.PosterRelativePath) is { } poster
+                ? new ScreenSaverSlide(p.TitleId, p.Title, p.Year, poster, p.BackdropRelativePath is null ? null : _images.ResolveInside(p.BackdropRelativePath))
+                : null)
+            .OfType<ScreenSaverSlide>()
+            .ToList();
+        if (slides.Count == 0)
+        {
+            return null;
+        }
+
+        Journal($"Économiseur d'écran lancé ({slides.Count} affiches)");
+        return new ScreenSaverViewModel(slides, TimeSpan.FromSeconds(ScreenSaver.IntervalSeconds), ScreenSaver.ShowTitles);
+    }
+
     /// <summary>Lien « Collections » du bandeau gauche (Réglages > Général, activé par défaut).</summary>
     public bool ShowCollections => _metadata?.Collections is not null && _display.ManageCollections;
 
@@ -176,6 +202,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private void ApplyDisplaySettings()
     {
         _display = _media is null ? new DisplaySettings() : DisplaySettings.Load(_media.Settings);
+        ScreenSaver = _media is null ? new ScreenSaverSettings() : ScreenSaverSettings.Load(_media.Settings);
         Filters = AllMainFilters.Where(f => f.Value == QuickFilter.All || !_display.HiddenFilters.Contains(f.Value)).ToList();
         DefinitionFilters = AllDefinitionFilters.Where(f => !_display.HiddenFilters.Contains(f.Value)).ToList();
         OnPropertyChanged(nameof(ShowRuleSearch));

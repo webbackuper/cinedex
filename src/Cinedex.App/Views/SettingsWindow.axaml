@@ -79,6 +79,29 @@
         </ScrollViewer>
       </TabItem>
 
+      <!-- Économiseur d'écran -->
+      <TabItem Header="Économiseur d'écran">
+        <ScrollViewer>
+          <StackPanel Spacing="10" Margin="12,0,0,0">
+            <TextBlock Classes="h" Text="Diaporama des affiches" Margin="0" />
+            <CheckBox Content="Afficher un diaporama des affiches après une période d'inactivité" IsChecked="{Binding ScreenSaverEnabled}" />
+            <StackPanel Spacing="10" IsEnabled="{Binding ScreenSaverEnabled}">
+              <Grid ColumnDefinitions="Auto,Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="10">
+                <TextBlock Text="Lancer après" VerticalAlignment="Center" />
+                <NumericUpDown Grid.Column="1" Value="{Binding ScreenSaverIdleMinutes}" Minimum="1" Maximum="240" Increment="1" Width="120" FormatString="0" />
+                <TextBlock Grid.Column="2" Text="minutes sans utiliser le clavier ni la souris" VerticalAlignment="Center" TextWrapping="Wrap" />
+                <TextBlock Grid.Row="1" Text="Changer d'affiche toutes les" VerticalAlignment="Center" />
+                <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding ScreenSaverIntervalSeconds}" Minimum="2" Maximum="300" Increment="1" Width="120" FormatString="0" />
+                <TextBlock Grid.Row="1" Grid.Column="2" Text="secondes par affiche" VerticalAlignment="Center" TextWrapping="Wrap" />
+              </Grid>
+              <CheckBox Content="Montrer le titre et l'année sous les affiches" IsChecked="{Binding ScreenSaverShowTitles}" />
+            </StackPanel>
+            <TextBlock Classes="hint" TextWrapping="Wrap"
+                       Text="Le diaporama ne se lance que si la fenêtre de Cinedex est active (au premier plan). Une touche, un clic ou un mouvement de souris le ferme. Seuls les films qui ont une affiche y figurent." />
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
       <!-- Bandeau gauche -->
       <TabItem Header="Bandeau gauche">
         <ScrollViewer>

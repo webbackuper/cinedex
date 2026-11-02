@@ -98,6 +98,9 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, S
 
     public bool Imported { get; private set; }
 
+    /// <summary>Titres de cet import dont la fiche TMDb reste à choisir (proposés à la fermeture de la fenêtre).</summary>
+    public int ToReview { get; private set; }
+
     [RelayCommand(CanExecute = nameof(CanScan))]
     private async Task ScanAsync()
     {
@@ -135,11 +138,12 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, S
             var progress = new Progress<string>(m => Message = m);
             var result = await import.ImportAsync(selected, options, progress, token);
             Imported = true;
+            ToReview += result.ToReview;
             Candidates.Clear();
             var summary = $"{result.Added} ajouté(s) avec TMDb, {result.WithoutMetadata} sans fiche TMDb (dont {result.FromNfo} complété(s) par leur .nfo), {result.Linked} déjà présent(s)";
             if (result.ToReview > 0)
             {
-                summary += $", {result.ToReview} à vérifier (plusieurs fiches TMDb possibles : voir « À vérifier » dans le bandeau)";
+                summary += $", {result.ToReview} à vérifier : les choix vous seront proposés à la fermeture de cette fenêtre";
             }
 
             if (result.Episodes > 0)

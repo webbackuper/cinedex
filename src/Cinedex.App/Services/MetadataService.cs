@@ -135,6 +135,9 @@ public sealed class MetadataService(
     {
         ArgumentNullException.ThrowIfNull(targets);
         gate?.Reset();
+
+        // Titres déjà identifiés (TMDb ou IMDb connu) d'abord ; les rapprochements à vérifier viennent ensuite.
+        targets = [.. targets.OrderBy(t => t.TmdbId is not null || t.ImdbId is not null ? 0 : 1)];
         int updated = 0, skipped = 0, failed = 0, notFound = 0, duplicates = 0, toReview = 0;
         var messages = new List<string>();
         for (var i = 0; i < targets.Count; i++)

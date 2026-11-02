@@ -736,7 +736,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
             var result = await _metadata!.UpdateTitlesAsync(targets, ImportOptions.Default, progress, CancellationToken.None);
             Refresh(selectIds: ids);
             Status = $"{result.Updated} mis à jour, {result.ToReview} à vérifier, {result.NotFound} non trouvé(s), {result.Duplicates} doublon(s) évité(s), {result.Skipped} ignoré(s), {result.Failed} échec(s)";
-            if (result.Messages is { Count: > 0 } messages)
+            if (result.ToReview > 0)
+            {
+                // Les titres sans ambiguïté sont à jour ; il ne reste que les choix à faire.
+                await OpenReviewAsync();
+            }
+            else if (result.Messages is { Count: > 0 } messages)
             {
                 await _dialogs.InformAsync("Mise à jour via TMDb", Status + "\n\n" + string.Join('\n', messages.Take(30)));
             }
@@ -790,9 +795,21 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private async Task ImportFolderAsync()
     {
-        if (_media is not null && await _dialogs.ImportFolderAsync(new ImportFolderViewModel(_media.Import, ScanSettings.Load(_media.Settings))))
+        if (_media is null)
+        {
+            return;
+        }
+
+        var import = new ImportFolderViewModel(_media.Import, ScanSettings.Load(_media.Settings));
+        if (await _dialogs.ImportFolderAsync(import))
         {
             Refresh(selectIds: SelectedIds);
+        }
+
+        // Tout ce qui était sans ambiguïté est fait : on enchaîne sur les choix qui restent.
+        if (import.ToReview > 0)
+        {
+            await OpenReviewAsync();
         }
     }
 

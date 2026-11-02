@@ -39,6 +39,11 @@ public sealed class MatchReviewTests : IDisposable
                 return Json("""{"results":[{"id":949,"title":"Heat","release_date":"1995-12-15"},{"id":31,"title":"Heat","release_date":"1986-03-14"}],"total_results":2}""");
             }
 
+            if (path.EndsWith("/find/tt0113277", StringComparison.Ordinal))
+            {
+                return Json("""{"movie_results":[{"id":949,"title":"Heat","release_date":"1995-12-15"}],"tv_results":[]}""");
+            }
+
             if (path.EndsWith("/search/tv", StringComparison.Ordinal))
             {
                 return Json("""{"results":[],"total_results":0}""");
@@ -119,6 +124,28 @@ public sealed class MatchReviewTests : IDisposable
 
         Assert.Equal((0, 1, 1), (result.Added, result.WithoutMetadata, result.ToReview));
         Assert.Equal("Heat.mkv", Path.GetFileName(Assert.Single(_reviews.List()).FilePath));
+    }
+
+    [Fact]
+    public async Task Titles_with_a_known_identifier_are_processed_first()
+    {
+        var plain = _titles.Add(new NewTitle(TitleKind.Movie, "Heat", null));
+        var known = _titles.Add(new NewTitle(TitleKind.Movie, "Heat bis", null));
+        _titles.Update(_titles.Get(known)! with { ImdbId = "tt0113277" });
+        var order = new List<string>();
+
+        await _metadata.UpdateTitlesAsync(
+            [_titles.Get(plain)!, _titles.Get(known)!], ImportOptions.Default, new SyncProgress(order.Add), TestContext.Current.CancellationToken);
+
+        Assert.Equal(2, order.Count);
+        Assert.Contains("Heat bis", order[0], StringComparison.Ordinal);
+        Assert.Equal(949, _titles.Get(known)!.TmdbId);
+        Assert.Equal(plain, Assert.Single(_reviews.List()).TitleId);
+    }
+
+    private sealed class SyncProgress(Action<string> report) : IProgress<string>
+    {
+        public void Report(string value) => report(value);
     }
 
     private static HttpResponseMessage Json(string body) => new(HttpStatusCode.OK) { Content = new StringContent(body, Encoding.UTF8, "application/json") };

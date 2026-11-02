@@ -146,6 +146,10 @@ public sealed class LibraryImportService(
     {
         ArgumentNullException.ThrowIfNull(candidates);
         ArgumentNullException.ThrowIfNull(options);
+
+        // D'abord les fichiers sans question à se poser (identifiant TMDb ou IMDb dans le .nfo ou le nom),
+        // puis les autres : les cas ambigus s'accumulent dans « À vérifier », proposés à la fin.
+        candidates = [.. candidates.OrderBy(c => c.Nfo?.TmdbId is not null || c.ImdbId is not null ? 0 : 1)];
         int added = 0, linked = 0, manual = 0, episodes = 0, failed = 0, fromNfo = 0, toReview = 0;
         var readNfo = nfo is not null && options.ReadNfo && nfo.Settings.ReadOnScan;
         var messages = new List<string>();

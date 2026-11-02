@@ -34,6 +34,7 @@ public sealed class App : Application
             _serilog = CreateLogger(_paths);
             Services.Appearance.Apply(Services.Appearance.Load(_paths.DataRoot));
             Services.Appearance.ApplyStyle(Services.Appearance.LoadStyle(_paths.DataRoot));
+            ProxySettings.Current = ProxySettings.Load(_paths.DataRoot);
             Cinedex.Core.Localization.Tr.Use(LanguagePreference.Load(_paths.DataRoot));
             UiTranslator.Install(this);
             ActivityJournal.Configure(_paths.DataRoot, _paths.LogsDirectory)
@@ -273,7 +274,8 @@ public sealed class App : Application
         services.AddSingleton<MetadataRepository>();
         services.AddSingleton(sp => new ImageStore(sp.GetRequiredService<CatalogDatabase>(), paths.CatalogImagesDirectory(catalog)));
         services.AddSingleton(SecretStore.ForCurrentPlatform());
-        services.AddSingleton(_ => TmdbClient.CreateHttpClient());
+        // Un seul client HTTP (TMDb, OMDb, notes IMDb, images) ; son proxy suit Réglages > Réseau sans redémarrer.
+        services.AddSingleton(_ => TmdbClient.CreateHttpClient(new SwitchableProxy(() => ProxySettings.Current)));
         services.AddSingleton(sp =>
         {
             var secrets = sp.GetRequiredService<ISecretStore>();

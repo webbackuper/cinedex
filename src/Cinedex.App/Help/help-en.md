@@ -122,6 +122,7 @@ Several independent catalogs can coexist (for example: films, series, a relative
 - **Appearance**: theme, icon set, menu color, accent color, font.
 - **Film list**: columns shown in the list view (poster, year, "Series" label, medium, runtime, genres, IMDb rating, my rating, loan, favorite, watched, number). Genres and IMDb rating are hidden by default.
 - **Backups** and **Export**: see below.
+- **Network**: proxy for Internet access (see below).
 - **Screen saver**: on or off, idle time, slideshow interval, titles under the posters.
 - **Left sidebar**: views and links shown.
 - **Import and scan**: video extensions, minimum size, words that make a file ignored, subfolders, terms removed from titles, options checked by default.
@@ -171,6 +172,9 @@ These operations apply immediately, without “Save”. Each one that changes th
 ## Exporting the list
 **Settings > Export** saves the film list as **CSV**, **TSV** or **Excel (.xlsx)**: the displayed list (current search, filter and sort) or the whole catalog, with the checked columns (number, title, original title, year, genres, runtime, directors, main actors, ratings, watched, favorite, medium, location, collection, loan, resolution, MediaID, files, size, TMDb and IMDb IDs, date added, synopsis). The CSV uses the system language's separator (";" in French) and opens directly in Excel. Columns and format are remembered.
 
+## Proxy
+If your network requires a proxy, turn on **Settings > Network > Use a proxy**, choose **HTTP** or **HTTPS** and enter its address as **server:port** (for example myserver.proxy.com:8080). **Test the connection** checks that TMDb answers through this proxy. All of Cinedex's connections (TMDb, OMDb, IMDb ratings, images) then go through it; the change applies when saved, without restarting. When off (the default), Cinedex follows the proxy set in the system.
+
 ## Data, backups and security
 - Catalogs, images and logs are in the data folder (Settings > General > Open the folder). In portable mode, a portable.flag file next to Cinedex.exe puts the data in a data subfolder.
 - A backup of the database is made automatically before each update of its format.
@@ -179,6 +183,9 @@ These operations apply immediately, without “Save”. Each one that changes th
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.3.1
+- **Network** tab in Settings: HTTP or HTTPS proxy (server:port), off by default, with a connection test.
+
 ### 0.3.0
 - **Backups** tab: complete backups (database, images, preferences as chosen), on demand or scheduled, with rotation and restore.
 - **Export** tab: film list as CSV, TSV or Excel, with a choice of columns.

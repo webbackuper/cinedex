@@ -103,6 +103,13 @@ public sealed partial class SettingsViewModel : ObservableObject
         PlayerPath = settings.Get(Services.MediaContext.PlayerKey) ?? string.Empty;
         PlayerArgs = settings.Get(Services.MediaContext.PlayerArgsKey) ?? string.Empty;
         MarkSeenOnPlay = settings.Get(Services.MediaContext.MarkSeenOnPlayKey) != "false";
+
+        // Réseau : proxy commun à tous les catalogues.
+        var proxy = dataRoot is null ? ProxySettings.Current : ProxySettings.Load(dataRoot);
+        ProxyEnabled = proxy.Enabled;
+        ProxyTypes = [new(false, "HTTP"), new(true, "HTTPS")];
+        SelectedProxyType = ProxyTypes[proxy.UseHttps ? 1 : 0];
+        ProxyAddress = proxy.Address;
         IgnoreBracketed = settings.Get(Services.MediaContext.IgnoreBracketedKey) != "false";
         NoiseWordsText = string.Join('\n', Services.MediaContext.NoiseWords(settings));
         var nfo = Services.NfoSettings.Load(settings);
@@ -194,6 +201,56 @@ public sealed partial class SettingsViewModel : ObservableObject
     public partial Choice<AppTheme> SelectedTheme { get; set; }
 
     public bool CanChooseTheme => _dataRoot is not null;
+
+    /// <summary>Proxy réseau (Réglages > Réseau), désactivé par défaut.</summary>
+    [ObservableProperty]
+    public partial bool ProxyEnabled { get; set; }
+
+    public IReadOnlyList<Choice<bool>> ProxyTypes { get; }
+
+    [ObservableProperty]
+    public partial Choice<bool> SelectedProxyType { get; set; }
+
+    [ObservableProperty]
+    public partial string ProxyAddress { get; set; }
+
+    [ObservableProperty]
+    public partial string? ProxyMessage { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsTestingProxy { get; set; }
+
+    /// <summary>
+    /// Essaie de joindre TMDb par le proxy saisi (sans l'enregistrer) : toute réponse de TMDb, même « non autorisé »
+    /// faute de jeton, prouve que le proxy fonctionne.
+    /// </summary>
+    [CommunityToolkit.Mvvm.Input.RelayCommand]
+    private async Task TestProxyAsync()
+    {
+        if (!ProxySettings.TryParse(ProxyAddress, SelectedProxyType.Value, out var uri) || uri is null)
+        {
+            ProxyMessage = Tr.T("Adresse du proxy invalide : saisissez serveur:port, par exemple myserver.proxy.com:8080.");
+            return;
+        }
+
+        IsTestingProxy = true;
+        ProxyMessage = Tr.T("Test en cours…");
+        try
+        {
+            using var http = Cinedex.Metadata.Tmdb.TmdbClient.CreateHttpClient(new System.Net.WebProxy(uri));
+            http.Timeout = TimeSpan.FromSeconds(15);
+            using var response = await http.GetAsync(new Uri("https://api.themoviedb.org/3/configuration"));
+            ProxyMessage = Tr.F("Le proxy fonctionne : TMDb a répondu (code {0}).", (int)response.StatusCode);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            ProxyMessage = Tr.F("TMDb est injoignable par ce proxy : {0}", ex.InnerException?.Message ?? ex.Message);
+        }
+        finally
+        {
+            IsTestingProxy = false;
+        }
+    }
 
     public IReadOnlyList<Choice<StartupWindowMode>> StartupChoices { get; }
 
@@ -404,6 +461,12 @@ public sealed partial class SettingsViewModel : ObservableObject
     /// <summary>Valide et enregistre ; renvoie false avec <see cref="Error"/> renseigné si la saisie est invalide.</summary>
     public bool Save()
     {
+        if (ProxyEnabled && !ProxySettings.TryParse(ProxyAddress, SelectedProxyType.Value, out _))
+        {
+            Error = Tr.T("Adresse du proxy invalide : saisissez serveur:port, par exemple myserver.proxy.com:8080.");
+            return false;
+        }
+
         var token = NewToken.Trim();
         if (token.Length > 0 && (token.Length < 32 || token.Length > 2048 || token.Any(char.IsWhiteSpace)))
         {
@@ -526,6 +589,9 @@ public sealed partial class SettingsViewModel : ObservableObject
         ActivityJournal.Current.SetEnabled(JournalEnabled);
         if (_dataRoot is not null)
         {
+            var proxySettings = new ProxySettings { Enabled = ProxyEnabled, UseHttps = SelectedProxyType.Value, Address = (ProxyAddress ?? string.Empty).Trim() };
+            proxySettings.Save(_dataRoot);
+            ProxySettings.Current = proxySettings;
             Appearance.Save(_dataRoot, SelectedTheme.Value);
             Appearance.Apply(SelectedTheme.Value);
             var style = new AppearanceStyle { Icons = SelectedIconSet.Value, Menu = SelectedMenu.Value, Accent = SelectedAccent.Value, Font = SelectedFont.Value };

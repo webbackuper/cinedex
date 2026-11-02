@@ -329,6 +329,27 @@
         </StackPanel>
       </TabItem>
 
+      <!-- Réseau : proxy -->
+      <TabItem Header="Réseau" IsVisible="{Binding CanChooseTheme}">
+        <ScrollViewer>
+          <StackPanel Spacing="10" Margin="12,0,16,0">
+            <TextBlock Classes="h" Text="Proxy" Margin="0" />
+            <CheckBox Content="Passer par un proxy pour accéder à Internet (TMDb, OMDb, notes IMDb, images)" IsChecked="{Binding ProxyEnabled}" />
+            <Grid ColumnDefinitions="Auto,Auto,*" RowDefinitions="Auto" ColumnSpacing="8" IsEnabled="{Binding ProxyEnabled}">
+              <TextBlock Text="Type" VerticalAlignment="Center" />
+              <ComboBox Grid.Column="1" ItemsSource="{Binding ProxyTypes}" SelectedItem="{Binding SelectedProxyType}" MinWidth="110" />
+              <TextBox Grid.Column="2" Text="{Binding ProxyAddress}" PlaceholderText="myserver.proxy.com:8080" FontFamily="Consolas,Menlo,monospace" />
+            </Grid>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Classes="tool" Content="Tester la connexion" Command="{Binding TestProxyCommand}" IsEnabled="{Binding !IsTestingProxy}" />
+            </StackPanel>
+            <SelectableTextBlock Text="{Binding ProxyMessage}" TextWrapping="Wrap" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}"
+                                 IsVisible="{Binding ProxyMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            <TextBlock Classes="hint" Text="Désactivé, Cinedex suit le proxy configuré dans le système. Activé, toutes les connexions passent par le proxy indiqué, de la forme serveur:port ; HTTPS chiffre aussi la connexion jusqu'au proxy. Le changement s'applique à l'enregistrement, sans redémarrer, pour tous les catalogues." />
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
       <!-- Lecture et outils -->
       <TabItem Header="Lecture et outils">
         <ScrollViewer>

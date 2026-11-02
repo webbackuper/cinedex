@@ -122,6 +122,7 @@ Plusieurs catalogues indépendants peuvent coexister (par exemple : films, séri
 - **Apparence** : thème, jeu d'icônes, couleur des menus, couleur d'accent, police.
 - **Liste des films** : colonnes affichées dans la vue liste (affiche, année, mention « Série », support, durée, genres, note IMDb, ma note, prêt, favori, vu, numéro). Genres et note IMDb sont masqués par défaut.
 - **Sauvegardes** et **Export** : voir ci-dessous.
+- **Réseau** : proxy pour accéder à Internet (voir ci-dessous).
 - **Économiseur d'écran** : activation, durée d'inactivité, intervalle du diaporama, titres sous les affiches.
 - **Bandeau gauche** : vues et liens affichés.
 - **Import et scan** : extensions vidéo, taille minimale, mots qui font ignorer un fichier, sous-dossiers, termes retirés des titres, options cochées par défaut.
@@ -171,6 +172,9 @@ Ces opérations s'appliquent tout de suite, sans « Enregistrer ». Chacune de c
 ## Export de la liste
 **Réglages > Export** enregistre la liste des films en **CSV**, **TSV** ou **Excel (.xlsx)** : la liste affichée (recherche, filtre et tri actuels) ou tout le catalogue, avec les colonnes cochées (numéro, titre, titre original, année, genres, durée, réalisateurs, acteurs principaux, notes, vu, favori, support, emplacement, collection, prêt, résolution, MediaID, fichiers, taille, identifiants TMDb et IMDb, date d'ajout, synopsis). Le CSV utilise le séparateur de la langue du système (« ; » en français) et s'ouvre directement dans Excel. Colonnes et format sont retenus.
 
+## Proxy
+Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un proxy**, choisissez **HTTP** ou **HTTPS** et saisissez son adresse de la forme **serveur:port** (par exemple myserver.proxy.com:8080). **Tester la connexion** vérifie que TMDb répond à travers ce proxy. Toutes les connexions de Cinedex (TMDb, OMDb, notes IMDb, images) passent alors par lui ; le changement s'applique à l'enregistrement, sans redémarrer. Désactivé (par défaut), Cinedex suit le proxy configuré dans le système.
+
 ## Données, sauvegardes et sécurité
 - Les catalogues, images et journaux sont dans le dossier des données (Réglages > Général > Ouvrir le dossier). En mode portable, un fichier portable.flag à côté de Cinedex.exe place les données dans un sous-dossier data.
 - Une sauvegarde de la base est faite automatiquement avant chaque mise à jour de son format.
@@ -179,6 +183,9 @@ Ces opérations s'appliquent tout de suite, sans « Enregistrer ». Chacune de c
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.3.1
+- Onglet **Réseau** dans les Réglages : proxy HTTP ou HTTPS (serveur:port), désactivé par défaut, avec test de connexion.
+
 ### 0.3.0
 - Onglet **Sauvegardes** : sauvegardes complètes (base, images, préférences au choix), à la demande ou planifiées, rotation et restauration.
 - Onglet **Export** : liste des films en CSV, TSV ou Excel, avec choix des colonnes.

@@ -1,3 +1,4 @@
+using Cinedex.App.Services;
 using System.Collections.ObjectModel;
 using Cinedex.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -57,6 +58,7 @@ public sealed partial class CatalogsViewModel : ObservableObject
         Run(() =>
         {
             var name = _manager.Create(NameText);
+            ActivityJournal.Current.Write($"Catalogue créé : {name}");
             var settings = new SettingsStore(new CatalogDatabase(_manager.DatabasePath(name)));
             foreach (var (key, value) in _currentSettings.All())
             {
@@ -76,6 +78,7 @@ public sealed partial class CatalogsViewModel : ObservableObject
         {
             var name = _manager.Rename(Selected!.Name, NameText, Current);
             Message = Tr.F("Catalogue renommé en « {0} ».", name);
+            ActivityJournal.Current.Write($"Catalogue renommé en « {name} »");
             NameText = string.Empty;
             Reload();
         });
@@ -90,6 +93,7 @@ public sealed partial class CatalogsViewModel : ObservableObject
         {
             var where = _manager.Remove(Selected!.Name, Current);
             Message = Tr.F("Catalogue retiré. Une copie complète est conservée dans {0}.", where);
+            ActivityJournal.Current.Write($"Catalogue retiré (copie conservée dans {where})");
             Reload();
         });
     }

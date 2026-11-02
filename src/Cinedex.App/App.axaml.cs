@@ -35,6 +35,8 @@ public sealed class App : Application
             Services.Appearance.Apply(Services.Appearance.Load(_paths.DataRoot));
             Cinedex.Core.Localization.Tr.Use(LanguagePreference.Load(_paths.DataRoot));
             UiTranslator.Install(this);
+            ActivityJournal.Configure(_paths.DataRoot, _paths.LogsDirectory)
+                .Write($"Cinedex {typeof(App).Assembly.GetName().Version?.ToString(3)} démarré (langue {Cinedex.Core.Localization.Tr.Current.Code})");
             _window = new MainWindow();
             _window.ApplyStartupPlacement(_paths.DataRoot);
             OpenCatalog(new CatalogManager(_paths).Current);
@@ -63,6 +65,7 @@ public sealed class App : Application
                     desktop.Shutdown();
                 };
             }
+            desktop.Exit += (_, _) => ActivityJournal.Current.Write("Cinedex fermé");
             desktop.ShutdownRequested += (_, _) =>
             {
                 _services?.Dispose();
@@ -84,6 +87,8 @@ public sealed class App : Application
         // Base créée au premier accès : on l'ouvre avant de la mémoriser comme catalogue courant (premier lancement).
         _services.GetRequiredService<CatalogDatabase>();
         new CatalogManager(_paths!).SetCurrent(name);
+        ActivityJournal.Current.Catalog = name;
+        ActivityJournal.Current.Write($"Catalogue ouvert : {name}");
 
         var services = _services;
         var catalogs = new CatalogsViewModel(new CatalogManager(_paths!), name, OpenCatalog, services.GetRequiredService<SettingsStore>());

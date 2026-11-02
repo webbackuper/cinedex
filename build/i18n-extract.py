@@ -53,7 +53,8 @@ for dirpath, _, files in os.walk(os.path.join(ROOT, 'Cinedex.App')):
 
 # 2. C# : littéraux (y compris Tr.T / Tr.F), hors commentaires, journaux, SQL
 LIT = re.compile(r'(?<![@$\w])"((?:[^"\\\n]|\\.)*)"')
-SKIP_LINE = re.compile(r'^\s*(//|///|\[)|Log(Information|Warning|Error|Debug|Trace)|GeneratedRegex|Regex\.|IsMatch\(|Tool\.Run|GetManifestResource|DefaultRequestHeaders|nameof\(')
+SKIP_LINE = re.compile(r'^\s*(//|///|\[)|Log(Information|Warning|Error|Debug|Trace)|GeneratedRegex|Regex\.|IsMatch\(|Tool\.Run|GetManifestResource|DefaultRequestHeaders|nameof\(|Journal\(|Write\(\$?"')
+# (Journal( et .Write($"…") : le journal des actions est écrit en français, hors traduction.)
 for dirpath, _, files in os.walk(ROOT):
     if SKIP_DIR.search(dirpath) or 'Cinedex.Media' in dirpath or 'Cinedex.Metadata' in dirpath:
         continue

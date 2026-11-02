@@ -1,3 +1,4 @@
+using Cinedex.App.Services;
 using System.Collections.ObjectModel;
 using Cinedex.Core.Titles;
 using Cinedex.Data;
@@ -86,6 +87,7 @@ public sealed partial class LoanEditorViewModel : ObservableObject
         try
         {
             _titles.Lend(_titleId, BorrowerText, At(when));
+            ActivityJournal.Current.Write($"Prêté à {BorrowerText.Trim()} le {when:d} (titre n° {_titleId})");
             Error = null;
             Changed = true;
             ReturnDate = DateTime.Today;
@@ -110,6 +112,7 @@ public sealed partial class LoanEditorViewModel : ObservableObject
         }
 
         _titles.Return(_titleId, At(when));
+        ActivityJournal.Current.Write($"Rendu le {when:d} (titre n° {_titleId})");
         Error = null;
         Changed = true;
         BorrowerText = string.Empty;
@@ -125,6 +128,7 @@ public sealed partial class LoanEditorViewModel : ObservableObject
         }
 
         _titles.DeleteLoan(line.Loan.Id);
+        ActivityJournal.Current.Write($"Ligne de prêt effacée : {line.Loan.Borrower} (titre n° {_titleId})");
         Changed = true;
         Reload();
     }

@@ -106,7 +106,7 @@ Cinedex lit et écrit les fichiers .nfo au format Kodi (Réglages > Fichiers .nf
 Plusieurs catalogues indépendants peuvent coexister (par exemple : films, séries, collection d'un proche). Le menu sous le logo permet d'en ouvrir, créer, renommer ou retirer. Un catalogue retiré est déplacé dans les sauvegardes, jamais effacé.
 
 ## Réglages
-- **Général** : thème, langue, fenêtre au démarrage, contenu adulte, infobulles, dossier des données.
+- **Général** : thème, langue, fenêtre au démarrage, contenu adulte, infobulles, dossier des données, journal des actions.
 - **Bandeau gauche** : vues et liens affichés.
 - **Import et scan** : extensions vidéo, taille minimale, mots qui font ignorer un fichier, sous-dossiers, termes retirés des titres, options cochées par défaut.
 - **Métadonnées** : jeton TMDb, langue et pays, nombre d'acteurs, clé OMDb, fichier IMDb.
@@ -125,10 +125,14 @@ Plusieurs catalogues indépendants peuvent coexister (par exemple : films, séri
 ## Données, sauvegardes et sécurité
 - Les catalogues, images et journaux sont dans le dossier des données (Réglages > Général > Ouvrir le dossier). En mode portable, un fichier portable.flag à côté de Cinedex.exe place les données dans un sous-dossier data.
 - Une sauvegarde de la base est faite automatiquement avant chaque mise à jour de son format.
+- **Journal des actions** (Réglages > Général, activé par défaut) : chaque action faite dans Cinedex (ajout, modification, suppression, vu, favori, prêt, import, mise à jour TMDb, choix « À vérifier », lecture, catalogues, réglages) est notée avec la date, l'heure et le catalogue, dans un fichier par jour (journal-AAAA-MM-JJ.log, conservé 90 jours). **Exporter le journal du jour…** en fait une copie ; **Ouvrir le dossier des journaux** montre tous les fichiers. Le journal est écrit en français.
 - Les clés TMDb et OMDb sont rangées dans le coffre sécurisé du système (Gestionnaire d'identifiants de Windows), jamais dans les fichiers de Cinedex.
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.2.2
+- Journal des actions : chaque action faite dans Cinedex est notée (activé par défaut), avec export du journal du jour (Réglages > Général).
+
 ### 0.2.1
 - Infobulle au survol d'un film de la liste : titre, genres, note IMDb et synopsis (à activer dans Réglages > Général).
 

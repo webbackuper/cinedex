@@ -116,6 +116,7 @@ public sealed partial class MatchReviewViewModel : ObservableObject
             await Metadata.UpdateAsync(item.TitleId, result.Kind, result.SourceId, ImportOptions.Default);
             _reviews.Remove(item.TitleId);
             Done(item, Tr.F("« {0} » lié à « {1} »{2}.", item.Header, result.Title, (result.Year is { } y ? $" ({y})" : string.Empty)));
+            ActivityJournal.Current.Write($"À vérifier : « {item.Header} » lié à TMDb {result.SourceId} ({result.Title})");
         }
         catch (DuplicateTitleException ex)
         {
@@ -133,6 +134,7 @@ public sealed partial class MatchReviewViewModel : ObservableObject
     {
         _reviews.Remove(item.TitleId);
         Done(item, Tr.F("« {0} » laissé sans fiche TMDb (Ctrl+U sur le titre pour le lier plus tard).", item.Header));
+        ActivityJournal.Current.Write($"À vérifier : « {item.Header} » laissé sans fiche TMDb");
         return Task.CompletedTask;
     });
 

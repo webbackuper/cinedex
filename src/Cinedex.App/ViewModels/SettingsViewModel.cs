@@ -62,6 +62,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         ShowPeople = display.ShowPeople;
         HideAdult = display.HideAdult;
         ShowTooltips = display.ShowTooltips;
+        JournalEnabled = ActivityJournal.Current.Enabled;
 
         // Import et scan.
         var scan = ScanSettings.Load(settings);
@@ -131,6 +132,15 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool ShowTooltips { get; set; }
+
+    /// <summary>Journal des actions (fichier journal-AAAA-MM-JJ.log du dossier des journaux).</summary>
+    [ObservableProperty]
+    public partial bool JournalEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial string? JournalMessage { get; set; }
+
+    public static string JournalFolder => ActivityJournal.Current.LogsDirectory;
 
     /// <summary>Extensions des fichiers vidéo retenus, séparées par des espaces (« .mkv .mp4 »).</summary>
     [ObservableProperty]
@@ -331,6 +341,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             HideAdult = HideAdult,
             ShowTooltips = ShowTooltips,
         }.Save(_settings);
+        ActivityJournal.Current.SetEnabled(JournalEnabled);
         if (_dataRoot is not null)
         {
             Appearance.Save(_dataRoot, SelectedTheme.Value);

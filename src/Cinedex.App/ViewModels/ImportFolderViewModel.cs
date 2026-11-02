@@ -99,6 +99,9 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, S
 
     public bool Imported { get; private set; }
 
+    /// <summary>Dernier import : nombre de fichiers et résultat (journal des actions).</summary>
+    public (int Files, LibraryImportResult Result)? LastResult { get; private set; }
+
     /// <summary>Titres de cet import dont la fiche TMDb reste à choisir (proposés à la fermeture de la fenêtre).</summary>
     public int ToReview { get; private set; }
 
@@ -158,6 +161,7 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, S
             }
 
             Message = string.Join("\n", [summary + ".", .. result.Messages.Take(5)]);
+            LastResult = (selected.Count, result);
         });
     }
 

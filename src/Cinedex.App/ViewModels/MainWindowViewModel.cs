@@ -124,6 +124,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public string ReviewLabel => Tr.F("À vérifier ({0})", ReviewCount);
 
+    /// <summary>Journal des actions (Réglages > Général) : une ligne par action faite dans l'application.</summary>
+    private static void Journal(string message) => ActivityJournal.Current.Write(message);
+
+    /// <summary>Titres désignés dans le journal : « Heat », ou « Heat, Ran et 3 autres ».</summary>
+    private static string Names(List<TitleSummary> titles) =>
+        titles.Count <= 3 ? string.Join(", ", titles.Select(t => t.Title)) : string.Join(", ", titles.Take(2).Select(t => t.Title)) + $" et {titles.Count - 2} autres";
+
     /// <summary>Aide (F1) dans la langue de l'interface : français, sinon anglais.</summary>
     [RelayCommand]
     private void OpenHelp() => _dialogs.ShowHelp(new HelpViewModel(HelpDocument.Load(Cinedex.Core.Localization.Tr.Current.Code)));
@@ -502,6 +509,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         var (title, year) = TitleText.SplitYear(NewTitleText);
         var id = _titles.Add(new NewTitle(TitleKind.Movie, title, year));
+        Journal($"Titre ajouté à la main : {title}{(year is { } y ? $" ({y})" : string.Empty)}");
         NewTitleText = string.Empty;
         Refresh(selectId: id);
     }
@@ -540,6 +548,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             {
                 var part = await _media.Import.AddPartAsync(current.Id, path, videoExtensions: ScanSettings.Load(_media.Settings).ExtensionSet);
                 Status = Tr.F("Partie {0} rattachée à « {1} »", part, current.Title);
+                Journal($"Partie {part} rattachée à « {current.Title} » : {path}");
                 return MediaTextOf(current.Id);
             },
             _media?.People,
@@ -551,6 +560,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         if (await _dialogs.EditTitleAsync(editor) && editor.TryBuild(out var updated))
         {
             _titles.Update(updated);
+            Journal($"Fiche modifiée : {updated.Title}");
             try
             {
                 editor.ApplyFileChanges();
@@ -563,6 +573,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             if (editor.SeenChanged)
             {
                 _titles.SetSeen([updated.Id], editor.IsSeen, DateTimeOffset.Now);
+                Journal($"Marqué {(editor.IsSeen ? "vu" : "non vu")} : {updated.Title}");
             }
 
             Refresh(selectId: updated.Id);
@@ -588,7 +599,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
             : Tr.F("Supprimer {0} titres du catalogue ?", ids.Count);
         if (await _dialogs.ConfirmAsync("Supprimer", question + "\n" + Tr.T("Les fichiers vidéo sur le disque ne sont pas touchés.")))
         {
+            var names = Names(SelectedTitles.ToList());
             var count = _titles.Delete(ids);
+            Journal($"{count} titre(s) supprimé(s) du catalogue : {names}");
             Refresh();
             Status = Tr.F("{0} titre(s) supprimé(s)", count);
         }
@@ -600,6 +613,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var ids = SelectedIds;
         var markSeen = SelectedTitles.Any(t => !t.IsSeen);
         _titles.SetSeen(ids, markSeen, DateTimeOffset.Now);
+        Journal($"Marqué {(markSeen ? "vu" : "non vu")} : {Names(SelectedTitles.ToList())}");
         Refresh(selectIds: ids);
     }
 
@@ -607,7 +621,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private void ToggleFavorite()
     {
         var ids = SelectedIds;
-        _titles.SetFavorite(ids, SelectedTitles.Any(t => !t.IsFavorite));
+        var favorite = SelectedTitles.Any(t => !t.IsFavorite);
+        _titles.SetFavorite(ids, favorite);
+        Journal($"{(favorite ? "Ajouté aux" : "Retiré des")} favoris : {Names(SelectedTitles.ToList())}");
         Refresh(selectIds: ids);
     }
 
@@ -631,6 +647,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         try
         {
             _titles.Lend(Detail!.Id, BorrowerText, DateTimeOffset.Now);
+            Journal($"Prêté à {BorrowerText.Trim()} : {Detail.Title}");
             Refresh(selectId: Detail.Id);
         }
         catch (InvalidOperationException ex)
@@ -645,6 +662,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private void ReturnLoan()
     {
         _titles.Return(Detail!.Id, DateTimeOffset.Now);
+        Journal($"Rendu : {Detail.Title}");
         Refresh(selectId: Detail.Id);
     }
 
@@ -681,6 +699,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             NewTitleText = string.Empty;
             Refresh(selectId: id);
             Status = created ? Tr.F("« {0} » ajouté depuis TMDb", choice.Title) : Tr.F("« {0} » est déjà dans le catalogue", choice.Title);
+            Journal(created ? $"Ajouté depuis TMDb : {choice.Title} (TMDb {choice.SourceId})" : $"Déjà au catalogue : {choice.Title}");
         });
     }
 
@@ -715,6 +734,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             var applied = await _metadata!.UpdateAsync(detail.Id, kind, sourceId, ImportOptions.Default);
             Refresh(selectId: detail.Id);
             Status = applied ? "Fiche mise à jour depuis TMDb" : "Titre verrouillé : non modifié";
+            Journal(applied ? $"Fiche mise à jour depuis TMDb : {detail.Title} (TMDb {sourceId})" : $"Titre verrouillé, non modifié : {detail.Title}");
         });
     }
 
@@ -743,6 +763,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             var result = await _metadata!.UpdateTitlesAsync(targets, ImportOptions.Default, progress, CancellationToken.None);
             Refresh(selectIds: ids);
             Status = Tr.F("{0} mis à jour, {1} à vérifier, {2} non trouvé(s), {3} doublon(s) évité(s), {4} ignoré(s), {5} échec(s)", result.Updated, result.ToReview, result.NotFound, result.Duplicates, result.Skipped, result.Failed);
+            Journal($"Mise à jour via TMDb de {targets.Count} titre(s) : {result.Updated} mis à jour, {result.ToReview} à vérifier, {result.NotFound} non trouvé(s), {result.Duplicates} doublon(s) évité(s), {result.Skipped} ignoré(s), {result.Failed} échec(s)");
             if (result.ToReview > 0)
             {
                 // Les titres sans ambiguïté sont à jour ; il ne reste que les choix à faire.
@@ -764,6 +785,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             if (await _dialogs.EditSettingsAsync(_settings()))
             {
+                Journal("Réglages enregistrés");
                 ApplyDisplaySettings();
                 Refresh(selectIds: SelectedIds);
             }
@@ -810,6 +832,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var import = new ImportFolderViewModel(_media.Import, ScanSettings.Load(_media.Settings));
         if (await _dialogs.ImportFolderAsync(import))
         {
+            if (import.LastResult is ({ } files, { } r))
+            {
+                Journal($"Import depuis le disque de {files} fichier(s) : {r.Added} ajouté(s) avec TMDb, {r.WithoutMetadata} sans fiche TMDb, {r.Linked} déjà présent(s), {r.ToReview} à vérifier, {r.Failed} échec(s)");
+            }
             Refresh(selectIds: SelectedIds);
         }
 
@@ -840,6 +866,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         try
         {
             Player.Play(file.FullPath, _media!.Settings.Get(MediaContext.PlayerKey), _media.Settings.Get(MediaContext.PlayerArgsKey));
+            Journal($"Lecture : {file.FullPath}");
             if (_media.Settings.Get(MediaContext.MarkSeenOnPlayKey) != "false")
             {
                 _titles.SetSeen([file.TitleId], true, DateTimeOffset.Now);
@@ -907,6 +934,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             var count = await ratings.RefreshAllImdbAsync(new Progress<string>(m => Status = m));
             Refresh(selectIds: SelectedIds);
             Status = Tr.F("Notes IMDb actualisées pour {0} titre(s)", count);
+            Journal($"Notes IMDb actualisées pour {count} titre(s)");
         }
         catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidDataException)
         {
@@ -930,6 +958,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var ids = SelectedTitles.Count > 0 ? SelectedIds : Titles.Select(t => t.Id).ToList();
         var written = ids.Sum(id => nfo.WriteForTitle(id));
         Status = Tr.F("{0} fichier(s) .nfo créé(s) ou complété(s)", written);
+        Journal($"{written} fichier(s) .nfo créé(s) ou complété(s)");
     }
 
     /// <summary>Relit les infos techniques (MediaInfo) des fichiers de la sélection, ou de tous les titres affichés.</summary>
@@ -971,6 +1000,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             var (missing, relinked) = await _media.Import.CheckFilesAsync();
             Status = Tr.F("{0} fichier(s) introuvable(s) (disque non branché ?), {1} retrouvé(s) après déplacement", missing, relinked);
+            Journal($"Vérification des fichiers : {missing} introuvable(s), {relinked} retrouvé(s) après déplacement");
             Refresh(selectIds: SelectedIds);
         }
         finally
@@ -988,6 +1018,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             _titles.ApplyBulk(ids.ToList(), edit.Build());
             Refresh(selectIds: ids);
             Status = Tr.F("{0} titres modifiés", ids.Count);
+            Journal($"Modification groupée de {ids.Count} titre(s)");
         }
     }
 

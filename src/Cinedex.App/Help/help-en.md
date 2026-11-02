@@ -106,7 +106,7 @@ Cinedex reads and writes .nfo files in Kodi format (Settings > .nfo files):
 Several independent catalogs can coexist (for example: films, series, a relative's collection). The menu under the logo opens, creates, renames or removes them. A removed catalog is moved to the backups, never erased.
 
 ## Settings
-- **General**: theme, language, window at startup, adult content, tooltips, data folder.
+- **General**: theme, language, window at startup, adult content, tooltips, data folder, activity log.
 - **Left sidebar**: views and links shown.
 - **Import and scan**: video extensions, minimum size, words that make a file ignored, subfolders, terms removed from titles, options checked by default.
 - **Metadata**: TMDb token, language and country, number of actors, OMDb key, IMDb file.
@@ -125,10 +125,14 @@ Several independent catalogs can coexist (for example: films, series, a relative
 ## Data, backups and security
 - Catalogs, images and logs are in the data folder (Settings > General > Open the folder). In portable mode, a portable.flag file next to Cinedex.exe puts the data in a data subfolder.
 - A backup of the database is made automatically before each update of its format.
+- **Activity log** (Settings > General, on by default): every action taken in Cinedex (add, edit, delete, watched, favorite, loan, import, TMDb update, "To review" choice, playback, catalogs, settings) is recorded with the date, time and catalog, in one file per day (journal-YYYY-MM-DD.log, kept 90 days). **Export today's log…** makes a copy; **Open the logs folder** shows all the files. The log is written in French.
 - The TMDb and OMDb keys are stored in the system's secure vault (Windows Credential Manager), never in Cinedex's files.
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.2.2
+- Activity log: every action taken in Cinedex is recorded (on by default), and today's log can be exported (Settings > General).
+
 ### 0.2.1
 - Tooltip when hovering over a film in the list: title, genres, IMDb rating and synopsis (turn it on in Settings > General).
 

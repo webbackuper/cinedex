@@ -135,6 +135,7 @@ public sealed class App : Application
         services.AddSingleton<RatingsService>();
         services.AddSingleton<PeopleRepository>();
         services.AddSingleton<PeopleService>();
+        services.AddSingleton<MatchReviewRepository>();
         services.AddSingleton<MetadataService>();
         services.AddSingleton<MediaFileRepository>();
         services.AddSingleton<SeriesRepository>();

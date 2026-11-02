@@ -27,5 +27,9 @@ public sealed partial class MetadataSearchWindow : Window
         }
     }
 
+    private void OnOpenSearch(object? sender, RoutedEventArgs e) => WebLinks.Open((DataContext as MetadataSearchViewModel)?.SearchUrl);
+
+    private void OnOpenResult(object? sender, RoutedEventArgs e) => WebLinks.Open(((sender as Control)?.DataContext as SearchRow)?.TmdbUrl);
+
     private void OnCancel(object? sender, RoutedEventArgs e) => Close((MetadataSearchResult?)null);
 }

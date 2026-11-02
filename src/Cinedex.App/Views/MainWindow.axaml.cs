@@ -163,6 +163,9 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
     public Task<bool> ShowPersonAsync(PersonViewModel person) =>
         new PersonWindow { DataContext = person }.ShowDialog<bool>(this);
 
+    public Task<bool> ShowMatchReviewAsync(MatchReviewViewModel review) =>
+        new MatchReviewWindow { DataContext = review }.ShowDialog<bool>(this);
+
     public Task<bool> ShowPeopleAsync(PeopleBrowserViewModel people) =>
         new PeopleWindow { DataContext = people }.ShowDialog<bool>(this);
 

@@ -99,6 +99,13 @@
         </StackPanel>
 
         <StackPanel DockPanel.Dock="Bottom" Margin="8,8,8,14" Spacing="2">
+          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenReviewCommand}"
+                  IsVisible="{Binding HasReviews}" ToolTip.Tip="Titres pour lesquels plusieurs fiches TMDb sont possibles : choisissez la bonne">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <controls:Icon Kind="alert" Width="18" Height="18" Foreground="{DynamicResource CinedexAccent}" />
+              <TextBlock Text="{Binding ReviewLabel}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}" />
+            </StackPanel>
+          </Button>
           <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding AdvancedSearchCommand}" IsVisible="{Binding ShowRuleSearch}"
                   ToolTip.Tip="Chercher sur tous les champs : genre, notes, année, acteurs, MediaID… (Ctrl+Maj+F)">
             <StackPanel Orientation="Horizontal" Spacing="10">

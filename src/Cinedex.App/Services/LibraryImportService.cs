@@ -10,7 +10,7 @@ namespace Cinedex.App.Services;
 public sealed record LibraryImportOptions
 {
     /// <summary>Si plusieurs résultats TMDb, prendre le premier dont l'année concorde (sinon : ajout sans métadonnées).</summary>
-    public bool UseFirstMatch { get; init; } = true;
+    public bool UseFirstMatch { get; init; }
 
     public bool UseTmdb { get; init; } = true;
 
@@ -25,7 +25,7 @@ public sealed record LibraryImportOptions
 }
 
 /// <summary>Bilan d'un import ; Episodes = épisodes rattachés (ou laissés de côté si les séries ne sont pas gérées).</summary>
-public sealed record LibraryImportResult(int Added, int Linked, int WithoutMetadata, int Episodes, int Failed, IReadOnlyList<string> Messages, int FromNfo = 0);
+public sealed record LibraryImportResult(int Added, int Linked, int WithoutMetadata, int Episodes, int Failed, IReadOnlyList<string> Messages, int FromNfo = 0, int ToReview = 0);
 
 /// <summary>Ajoute au catalogue les fichiers trouvés par le scan : identification TMDb, fichier, jaquette locale, propriétés techniques.</summary>
 public sealed class LibraryImportService(
@@ -146,7 +146,7 @@ public sealed class LibraryImportService(
     {
         ArgumentNullException.ThrowIfNull(candidates);
         ArgumentNullException.ThrowIfNull(options);
-        int added = 0, linked = 0, manual = 0, episodes = 0, failed = 0, fromNfo = 0;
+        int added = 0, linked = 0, manual = 0, episodes = 0, failed = 0, fromNfo = 0, toReview = 0;
         var readNfo = nfo is not null && options.ReadNfo && nfo.Settings.ReadOnScan;
         var messages = new List<string>();
         gate?.Reset();
@@ -171,8 +171,8 @@ public sealed class LibraryImportService(
             try
             {
                 long titleId;
-                var choice = useTmdb ? await IdentifyAsync(candidate, options, cancellationToken).ConfigureAwait(false) : null;
-                if (choice is not null)
+                var identification = useTmdb ? await IdentifyAsync(candidate, options, cancellationToken).ConfigureAwait(false) : null;
+                if (identification?.Match is { } choice)
                 {
                     var (id, created) = await metadataService!.ImportAsync(choice, ImportOptions.Default, cancellationToken).ConfigureAwait(false);
                     titleId = id;
@@ -195,6 +195,13 @@ public sealed class LibraryImportService(
                 {
                     titleId = titles.Add(new NewTitle(TitleKind.Movie, candidate.BestTitle, candidate.BestYear));
                     manual++;
+                    if (identification is { NeedsReview: true } && metadataService?.Reviews is { } reviews)
+                    {
+                        // Plusieurs fiches TMDb possibles : le titre est créé, le choix attend dans « À vérifier ».
+                        reviews.Add(titleId, identification.Query, identification.Candidates);
+                        toReview++;
+                    }
+
                     if (readNfo && candidate.Nfo is { } info)
                     {
                         // Le .nfo complète la fiche ; ses identifiants servent ensuite à « Mettre à jour via TMDb ».
@@ -277,7 +284,7 @@ public sealed class LibraryImportService(
             }
         }
 
-        return new LibraryImportResult(added, linked, manual, episodes, failed, messages, fromNfo);
+        return new LibraryImportResult(added, linked, manual, episodes, failed, messages, fromNfo, toReview);
     }
 
     private async Task<long> FindOrCreateSeriesAsync(string name, bool useTmdb, CancellationToken cancellationToken)
@@ -301,11 +308,14 @@ public sealed class LibraryImportService(
     /// Identification : identifiant TMDb ou IMDb du .nfo ou du nom de fichier en priorité, sinon recherche
     /// titre + année. Un résultat n'est retenu que si l'année concorde (à un an près) quand elle est connue.
     /// </summary>
-    internal async Task<MetadataSearchResult?> IdentifyAsync(ScanCandidate candidate, LibraryImportOptions options, CancellationToken cancellationToken)
+    internal async Task<Identification> IdentifyAsync(ScanCandidate candidate, LibraryImportOptions options, CancellationToken cancellationToken)
     {
+        var query = candidate.BestYear is { } y ? $"{candidate.BestTitle} ({y})" : candidate.BestTitle;
         if (candidate.Nfo?.TmdbId is { } tmdbId)
         {
-            return (await metadataService!.SearchAsync($"movie/{tmdbId}", cancellationToken).ConfigureAwait(false)).FirstOrDefault();
+            return (await metadataService!.SearchAsync($"movie/{tmdbId}", cancellationToken).ConfigureAwait(false)).FirstOrDefault() is { } byId
+                ? Identification.Found(byId, query)
+                : Identification.None(query);
         }
 
         if (candidate.ImdbId is { } imdb)
@@ -313,18 +323,14 @@ public sealed class LibraryImportService(
             var byImdb = await metadataService!.SearchAsync(imdb, cancellationToken).ConfigureAwait(false);
             if (byImdb.Count > 0)
             {
-                return byImdb[0];
+                return Identification.Found(byImdb[0], query);
             }
         }
 
-        var query = candidate.BestYear is { } y ? $"{candidate.BestTitle} ({y})" : candidate.BestTitle;
         var results = (await metadataService!.SearchAsync(query, cancellationToken).ConfigureAwait(false))
             .Where(r => r.Kind == TitleKind.Movie)
             .ToList();
-        var plausible = candidate.BestYear is { } year
-            ? results.Where(r => r.Year is { } ry && Math.Abs(ry - year) <= 1).ToList()
-            : results;
-        return plausible.Count == 1 || (plausible.Count > 1 && options.UseFirstMatch) ? plausible[0] : null;
+        return Identification.Decide(results, candidate.BestYear, query, options.UseFirstMatch);
     }
 
     private void TryAttachCover(long titleId, string cover)

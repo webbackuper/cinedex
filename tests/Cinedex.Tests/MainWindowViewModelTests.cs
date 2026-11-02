@@ -202,5 +202,7 @@ public sealed class MainWindowViewModelTests : IDisposable
         public Task<bool> ShowPersonAsync(PersonViewModel person) => Task.FromResult(false);
 
         public Task<bool> ShowPeopleAsync(PeopleBrowserViewModel people) => Task.FromResult(false);
+
+        public Task<bool> ShowMatchReviewAsync(MatchReviewViewModel review) => Task.FromResult(false);
     }
 }

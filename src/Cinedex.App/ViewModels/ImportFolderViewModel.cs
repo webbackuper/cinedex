@@ -49,7 +49,7 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, S
 
     [ObservableProperty] public partial bool UseTmdb { get; set; } = defaults?.UseTmdb ?? false;
 
-    [ObservableProperty] public partial bool UseFirstMatch { get; set; } = true;
+    [ObservableProperty] public partial bool UseFirstMatch { get; set; }
 
     [ObservableProperty] public partial bool ReadProperties { get; set; } = defaults?.ReadProperties ?? true;
 
@@ -137,6 +137,11 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, S
             Imported = true;
             Candidates.Clear();
             var summary = $"{result.Added} ajouté(s) avec TMDb, {result.WithoutMetadata} sans fiche TMDb (dont {result.FromNfo} complété(s) par leur .nfo), {result.Linked} déjà présent(s)";
+            if (result.ToReview > 0)
+            {
+                summary += $", {result.ToReview} à vérifier (plusieurs fiches TMDb possibles : voir « À vérifier » dans le bandeau)";
+            }
+
             if (result.Episodes > 0)
             {
                 summary += $", {result.Episodes} épisode(s) laissé(s) pour les séries";

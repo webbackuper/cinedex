@@ -24,6 +24,8 @@ public sealed record SearchRow(MetadataSearchResult Result)
     }
 
     public string Overview => Result.Overview ?? string.Empty;
+
+    public string TmdbUrl => TmdbLinks.Title(Result.Kind, Result.SourceId);
 }
 
 /// <summary>Boîte de recherche TMDb : saisie, résultats, choix d'un résultat.</summary>
@@ -50,6 +52,9 @@ public sealed partial class MetadataSearchViewModel : ObservableObject
     public partial string Message { get; set; } = "Titre, « Titre (année) », tt1234567, movie/123 ou tv/123.";
 
     public bool AutoSearch => !string.IsNullOrWhiteSpace(Query);
+
+    /// <summary>La même recherche sur le site TMDb, pour comparer les propositions dans le navigateur.</summary>
+    public string SearchUrl => TmdbLinks.Search(Query, kind: null);
 
     [RelayCommand(CanExecute = nameof(CanSearch), AllowConcurrentExecutions = false)]
     private async Task SearchAsync()

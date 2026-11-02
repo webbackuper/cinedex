@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Cinedex.App.ViewModels;
@@ -28,19 +27,9 @@ public sealed partial class PersonWindow : Window
         }
     }
 
-    private void OnOpenTmdb(object? sender, RoutedEventArgs e) => OpenUrl((DataContext as PersonViewModel)?.TmdbUrl);
+    private void OnOpenTmdb(object? sender, RoutedEventArgs e) => WebLinks.Open((DataContext as PersonViewModel)?.TmdbUrl);
 
-    private void OnOpenImdb(object? sender, RoutedEventArgs e) => OpenUrl((DataContext as PersonViewModel)?.ImdbUrl);
+    private void OnOpenImdb(object? sender, RoutedEventArgs e) => WebLinks.Open((DataContext as PersonViewModel)?.ImdbUrl);
 
     private void OnClose(object? sender, RoutedEventArgs e) => Close(false);
-
-    /// <summary>Ouvre uniquement des liens construits par Cinedex vers TMDb ou IMDb (https).</summary>
-    private static void OpenUrl(string? url)
-    {
-        if (Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps &&
-            uri.Host is "www.themoviedb.org" or "www.imdb.com")
-        {
-            Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true })?.Dispose();
-        }
-    }
 }

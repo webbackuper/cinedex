@@ -22,7 +22,7 @@
                   ToolTip.Tip="« Heat (1995) [Director's Cut] 1080p.mkv » donne « Heat », 1995. Relancez l'analyse après avoir changé l'option." />
         <CheckBox Margin="0,0,16,0" Content="Identifier avec TMDb dès l'import" IsChecked="{Binding UseTmdb}"
                   ToolTip.Tip="Décoché : les fichiers sont ajoutés tels quels ; lancez ensuite « Mettre à jour via TMDb »." />
-        <CheckBox Margin="0,0,16,0" Content="Premier résultat si plusieurs" IsChecked="{Binding UseFirstMatch}" />
+        <CheckBox Margin="0,0,16,0" Content="Si plusieurs fiches TMDb : prendre la première sans demander" IsChecked="{Binding UseFirstMatch}" ToolTip.Tip="Décoché : les cas ambigus vont dans « À vérifier », où vous choisissez" />
         <CheckBox Margin="0,0,16,0" Content="Infos techniques (MediaInfo)" IsChecked="{Binding ReadProperties}" />
         <CheckBox Margin="0,0,16,0" Content="Créer ou compléter les .nfo" IsChecked="{Binding WriteNfo}" />
         <CheckBox Content="Surveiller ce dossier" IsChecked="{Binding RememberFolder}" />

@@ -16,7 +16,11 @@
         </TextBox>
         <Button Grid.Column="1" Margin="8,0,0,0" Content="Rechercher" Command="{Binding SearchCommand}" />
       </Grid>
-      <TextBlock Text="{Binding Message}" Opacity="0.7" TextWrapping="Wrap" />
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="{Binding Message}" Opacity="0.7" TextWrapping="Wrap" VerticalAlignment="Center" />
+        <Button Grid.Column="1" Classes="tool" Content="Voir ces propositions sur TMDb ↗" Click="OnOpenSearch"
+                ToolTip.Tip="Ouvre la même recherche sur le site TMDb, dans le navigateur" />
+      </Grid>
     </StackPanel>
 
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,12,0,0">
@@ -30,7 +34,10 @@
       <ListBox.ItemTemplate>
         <DataTemplate x:DataType="vm:SearchRow">
           <StackPanel Spacing="2" Margin="0,4">
-            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="{Binding Title}" FontWeight="SemiBold" VerticalAlignment="Center" />
+              <Button Grid.Column="1" Classes="tool" Content="TMDb ↗" Padding="8,2" Click="OnOpenResult" ToolTip.Tip="Voir cette fiche sur TMDb" />
+            </Grid>
             <TextBlock Text="{Binding Details}" Opacity="0.7" FontSize="12" />
             <TextBlock Text="{Binding Overview}" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" FontSize="12" />
           </StackPanel>

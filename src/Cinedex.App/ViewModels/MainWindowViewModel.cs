@@ -111,6 +111,27 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public bool ShowRuleSearch => _display.ShowRuleSearch;
 
+    /// <summary>Titres dont la fiche TMDb attend un choix (liste « À vérifier »).</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasReviews), nameof(ReviewLabel))]
+    public partial int ReviewCount { get; set; }
+
+    public bool HasReviews => ReviewCount > 0;
+
+    public string ReviewLabel => $"À vérifier ({ReviewCount})";
+
+    [RelayCommand]
+    private async Task OpenReviewAsync()
+    {
+        if (_metadata?.Reviews is not { } reviews)
+        {
+            return;
+        }
+
+        await _dialogs.ShowMatchReviewAsync(new MatchReviewViewModel(reviews, _metadata));
+        Refresh(selectIds: SelectedIds);
+    }
+
     public bool ShowPeopleLink => HasPeople && _display.ShowPeople;
 
     /// <summary>Relit les réglages d'affichage : vues visibles, liens, contenu pour adultes.</summary>
@@ -714,7 +735,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             var progress = new Progress<string>(message => Status = message);
             var result = await _metadata!.UpdateTitlesAsync(targets, ImportOptions.Default, progress, CancellationToken.None);
             Refresh(selectIds: ids);
-            Status = $"{result.Updated} mis à jour, {result.NotFound} non trouvé(s), {result.Duplicates} doublon(s) évité(s), {result.Skipped} ignoré(s), {result.Failed} échec(s)";
+            Status = $"{result.Updated} mis à jour, {result.ToReview} à vérifier, {result.NotFound} non trouvé(s), {result.Duplicates} doublon(s) évité(s), {result.Skipped} ignoré(s), {result.Failed} échec(s)";
             if (result.Messages is { Count: > 0 } messages)
             {
                 await _dialogs.InformAsync("Mise à jour via TMDb", Status + "\n\n" + string.Join('\n', messages.Take(30)));
@@ -992,6 +1013,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             return;
         }
+
+        ReviewCount = _metadata?.Reviews?.Count() ?? 0;
 
         var keep = selectIds ?? (selectId is { } one ? [one] : []);
         _refreshing = true;

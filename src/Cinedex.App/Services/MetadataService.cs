@@ -16,8 +16,16 @@ public sealed class MetadataService(
     NfoService? nfo = null,
     RatingsService? ratings = null,
     SettingsStore? settings = null,
-    ApiGate? gate = null)
+    ApiGate? gate = null,
+    MatchReviewRepository? reviews = null)
 {
+    /// <summary>Liste « À vérifier » des rapprochements ambigus (absente hors catalogue, par exemple en test).</summary>
+    public MatchReviewRepository? Reviews => reviews;
+
+    /// <summary>Petite affiche d'un candidat TMDb, pour le choisir à l'œil.</summary>
+    public Task<byte[]> DownloadThumbnailAsync(string posterPath, CancellationToken cancellationToken = default) =>
+        tmdb.DownloadImageAsync(posterPath, "w154", cancellationToken);
+
     public const string MaxActorsKey = "metadata.maxActors";
     public const int DefaultMaxActors = 25;
 
@@ -113,6 +121,7 @@ public sealed class MetadataService(
 
         await EnrichRatingsAsync(titleId, cancellationToken).ConfigureAwait(false);
         nfo?.AfterMetadataUpdate(titleId);
+        reviews?.Remove(titleId);
         return true;
     }
 
@@ -126,7 +135,7 @@ public sealed class MetadataService(
     {
         ArgumentNullException.ThrowIfNull(targets);
         gate?.Reset();
-        int updated = 0, skipped = 0, failed = 0, notFound = 0, duplicates = 0;
+        int updated = 0, skipped = 0, failed = 0, notFound = 0, duplicates = 0, toReview = 0;
         var messages = new List<string>();
         for (var i = 0; i < targets.Count; i++)
         {
@@ -149,9 +158,19 @@ public sealed class MetadataService(
 
             try
             {
+                var identification = title.TmdbId is null ? await IdentifyAsync(title, cancellationToken).ConfigureAwait(false) : null;
+                if (identification is { NeedsReview: true })
+                {
+                    // Plusieurs fiches possibles ou année inconnue : on ne devine pas, l'utilisateur choisira.
+                    reviews?.Add(title.Id, identification.Query, identification.Candidates);
+                    toReview++;
+                    messages.Add($"À vérifier ({identification.Candidates.Count} possibilités) : {title.Title}{(title.Year is { } ty ? $" ({ty})" : string.Empty)}");
+                    continue;
+                }
+
                 var (kind, sourceId) = title.TmdbId is { } known
                     ? (title.Kind, known)
-                    : await IdentifyAsync(title, cancellationToken).ConfigureAwait(false) is { } match
+                    : identification?.Match is { } match
                         ? (match.Kind, match.SourceId)
                         : (title.Kind, 0L);
                 if (sourceId == 0)
@@ -189,30 +208,29 @@ public sealed class MetadataService(
             }
         }
 
-        return new BatchResult(updated, skipped, failed, notFound, duplicates, messages);
+        return new BatchResult(updated, skipped, failed, notFound, duplicates, messages, toReview);
     }
 
-    /// <summary>Recherche la fiche TMDb d'un titre saisi ou scanné : même type, année à un an près si connue, sinon premier résultat.</summary>
-    internal async Task<MetadataSearchResult?> IdentifyAsync(TitleDetail title, CancellationToken cancellationToken)
+    /// <summary>
+    /// Recherche la fiche TMDb d'un titre déjà au catalogue : identifiant IMDb d'abord, sinon titre et année
+    /// (même type). Un seul résultat à un an près est retenu ; sinon les candidats sont à faire choisir.
+    /// </summary>
+    internal async Task<Identification> IdentifyAsync(TitleDetail title, CancellationToken cancellationToken)
     {
+        var query = title.Year is { } y ? $"{title.Title} ({y})" : title.Title;
         if (title.ImdbId is { } imdb)
         {
             var byImdb = await tmdb.SearchAsync(imdb, null, cancellationToken).ConfigureAwait(false);
             if (byImdb.Count > 0)
             {
-                return byImdb[0];
+                return Identification.Found(byImdb[0], imdb);
             }
         }
 
         var results = (await tmdb.SearchAsync(title.Title, title.Year, cancellationToken).ConfigureAwait(false))
             .Where(r => r.Kind == title.Kind)
             .ToList();
-        if (title.Year is { } year)
-        {
-            return results.FirstOrDefault(r => r.Year is { } ry && Math.Abs(ry - year) <= 1);
-        }
-
-        return results.FirstOrDefault();
+        return Identification.Decide(results, title.Year, query);
     }
 
     private async Task DownloadImagesAsync(long titleId, MetadataRecord record, ImportOptions options, CancellationToken cancellationToken)
@@ -242,4 +260,4 @@ public sealed class MetadataService(
     }
 }
 
-public sealed record BatchResult(int Updated, int Skipped, int Failed, int NotFound = 0, int Duplicates = 0, IReadOnlyList<string>? Messages = null);
+public sealed record BatchResult(int Updated, int Skipped, int Failed, int NotFound = 0, int Duplicates = 0, IReadOnlyList<string>? Messages = null, int ToReview = 0);

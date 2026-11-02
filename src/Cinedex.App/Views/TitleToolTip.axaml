@@ -1,0 +1,15 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:titles="using:Cinedex.Core.Titles"
+             x:Class="Cinedex.App.Views.TitleToolTip"
+             x:DataType="titles:TitleSummary"
+             MaxWidth="380">
+  <!-- Infobulle d'un film de la liste : titre, genres, note IMDb, début du synopsis (réglage « Infobulles »). -->
+  <StackPanel Spacing="4" Margin="2">
+    <TextBlock Text="{Binding TitleWithYear}" FontWeight="SemiBold" FontSize="14" TextWrapping="Wrap" />
+    <TextBlock Text="{Binding GenresText}" FontSize="12" Opacity="0.75" TextWrapping="Wrap" IsVisible="{Binding HasGenres}" />
+    <TextBlock Text="{Binding ImdbText}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}" IsVisible="{Binding HasImdb}" />
+    <TextBlock Text="{Binding Overview}" FontSize="12.5" TextWrapping="Wrap" MaxLines="8" TextTrimming="CharacterEllipsis" Margin="0,4,0,0"
+               IsVisible="{Binding HasOverview}" />
+  </StackPanel>
+</UserControl>

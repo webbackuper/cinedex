@@ -61,6 +61,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         ShowRuleSearch = display.ShowRuleSearch;
         ShowPeople = display.ShowPeople;
         HideAdult = display.HideAdult;
+        ShowTooltips = display.ShowTooltips;
 
         // Import et scan.
         var scan = ScanSettings.Load(settings);
@@ -127,6 +128,9 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool HideAdult { get; set; }
+
+    [ObservableProperty]
+    public partial bool ShowTooltips { get; set; }
 
     /// <summary>Extensions des fichiers vidéo retenus, séparées par des espaces (« .mkv .mp4 »).</summary>
     [ObservableProperty]
@@ -325,6 +329,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             ShowRuleSearch = ShowRuleSearch,
             ShowPeople = ShowPeople,
             HideAdult = HideAdult,
+            ShowTooltips = ShowTooltips,
         }.Save(_settings);
         if (_dataRoot is not null)
         {

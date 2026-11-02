@@ -79,6 +79,8 @@ A series linked to TMDb gets its seasons and episodes. The **Seasons and episode
 
 Example: Genre is Comedy, then IMDb rating > 7, then Year ≥ 2000.
 
+**Tooltips**: turn on "Tooltip when hovering over a film" in **Settings > General** to show, when hovering over a film in the list or the posters, its title, genres, IMDb rating and the beginning of its synopsis. They are off by default.
+
 ## The left sidebar
 - **Library**: quick views (owned, wishlist, watched, favorites, lent, video files…).
 - **Definition**: submenu Standard definition, High definition, Ultra HD (4K), 3D.
@@ -104,7 +106,7 @@ Cinedex reads and writes .nfo files in Kodi format (Settings > .nfo files):
 Several independent catalogs can coexist (for example: films, series, a relative's collection). The menu under the logo opens, creates, renames or removes them. A removed catalog is moved to the backups, never erased.
 
 ## Settings
-- **General**: theme, language, window at startup, adult content, data folder.
+- **General**: theme, language, window at startup, adult content, tooltips, data folder.
 - **Left sidebar**: views and links shown.
 - **Import and scan**: video extensions, minimum size, words that make a file ignored, subfolders, terms removed from titles, options checked by default.
 - **Metadata**: TMDb token, language and country, number of actors, OMDb key, IMDb file.
@@ -127,6 +129,9 @@ Several independent catalogs can coexist (for example: films, series, a relative
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.2.1
+- Tooltip when hovering over a film in the list: title, genres, IMDb rating and synopsis (turn it on in Settings > General).
+
 ### 0.2.0
 - New name: Bobine becomes **Cinedex**, with a new icon. Data, catalogs and keys are carried over automatically.
 - Interface in 10 languages, chosen in Settings; Arabic right to left.

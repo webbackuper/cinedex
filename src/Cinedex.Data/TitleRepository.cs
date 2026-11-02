@@ -16,7 +16,9 @@ public sealed partial class TitleRepository(CatalogDatabase database)
                EXISTS (SELECT 1 FROM viewing v WHERE v.title_id = t.id) AS is_seen,
                c.number, m.label AS medium,
                (SELECT l.borrower FROM loan l WHERE l.copy_id = c.id AND l.returned_at IS NULL) AS borrower,
-               (SELECT i.rel_path FROM title_image ti JOIN image i ON i.id = ti.image_id WHERE ti.title_id = t.id AND ti.role = 'poster') AS poster_rel
+               (SELECT i.rel_path FROM title_image ti JOIN image i ON i.id = ti.image_id WHERE ti.title_id = t.id AND ti.role = 'poster') AS poster_rel,
+               t.imdb_rating, substr(t.overview, 1, 600) AS overview,
+               (SELECT group_concat(g.label, ', ') FROM title_genre tg JOIN genre g ON g.id = tg.genre_id WHERE tg.title_id = t.id) AS genres
         FROM title t
         LEFT JOIN copy c ON c.id = (SELECT min(c2.id) FROM copy c2 WHERE c2.title_id = t.id)
         LEFT JOIN ref_list m ON m.id = c.medium_id
@@ -575,7 +577,12 @@ public sealed partial class TitleRepository(CatalogDatabase database)
         (int?)row.Number,
         row.Medium,
         row.Borrower,
-        row.Poster_Rel);
+        row.Poster_Rel)
+    {
+        Genres = row.Genres,
+        ImdbRating = row.Imdb_Rating,
+        Overview = row.Overview,
+    };
 
     // Dapper associe les colonnes aux propriétés sans tenir compte de la casse.
 #pragma warning disable CA1707, CA1812 // Noms alignés sur les colonnes SQL ; instancié par Dapper.
@@ -606,6 +613,12 @@ public sealed partial class TitleRepository(CatalogDatabase database)
         public string? Borrower { get; set; }
 
         public string? Poster_Rel { get; set; }
+
+        public double? Imdb_Rating { get; set; }
+
+        public string? Overview { get; set; }
+
+        public string? Genres { get; set; }
     }
 
     private sealed class DetailRow

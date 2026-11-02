@@ -233,6 +233,7 @@
  "Importer la sélection": "导入所选",
  "Impossible de supprimer le catalogue ouvert.": "无法删除当前打开的目录。",
  "Indiquez au moins une extension de fichier vidéo (ex. .mkv .mp4 .avi).": "请至少指定一个视频文件扩展名（例如 .mkv .mp4 .avi）。",
+ "Infobulle au survol d'un film : titre, genres, note IMDb et synopsis": "鼠标悬停在影片上时显示提示：片名、类型、IMDb 评分和剧情简介",
  "Infos techniques": "技术信息",
  "Infos techniques (MediaInfo)": "技术信息（MediaInfo）",
  "Infos techniques pas encore lues : utilisez « Relire les infos techniques ».": "技术信息尚未读取：请使用“重新读取技术信息”。",

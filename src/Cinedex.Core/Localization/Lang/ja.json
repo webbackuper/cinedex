@@ -233,6 +233,7 @@
  "Importer la sélection": "選択項目をインポート",
  "Impossible de supprimer le catalogue ouvert.": "開いているカタログは削除できません。",
  "Indiquez au moins une extension de fichier vidéo (ex. .mkv .mp4 .avi).": "動画ファイルの拡張子を少なくとも 1 つ指定してください（例：.mkv .mp4 .avi）。",
+ "Infobulle au survol d'un film : titre, genres, note IMDb et synopsis": "作品にマウスを重ねたときのツールチップ：タイトル、ジャンル、IMDb 評価、あらすじ",
  "Infos techniques": "技術情報",
  "Infos techniques (MediaInfo)": "技術情報（MediaInfo）",
  "Infos techniques pas encore lues : utilisez « Relire les infos techniques ».": "技術情報はまだ読み込まれていません：「技術情報を再読み込み」を使用してください。",

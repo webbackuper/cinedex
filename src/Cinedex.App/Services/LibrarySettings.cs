@@ -105,6 +105,7 @@ public sealed record DisplaySettings
     public const string ShowRuleSearchKey = "ui.showRuleSearch";
     public const string ShowPeopleKey = "ui.showPeople";
     public const string HideAdultKey = "ui.hideAdult";
+    public const string ShowTooltipsKey = "ui.showTooltips";
 
     /// <summary>Vues masquées dans le bandeau gauche (« Tous les titres » reste toujours visible).</summary>
     public IReadOnlySet<QuickFilter> HiddenFilters { get; init; } = new HashSet<QuickFilter>();
@@ -114,6 +115,9 @@ public sealed record DisplaySettings
     public bool ShowPeople { get; init; } = true;
 
     public bool HideAdult { get; init; }
+
+    /// <summary>Infobulle (titre, genres, note IMDb, synopsis) au survol d'un film de la liste ; désactivée par défaut.</summary>
+    public bool ShowTooltips { get; init; }
 
     public static DisplaySettings Load(SettingsStore settings)
     {
@@ -130,6 +134,7 @@ public sealed record DisplaySettings
             ShowRuleSearch = settings.Get(ShowRuleSearchKey) != "false",
             ShowPeople = settings.Get(ShowPeopleKey) != "false",
             HideAdult = settings.Get(HideAdultKey) == "true",
+            ShowTooltips = settings.Get(ShowTooltipsKey) == "true",
         };
     }
 
@@ -140,5 +145,6 @@ public sealed record DisplaySettings
         settings.Set(ShowRuleSearchKey, ScanSettings.Flag(ShowRuleSearch));
         settings.Set(ShowPeopleKey, ScanSettings.Flag(ShowPeople));
         settings.Set(HideAdultKey, ScanSettings.Flag(HideAdult));
+        settings.Set(ShowTooltipsKey, ScanSettings.Flag(ShowTooltips));
     }
 }

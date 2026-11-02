@@ -222,6 +222,7 @@
  "Importer la sélection": "Import the selection",
  "Impossible de supprimer le catalogue ouvert.": "The open catalog cannot be deleted.",
  "Indiquez au moins une extension de fichier vidéo (ex. .mkv .mp4 .avi).": "Enter at least one video file extension (e.g. .mkv .mp4 .avi).",
+ "Infobulle au survol d'un film : titre, genres, note IMDb et synopsis": "Tooltip when hovering over a film: title, genres, IMDb rating and synopsis",
  "Infos techniques": "Technical info",
  "Infos techniques (MediaInfo)": "Technical info (MediaInfo)",
  "Infos techniques pas encore lues : utilisez « Relire les infos techniques ».": "Technical info not read yet: use “Reread technical info”.",

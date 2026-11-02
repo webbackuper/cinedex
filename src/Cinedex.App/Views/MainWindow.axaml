@@ -315,7 +315,10 @@
           </ListBox.KeyBindings>
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="titles:TitleSummary">
-              <Grid ColumnDefinitions="Auto,*,Auto">
+              <Grid ColumnDefinitions="Auto,*,Auto" Background="Transparent" ToolTip.ServiceEnabled="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ShowTooltips}" ToolTip.ShowDelay="500">
+                <ToolTip.Tip>
+                  <views:TitleToolTip DataContext="{Binding}" />
+                </ToolTip.Tip>
                 <Border Width="40" Height="60" CornerRadius="5" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
                   <Panel>
                     <controls:Icon Kind="default" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" Opacity="0.6" />
@@ -355,7 +358,10 @@
           </ListBox.ItemsPanel>
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="titles:TitleSummary">
-              <StackPanel Spacing="6">
+              <StackPanel Spacing="6" Background="Transparent" ToolTip.ServiceEnabled="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ShowTooltips}" ToolTip.ShowDelay="500">
+                <ToolTip.Tip>
+                  <views:TitleToolTip DataContext="{Binding}" />
+                </ToolTip.Tip>
                 <Border Height="234" CornerRadius="8" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
                   <Panel>
                     <StackPanel VerticalAlignment="Center" Spacing="8" Margin="12">

@@ -112,6 +112,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public bool ShowRuleSearch => _display.ShowRuleSearch;
 
+    /// <summary>Infobulle au survol des films de la liste (réglage, désactivé par défaut).</summary>
+    public bool ShowTooltips => _display.ShowTooltips;
+
     /// <summary>Titres dont la fiche TMDb attend un choix (liste « À vérifier »).</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasReviews), nameof(ReviewLabel))]
@@ -146,6 +149,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         Filters = AllMainFilters.Where(f => f.Value == QuickFilter.All || !_display.HiddenFilters.Contains(f.Value)).ToList();
         DefinitionFilters = AllDefinitionFilters.Where(f => !_display.HiddenFilters.Contains(f.Value)).ToList();
         OnPropertyChanged(nameof(ShowRuleSearch));
+        OnPropertyChanged(nameof(ShowTooltips));
         OnPropertyChanged(nameof(ShowPeopleLink));
         if (SelectedFilter is not null && !Filters.Contains(SelectedFilter) && !DefinitionFilters.Contains(SelectedFilter))
         {

@@ -79,6 +79,8 @@ Une série liée à TMDb récupère ses saisons et épisodes. Le bouton **Saison
 
 Exemple : Genre est Comédie, puis Note IMDb > 7, puis Année ≥ 2000.
 
+**Infobulles** : activez « Infobulle au survol d'un film » dans **Réglages > Général** pour afficher, en survolant un film de la liste ou des affiches, son titre, ses genres, sa note IMDb et le début de son synopsis. Elles sont désactivées par défaut.
+
 ## Le bandeau gauche
 - **Bibliothèque** : vues rapides (possédés, liste de souhaits, vus, favoris, prêtés, fichiers vidéo…).
 - **Définition** : sous-menu Définition standard, Haute définition, Ultra HD (4K), 3D.
@@ -104,7 +106,7 @@ Cinedex lit et écrit les fichiers .nfo au format Kodi (Réglages > Fichiers .nf
 Plusieurs catalogues indépendants peuvent coexister (par exemple : films, séries, collection d'un proche). Le menu sous le logo permet d'en ouvrir, créer, renommer ou retirer. Un catalogue retiré est déplacé dans les sauvegardes, jamais effacé.
 
 ## Réglages
-- **Général** : thème, langue, fenêtre au démarrage, contenu adulte, dossier des données.
+- **Général** : thème, langue, fenêtre au démarrage, contenu adulte, infobulles, dossier des données.
 - **Bandeau gauche** : vues et liens affichés.
 - **Import et scan** : extensions vidéo, taille minimale, mots qui font ignorer un fichier, sous-dossiers, termes retirés des titres, options cochées par défaut.
 - **Métadonnées** : jeton TMDb, langue et pays, nombre d'acteurs, clé OMDb, fichier IMDb.
@@ -127,6 +129,9 @@ Plusieurs catalogues indépendants peuvent coexister (par exemple : films, séri
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.2.1
+- Infobulle au survol d'un film de la liste : titre, genres, note IMDb et synopsis (à activer dans Réglages > Général).
+
 ### 0.2.0
 - Nouveau nom : Bobine devient **Cinedex**, avec une nouvelle icône. Les données, catalogues et clés sont repris automatiquement.
 - Interface en 10 langues, choisies dans les Réglages ; arabe de droite à gauche.

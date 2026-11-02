@@ -102,4 +102,19 @@ public sealed class TitlePageTests : IDisposable
         Assert.False(editor.TryBuild(out _));
         Assert.Contains("Metascore", editor.LastError, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void List_rows_carry_the_tooltip_details()
+    {
+        var id = _titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));
+        _titles.Update(_titles.Get(id)! with { ImdbRating = 8.3, Overview = "Un braqueur et un flic.", GenreCodes = ["crime", "drama"] });
+
+        var row = Assert.Single(_titles.ListAll());
+
+        Assert.Equal("Heat (1995)", row.TitleWithYear);
+        Assert.Contains("Policier", row.GenresText, StringComparison.Ordinal);
+        Assert.Contains("Drame", row.GenresText, StringComparison.Ordinal);
+        Assert.Equal(8.3, row.ImdbRating);
+        Assert.Equal("Un braqueur et un flic.", row.Overview);
+    }
 }

@@ -55,6 +55,7 @@
             <TextBlock Classes="hint" Text="F11 bascule à tout moment entre plein écran et fenêtre." />
             <TextBlock Classes="h" Text="Contenu" />
             <CheckBox Content="Masquer les titres marqués « contenu pour adultes » dans la liste" IsChecked="{Binding HideAdult}" />
+            <CheckBox Content="Infobulle au survol d'un film : titre, genres, note IMDb et synopsis" IsChecked="{Binding ShowTooltips}" />
             <TextBlock Classes="h" Text="Données" />
             <TextBlock Text="Catalogues, images, sauvegardes et journaux sont rangés dans :" />
             <Grid ColumnDefinitions="*,Auto">

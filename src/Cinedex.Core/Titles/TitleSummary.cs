@@ -25,6 +25,29 @@ public sealed record TitleSummary(
     /// <summary>Chemin absolu de l'affiche, renseigné par l'interface à partir du dossier d'images du catalogue.</summary>
     public string? PosterPath { get; init; }
 
+    /// <summary>Libellés des genres, séparés par des virgules (infobulle de la liste).</summary>
+    public string? Genres { get; init; }
+
+    public double? ImdbRating { get; init; }
+
+    /// <summary>Début du synopsis (infobulle de la liste).</summary>
+    public string? Overview { get; init; }
+
+    /// <summary>Infobulle : « Policier, Thriller » dans la langue de l'interface.</summary>
+    public string GenresText => string.Join(", ", (Genres ?? string.Empty)
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Select(Localization.Tr.T));
+
+    public bool HasGenres => !string.IsNullOrWhiteSpace(Genres);
+
+    public string ImdbText => ImdbRating is { } r ? "IMDb " + r.ToString("0.0", System.Globalization.CultureInfo.CurrentCulture) : string.Empty;
+
+    public bool HasImdb => ImdbRating is not null;
+
+    public bool HasOverview => !string.IsNullOrWhiteSpace(Overview);
+
+    public string TitleWithYear => Year is { } y ? $"{Title} ({y})" : Title;
+
     /// <summary>Ligne secondaire de la liste : « 1995 · Blu-ray · 2 h 50 ».</summary>
     public string Subtitle => string.Join(" · ", new[]
     {

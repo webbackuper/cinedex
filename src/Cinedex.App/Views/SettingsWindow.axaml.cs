@@ -18,6 +18,64 @@ public sealed partial class SettingsWindow : Window
             maintenance.Confirm = (title, message) => MessageWindow.ShowAsync(this, title, message, confirm: true);
             maintenance.CloseRequested += (_, _) => Close(false);
         }
+
+        if (DataContext is SettingsViewModel { Backups: { } backups })
+        {
+            backups.Confirm = (title, message) => MessageWindow.ShowAsync(this, title, message, confirm: true);
+            backups.CloseRequested += (_, _) => Close(false);
+        }
+    }
+
+    private void OnExportAll(object? sender, RoutedEventArgs e) => (DataContext as SettingsViewModel)?.Export?.SelectAll(true);
+
+    private void OnExportNone(object? sender, RoutedEventArgs e) => (DataContext as SettingsViewModel)?.Export?.SelectAll(false);
+
+    /// <summary>Choix du fichier, puis export de la liste dans le format choisi.</summary>
+    private async void OnExport(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not SettingsViewModel { Export: { } export })
+        {
+            return;
+        }
+
+        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = Cinedex.Core.Localization.Tr.T("Exporter la liste des films"),
+            SuggestedFileName = export.SuggestedFileName,
+            DefaultExtension = export.Extension.TrimStart('.'),
+            FileTypeChoices = [new FilePickerFileType(export.SelectedFormat.Label) { Patterns = ["*" + export.Extension] }],
+        });
+        if (file?.TryGetLocalPath() is { } path)
+        {
+            await export.ExportAsync(path);
+        }
+    }
+
+    private async void OnChooseBackupFolder(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not SettingsViewModel { Backups: { } backups })
+        {
+            return;
+        }
+
+        var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = Cinedex.Core.Localization.Tr.T("Dossier des sauvegardes"),
+            AllowMultiple = false,
+        });
+        if (folders.Count > 0 && folders[0].TryGetLocalPath() is { } path)
+        {
+            backups.Folder = path;
+        }
+    }
+
+    private void OnOpenBackupFolder(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is SettingsViewModel { Backups: { } backups } && !string.IsNullOrWhiteSpace(backups.Folder))
+        {
+            Directory.CreateDirectory(backups.Folder);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(backups.Folder) { UseShellExecute = true })?.Dispose();
+        }
     }
 
     private void OnOpenBackups(object? sender, RoutedEventArgs e)

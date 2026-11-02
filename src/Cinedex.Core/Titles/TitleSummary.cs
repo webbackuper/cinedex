@@ -58,6 +58,11 @@ public sealed record TitleSummary(
     }.Where(p => !string.IsNullOrEmpty(p)));
 
     public bool IsLoaned => Borrower is not null;
+
+    /// <summary>Ligne secondaire composée selon les colonnes choisies (réglages) ; sinon <see cref="Subtitle"/>.</summary>
+    public string? CustomSubtitle { get; init; }
+
+    public string DisplaySubtitle => CustomSubtitle ?? Subtitle;
 }
 
 /// <summary>Données minimales pour créer une fiche à la main.</summary>

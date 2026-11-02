@@ -149,6 +149,43 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public bool ShowPeopleLink => HasPeople && _display.ShowPeople;
 
+    private bool _backupRunning;
+
+    /// <summary>
+    /// Sauvegarde planifiée (Réglages > Sauvegardes) : faite en arrière-plan si elle est due. Appelée à l'ouverture
+    /// de la fenêtre, puis régulièrement.
+    /// </summary>
+    public async Task RunScheduledBackupAsync(bool atStartup)
+    {
+        if (_media?.Backup is not { } backup || _backupRunning)
+        {
+            return;
+        }
+
+        _backupRunning = true;
+        try
+        {
+            if (await Task.Run(() => backup.RunIfDue(atStartup)) is { } path)
+            {
+                Journal($"Sauvegarde automatique : {path}");
+                Status = Tr.F("Sauvegarde automatique faite : {0}", path);
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or Microsoft.Data.Sqlite.SqliteException)
+        {
+            Journal($"Sauvegarde automatique impossible : {ex.Message}");
+            Status = Tr.F("Sauvegarde automatique impossible : {0}", ex.Message);
+        }
+        finally
+        {
+            _backupRunning = false;
+        }
+    }
+
+    /// <summary>Colonnes de la vue liste (Réglages > Liste des films).</summary>
+    [ObservableProperty]
+    public partial ListColumns Columns { get; private set; } = new();
+
     /// <summary>Économiseur d'écran (Réglages > Économiseur) : relu avec les autres réglages d'affichage.</summary>
     public ScreenSaverSettings ScreenSaver { get; private set; } = new();
 
@@ -203,6 +240,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         _display = _media is null ? new DisplaySettings() : DisplaySettings.Load(_media.Settings);
         ScreenSaver = _media is null ? new ScreenSaverSettings() : ScreenSaverSettings.Load(_media.Settings);
+        Columns = _media is null ? new ListColumns() : ListColumns.Load(_media.Settings);
         Filters = AllMainFilters.Where(f => f.Value == QuickFilter.All || !_display.HiddenFilters.Contains(f.Value)).ToList();
         DefinitionFilters = AllDefinitionFilters.Where(f => !_display.HiddenFilters.Contains(f.Value)).ToList();
         OnPropertyChanged(nameof(ShowRuleSearch));
@@ -846,7 +884,22 @@ public sealed partial class MainWindowViewModel : ObservableObject
                     () => _titles.Query(new TitleQuery(null, QuickFilter.All, sort.Value, descending)).Select(t => t.Id).ToList());
             }
 
+            if (settings.Export is { } export)
+            {
+                var sort = SelectedSort;
+                var descending = SortDescending;
+                export.DisplayedIds = () => Titles.Select(t => t.Id).ToList();
+                export.AllIds = () => _titles.Query(new TitleQuery(null, QuickFilter.All, sort.Value, descending)).Select(t => t.Id).ToList();
+            }
+
             var saved = await _dialogs.EditSettingsAsync(settings);
+            if (settings.Backups?.PendingRestore is { } restore && _catalogs is not null)
+            {
+                // Le catalogue est fermé, remplacé par la sauvegarde puis rouvert : la fenêtre reçoit un nouveau contexte.
+                _catalogs.RestoreCurrent(restore);
+                return;
+            }
+
             if (maintenance?.PendingRename is { } newName && _catalogs is not null)
             {
                 // Le catalogue est fermé puis rouvert sous son nouveau nom : la fenêtre reçoit un nouveau contexte.
@@ -1156,9 +1209,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
         Titles.Clear();
         foreach (var title in _titles.Query(CurrentQuery))
         {
-            Titles.Add(title.PosterRelativePath is { } poster && _images is not null
-                ? title with { PosterPath = _images.ResolveInside(poster) }
-                : title);
+            Titles.Add(title with
+            {
+                PosterPath = title.PosterRelativePath is { } poster && _images is not null ? _images.ResolveInside(poster) : null,
+                CustomSubtitle = Columns.Subtitle(title),
+            });
         }
 
         SelectedTitles.Clear();

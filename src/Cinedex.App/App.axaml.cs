@@ -33,6 +33,7 @@ public sealed class App : Application
             _paths.EnsureCreated();
             _serilog = CreateLogger(_paths);
             Services.Appearance.Apply(Services.Appearance.Load(_paths.DataRoot));
+            Services.Appearance.ApplyStyle(Services.Appearance.LoadStyle(_paths.DataRoot));
             Cinedex.Core.Localization.Tr.Use(LanguagePreference.Load(_paths.DataRoot));
             UiTranslator.Install(this);
             ActivityJournal.Configure(_paths.DataRoot, _paths.LogsDirectory)
@@ -91,6 +92,8 @@ public sealed class App : Application
                                 Maintenance = new MaintenanceViewModel(
                                     services.GetRequiredService<MaintenanceRepository>(), new CatalogManager(_paths), "catalogue",
                                     _paths.BackupsDirectory, services.GetRequiredService<ImageStore>().ImagesDirectory),
+                                Export = new ExportViewModel(services.GetRequiredService<ExportRepository>(), services.GetRequiredService<SettingsStore>()),
+                                Backups = new BackupsViewModel(services.GetRequiredService<BackupService>()),
                             },
                         };
                         if (Environment.GetEnvironmentVariable("CINEDEX_SNAPSHOT_DUPLICATES") is { Length: > 0 } &&
@@ -165,6 +168,31 @@ public sealed class App : Application
         }
     }
 
+    /// <summary>
+    /// Restaure le catalogue ouvert depuis une sauvegarde : la base est fermée, remplacée (après une copie de
+    /// sécurité) et les images ajoutées, puis le catalogue est rouvert.
+    /// </summary>
+    private void RestoreOpenCatalog(string dumpPath)
+    {
+        var current = new CatalogManager(_paths!).Current;
+        _services?.Dispose();
+        _services = null;
+        SqliteConnection.ClearAllPools();
+        try
+        {
+            var safety = BackupService.Restore(dumpPath, _paths!.CatalogDatabasePath(current), _paths.CatalogImagesDirectory(current), _paths.BackupsDirectory);
+            ActivityJournal.Current.Write($"Sauvegarde restaurée : {dumpPath} (copie de la base précédente : {safety ?? "aucune"})");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
+        {
+            ActivityJournal.Current.Write($"Restauration impossible ({dumpPath}) : {ex.Message}");
+        }
+        finally
+        {
+            OpenCatalog(current);
+        }
+    }
+
     private void OpenCatalog(string name)
     {
         var previous = _services;
@@ -179,7 +207,7 @@ public sealed class App : Application
         ActivityJournal.Current.Write($"Catalogue ouvert : {name}");
 
         var services = _services;
-        var catalogs = new CatalogsViewModel(new CatalogManager(_paths!), name, OpenCatalog, services.GetRequiredService<SettingsStore>(), RenameOpenCatalog);
+        var catalogs = new CatalogsViewModel(new CatalogManager(_paths!), name, OpenCatalog, services.GetRequiredService<SettingsStore>(), RenameOpenCatalog, RestoreOpenCatalog);
         var main = new MainWindowViewModel(
             services.GetRequiredService<TitleRepository>(),
             services.GetRequiredService<AppPaths>(),
@@ -198,6 +226,8 @@ public sealed class App : Application
                     name,
                     _paths!.BackupsDirectory,
                     services.GetRequiredService<ImageStore>().ImagesDirectory),
+                Export = new ExportViewModel(services.GetRequiredService<ExportRepository>(), services.GetRequiredService<SettingsStore>()),
+                Backups = new BackupsViewModel(services.GetRequiredService<BackupService>()),
             },
             services.GetRequiredService<MediaContext>(),
             catalogs);
@@ -273,6 +303,14 @@ public sealed class App : Application
         services.AddSingleton<MatchReviewRepository>();
         services.AddSingleton<StatisticsRepository>();
         services.AddSingleton<MaintenanceRepository>();
+        services.AddSingleton<ExportRepository>();
+        services.AddSingleton(sp => new BackupService(
+            sp.GetRequiredService<MaintenanceRepository>(),
+            sp.GetRequiredService<SettingsStore>(),
+            catalog,
+            paths.DataRoot,
+            paths.BackupsDirectory,
+            sp.GetRequiredService<ImageStore>().ImagesDirectory));
         services.AddSingleton<CollectionRepository>();
         services.AddSingleton<CollectionService>();
         services.AddSingleton<MetadataService>();
@@ -300,7 +338,8 @@ public sealed class App : Application
             sp.GetRequiredService<RatingsService>(),
             sp.GetRequiredService<SeriesRepository>(),
             sp.GetRequiredService<PeopleService>(),
-            sp.GetRequiredService<ApiGate>()));
+            sp.GetRequiredService<ApiGate>(),
+            sp.GetRequiredService<BackupService>()));
         return services.BuildServiceProvider();
     }
 }

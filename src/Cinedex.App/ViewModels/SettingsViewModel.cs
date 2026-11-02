@@ -47,6 +47,21 @@ public sealed partial class SettingsViewModel : ObservableObject
         // Général : apparence commune à tous les catalogues (si l'emplacement des données est connu).
         ThemeChoices = [new(AppTheme.System, "Comme le système"), new(AppTheme.Light, "Clair"), new(AppTheme.Dark, "Sombre")];
         SelectedTheme = ThemeChoices.Single(c => c.Value == (dataRoot is null ? AppTheme.System : Appearance.Load(dataRoot)));
+        var style = dataRoot is null ? new AppearanceStyle() : Appearance.LoadStyle(dataRoot);
+        IconSetChoices =
+        [
+            new(IconSet.Fine, "Trait fin"),
+            new(IconSet.Bold, "Trait marqué"),
+            new(IconSet.Duotone, "Deux tons"),
+            new(IconSet.Classic, "Classique (Buddha)"),
+        ];
+        SelectedIconSet = IconSetChoices.Single(c => c.Value == style.Icons);
+        MenuChoices = [.. Enum.GetValues<MenuColor>().Select(m => new ColorChoice<MenuColor>(m, MenuLabel(m), AppearanceStyle.MenuColors(m)))];
+        SelectedMenu = MenuChoices.Single(c => c.Value == style.Menu);
+        AccentChoices = [.. Enum.GetValues<AccentColor>().Select(a => new ColorChoice<AccentColor>(a, AccentLabel(a), AppearanceStyle.AccentColors(a)))];
+        SelectedAccent = AccentChoices.Single(c => c.Value == style.Accent);
+        FontChoices = [.. AppearanceStyle.Fonts.Select(f => new Choice<string>(f, f == AppearanceStyle.DefaultFont ? Tr.T("Inter (fournie avec Cinedex)") : f == "Système" ? Tr.T("Police du système") : f))];
+        SelectedFont = FontChoices.Single(c => c.Value == style.Font);
         StartupChoices =
         [
             new(StartupWindowMode.Maximized, "Agrandie à la taille de l'écran"),
@@ -66,6 +81,8 @@ public sealed partial class SettingsViewModel : ObservableObject
         ShowPeople = display.ShowPeople;
         HideAdult = display.HideAdult;
         ShowTooltips = display.ShowTooltips;
+        var columns = ListColumns.Load(settings);
+        ColumnToggles = [.. Enum.GetValues<ListColumn>().Select(c => new ColumnToggle(c, ColumnLabel(c), columns.Shows(c)))];
         ManageCollections = display.ManageCollections;
         JournalEnabled = ActivityJournal.Current.Enabled;
 
@@ -111,7 +128,67 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     public bool HasMaintenance => Maintenance is not null;
 
+    /// <summary>Onglet Export de la liste des films (absent hors catalogue).</summary>
+    public ExportViewModel? Export { get; init; }
+
+    public bool HasExport => Export is not null;
+
+    /// <summary>Onglet Sauvegardes (absent hors catalogue).</summary>
+    public BackupsViewModel? Backups { get; init; }
+
+    public bool HasBackups => Backups is not null;
+
     public IReadOnlyList<Choice<AppTheme>> ThemeChoices { get; }
+
+    public IReadOnlyList<Choice<IconSet>> IconSetChoices { get; }
+
+    [ObservableProperty]
+    public partial Choice<IconSet> SelectedIconSet { get; set; }
+
+    public IReadOnlyList<ColorChoice<MenuColor>> MenuChoices { get; }
+
+    [ObservableProperty]
+    public partial ColorChoice<MenuColor> SelectedMenu { get; set; }
+
+    public IReadOnlyList<ColorChoice<AccentColor>> AccentChoices { get; }
+
+    [ObservableProperty]
+    public partial ColorChoice<AccentColor> SelectedAccent { get; set; }
+
+    public IReadOnlyList<Choice<string>> FontChoices { get; }
+
+    [ObservableProperty]
+    public partial Choice<string> SelectedFont { get; set; }
+
+    /// <summary>Aperçu de la police choisie dans l'onglet Apparence.</summary>
+    public Avalonia.Media.FontFamily FontPreview => SelectedFont.Value switch
+    {
+        AppearanceStyle.DefaultFont => new Avalonia.Media.FontFamily("fonts:Inter#Inter"),
+        "Système" => Avalonia.Media.FontFamily.Default,
+        var name => new Avalonia.Media.FontFamily(name),
+    };
+
+    partial void OnSelectedFontChanged(Choice<string> value) => OnPropertyChanged(nameof(FontPreview));
+
+    private static string MenuLabel(MenuColor menu) => menu switch
+    {
+        MenuColor.Slate => Tr.T("Ardoise"),
+        MenuColor.Sage => Tr.T("Sauge"),
+        MenuColor.Lavender => Tr.T("Lavande"),
+        MenuColor.Rose => Tr.T("Rose poudré"),
+        MenuColor.White => Tr.T("Blanc"),
+        _ => Tr.T("Sable"),
+    };
+
+    private static string AccentLabel(AccentColor accent) => accent switch
+    {
+        AccentColor.Blue => Tr.T("Bleu"),
+        AccentColor.Green => Tr.T("Vert"),
+        AccentColor.Violet => Tr.T("Violet"),
+        AccentColor.Red => Tr.T("Rouge"),
+        AccentColor.Graphite => Tr.T("Graphite"),
+        _ => Tr.T("Terre cuite"),
+    };
 
     [ObservableProperty]
     public partial Choice<AppTheme> SelectedTheme { get; set; }
@@ -149,6 +226,25 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool ShowTooltips { get; set; }
+
+    /// <summary>Colonnes de la vue liste, cochées si affichées.</summary>
+    public IReadOnlyList<ColumnToggle> ColumnToggles { get; }
+
+    internal static string ColumnLabel(ListColumn column) => column switch
+    {
+        ListColumn.Poster => Tr.T("Affiche"),
+        ListColumn.Year => Tr.T("Année"),
+        ListColumn.Kind => Tr.T("Mention « Série »"),
+        ListColumn.Medium => Tr.T("Support"),
+        ListColumn.Runtime => Tr.T("Durée"),
+        ListColumn.Genres => Tr.T("Genres"),
+        ListColumn.Imdb => Tr.T("Note IMDb"),
+        ListColumn.UserRating => Tr.T("Ma note"),
+        ListColumn.Loan => Tr.T("Prêt (emprunteur)"),
+        ListColumn.Favorite => Tr.T("Favori"),
+        ListColumn.Seen => Tr.T("Vu"),
+        _ => Tr.T("Numéro"),
+    };
 
     /// <summary>Collections (sagas TMDb) : lien du bandeau gauche, fiche et décors téléchargés après chaque import.</summary>
     [ObservableProperty]
@@ -425,11 +521,16 @@ public sealed partial class SettingsViewModel : ObservableObject
             ShowTooltips = ShowTooltips,
             ManageCollections = ManageCollections,
         }.Save(_settings);
+        new ListColumns { Hidden = ColumnToggles.Where(t => !t.IsShown).Select(t => t.Value).ToHashSet() }.Save(_settings);
+        Backups?.Save();
         ActivityJournal.Current.SetEnabled(JournalEnabled);
         if (_dataRoot is not null)
         {
             Appearance.Save(_dataRoot, SelectedTheme.Value);
             Appearance.Apply(SelectedTheme.Value);
+            var style = new AppearanceStyle { Icons = SelectedIconSet.Value, Menu = SelectedMenu.Value, Accent = SelectedAccent.Value, Font = SelectedFont.Value };
+            Appearance.SaveStyle(_dataRoot, style);
+            Appearance.ApplyStyle(style);
             (WindowPlacement.Load(_dataRoot) with { Mode = SelectedStartup.Value }).Save(_dataRoot);
             LanguageChanged = SelectedLanguage.Code != Cinedex.Core.Localization.Tr.Current.Code;
             LanguagePreference.Save(_dataRoot, SelectedLanguage.Code);
@@ -462,4 +563,23 @@ public sealed partial class SettingsViewModel : ObservableObject
             return null;
         }
     }
+}
+
+/// <summary>Choix de couleur de l'onglet Apparence : libellé et pastilles en thème clair et sombre.</summary>
+public sealed record ColorChoice<T>(T Value, string Label, (Avalonia.Media.Color Light, Avalonia.Media.Color Dark) Colors)
+{
+    public Avalonia.Media.IBrush LightBrush { get; } = new Avalonia.Media.SolidColorBrush(Colors.Light);
+
+    public Avalonia.Media.IBrush DarkBrush { get; } = new Avalonia.Media.SolidColorBrush(Colors.Dark);
+}
+
+/// <summary>Une colonne de la vue liste et son état (affichée ou non).</summary>
+public sealed partial class ColumnToggle(ListColumn value, string label, bool isShown) : ObservableObject
+{
+    public ListColumn Value { get; } = value;
+
+    public string Label { get; } = label;
+
+    [ObservableProperty]
+    public partial bool IsShown { get; set; } = isShown;
 }

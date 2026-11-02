@@ -24,7 +24,7 @@ def keep(s):
         return False
     if re.match(r'^(https?://|/|\.|#|\{(?!\d)|\^|\(\?|tt\d|movie/|tv/)', s):
         return False
-    if re.search(r'\b(SELECT|INSERT|UPDATE|DELETE|CREATE|WHERE|JOIN|PRAGMA|EXISTS|coalesce|ORDER BY|IS NOT NULL|AND|OR|NOT)\b|@\w|\w\.\w+ =|<>', s):
+    if re.search(r'\b(SELECT|INSERT|UPDATE|DELETE|CREATE|WHERE|JOIN|PRAGMA|EXISTS|coalesce|ORDER BY|IS NOT NULL|AND|OR|NOT|CASE|substr)\b|@\w|\w\.\w+ =|<>', s):
         return False
     if re.fullmatch(r'[a-z0-9_]+', s) or s in ('Bobine', 'Bearer', 'Application Support', 'Cinedex'):
         return False

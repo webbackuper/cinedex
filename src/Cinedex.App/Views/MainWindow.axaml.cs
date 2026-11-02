@@ -15,6 +15,7 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
     private WindowState _beforeFullScreen = WindowState.Maximized;
     private readonly IdleMonitor _idle = new();
     private readonly Avalonia.Threading.DispatcherTimer _idleTimer = new() { Interval = TimeSpan.FromSeconds(5) };
+    private readonly Avalonia.Threading.DispatcherTimer _backupTimer = new() { Interval = TimeSpan.FromMinutes(15) };
 
     public MainWindow()
     {
@@ -49,6 +50,24 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
         _idleTimer.Tick += (_, _) => StartScreenSaverIfIdle();
         Opened += (_, _) => _idleTimer.Start();
         Closed += (_, _) => _idleTimer.Stop();
+
+        // Sauvegarde planifiée : vérifiée à l'ouverture, puis toutes les 15 minutes.
+        _backupTimer.Tick += async (_, _) =>
+        {
+            if (DataContext is MainWindowViewModel vm)
+            {
+                await vm.RunScheduledBackupAsync(atStartup: false);
+            }
+        };
+        Opened += async (_, _) =>
+        {
+            _backupTimer.Start();
+            if (DataContext is MainWindowViewModel vm)
+            {
+                await vm.RunScheduledBackupAsync(atStartup: true);
+            }
+        };
+        Closed += (_, _) => _backupTimer.Stop();
     }
 
     /// <summary>Lance le diaporama des affiches si la fenêtre est active et inactive depuis la durée réglée.</summary>

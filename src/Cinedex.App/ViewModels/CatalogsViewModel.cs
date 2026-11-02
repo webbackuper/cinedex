@@ -14,9 +14,11 @@ public sealed partial class CatalogsViewModel : ObservableObject
     private readonly Action<string> _open;
     private readonly SettingsStore _currentSettings;
     private readonly Action<string>? _renameCurrent;
+    private readonly Action<string>? _restoreCurrent;
 
-    public CatalogsViewModel(CatalogManager manager, string current, Action<string> open, SettingsStore currentSettings, Action<string>? renameCurrent = null)
+    public CatalogsViewModel(CatalogManager manager, string current, Action<string> open, SettingsStore currentSettings, Action<string>? renameCurrent = null, Action<string>? restoreCurrent = null)
     {
+        _restoreCurrent = restoreCurrent;
         _manager = manager;
         _open = open;
         _renameCurrent = renameCurrent;
@@ -75,6 +77,9 @@ public sealed partial class CatalogsViewModel : ObservableObject
 
     /// <summary>Renomme le catalogue ouvert : il est fermé, renommé puis rouvert (Réglages > Maintenance).</summary>
     public void RenameCurrent(string newName) => _renameCurrent?.Invoke(newName);
+
+    /// <summary>Restaure le catalogue ouvert depuis une sauvegarde : il est fermé, remplacé puis rouvert (Réglages > Sauvegardes).</summary>
+    public void RestoreCurrent(string dumpPath) => _restoreCurrent?.Invoke(dumpPath);
 
     [RelayCommand(CanExecute = nameof(CanRename))]
     private void Rename()

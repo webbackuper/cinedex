@@ -37,6 +37,8 @@
           <SolidColorBrush x:Key="CinedexPosterBack" Color="#2E2A26" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
+      <!-- Police de l'interface (Réglages > Apparence) ; remplacée au lancement selon le choix enregistré. -->
+      <FontFamily x:Key="CinedexFont">fonts:Inter#Inter</FontFamily>
     </ResourceDictionary>
   </Application.Resources>
 
@@ -53,6 +55,7 @@
       <Setter Property="Background" Value="{DynamicResource CinedexBackground}" />
       <Setter Property="Icon" Value="/Assets/cinedex.ico" />
       <Setter Property="Foreground" Value="{DynamicResource CinedexInk}" />
+      <Setter Property="FontFamily" Value="{DynamicResource CinedexFont}" />
     </Style>
     <Style Selector="TabItem">
       <Setter Property="FontSize" Value="15" />

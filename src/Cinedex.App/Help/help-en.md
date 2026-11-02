@@ -108,7 +108,8 @@ Cinedex reads and writes .nfo files in Kodi format (Settings > .nfo files):
 - after a TMDb update, the .nfo can be created or completed, with a .nfo.bak safety copy.
 
 ## Appearance, language and window
-- **Appearance** (left sidebar) or **Settings > General**: light mode, dark mode or same as the system.
+- **Appearance** (left sidebar) or **Settings > Appearance**: light mode, dark mode or same as the system.
+- **Settings > Appearance** also sets the **icon set** (thin line, bold line, two-tone, or classic Buddha), the **menu color** (left sidebar: sand, slate, sage, lavender, dusty rose, white), the **accent color** (terracotta, blue, green, violet, red, graphite) and the **font** (Inter included with Cinedex, system font, Segoe UI, Calibri, Verdana, Trebuchet MS, Georgia, Arial). Each swatch shows the color in light and dark theme; everything applies when saved, without restarting.
 - **Interface language**: French, English, Chinese, Hindi, Spanish, Arabic, Portuguese, Russian, German, Japanese. It applies on restart, which is offered right away.
 - **Window at startup**: maximized (default), full screen, or the size from last time. **F11** toggles full screen.
 - The language of TMDb summaries and genres is set separately (Settings > Metadata, fr-FR by default).
@@ -117,7 +118,10 @@ Cinedex reads and writes .nfo files in Kodi format (Settings > .nfo files):
 Several independent catalogs can coexist (for example: films, series, a relative's collection). The menu under the logo opens, creates, renames or removes them. A removed catalog is moved to the backups, never erased.
 
 ## Settings
-- **General**: theme, language, window at startup, adult content, tooltips, collections, data folder, activity log.
+- **General**: language, window at startup, adult content, tooltips, collections, data folder, activity log.
+- **Appearance**: theme, icon set, menu color, accent color, font.
+- **Film list**: columns shown in the list view (poster, year, "Series" label, medium, runtime, genres, IMDb rating, my rating, loan, favorite, watched, number). Genres and IMDb rating are hidden by default.
+- **Backups** and **Export**: see below.
 - **Screen saver**: on or off, idle time, slideshow interval, titles under the posters.
 - **Left sidebar**: views and links shown.
 - **Import and scan**: video extensions, minimum size, words that make a file ignored, subfolders, terms removed from titles, options checked by default.
@@ -156,6 +160,17 @@ These operations apply immediately, without “Save”. Each one that changes th
 - **Ctrl+S**: watched / not watched; **Ctrl+D**: favorite; **Ctrl+R** or **F7**: a random unwatched title
 - **Ctrl+1**: list; **Ctrl+2**: posters; **F5**: refresh; **F11**: full screen
 
+## Backups
+**Settings > Backups** makes complete backups of the open catalog: a .zip archive containing, as chosen, the **database** (records, ratings, loans, files, catalog settings), the **images** (posters, backdrops, photos) and the **shared preferences** (appearance, language, window, log), with a manifest.
+- **Back up now** makes a backup right away.
+- **Automatic backup**: never, at every start, once a day, a week or a month. It runs in the background while Cinedex is open.
+- **Folder**: by default the "dumps" subfolder of Cinedex's backups; **Choose…** allows a USB drive or a synced folder, for example.
+- **Backups kept**: beyond this number the oldest are deleted (0: all kept).
+- **Restore…** replaces the catalog database with the chosen backup's (a copy of the current one is kept first) and adds missing images; Settings close and the catalog reopens.
+
+## Exporting the list
+**Settings > Export** saves the film list as **CSV**, **TSV** or **Excel (.xlsx)**: the displayed list (current search, filter and sort) or the whole catalog, with the checked columns (number, title, original title, year, genres, runtime, directors, main actors, ratings, watched, favorite, medium, location, collection, loan, resolution, MediaID, files, size, TMDb and IMDb IDs, date added, synopsis). The CSV uses the system language's separator (";" in French) and opens directly in Excel. Columns and format are remembered.
+
 ## Data, backups and security
 - Catalogs, images and logs are in the data folder (Settings > General > Open the folder). In portable mode, a portable.flag file next to Cinedex.exe puts the data in a data subfolder.
 - A backup of the database is made automatically before each update of its format.
@@ -164,6 +179,12 @@ These operations apply immediately, without “Save”. Each one that changes th
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.3.0
+- **Backups** tab: complete backups (database, images, preferences as chosen), on demand or scheduled, with rotation and restore.
+- **Export** tab: film list as CSV, TSV or Excel, with a choice of columns.
+- **Film list** tab: choice of the columns shown in the list view.
+- **Appearance** tab: four coherent icon sets, menu color, accent color and font.
+
 ### 0.2.6
 - **Maintenance** tab in Settings: rename the open catalog, back up, unused actors, duplicate actors and directors, duplicate films, renumbering in the current sort order, empty collections, tags and groups, unused images, integrity check and compaction.
 

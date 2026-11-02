@@ -10,13 +10,18 @@ namespace Cinedex.App.Controls;
 
 /// <summary>
 /// Icône monochrome au trait, colorée par le premier plan courant (donc lisible en thème clair comme sombre).
-/// Deux sources, même style : les icônes Buddha (images, utilisées comme masque) et des tracés dessinés
-/// pour Cinedex dans le même esprit (trait fin, extrémités arrondies, grille 24×24).
+/// Toutes les icônes sont dessinées pour Cinedex sur une grille 24×24 ; le jeu choisi dans les réglages
+/// (<see cref="Set"/>) règle le traitement : trait fin, trait marqué, deux tons, ou icônes Buddha d'origine
+/// (images utilisées comme masque) là où elles existent.
 /// </summary>
 public sealed class Icon : Control
 {
     public static readonly StyledProperty<string?> KindProperty =
         AvaloniaProperty.Register<Icon, string?>(nameof(Kind));
+
+    /// <summary>Jeu imposé à cette icône (aperçus des réglages) ; sinon le jeu choisi pour toute l'application.</summary>
+    public static readonly StyledProperty<Services.IconSet?> VariantProperty =
+        AvaloniaProperty.Register<Icon, Services.IconSet?>(nameof(Variant));
 
     public static readonly StyledProperty<IBrush?> ForegroundProperty =
         TextElement.ForegroundProperty.AddOwner<Icon>();
@@ -28,9 +33,32 @@ public sealed class Icon : Control
         "insert", "options", "play", "print", "random", "search", "sort", "statistics", "view",
     };
 
-    // Icônes dessinées pour Cinedex, grille 24×24, trait de 1,6.
+    // Icônes dessinées pour Cinedex, grille 24×24 (épaisseur du trait selon le jeu choisi).
     private static readonly Dictionary<string, string> PathKinds = new(StringComparer.Ordinal)
     {
+        // Équivalents dessinés des icônes Buddha, pour des jeux homogènes.
+        ["about"] = "M21 12 A 9 9 0 1 1 3 12 A 9 9 0 1 1 21 12 Z M12 11 V16.5 M12 7.5 V8",
+        ["add"] = "M21 12 A 9 9 0 1 1 3 12 A 9 9 0 1 1 21 12 Z M12 8 V16 M8 12 H16",
+        ["database"] = "M5 6 C 5 3.8 19 3.8 19 6 C 19 8.2 5 8.2 5 6 Z M5 6 V18 C 5 20.2 19 20.2 19 18 V6 M5 12 C 5 14.2 19 14.2 19 12",
+        ["default"] = "M3.5 9.5 H20.5 V20 H3.5 Z M3.5 9.5 L3 6.6 L19.7 3.6 L20.2 6.5 Z M8.2 9.5 L7 5.7 M13.2 9.5 L12 4.8 M18 9.5 L16.9 3.9",
+        ["delete"] = "M4.5 6.5 H19.5 M9.5 6.5 V4 H14.5 V6.5 M6.5 6.5 L7.5 20.5 H16.5 L17.5 6.5 M10 10.5 V16.5 M14 10.5 V16.5",
+        ["edit"] = "M4.5 19.5 L5.3 15.7 L15.8 5.2 A 1.6 1.6 0 0 1 18.1 5.2 L18.8 5.9 A 1.6 1.6 0 0 1 18.8 8.2 L8.3 18.7 Z M14 7 L17 10",
+        ["exit"] = "M14 4 H18.5 A 1.5 1.5 0 0 1 20 5.5 V18.5 A 1.5 1.5 0 0 1 18.5 20 H14 M10 8 L6 12 L10 16 M6 12 H15",
+        ["export"] = "M12 3.5 V14 M8 7.5 L12 3.5 L16 7.5 M5 12 V19 A 1.5 1.5 0 0 0 6.5 20.5 H17.5 A 1.5 1.5 0 0 0 19 19 V12",
+        ["filter"] = "M4 5 H20 L14 12.5 V18.5 L10 20.5 V12.5 Z",
+        ["harddisk"] = "M3.5 13 L6 5 H18 L20.5 13 V18.5 A 1.5 1.5 0 0 1 19 20 H5 A 1.5 1.5 0 0 1 3.5 18.5 Z M3.5 13 H20.5 M16.5 16.5 H17",
+        ["insert"] = "M12 3.5 V14 M8 10 L12 14 L16 10 M5 12 V19 A 1.5 1.5 0 0 0 6.5 20.5 H17.5 A 1.5 1.5 0 0 0 19 19 V12",
+        ["options"] = "M4 7 H20 M4 12 H20 M4 17 H20 M15 5 V9 M8 10 V14 M16.5 15 V19",
+        ["play"] = "M21 12 A 9 9 0 1 1 3 12 A 9 9 0 1 1 21 12 Z M10 8.5 L15.5 12 L10 15.5 Z",
+        ["print"] = "M7 9 V3.5 H17 V9 M7 17.5 H4.5 V10.5 A 1.5 1.5 0 0 1 6 9 H18 A 1.5 1.5 0 0 1 19.5 10.5 V17.5 H17 M7 14 H17 V20.5 H7 Z",
+        ["random"] = "M3.5 7 H7 C 11 7 13 17 17 17 H20.5 M18 14.5 L20.5 17 L18 19.5 M3.5 17 H7 C 8.6 17 9.8 15.4 10.8 13.6 M13.2 10.4 C 14.2 8.6 15.4 7 17 7 H20.5 M18 4.5 L20.5 7 L18 9.5",
+        ["search"] = "M16.5 10.5 A 6 6 0 1 1 4.5 10.5 A 6 6 0 1 1 16.5 10.5 Z M15 15 L20 20",
+        ["sort"] = "M4 6 H20 M4 12 H15 M4 18 H10",
+        ["statistics"] = "M3.5 20.5 H20.5 M7 17 V12 M11 17 V6 M15 17 V9 M19 17 V13",
+        ["view"] = "M2.5 12 C 5 7.5 8.3 5.5 12 5.5 C 15.7 5.5 19 7.5 21.5 12 C 19 16.5 15.7 18.5 12 18.5 C 8.3 18.5 5 16.5 2.5 12 Z M15 12 A 3 3 0 1 1 9 12 A 3 3 0 1 1 15 12 Z",
+        ["palette"] = "M12 3.5 A 8.5 8.5 0 1 0 12 20.5 C 13.4 20.5 13.8 19.4 13.2 18.4 C 12.5 17.2 13.2 15.8 14.6 15.8 H16.8 A 3.7 3.7 0 0 0 20.5 12.1 C 20.5 7.4 16.7 3.5 12 3.5 Z M8 11 H8.5 M10.5 7.5 H11 M15 8 H15.5",
+        ["backup"] = "M5 6 C 5 3.8 19 3.8 19 6 C 19 8.2 5 8.2 5 6 Z M5 6 V12.5 M19 6 V10 M5 12 C 5 13.6 9 14.3 12 14.2 M16.5 21 A 4.5 4.5 0 1 1 21 16.5 M21 13 V16.5 H17.5",
+        ["columns"] = "M3.5 4.5 H20.5 V19.5 H3.5 Z M9.5 4.5 V19.5 M15 4.5 V19.5",
         ["film"] = "M4 3.5 H20 V20.5 H4 Z M8 3.5 V20.5 M16 3.5 V20.5 M4 8 H8 M4 12 H8 M4 16 H8 M16 8 H20 M16 12 H20 M16 16 H20",
         ["help"] = "M21 12 A 9 9 0 1 1 3 12 A 9 9 0 1 1 21 12 Z M9.5 9.5 A 2.5 2.5 0 1 1 13 11.8 C 12.3 12.2 12 12.7 12 13.5 V14 M12 17 V17.5",
         ["moon"] = "M19.5 14.5 A 8 8 0 1 1 9.5 4.5 A 6.5 6.5 0 0 0 19.5 14.5 Z",
@@ -63,10 +91,14 @@ public sealed class Icon : Control
 
     private static readonly ConcurrentDictionary<string, Bitmap?> Bitmaps = new(StringComparer.Ordinal);
     private static readonly ConcurrentDictionary<string, Geometry> Geometries = new(StringComparer.Ordinal);
+    private static readonly ConcurrentDictionary<string, Geometry?> Fills = new(StringComparer.Ordinal);
+
+    /// <summary>Jeu d'icônes choisi dans les réglages (Apparence) ; appliqué à toutes les icônes.</summary>
+    public static Services.IconSet Set { get; set; } = Services.IconSet.Fine;
 
     static Icon()
     {
-        AffectsRender<Icon>(KindProperty, ForegroundProperty);
+        AffectsRender<Icon>(KindProperty, ForegroundProperty, VariantProperty);
     }
 
     public Icon()
@@ -81,13 +113,22 @@ public sealed class Icon : Control
         set => SetValue(KindProperty, value);
     }
 
+    public Services.IconSet? Variant
+    {
+        get => GetValue(VariantProperty);
+        set => SetValue(VariantProperty, value);
+    }
+
     public IBrush? Foreground
     {
         get => GetValue(ForegroundProperty);
         set => SetValue(ForegroundProperty, value);
     }
 
-    public static IReadOnlyCollection<string> AllKinds => [.. BitmapKinds, .. PathKinds.Keys];
+    public static IReadOnlyCollection<string> AllKinds => [.. BitmapKinds.Union(PathKinds.Keys)];
+
+    /// <summary>Icônes qui ont un tracé (toutes, sauf erreur) : les jeux dessinés sont complets.</summary>
+    public static bool HasPath(string kind) => PathKinds.ContainsKey(kind);
 
     public override void Render(DrawingContext context)
     {
@@ -101,7 +142,8 @@ public sealed class Icon : Control
         }
 
         var box = new Rect((Bounds.Width - size) / 2, (Bounds.Height - size) / 2, size, size);
-        if (BitmapKinds.Contains(kind))
+        var set = Variant ?? Set;
+        if ((set == Services.IconSet.Classic || !PathKinds.ContainsKey(kind)) && BitmapKinds.Contains(kind))
         {
             var bitmap = Bitmaps.GetOrAdd(kind, Load);
             if (bitmap is not null)
@@ -120,11 +162,31 @@ public sealed class Icon : Control
         {
             var geometry = Geometries.GetOrAdd(kind, _ => Geometry.Parse(data));
             var scale = size / 24.0;
+            var thickness = set == Services.IconSet.Bold ? 2.3 : 1.6;
             using (context.PushTransform(Matrix.CreateScale(scale, scale) * Matrix.CreateTranslation(box.X, box.Y)))
             {
-                context.DrawGeometry(null, new Pen(brush, 1.6, lineCap: PenLineCap.Round, lineJoin: PenLineJoin.Round), geometry);
+                if (set == Services.IconSet.Duotone && Fills.GetOrAdd(kind, _ => ClosedShapes(data)) is { } fill)
+                {
+                    // Deux tons : les formes fermées sont teintées de la même couleur, en transparence.
+                    using (context.PushOpacity(0.22))
+                    {
+                        context.DrawGeometry(brush, null, fill);
+                    }
+                }
+
+                context.DrawGeometry(null, new Pen(brush, thickness, lineCap: PenLineCap.Round, lineJoin: PenLineJoin.Round), geometry);
             }
         }
+    }
+
+    /// <summary>Formes fermées d'un tracé (sous-chemins terminés par Z), pour le jeu deux tons.</summary>
+    internal static Geometry? ClosedShapes(string data)
+    {
+        var figures = data.Split('M', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(f => f.EndsWith('Z'))
+            .Select(f => "M" + f)
+            .ToList();
+        return figures.Count == 0 ? null : Geometry.Parse(string.Join(' ', figures));
     }
 
     private static Bitmap? Load(string kind)

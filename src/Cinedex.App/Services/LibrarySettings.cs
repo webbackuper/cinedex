@@ -211,3 +211,84 @@ public sealed record ScreenSaverSettings
             ? Math.Clamp(value, min, max)
             : fallback;
 }
+
+/// <summary>Colonnes (informations) affichables dans la vue liste de la fenêtre principale.</summary>
+public enum ListColumn
+{
+    Poster,
+    Year,
+    Kind,
+    Medium,
+    Runtime,
+    Genres,
+    Imdb,
+    UserRating,
+    Loan,
+    Favorite,
+    Seen,
+    Number,
+}
+
+/// <summary>Colonnes affichées dans la vue liste ; propre à chaque catalogue. Genres et note IMDb sont masqués par défaut.</summary>
+public sealed record ListColumns
+{
+    public const string HiddenKey = "ui.hiddenColumns";
+
+    public static IReadOnlySet<ListColumn> DefaultHidden { get; } = new HashSet<ListColumn> { ListColumn.Genres, ListColumn.Imdb };
+
+    public IReadOnlySet<ListColumn> Hidden { get; init; } = DefaultHidden;
+
+    public bool Shows(ListColumn column) => !Hidden.Contains(column);
+
+    public bool Poster => Shows(ListColumn.Poster);
+
+    public bool Imdb => Shows(ListColumn.Imdb);
+
+    public bool UserRating => Shows(ListColumn.UserRating);
+
+    public bool Loan => Shows(ListColumn.Loan);
+
+    public bool Favorite => Shows(ListColumn.Favorite);
+
+    public bool Seen => Shows(ListColumn.Seen);
+
+    public bool Number => Shows(ListColumn.Number);
+
+    /// <summary>Ligne secondaire d'un titre : année, série, support, durée et genres, selon les colonnes choisies.</summary>
+    public string Subtitle(Cinedex.Core.Titles.TitleSummary title)
+    {
+        ArgumentNullException.ThrowIfNull(title);
+        return string.Join(" · ", new[]
+        {
+            Shows(ListColumn.Year) ? title.Year?.ToString(System.Globalization.CultureInfo.CurrentCulture) : null,
+            Shows(ListColumn.Kind) && title.Kind == Cinedex.Core.Titles.TitleKind.Series ? Cinedex.Core.Localization.Tr.T("Série") : null,
+            Shows(ListColumn.Medium) ? title.Medium : null,
+            Shows(ListColumn.Runtime) ? Cinedex.Core.Titles.TitleText.FormatRuntime(title.RuntimeMinutes) : null,
+            Shows(ListColumn.Genres) && title.HasGenres ? title.GenresText : null,
+        }.Where(p => !string.IsNullOrEmpty(p)));
+    }
+
+    public static ListColumns Load(SettingsStore settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        var stored = settings.Get(HiddenKey);
+        if (stored is null)
+        {
+            return new ListColumns();
+        }
+
+        return new ListColumns
+        {
+            Hidden = stored.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(v => Enum.TryParse<ListColumn>(v, out var c) ? c : (ListColumn?)null)
+                .OfType<ListColumn>()
+                .ToHashSet(),
+        };
+    }
+
+    public void Save(SettingsStore settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        settings.Set(HiddenKey, string.Join(',', Hidden.Order()));
+    }
+}

@@ -326,26 +326,40 @@
                 <ToolTip.Tip>
                   <views:TitleToolTip DataContext="{Binding}" />
                 </ToolTip.Tip>
-                <Border Width="40" Height="60" CornerRadius="5" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
+                <Border Width="40" Height="60" CornerRadius="5" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}"
+                        IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Columns.Poster}">
                   <Panel>
                     <controls:Icon Kind="default" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" Opacity="0.6" />
                     <Image Source="{Binding PosterPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=80}" Stretch="UniformToFill" />
                   </Panel>
                 </Border>
-                <StackPanel Grid.Column="1" Margin="14,0" VerticalAlignment="Center" Spacing="3">
+                <StackPanel Grid.Column="1" Margin="14,0" VerticalAlignment="Center" Spacing="3" MinHeight="36">
                   <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource CinedexInk}" />
-                  <TextBlock Text="{Binding Subtitle}" Classes="muted" FontSize="12.5" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Text="{Binding DisplaySubtitle}" Classes="muted" FontSize="12.5" TextTrimming="CharacterEllipsis"
+                             IsVisible="{Binding DisplaySubtitle, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                  <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding IsLoaned}" ToolTip.Tip="Prêté">
-                    <controls:Icon Kind="loan" Width="16" Height="16" Foreground="{DynamicResource CinedexMuted}" />
-                    <TextBlock Text="{Binding Borrower}" Classes="muted" FontSize="12" MaxWidth="110" TextTrimming="CharacterEllipsis" />
+                  <StackPanel Orientation="Horizontal" Spacing="4" ToolTip.Tip="Prêté"
+                              IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Columns.Loan}">
+                    <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding IsLoaned}">
+                      <controls:Icon Kind="loan" Width="16" Height="16" Foreground="{DynamicResource CinedexMuted}" />
+                      <TextBlock Text="{Binding Borrower}" Classes="muted" FontSize="12" MaxWidth="110" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
                   </StackPanel>
-                  <TextBlock Text="{Binding UserRating, StringFormat='{}{0:0.#}'}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}"
-                             IsVisible="{Binding UserRating, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Ma note" />
-                  <controls:Icon Kind="heart" Width="16" Height="16" Foreground="{DynamicResource CinedexAccent}" IsVisible="{Binding IsFavorite}" ToolTip.Tip="Favori" />
-                  <controls:Icon Kind="check" Width="16" Height="16" Foreground="{DynamicResource CinedexMuted}" IsVisible="{Binding IsSeen}" ToolTip.Tip="Vu" />
-                  <TextBlock Text="{Binding Number, StringFormat='n° {0}'}" Classes="muted" FontSize="11" MinWidth="40" TextAlignment="Right" />
+                  <TextBlock Text="{Binding ImdbText}" Classes="muted" FontSize="12" ToolTip.Tip="Note IMDb"
+                             IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Columns.Imdb}" />
+                  <Panel IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Columns.UserRating}">
+                    <TextBlock Text="{Binding UserRating, StringFormat='{}{0:0.#}'}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}"
+                               IsVisible="{Binding UserRating, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Ma note" />
+                  </Panel>
+                  <Panel IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Columns.Favorite}">
+                    <controls:Icon Kind="heart" Width="16" Height="16" Foreground="{DynamicResource CinedexAccent}" IsVisible="{Binding IsFavorite}" ToolTip.Tip="Favori" />
+                  </Panel>
+                  <Panel IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Columns.Seen}">
+                    <controls:Icon Kind="check" Width="16" Height="16" Foreground="{DynamicResource CinedexMuted}" IsVisible="{Binding IsSeen}" ToolTip.Tip="Vu" />
+                  </Panel>
+                  <TextBlock Text="{Binding Number, StringFormat='n° {0}'}" Classes="muted" FontSize="11" MinWidth="40" TextAlignment="Right"
+                             IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Columns.Number}" />
                 </StackPanel>
               </Grid>
             </DataTemplate>

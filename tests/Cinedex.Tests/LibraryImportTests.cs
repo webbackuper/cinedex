@@ -31,7 +31,11 @@ public sealed class LibraryImportTests
 
         Assert.Equal(1, result.WithoutMetadata);
         Assert.Equal(1, result.Episodes);
-        Assert.Contains(result.Messages, m => m.Contains("ffprobe", StringComparison.Ordinal));
+        // Sans outil d'analyse sur le poste, l'import le signale. (Les machines Linux de la CI ont ffprobe dans le PATH.)
+        if (!new MediaProbe(Path.Combine(temp.Path, "absent.exe")).IsAvailable)
+        {
+            Assert.Contains(result.Messages, m => m.Contains("ffprobe", StringComparison.Ordinal));
+        }
         var heat = Assert.Single(titles.ListAll());
         Assert.Equal(("Heat", 1995), (heat.Title, heat.Year));
         Assert.NotNull(images.PathFor(heat.Id, "poster"));

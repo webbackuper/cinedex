@@ -16,10 +16,10 @@
   </Window.Styles>
 
   <DockPanel Margin="{StaticResource WindowPadding}">
-    <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,12,0,0">
+    <StackPanel DockPanel.Dock="Bottom" Spacing="{StaticResource Space2}" Margin="{StaticResource Above3}">
       <TextBlock Text="{Binding LastError}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" TextWrapping="Wrap"
                  IsVisible="{Binding LastError, Converter={x:Static ObjectConverters.IsNotNull}}" />
-      <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}" HorizontalAlignment="Right">
         <Button Classes="tool" Content="Annuler" IsCancel="True" Click="OnCancel" />
         <Button Classes="primary" Content="Enregistrer" IsDefault="True" Click="OnSave" />
       </StackPanel>
@@ -28,11 +28,11 @@
     <TabControl>
       <TabItem Header="Fiche">
         <ScrollViewer>
-          <Grid ColumnDefinitions="*,Auto" Margin="0,8">
+          <Grid ColumnDefinitions="*,Auto" Margin="{StaticResource Block2}">
             <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
               <Grid.Styles>
                 <Style Selector="Grid > :is(Control)">
-                  <Setter Property="Margin" Value="0,4" />
+                  <Setter Property="Margin" Value="{StaticResource Block1}" />
                 </Style>
               </Grid.Styles>
               <TextBlock Classes="label" Grid.Row="0" Text="Type" />
@@ -46,7 +46,7 @@
               <TextBlock Classes="label" Grid.Row="4" Text="Année" />
               <TextBox Grid.Row="4" Grid.Column="1" Width="100" HorizontalAlignment="Left" Text="{Binding Year}" />
               <TextBlock Classes="label" Grid.Row="5" Text="Durée (minutes)" />
-              <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" Spacing="10">
+              <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" Spacing="{StaticResource Space3}">
                 <TextBox Width="100" Text="{Binding Runtime}" />
                 <TextBlock Text="{Binding RuntimeText}" VerticalAlignment="Center" FontWeight="SemiBold" />
               </StackPanel>
@@ -63,7 +63,7 @@
               <TextBlock Classes="label" Grid.Row="11" Text="Studio" />
               <TextBox Grid.Row="11" Grid.Column="1" Text="{Binding Studio}" />
               <TextBlock Classes="label" Grid.Row="12" Text="Identifiant IMDb" />
-              <StackPanel Grid.Row="12" Grid.Column="1" Orientation="Horizontal" Spacing="10">
+              <StackPanel Grid.Row="12" Grid.Column="1" Orientation="Horizontal" Spacing="{StaticResource Space3}">
                 <TextBox Width="160" Text="{Binding ImdbId}" PlaceholderText="tt1234567" />
                 <TextBlock Text="{Binding SourceText}" VerticalAlignment="Center" Opacity="0.7" />
               </StackPanel>
@@ -72,7 +72,7 @@
               <TextBlock Classes="label" Grid.Row="14" Text="Bande-annonce" />
               <TextBox Grid.Row="14" Grid.Column="1" Text="{Binding TrailerUrl}" PlaceholderText="https://" />
             </Grid>
-            <Border Grid.Column="1" Width="150" Height="225" Margin="16,4,0,0" VerticalAlignment="Top" CornerRadius="{StaticResource RadiusCard}" ClipToBounds="True"
+            <Border Grid.Column="1" Width="150" Height="225" Margin="{StaticResource Edges4_1_0_0}" VerticalAlignment="Top" CornerRadius="{StaticResource RadiusCard}" ClipToBounds="True"
                     Background="{DynamicResource CinedexSurfaceAlt}"
                     IsVisible="{Binding PosterPath, Converter={x:Static ObjectConverters.IsNotNull}}">
               <Image Source="{Binding PosterPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=300}" Stretch="UniformToFill" />
@@ -83,10 +83,10 @@
 
       <TabItem Header="Notes">
         <ScrollViewer>
-          <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" Margin="0,8">
+          <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" Margin="{StaticResource Block2}">
             <Grid.Styles>
               <Style Selector="Grid > :is(Control)">
-                <Setter Property="Margin" Value="0,4" />
+                <Setter Property="Margin" Value="{StaticResource Block1}" />
               </Style>
             </Grid.Styles>
             <TextBlock Classes="label" Grid.Row="0" Text="Ma note (0 à 10)" />
@@ -101,7 +101,7 @@
             <TextBox Grid.Row="4" Grid.Column="1" Width="100" HorizontalAlignment="Left" Text="{Binding Tomatometer}" />
             <TextBlock Classes="label" Grid.Row="5" Text="Metascore (0 à 100)" />
             <TextBox Grid.Row="5" Grid.Column="1" Width="100" HorizontalAlignment="Left" Text="{Binding Metascore}" />
-            <TextBlock Grid.Row="6" Grid.ColumnSpan="2" Margin="0,12,0,0" Opacity="0.7" TextWrapping="Wrap"
+            <TextBlock Grid.Row="6" Grid.ColumnSpan="2" Margin="{StaticResource Above3}" Opacity="0.7" TextWrapping="Wrap"
                        Text="Les notes TMDb, IMDb, Rotten Tomatoes et Metacritic sont remplacées à la prochaine mise à jour depuis Internet, sauf si la fiche est verrouillée." />
           </Grid>
         </ScrollViewer>
@@ -109,44 +109,44 @@
 
       <TabItem Header="Distribution">
         <ScrollViewer>
-          <StackPanel Spacing="12" Margin="0,8">
+          <StackPanel Spacing="{StaticResource Space3}" Margin="{StaticResource Block2}">
             <TextBlock Text="Aucun acteur enregistré : lancez une mise à jour depuis TMDb pour récupérer la distribution." Opacity="0.7" TextWrapping="Wrap"
                        IsVisible="{Binding !HasCast}" />
             <TextBlock Text="Réalisation" FontWeight="SemiBold" IsVisible="{Binding HasDirectors}" />
             <ItemsControl ItemsSource="{Binding Directors}" IsVisible="{Binding HasDirectors}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="people:CastMember">
-                  <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="4,3" Margin="0,1"
+                  <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="{StaticResource Inset1}" Margin="{StaticResource Block1}"
                           Click="OnOpenPerson" Cursor="Hand" ToolTip.Tip="{Binding Name, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='Fiche de {0}'}">
                     <Grid ColumnDefinitions="40,*,*">
                       <Border Width="32" Height="40" CornerRadius="{StaticResource RadiusChip}" ClipToBounds="True" Background="{DynamicResource CinedexSurfaceAlt}">
                         <Image Source="{Binding PhotoPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=64}" Stretch="UniformToFill" />
                       </Border>
-                      <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="8,0" />
+                      <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="{StaticResource Inline2}" />
                       <TextBlock Grid.Column="2" Text="{Binding Character}" Opacity="0.75" VerticalAlignment="Center" TextWrapping="Wrap" />
                     </Grid>
                   </Button>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
-            <TextBlock Text="Acteurs" FontWeight="SemiBold" Margin="0,6,0,0" IsVisible="{Binding HasCast}" />
+            <TextBlock Text="Acteurs" FontWeight="SemiBold" Margin="{StaticResource Above2}" IsVisible="{Binding HasCast}" />
             <ItemsControl ItemsSource="{Binding Cast}" IsVisible="{Binding HasCast}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="people:CastMember">
-                  <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="4,3" Margin="0,1"
+                  <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="{StaticResource Inset1}" Margin="{StaticResource Block1}"
                           Click="OnOpenPerson" Cursor="Hand" ToolTip.Tip="{Binding Name, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='Fiche de {0}'}">
                     <Grid ColumnDefinitions="40,*,*">
                       <Border Width="32" Height="40" CornerRadius="{StaticResource RadiusChip}" ClipToBounds="True" Background="{DynamicResource CinedexSurfaceAlt}">
                         <Image Source="{Binding PhotoPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=64}" Stretch="UniformToFill" />
                       </Border>
-                      <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="8,0" />
+                      <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="{StaticResource Inline2}" />
                       <TextBlock Grid.Column="2" Text="{Binding Character}" Opacity="0.75" VerticalAlignment="Center" TextWrapping="Wrap" />
                     </Grid>
                   </Button>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
-            <TextBlock Text="Équipe" FontWeight="SemiBold" Margin="0,8,0,0"
+            <TextBlock Text="Équipe" FontWeight="SemiBold" Margin="{StaticResource Above2}"
                        IsVisible="{Binding CrewText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
             <SelectableTextBlock Text="{Binding CrewText}" TextWrapping="Wrap" LineHeight="20"
                                  IsVisible="{Binding CrewText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
@@ -155,8 +155,8 @@
       </TabItem>
 
       <TabItem Header="Fichier">
-        <DockPanel Margin="0,8">
-          <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="0,0,0,10">
+        <DockPanel Margin="{StaticResource Block2}">
+          <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="{StaticResource Space3}" Margin="{StaticResource Below3}">
             <Button Classes="tool" Content="Relire les infos techniques (MediaInfo)" Command="{Binding RefreshMediaCommand}"
                     IsVisible="{Binding CanRefreshMedia}" IsEnabled="{Binding !IsRefreshingMedia}" />
             <Button Classes="tool" Content="Ajouter une partie (CD2, part2…)" Click="OnAddPart"
@@ -165,16 +165,16 @@
             <TextBlock Text="Lecture en cours…" VerticalAlignment="Center" Opacity="0.7" IsVisible="{Binding IsRefreshingMedia}" />
           </StackPanel>
           <ScrollViewer>
-            <StackPanel Spacing="12">
-              <Border Padding="12,10" CornerRadius="{StaticResource RadiusCard}" Background="{DynamicResource CinedexSurfaceAlt}" IsVisible="{Binding HasFiles}">
-                <StackPanel Spacing="6">
+            <StackPanel Spacing="{StaticResource Space3}">
+              <Border Padding="{StaticResource Inset3}" CornerRadius="{StaticResource RadiusCard}" Background="{DynamicResource CinedexSurfaceAlt}" IsVisible="{Binding HasFiles}">
+                <StackPanel Spacing="{StaticResource Space2}">
                   <TextBlock Text="MediaID : nom du disque où se trouve le fichier" FontWeight="SemiBold" />
                   <ItemsControl ItemsSource="{Binding Files}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate x:DataType="vm:FileVolumeRow">
-                        <Grid ColumnDefinitions="200,*" Margin="0,3">
+                        <Grid ColumnDefinitions="200,*" Margin="{StaticResource Block1}">
                           <TextBox Text="{Binding MediaId}" PlaceholderText="Nom du disque" ToolTip.Tip="Rempli au scan avec le nom du disque (Propriétés dans Windows)" />
-                          <TextBlock Grid.Column="1" Margin="10,0,0,0" Text="{Binding Header}" VerticalAlignment="Center" TextWrapping="Wrap" Opacity="0.75" />
+                          <TextBlock Grid.Column="1" Margin="{StaticResource Before3}" Text="{Binding Header}" VerticalAlignment="Center" TextWrapping="Wrap" Opacity="0.75" />
                         </Grid>
                       </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -190,14 +190,14 @@
       <TabItem Header="Exemplaire">
         <ScrollViewer>
           <StackPanel>
-          <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" Margin="0,8">
+          <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" Margin="{StaticResource Block2}">
             <Grid.Styles>
               <Style Selector="Grid > :is(Control)">
-                <Setter Property="Margin" Value="0,4" />
+                <Setter Property="Margin" Value="{StaticResource Block1}" />
               </Style>
             </Grid.Styles>
             <TextBlock Classes="label" Grid.Row="0" Text="Numéro" />
-            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8">
+            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="{StaticResource Space2}">
               <TextBox Width="100" Text="{Binding Number}" />
               <TextBox Width="160" Text="{Binding CustomNumber}" PlaceholderText="Numéro personnalisé" />
             </StackPanel>
@@ -219,20 +219,20 @@
           </Grid>
 
           <!-- Prêt : enregistré aussitôt, indépendamment du bouton Enregistrer. -->
-          <Border Margin="0,8,0,8" Padding="14,12" CornerRadius="{StaticResource RadiusCard}" Background="{DynamicResource CinedexSurfaceAlt}"
+          <Border Margin="{StaticResource Block2}" Padding="{StaticResource Inset4x3}" CornerRadius="{StaticResource RadiusCard}" Background="{DynamicResource CinedexSurfaceAlt}"
                   IsVisible="{Binding $parent[Window].((vm:TitleEditorViewModel)DataContext).HasLoans}" DataContext="{Binding Loans}" x:DataType="vm:LoanEditorViewModel">
-            <StackPanel Spacing="10">
+            <StackPanel Spacing="{StaticResource Space3}">
               <TextBlock Text="Prêt" FontWeight="SemiBold" FontSize="{StaticResource FontBody}" />
               <TextBlock Text="{Binding StatusText}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}" />
 
-              <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding !IsLoaned}">
+              <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}" IsVisible="{Binding !IsLoaned}">
                 <AutoCompleteBox Width="240" Text="{Binding BorrowerText}" ItemsSource="{Binding Borrowers}"
                                  FilterMode="ContainsOrdinal" PlaceholderText="Emprunteur" />
                 <CalendarDatePicker SelectedDate="{Binding LoanDate}" Width="150" />
                 <Button Classes="outline" Content="Prêter" Command="{Binding LendCommand}" />
               </StackPanel>
 
-              <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsLoaned}">
+              <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}" IsVisible="{Binding IsLoaned}">
                 <TextBlock Text="Rendu le" VerticalAlignment="Center" />
                 <CalendarDatePicker SelectedDate="{Binding ReturnDate}" Width="150" />
                 <Button Classes="outline" Content="Marquer comme rendu" Command="{Binding ReturnCommand}" />
@@ -241,14 +241,14 @@
               <TextBlock Text="{Binding Error}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" TextWrapping="Wrap"
                          IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
-              <TextBlock Text="Historique" FontWeight="SemiBold" Margin="0,6,0,0" IsVisible="{Binding HasHistory}" />
+              <TextBlock Text="Historique" FontWeight="SemiBold" Margin="{StaticResource Above2}" IsVisible="{Binding HasHistory}" />
               <TextBlock Text="Aucun prêt enregistré pour ce titre." Opacity="0.7" IsVisible="{Binding !HasHistory}" />
               <ItemsControl ItemsSource="{Binding History}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:LoanLine">
-                    <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                    <Grid ColumnDefinitions="*,Auto" Margin="{StaticResource Block1}">
                       <TextBlock Text="{Binding Text}" VerticalAlignment="Center" TextWrapping="Wrap" />
-                      <Button Grid.Column="1" Classes="tool" Content="Effacer" Padding="8,2" ToolTip.Tip="Effacer cette ligne (saisie erronée)"
+                      <Button Grid.Column="1" Classes="tool" Content="Effacer" Padding="{StaticResource Inset2x1}" ToolTip.Tip="Effacer cette ligne (saisie erronée)"
                               Command="{Binding $parent[ItemsControl].((vm:LoanEditorViewModel)DataContext).DeleteCommand}" CommandParameter="{Binding}" />
                     </Grid>
                   </DataTemplate>
@@ -262,7 +262,7 @@
 
       <TabItem Header="Genres">
         <ScrollViewer>
-          <ItemsControl ItemsSource="{Binding Genres}" Margin="0,8">
+          <ItemsControl ItemsSource="{Binding Genres}" Margin="{StaticResource Block2}">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
                 <WrapPanel />
@@ -278,19 +278,19 @@
       </TabItem>
 
       <TabItem Header="Classement">
-        <StackPanel Spacing="8" Margin="0,8">
+        <StackPanel Spacing="{StaticResource Space2}" Margin="{StaticResource Block2}">
           <TextBlock Text="Collection (saga, coffret)" />
           <ComboBox MinWidth="320" ItemsSource="{Binding Collections}" SelectedItem="{Binding SelectedCollection}" />
-          <TextBlock Text="Tags, séparés par des virgules" Margin="0,8,0,0" />
+          <TextBlock Text="Tags, séparés par des virgules" Margin="{StaticResource Above2}" />
           <TextBox Text="{Binding TagsText}" PlaceholderText="culte, huis clos, à revoir" />
-          <TextBlock Text="Groupes personnels, séparés par des virgules" Margin="0,8,0,0" />
+          <TextBlock Text="Groupes personnels, séparés par des virgules" Margin="{StaticResource Above2}" />
           <TextBox Text="{Binding GroupsText}" PlaceholderText="Soirée famille, Noël" />
         </StackPanel>
       </TabItem>
 
       <TabItem Header="Statut">
-        <StackPanel Spacing="8" Margin="0,8">
-          <StackPanel Orientation="Horizontal" Spacing="12">
+        <StackPanel Spacing="{StaticResource Space2}" Margin="{StaticResource Block2}">
+          <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
             <CheckBox Content="Vu" IsChecked="{Binding IsSeen}" />
             <TextBlock Text="{Binding SeenText}" VerticalAlignment="Center" Opacity="0.7" />
           </StackPanel>
@@ -299,7 +299,7 @@
           <CheckBox Content="Liste courte" IsChecked="{Binding IsShortlisted}" />
           <CheckBox Content="Verrouillé : ne pas mettre à jour depuis Internet" IsChecked="{Binding IsLocked}" />
           <CheckBox Content="Contenu pour adultes" IsChecked="{Binding IsAdult}" />
-          <TextBlock Text="Commentaires" Margin="0,8,0,0" />
+          <TextBlock Text="Commentaires" Margin="{StaticResource Above2}" />
           <TextBox Text="{Binding Comments}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="140" />
         </StackPanel>
       </TabItem>

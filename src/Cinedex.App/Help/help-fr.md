@@ -201,6 +201,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.4
+- **Jetons de design** : toutes les marges, espacements, rayons, tailles de texte et couleurs d'exception viennent d'un seul dictionnaire, sur une grille de 4 px. Les espacements irréguliers sont alignés et les dernières ombres décoratives retirées. Un test vérifie à chaque compilation qu'aucune valeur en dur ne revient.
+
 ### 0.4.3
 - **Nouvelle direction visuelle** : sol de pierre neutre, encre presque noire et un seul accent rouge velours réservé aux données ; menu et listes sélectionnés en pilule grise ; un seul bouton principal par écran, presque noir ; pastilles pâles ; échelle de 5 tailles de texte et 3 rayons d'angle dans toute l'application. Les préréglages d'apparence deviennent « Pierre » (menus) et « Rouge velours » / « Ambre » (accent).
 

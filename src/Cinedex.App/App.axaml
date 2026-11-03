@@ -9,10 +9,14 @@
     neutre : menu sélectionné en pilule grise, bouton principal presque noir. Thème clair et sombre suivent le
     réglage du système ; l'accent et la couleur des menus se choisissent dans Réglages > Apparence.
 
-    Jetons partagés (Font*, Radius*, WindowPadding) : cinq tailles de texte, trois rayons, une marge de fenêtre.
+    Jetons partagés (tailles, rayons, espacements) : Styles/Tokens.axaml.
   -->
   <Application.Resources>
     <ResourceDictionary>
+      <!-- Tailles, rayons, espacements et couleurs d'exception : Styles/Tokens.axaml, seule source des valeurs. -->
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Cinedex/Styles/Tokens.axaml" />
+      </ResourceDictionary.MergedDictionaries>
       <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
           <SolidColorBrush x:Key="CinedexBackground" Color="#F7F7F5" />
@@ -53,18 +57,7 @@
       </ResourceDictionary.ThemeDictionaries>
       <!-- Police de l'interface (Réglages > Apparence) ; remplacée au lancement selon le choix enregistré. -->
       <FontFamily x:Key="CinedexFont">fonts:Inter#Inter</FontFamily>
-      <!-- Cinq tailles de texte, éloignées les unes des autres (rien sous 12). -->
-      <x:Double x:Key="FontSmall">12</x:Double>
-      <x:Double x:Key="FontBody">14</x:Double>
-      <x:Double x:Key="FontSection">16</x:Double>
-      <x:Double x:Key="FontTitle">20</x:Double>
-      <x:Double x:Key="FontPage">24</x:Double>
-      <!-- Trois rayons, serrés ; les photos de personnes restent rondes. -->
-      <CornerRadius x:Key="RadiusCard">8</CornerRadius>
-      <CornerRadius x:Key="RadiusControl">6</CornerRadius>
-      <CornerRadius x:Key="RadiusChip">4</CornerRadius>
-      <!-- Une seule marge intérieure pour toutes les fenêtres. -->
-      <Thickness x:Key="WindowPadding">24</Thickness>
+
     </ResourceDictionary>
   </Application.Resources>
 
@@ -111,7 +104,7 @@
     <Style Selector="Button.tool">
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderThickness" Value="0" />
-      <Setter Property="Padding" Value="8,6" />
+      <Setter Property="Padding" Value="{StaticResource Inset2}" />
       <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
       <Setter Property="Foreground" Value="{DynamicResource CinedexInk}" />
     </Style>
@@ -125,9 +118,9 @@
     <Style Selector="Button.outline">
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderBrush" Value="{DynamicResource CinedexBorder}" />
-      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderThickness" Value="{StaticResource Hairline}" />
       <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
-      <Setter Property="Padding" Value="12,6" />
+      <Setter Property="Padding" Value="{StaticResource Inset3x2}" />
       <Setter Property="Foreground" Value="{DynamicResource CinedexInk}" />
     </Style>
     <Style Selector="Button.outline:pointerover /template/ ContentPresenter">
@@ -138,7 +131,7 @@
       <Setter Property="Background" Value="{DynamicResource CinedexPrimary}" />
       <Setter Property="Foreground" Value="{DynamicResource CinedexOnPrimary}" />
       <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
-      <Setter Property="Padding" Value="12,6" />
+      <Setter Property="Padding" Value="{StaticResource Inset3x2}" />
     </Style>
     <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource CinedexPrimary}" />
@@ -151,7 +144,7 @@
     <Style Selector="ToggleButton.tool">
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderThickness" Value="0" />
-      <Setter Property="Padding" Value="8,6" />
+      <Setter Property="Padding" Value="{StaticResource Inset2}" />
       <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
     </Style>
     <!-- Bascule active (liste / affiches) : la même pilule grise que le menu, sans couleur d'accent. -->
@@ -168,20 +161,20 @@
     <Style Selector="TextBlock.section">
       <Setter Property="Foreground" Value="{DynamicResource CinedexMuted}" />
       <Setter Property="FontSize" Value="{StaticResource FontSmall}" />
-      <Setter Property="Margin" Value="18,20,0,6" />
+      <Setter Property="Margin" Value="{StaticResource Edges4_6_0_2}" />
     </Style>
     <Style Selector="Border.card">
       <Setter Property="Background" Value="{DynamicResource CinedexSurface}" />
       <Setter Property="BorderBrush" Value="{DynamicResource CinedexBorder}" />
-      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderThickness" Value="{StaticResource Hairline}" />
       <Setter Property="CornerRadius" Value="{StaticResource RadiusCard}" />
     </Style>
     <!-- Pastille (genre, tag, statut) : fond pâle neutre, encre ; jamais d'accent saturé. -->
     <Style Selector="Border.chip">
       <Setter Property="Background" Value="{DynamicResource CinedexActive}" />
       <Setter Property="CornerRadius" Value="{StaticResource RadiusChip}" />
-      <Setter Property="Padding" Value="6,2" />
-      <Setter Property="Margin" Value="0,0,6,6" />
+      <Setter Property="Padding" Value="{StaticResource Inset2x1}" />
+      <Setter Property="Margin" Value="{StaticResource Trail2}" />
     </Style>
     <Style Selector="Border.chip > TextBlock">
       <Setter Property="FontSize" Value="{StaticResource FontSmall}" />

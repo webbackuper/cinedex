@@ -21,14 +21,14 @@
               <BlurEffect Radius="40" />
             </Image.Effect>
           </Image>
-          <Grid RowDefinitions="*,Auto" Margin="60,50">
-            <Border HorizontalAlignment="Center" VerticalAlignment="Center" CornerRadius="10" ClipToBounds="True" BoxShadow="0 12 48 0 #A0000000">
+          <Grid RowDefinitions="*,Auto" Margin="{StaticResource ScreenSaverInset}">
+            <Border HorizontalAlignment="Center" VerticalAlignment="Center" CornerRadius="{StaticResource RadiusCard}" ClipToBounds="True" BoxShadow="0 12 48 0 #A0000000">
               <Image Source="{Binding PosterPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=900}" Stretch="Uniform" />
             </Border>
-            <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,22,0,0" Spacing="4"
+            <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="{StaticResource Above6}" Spacing="{StaticResource Space1}"
                         IsVisible="{Binding $parent[Window].((vm:ScreenSaverViewModel)DataContext).ShowTitles}">
-              <TextBlock Text="{Binding Title}" FontSize="30" FontWeight="SemiBold" Foreground="White" TextAlignment="Center" TextWrapping="Wrap" />
-              <TextBlock Text="{Binding YearText}" FontSize="18" Foreground="#B0FFFFFF" TextAlignment="Center" />
+              <TextBlock Text="{Binding Title}" FontSize="{StaticResource FontDisplay}" FontWeight="SemiBold" Foreground="White" TextAlignment="Center" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding YearText}" FontSize="{StaticResource FontDisplaySubtitle}" Foreground="{StaticResource OnImageSubtleBrush}" TextAlignment="Center" />
             </StackPanel>
           </Grid>
         </Panel>

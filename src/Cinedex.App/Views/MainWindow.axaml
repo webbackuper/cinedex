@@ -39,9 +39,9 @@
       <Setter Property="BorderThickness" Value="0" />
     </Style>
     <Style Selector="ListBox.nav ListBoxItem">
-      <Setter Property="Padding" Value="10,0" />
+      <Setter Property="Padding" Value="{StaticResource Inline3}" />
       <Setter Property="MinHeight" Value="34" />
-      <Setter Property="Margin" Value="8,0" />
+      <Setter Property="Margin" Value="{StaticResource Inline2}" />
       <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
     </Style>
     <Style Selector="ListBox.nav ListBoxItem:selected /template/ ContentPresenter">
@@ -54,8 +54,8 @@
     </Style>
     <Style Selector="ListBox.titles ListBoxItem">
       <Setter Property="CornerRadius" Value="{StaticResource RadiusCard}" />
-      <Setter Property="Margin" Value="0,1" />
-      <Setter Property="Padding" Value="10,6" />
+      <Setter Property="Margin" Value="{StaticResource Block1}" />
+      <Setter Property="Padding" Value="{StaticResource Inset3x2}" />
     </Style>
     <Style Selector="ListBox.titles ListBoxItem:selected /template/ ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource CinedexActive}" />
@@ -63,10 +63,10 @@
     <Style Selector="Border.rating">
       <Setter Property="Background" Value="{DynamicResource CinedexSurfaceAlt}" />
       <Setter Property="BorderBrush" Value="{DynamicResource CinedexBorder}" />
-      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderThickness" Value="{StaticResource Hairline}" />
       <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
-      <Setter Property="Padding" Value="8,4" />
-      <Setter Property="Margin" Value="0,0,8,8" />
+      <Setter Property="Padding" Value="{StaticResource Inset2x1}" />
+      <Setter Property="Margin" Value="{StaticResource Trail2}" />
     </Style>
     <Style Selector="controls|PosterCard.poster:pointerover">
       <Setter Property="Background" Value="{DynamicResource CinedexHover}" />
@@ -78,15 +78,15 @@
 
   <Grid ColumnDefinitions="232,*,372">
     <!-- ======================= Barre latérale ======================= -->
-    <Border Grid.Column="0" Background="{DynamicResource CinedexSidebar}" BorderBrush="{DynamicResource CinedexBorder}" BorderThickness="0,0,1,0">
+    <Border Grid.Column="0" Background="{DynamicResource CinedexSidebar}" BorderBrush="{DynamicResource CinedexBorder}" BorderThickness="{StaticResource HairlineEnd}">
       <DockPanel>
-        <StackPanel DockPanel.Dock="Top" Margin="20,22,16,8" Spacing="2">
-          <StackPanel Orientation="Horizontal" Spacing="10">
+        <StackPanel DockPanel.Dock="Top" Margin="{StaticResource Edges6_6_4_2}" Spacing="{StaticResource Space1}">
+          <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
             <Image Source="/Assets/cinedex.png" Width="30" Height="30" RenderOptions.BitmapInterpolationMode="HighQuality" />
             <TextBlock Text="Cinedex" FontSize="{StaticResource FontTitle}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
           </StackPanel>
           <Button Classes="tool" Margin="-8,8,0,0" Command="{Binding ManageCatalogsCommand}" ToolTip.Tip="Ouvrir, créer, renommer ou retirer un catalogue">
-            <StackPanel Orientation="Horizontal" Spacing="8">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
               <controls:Icon Kind="database" Width="18" Height="18" />
               <TextBlock Text="{Binding CatalogName}" FontSize="{StaticResource FontSmall}" />
               <controls:Icon Kind="chevron-down" Width="14" Height="14" />
@@ -94,57 +94,57 @@
           </Button>
         </StackPanel>
 
-        <StackPanel DockPanel.Dock="Bottom" Margin="8,8,8,14" Spacing="2">
+        <StackPanel DockPanel.Dock="Bottom" Margin="{StaticResource Edges2_2_2_4}" Spacing="{StaticResource Space1}">
           <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenReviewCommand}"
                   IsVisible="{Binding HasReviews}" ToolTip.Tip="Titres pour lesquels plusieurs fiches TMDb sont possibles : choisissez la bonne">
-            <StackPanel Orientation="Horizontal" Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
               <controls:Icon Kind="alert" Width="18" Height="18" Foreground="{DynamicResource CinedexAccent}" />
               <TextBlock Text="{Binding ReviewLabel}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}" />
             </StackPanel>
           </Button>
           <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding AdvancedSearchCommand}" IsVisible="{Binding ShowRuleSearch}"
                   ToolTip.Tip="Chercher sur tous les champs : genre, notes, année, acteurs, MediaID… (Ctrl+Maj+F)">
-            <StackPanel Orientation="Horizontal" Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
               <controls:Icon Kind="funnel" Width="18" Height="18" />
               <TextBlock Text="Recherche multicritère" />
             </StackPanel>
           </Button>
           <Button Classes="primary" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding InstallUpdateCommand}" IsVisible="{Binding HasUpdate}"
                   ToolTip.Tip="Télécharge la nouvelle version et redémarre Cinedex dessus">
-            <StackPanel Orientation="Horizontal" Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
               <controls:Icon Kind="cloud" Width="18" Height="18" />
               <TextBlock Text="{Binding UpdateLabel}" TextWrapping="Wrap" />
             </StackPanel>
           </Button>
           <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenPeopleCommand}" IsVisible="{Binding ShowPeopleLink}">
-            <StackPanel Orientation="Horizontal" Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
               <controls:Icon Kind="about" Width="18" Height="18" />
               <TextBlock Text="Acteurs" />
             </StackPanel>
           </Button>
           <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenDirectorsCommand}" IsVisible="{Binding ShowDirectorsLink}"
                   ToolTip.Tip="Réalisateurs du catalogue : fiche, biographie et films réalisés">
-            <StackPanel Orientation="Horizontal" Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
               <controls:Icon Kind="clapper" Width="18" Height="18" />
               <TextBlock Text="Réalisateurs" />
             </StackPanel>
           </Button>
           <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenSeriesTrackingCommand}" IsVisible="{Binding HasSeries}"
                   ToolTip.Tip="Épisodes à regarder et prochaines diffusions de vos séries">
-            <StackPanel Orientation="Horizontal" Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
               <controls:Icon Kind="tv" Width="18" Height="18" />
               <TextBlock Text="{Binding SeriesTrackingLabel}" />
             </StackPanel>
           </Button>
           <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenCollectionsCommand}" IsVisible="{Binding ShowCollections}"
                   ToolTip.Tip="Sagas et coffrets : films possédés, films manquants, décors TMDb">
-            <StackPanel Orientation="Horizontal" Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
               <controls:Icon Kind="collection" Width="18" Height="18" />
               <TextBlock Text="Collections" />
             </StackPanel>
           </Button>
           <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" ToolTip.Tip="Mode clair, sombre ou comme le système">
-            <StackPanel Orientation="Horizontal" Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
               <controls:Icon Kind="moon" Width="18" Height="18" />
               <TextBlock Text="Apparence" />
             </StackPanel>
@@ -160,18 +160,18 @@
             </Button.Flyout>
           </Button>
           <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenSettingsCommand}">
-            <StackPanel Orientation="Horizontal" Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
               <controls:Icon Kind="options" Width="18" Height="18" />
               <TextBlock Text="Réglages" />
             </StackPanel>
           </Button>
           <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenHelpCommand}" ToolTip.Tip="Aide de Cinedex (F1)">
-            <StackPanel Orientation="Horizontal" Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
               <controls:Icon Kind="help" Width="18" Height="18" />
               <TextBlock Text="Aide" />
             </StackPanel>
           </Button>
-          <TextBlock Classes="muted" FontSize="{StaticResource FontSmall}" Margin="10,6,8,0" TextWrapping="Wrap" Text="{Binding DataLocation}" />
+          <TextBlock Classes="muted" FontSize="{StaticResource FontSmall}" Margin="{StaticResource Edges3_2_2_0}" TextWrapping="Wrap" Text="{Binding DataLocation}" />
         </StackPanel>
 
         <ScrollViewer>
@@ -180,7 +180,7 @@
             <ListBox Classes="nav" ItemsSource="{Binding Filters}" SelectedItem="{Binding SelectedMainFilter}">
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:FilterItem">
-                  <StackPanel Orientation="Horizontal" Spacing="10">
+                  <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
                     <controls:Icon Kind="{Binding Value, Converter={x:Static views:FilterIconConverter.Instance}}" Width="18" Height="18"
                                    Foreground="{DynamicResource CinedexMuted}" />
                     <TextBlock Text="{Binding Label}" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
@@ -190,20 +190,20 @@
             </ListBox>
 
             <!-- Sous-menu Définition : se déplie au clic, et reste ouvert tant qu'une de ses vues est choisie. -->
-            <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Margin="8,2,8,0"
+            <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Margin="{StaticResource Edges2_1_2_0}"
                     Command="{Binding ToggleDefinitionsCommand}" IsVisible="{Binding HasDefinitionFilters}" ToolTip.Tip="Classer par définition de l'image">
               <Grid ColumnDefinitions="Auto,*,Auto">
                 <controls:Icon Kind="view" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" />
-                <TextBlock Grid.Column="1" Margin="10,0,0,0" Text="Définition" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Margin="{StaticResource Before3}" Text="Définition" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
                 <controls:Icon Grid.Column="2" Kind="chevron-down" Width="14" Height="14" Foreground="{DynamicResource CinedexMuted}"
                                RenderTransformOrigin="50%,50%" RenderTransform="{Binding IsDefinitionExpanded, Converter={x:Static views:ExpandArrowConverter.Instance}}" />
               </Grid>
             </Button>
-            <ListBox Classes="nav" Margin="20,0,0,0" ItemsSource="{Binding DefinitionFilters}" SelectedItem="{Binding SelectedDefinitionFilter}"
+            <ListBox Classes="nav" Margin="{StaticResource Before6}" ItemsSource="{Binding DefinitionFilters}" SelectedItem="{Binding SelectedDefinitionFilter}"
                      IsVisible="{Binding IsDefinitionExpanded}">
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:FilterItem">
-                  <StackPanel Orientation="Horizontal" Spacing="10">
+                  <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
                     <controls:Icon Kind="{Binding Value, Converter={x:Static views:FilterIconConverter.Instance}}" Width="18" Height="18"
                                    Foreground="{DynamicResource CinedexMuted}" />
                     <TextBlock Text="{Binding Label}" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
@@ -217,10 +217,10 @@
     </Border>
 
     <!-- ======================= Zone centrale ======================= -->
-    <DockPanel Grid.Column="1" Margin="20,16,12,0">
+    <DockPanel Grid.Column="1" Margin="{StaticResource Edges6_4_3_0}">
       <!-- Barre d'outils -->
-      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
-        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6" Margin="12,0,0,0">
+      <DockPanel DockPanel.Dock="Top" Margin="{StaticResource Below3}">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="{StaticResource Space2}" Margin="{StaticResource Before3}">
           <Button Classes="tool" Command="{Binding PickRandomCommand}" ToolTip.Tip="Un titre non vu au hasard (Ctrl+R)">
             <controls:Icon Kind="random" />
           </Button>
@@ -251,29 +251,29 @@
             </Button.Flyout>
           </Button>
           <Button Classes="tool" Command="{Binding ImportFolderCommand}" ToolTip.Tip="Ajouter depuis le disque : analyse un dossier de vidéos (Ctrl+H)">
-            <StackPanel Orientation="Horizontal" Spacing="8">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
               <controls:Icon Kind="folder-plus" />
               <TextBlock Text="Scanner" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
           <Button x:Name="AddButton" Classes="primary" ToolTip.Tip="Ajouter un titre (Alt+A)">
-            <StackPanel Orientation="Horizontal" Spacing="8">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
               <controls:Icon Kind="add" Width="18" Height="18" />
               <TextBlock Text="Ajouter" VerticalAlignment="Center" />
             </StackPanel>
             <Button.Flyout>
               <Flyout Placement="BottomEdgeAlignedRight">
-                <StackPanel Width="340" Spacing="10" Margin="4">
+                <StackPanel Width="340" Spacing="{StaticResource Space3}" Margin="{StaticResource Inset1}">
                   <TextBlock Text="Ajouter un titre" FontWeight="SemiBold" />
                   <TextBox x:Name="NewTitleBox" Text="{Binding NewTitleText}" PlaceholderText="Titre, ex. Heat (1995), ou tt0113277">
                     <TextBox.KeyBindings>
                       <KeyBinding Gesture="Enter" Command="{Binding AddFromTmdbCommand}" />
                     </TextBox.KeyBindings>
                   </TextBox>
-                  <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                  <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}" HorizontalAlignment="Right">
                     <Button Classes="tool" Command="{Binding AddCommand}" Content="À la main" />
                     <Button Classes="primary" Command="{Binding AddFromTmdbCommand}">
-                      <StackPanel Orientation="Horizontal" Spacing="6">
+                      <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
                         <controls:Icon Kind="cloud" Width="16" Height="16" />
                         <TextBlock Text="Chercher sur TMDb" />
                       </StackPanel>
@@ -285,7 +285,7 @@
           </Button>
         </StackPanel>
         <DockPanel>
-          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
+          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="{StaticResource Space2}">
             <Button Classes="tool" Command="{Binding AdvancedSearchCommand}" ToolTip.Tip="Recherche multicritère (Ctrl+Maj+F)">
               <controls:Icon Kind="funnel" />
             </Button>
@@ -294,11 +294,11 @@
               <controls:Icon Kind="close" />
             </Button>
           </StackPanel>
-          <Border Classes="card" CornerRadius="{StaticResource RadiusCard}" MinWidth="150" Padding="10,0" Margin="0,0,6,0">
+          <Border Classes="card" CornerRadius="{StaticResource RadiusCard}" MinWidth="150" Padding="{StaticResource Inline3}" Margin="{StaticResource After2}">
             <DockPanel>
               <controls:Icon DockPanel.Dock="Left" Kind="search" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" />
               <TextBox x:Name="SearchBox" Text="{Binding SearchText}" PlaceholderText="Rechercher… (Ctrl+F)"
-                       BorderThickness="0" Background="Transparent" Margin="4,0,0,0" />
+                       BorderThickness="0" Background="Transparent" Margin="{StaticResource Before1}" />
             </DockPanel>
           </Border>
         </DockPanel>
@@ -306,14 +306,14 @@
       </DockPanel>
 
       <!-- Sous-barre : nombre de titres, tri, vue -->
-      <DockPanel DockPanel.Dock="Top" Margin="2,0,0,8">
-        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="4">
-          <TextBlock Classes="muted" Text="Trier par" VerticalAlignment="Center" Margin="0,0,4,0" FontSize="{StaticResource FontSmall}" />
-        <ComboBox Width="170" MinHeight="30" Padding="10,4" VerticalAlignment="Center" ItemsSource="{Binding Sorts}" SelectedItem="{Binding SelectedSort}" ToolTip.Tip="Trier par" />
+      <DockPanel DockPanel.Dock="Top" Margin="{StaticResource Edges1_0_0_2}">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="{StaticResource Space1}">
+          <TextBlock Classes="muted" Text="Trier par" VerticalAlignment="Center" Margin="{StaticResource After1}" FontSize="{StaticResource FontSmall}" />
+        <ComboBox Width="170" MinHeight="30" Padding="{StaticResource Inset3x1}" VerticalAlignment="Center" ItemsSource="{Binding Sorts}" SelectedItem="{Binding SelectedSort}" ToolTip.Tip="Trier par" />
         <ToggleButton Classes="tool" IsChecked="{Binding SortDescending}" ToolTip.Tip="Ordre inverse">
           <controls:Icon Kind="sort-direction" />
         </ToggleButton>
-        <Border Width="1" Margin="6,6" Background="{DynamicResource CinedexBorder}" />
+        <Border Width="1" Margin="{StaticResource Inset2}" Background="{DynamicResource CinedexBorder}" />
         <ToggleButton Classes="tool" IsChecked="{Binding IsListView, Mode=OneWay}" Command="{Binding ShowListCommand}" ToolTip.Tip="Liste (Ctrl+1)">
           <controls:Icon Kind="list" />
         </ToggleButton>
@@ -325,7 +325,7 @@
       </DockPanel>
 
       <!-- Barre d'état -->
-      <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" Margin="4,8,4,10">
+      <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" Margin="{StaticResource Edges1_2_1_3}">
         <TextBlock Grid.Column="1" Classes="muted" FontSize="{StaticResource FontSmall}" Text="Sélection multiple : Ctrl+clic ou Maj+clic" />
       </Grid>
 
@@ -349,15 +349,15 @@
                     <controls:AsyncImage Path="{Binding PosterPath}" DecodeWidth="80" Stretch="UniformToFill" />
                   </Panel>
                 </Border>
-                <StackPanel Grid.Column="1" Margin="14,0" VerticalAlignment="Center" Spacing="3" MinHeight="36">
+                <StackPanel Grid.Column="1" Margin="{StaticResource Inline4}" VerticalAlignment="Center" Spacing="{StaticResource Space1}" MinHeight="36">
                   <TextBlock Text="{Binding Title}" FontSize="{StaticResource FontBody}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource CinedexInk}" />
                   <TextBlock Text="{Binding DisplaySubtitle}" Classes="muted" FontSize="{StaticResource FontSmall}" TextTrimming="CharacterEllipsis"
                              IsVisible="{Binding DisplaySubtitle, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                 </StackPanel>
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                  <StackPanel Orientation="Horizontal" Spacing="4" ToolTip.Tip="Prêté"
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="{StaticResource Space3}" VerticalAlignment="Center">
+                  <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space1}" ToolTip.Tip="Prêté"
                               IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Columns.Loan}">
-                    <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding IsLoaned}">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space1}" IsVisible="{Binding IsLoaned}">
                       <controls:Icon Kind="loan" Width="16" Height="16" Foreground="{DynamicResource CinedexMuted}" />
                       <TextBlock Text="{Binding Borrower}" Classes="muted" FontSize="{StaticResource FontSmall}" MaxWidth="110" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
@@ -385,13 +385,13 @@
         <!-- Vue affiches : grille virtualisée (seules les affiches visibles existent, même avec 10 000 titres). -->
         <ScrollViewer x:Name="PosterScroll" IsVisible="{Binding IsGridView}" HorizontalScrollBarVisibility="Disabled" Focusable="True"
                       KeyDown="OnGridKeyDown" AutomationProperties.Name="Affiches des titres">
-          <ItemsRepeater x:Name="PosterGrid" ItemsSource="{Binding Titles}" Margin="0,0,8,0">
+          <ItemsRepeater x:Name="PosterGrid" ItemsSource="{Binding Titles}" Margin="{StaticResource After2}">
             <ItemsRepeater.Layout>
               <UniformGridLayout MinItemWidth="172" MinItemHeight="300" MinColumnSpacing="8" MinRowSpacing="8" ItemsStretch="None" />
             </ItemsRepeater.Layout>
             <ItemsRepeater.ItemTemplate>
             <DataTemplate x:DataType="titles:TitleSummary">
-              <controls:PosterCard Classes="poster" Width="172" Padding="6" CornerRadius="{StaticResource RadiusCard}" Background="Transparent" Cursor="Hand"
+              <controls:PosterCard Classes="poster" Width="172" Padding="{StaticResource Inset2}" CornerRadius="{StaticResource RadiusCard}" Background="Transparent" Cursor="Hand"
                       PointerPressed="OnPosterPressed" DoubleTapped="OnListDoubleTapped"
                       AutomationProperties.Name="{Binding TitleWithYear}">
                 <controls:PosterCard.IsSelected>
@@ -400,22 +400,22 @@
                     <Binding Path="$parent[Window].((vm:MainWindowViewModel)DataContext).SelectedIdSet" />
                   </MultiBinding>
                 </controls:PosterCard.IsSelected>
-              <StackPanel Spacing="6" Background="Transparent" ToolTip.ServiceEnabled="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ShowTooltips}" ToolTip.ShowDelay="500">
+              <StackPanel Spacing="{StaticResource Space2}" Background="Transparent" ToolTip.ServiceEnabled="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ShowTooltips}" ToolTip.ShowDelay="500">
                 <ToolTip.Tip>
                   <views:TitleToolTip DataContext="{Binding}" />
                 </ToolTip.Tip>
                 <Border Height="234" CornerRadius="{StaticResource RadiusCard}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
                   <Panel>
-                    <StackPanel VerticalAlignment="Center" Spacing="8" Margin="12">
+                    <StackPanel VerticalAlignment="Center" Spacing="{StaticResource Space2}" Margin="{StaticResource Inset3}">
                       <controls:Icon Kind="default" Width="36" Height="36" Foreground="{DynamicResource CinedexMuted}" Opacity="0.6" />
                       <TextBlock Text="{Binding Title}" TextWrapping="Wrap" TextAlignment="Center" Classes="muted" FontSize="{StaticResource FontSmall}" />
                     </StackPanel>
                     <controls:AsyncImage Path="{Binding PosterPath}" DecodeWidth="320" Stretch="UniformToFill" />
-                    <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="6">
-                      <Border CornerRadius="11" Padding="4" Background="#B3000000" IsVisible="{Binding IsFavorite}">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space1}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="{StaticResource Inset2}">
+                      <Border CornerRadius="{StaticResource RoundBadge}" Padding="{StaticResource Inset1}" Background="{StaticResource BadgeScrimBrush}" IsVisible="{Binding IsFavorite}">
                         <controls:Icon Kind="heart" Width="14" Height="14" Foreground="White" />
                       </Border>
-                      <Border CornerRadius="11" Padding="4" Background="#B3000000" IsVisible="{Binding IsSeen}">
+                      <Border CornerRadius="{StaticResource RoundBadge}" Padding="{StaticResource Inset1}" Background="{StaticResource BadgeScrimBrush}" IsVisible="{Binding IsSeen}">
                         <controls:Icon Kind="check" Width="14" Height="14" Foreground="White" />
                       </Border>
                     </StackPanel>
@@ -431,7 +431,7 @@
         </ScrollViewer>
 
         <!-- Catalogue vide -->
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12" IsVisible="{Binding IsEmpty}">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="{StaticResource Space3}" IsVisible="{Binding IsEmpty}">
           <controls:Icon Kind="library" Width="56" Height="56" Foreground="{DynamicResource CinedexMuted}" />
           <TextBlock Text="Aucun titre ici pour l'instant" FontSize="{StaticResource FontSection}" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="{DynamicResource CinedexInk}" />
           <TextBlock Classes="muted" HorizontalAlignment="Center" TextAlignment="Center" MaxWidth="380" TextWrapping="Wrap"
@@ -441,9 +441,9 @@
     </DockPanel>
 
     <!-- ======================= Fiche ======================= -->
-    <Border Grid.Column="2" Margin="0,16,16,16" Classes="card" ClipToBounds="True">
+    <Border Grid.Column="2" Margin="{StaticResource Edges0_4_4_4}" Classes="card" ClipToBounds="True">
       <Panel>
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10" IsVisible="{Binding !HasDetail}" Margin="24">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="{StaticResource Space3}" IsVisible="{Binding !HasDetail}" Margin="{StaticResource Inset6}">
           <controls:Icon Kind="default" Width="44" Height="44" Foreground="{DynamicResource CinedexMuted}" />
           <TextBlock Classes="muted" TextAlignment="Center" TextWrapping="Wrap" Text="Sélectionnez un titre pour voir sa fiche." />
         </StackPanel>
@@ -456,78 +456,78 @@
               <Border>
                 <Border.Background>
                   <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
-                    <GradientStop Offset="0" Color="#33000000" />
-                    <GradientStop Offset="1" Color="#E6141210" />
+                    <GradientStop Offset="0" Color="{StaticResource ScrimTop}" />
+                    <GradientStop Offset="1" Color="{StaticResource ScrimBottom}" />
                   </LinearGradientBrush>
                 </Border.Background>
               </Border>
-              <Grid ColumnDefinitions="Auto,*" Margin="24,20" VerticalAlignment="Bottom">
-                <Border Width="92" Height="138" CornerRadius="{StaticResource RadiusControl}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}" BoxShadow="0 2 8 0 #29000000">
+              <Grid ColumnDefinitions="Auto,*" Margin="{StaticResource Inset6}" VerticalAlignment="Bottom">
+                <Border Width="92" Height="138" CornerRadius="{StaticResource RadiusControl}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
                   <Panel>
                     <controls:Icon Kind="default" Width="28" Height="28" Foreground="{DynamicResource CinedexMuted}" />
                     <Image Source="{Binding PosterPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=200}" Stretch="UniformToFill" />
                   </Panel>
                 </Border>
-                <StackPanel Grid.Column="1" Margin="14,0,0,2" VerticalAlignment="Bottom" Spacing="4" DataContext="{Binding Detail}" x:DataType="titles:TitleDetail">
+                <StackPanel Grid.Column="1" Margin="{StaticResource Edges4_0_0_1}" VerticalAlignment="Bottom" Spacing="{StaticResource Space1}" DataContext="{Binding Detail}" x:DataType="titles:TitleDetail">
                   <TextBlock Text="{Binding Title}" FontSize="{StaticResource FontTitle}" FontWeight="SemiBold" Foreground="White" TextWrapping="Wrap" MaxLines="3" />
-                  <TextBlock Text="{Binding OriginalTitle}" FontSize="{StaticResource FontSmall}" Foreground="#D9FFFFFF" TextTrimming="CharacterEllipsis" />
-                  <StackPanel Orientation="Horizontal" Spacing="10">
-                    <TextBlock Text="{Binding Year}" Foreground="#D9FFFFFF" FontSize="{StaticResource FontSmall}" />
-                    <TextBlock Text="{Binding RuntimeText}" Foreground="#D9FFFFFF" FontSize="{StaticResource FontSmall}" />
-                    <Border BorderBrush="#99FFFFFF" BorderThickness="1" CornerRadius="{StaticResource RadiusChip}" Padding="4,0"
+                  <TextBlock Text="{Binding OriginalTitle}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource OnImageTextBrush}" TextTrimming="CharacterEllipsis" />
+                  <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
+                    <TextBlock Text="{Binding Year}" Foreground="{StaticResource OnImageTextBrush}" FontSize="{StaticResource FontSmall}" />
+                    <TextBlock Text="{Binding RuntimeText}" Foreground="{StaticResource OnImageTextBrush}" FontSize="{StaticResource FontSmall}" />
+                    <Border BorderBrush="{StaticResource OnImageLineBrush}" BorderThickness="{StaticResource Hairline}" CornerRadius="{StaticResource RadiusChip}" Padding="{StaticResource Inline1}"
                             IsVisible="{Binding Certification, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                      <TextBlock Text="{Binding Certification}" Foreground="#D9FFFFFF" FontSize="{StaticResource FontSmall}" />
+                      <TextBlock Text="{Binding Certification}" Foreground="{StaticResource OnImageTextBrush}" FontSize="{StaticResource FontSmall}" />
                     </Border>
                   </StackPanel>
                 </StackPanel>
               </Grid>
             </Panel>
 
-            <StackPanel Margin="24,16" Spacing="16">
+            <StackPanel Margin="{StaticResource Inset6x4}" Spacing="{StaticResource Space4}">
               <!-- Actions -->
               <WrapPanel>
-                <Button Classes="primary" Margin="0,0,8,8" Command="{Binding PlayCommand}" ToolTip.Tip="Lire (Ctrl+P)">
-                  <StackPanel Orientation="Horizontal" Spacing="6">
+                <Button Classes="primary" Margin="{StaticResource Trail2}" Command="{Binding PlayCommand}" ToolTip.Tip="Lire (Ctrl+P)">
+                  <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
                     <controls:Icon Kind="play" Width="18" Height="18" />
                     <TextBlock Text="Lire" />
                   </StackPanel>
                 </Button>
-                <Button Classes="outline" Margin="0,0,8,8" Command="{Binding OpenSeriesCommand}" IsVisible="{Binding IsSeries}" ToolTip.Tip="Saisons et épisodes">
-                  <StackPanel Orientation="Horizontal" Spacing="6">
+                <Button Classes="outline" Margin="{StaticResource Trail2}" Command="{Binding OpenSeriesCommand}" IsVisible="{Binding IsSeries}" ToolTip.Tip="Saisons et épisodes">
+                  <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
                     <controls:Icon Kind="tv" Width="18" Height="18" />
                     <TextBlock Text="Épisodes" />
                   </StackPanel>
                 </Button>
-                <Button Classes="tool" Margin="0,0,2,8" Command="{Binding ToggleSeenCommand}" ToolTip.Tip="Vu / pas vu (Ctrl+S)">
+                <Button Classes="tool" Margin="{StaticResource Edges0_0_1_2}" Command="{Binding ToggleSeenCommand}" ToolTip.Tip="Vu / pas vu (Ctrl+S)">
                   <controls:Icon Kind="eye" />
                 </Button>
-                <Button Classes="tool" Margin="0,0,2,8" Command="{Binding ToggleFavoriteCommand}" ToolTip.Tip="Favori (Ctrl+D)">
+                <Button Classes="tool" Margin="{StaticResource Edges0_0_1_2}" Command="{Binding ToggleFavoriteCommand}" ToolTip.Tip="Favori (Ctrl+D)">
                   <controls:Icon Kind="heart" />
                 </Button>
-                <Button Classes="tool" Margin="0,0,2,8" Command="{Binding EditCommand}" ToolTip.Tip="Modifier la fiche (Alt+E)">
+                <Button Classes="tool" Margin="{StaticResource Edges0_0_1_2}" Command="{Binding EditCommand}" ToolTip.Tip="Modifier la fiche (Alt+E)">
                   <controls:Icon Kind="edit" />
                 </Button>
-                <Button Classes="tool" Margin="0,0,2,8" Command="{Binding LinkToTmdbCommand}" ToolTip.Tip="Lier ou mettre à jour depuis TMDb (Ctrl+U)">
+                <Button Classes="tool" Margin="{StaticResource Edges0_0_1_2}" Command="{Binding LinkToTmdbCommand}" ToolTip.Tip="Lier ou mettre à jour depuis TMDb (Ctrl+U)">
                   <controls:Icon Kind="cloud" />
                 </Button>
-                <Button Classes="tool" Margin="0,0,2,8" Command="{Binding OpenFolderCommand}" ToolTip.Tip="Ouvrir le dossier du fichier (Ctrl+O)">
+                <Button Classes="tool" Margin="{StaticResource Edges0_0_1_2}" Command="{Binding OpenFolderCommand}" ToolTip.Tip="Ouvrir le dossier du fichier (Ctrl+O)">
                   <controls:Icon Kind="folder" />
                 </Button>
                 <!-- Action destructrice : à part, en dernier, dans la couleur négative. -->
-                <Button Classes="tool" Margin="16,0,0,8" Command="{Binding DeleteCommand}" ToolTip.Tip="Supprimer du catalogue (Suppr)">
+                <Button Classes="tool" Margin="{StaticResource Edges4_0_0_2}" Command="{Binding DeleteCommand}" ToolTip.Tip="Supprimer du catalogue (Suppr)">
                   <controls:Icon Kind="delete" Foreground="{DynamicResource CinedexNegative}" />
                 </Button>
               </WrapPanel>
 
-              <StackPanel Spacing="10" DataContext="{Binding Detail}" x:DataType="titles:TitleDetail">
+              <StackPanel Spacing="{StaticResource Space3}" DataContext="{Binding Detail}" x:DataType="titles:TitleDetail">
                 <!-- Notes -->
-                <StackPanel Orientation="Horizontal" Spacing="18">
-                  <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding UserRating, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space4}">
+                  <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}" IsVisible="{Binding UserRating, Converter={x:Static ObjectConverters.IsNotNull}}">
                     <controls:Icon Kind="star" Width="18" Height="18" Foreground="{DynamicResource CinedexAccent}" />
                     <TextBlock Text="{Binding UserRating, StringFormat='{}{0:0.#} / 10'}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
                     <TextBlock Classes="muted" Text="ma note" FontSize="{StaticResource FontSmall}" VerticalAlignment="Center" />
                   </StackPanel>
-                  <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding TmdbRating, Converter={x:Static ObjectConverters.IsNotNull}}">
+                  <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}" IsVisible="{Binding TmdbRating, Converter={x:Static ObjectConverters.IsNotNull}}">
                     <TextBlock Text="{Binding TmdbRating, StringFormat='{}{0:0.0}'}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
                     <TextBlock Classes="muted" Text="TMDb" FontSize="{StaticResource FontSmall}" VerticalAlignment="Center" />
                   </StackPanel>
@@ -536,22 +536,22 @@
                 <!-- Notes externes : IMDb, Rotten Tomatoes, Metacritic (via OMDb et le fichier officiel IMDb) -->
                 <WrapPanel>
                   <Border Classes="rating" IsVisible="{Binding ImdbRating, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Note IMDb">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                      <Border Background="#F5C518" CornerRadius="{StaticResource RadiusChip}" Padding="4,0"><TextBlock Text="IMDb" FontWeight="SemiBold" FontSize="{StaticResource FontSmall}" Foreground="Black" /></Border>
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
+                      <Border Background="{StaticResource BrandImdbBrush}" CornerRadius="{StaticResource RadiusChip}" Padding="{StaticResource Inline1}"><TextBlock Text="IMDb" FontWeight="SemiBold" FontSize="{StaticResource FontSmall}" Foreground="Black" /></Border>
                       <TextBlock Text="{Binding ImdbRating, StringFormat='{}{0:0.0}'}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
                       <TextBlock Text="{Binding ImdbVotes, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='{}{0:N0} votes'}" Classes="muted" FontSize="{StaticResource FontSmall}" VerticalAlignment="Center"
                                  IsVisible="{Binding ImdbVotes, Converter={x:Static ObjectConverters.IsNotNull}}" />
                     </StackPanel>
                   </Border>
                   <Border Classes="rating" IsVisible="{Binding Tomatometer, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Tomatometer (Rotten Tomatoes)">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                      <Border Background="#FA320A" CornerRadius="{StaticResource RadiusChip}" Padding="4,0"><TextBlock Text="RT" FontWeight="SemiBold" FontSize="{StaticResource FontSmall}" Foreground="White" /></Border>
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
+                      <Border Background="{StaticResource BrandRottenTomatoesBrush}" CornerRadius="{StaticResource RadiusChip}" Padding="{StaticResource Inline1}"><TextBlock Text="RT" FontWeight="SemiBold" FontSize="{StaticResource FontSmall}" Foreground="White" /></Border>
                       <TextBlock Text="{Binding Tomatometer, StringFormat='{}{0} %'}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
                     </StackPanel>
                   </Border>
                   <Border Classes="rating" IsVisible="{Binding Metascore, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Metascore (Metacritic)">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                      <Border Background="#2B2B2B" CornerRadius="{StaticResource RadiusChip}" Padding="4,0"><TextBlock Text="MC" FontWeight="SemiBold" FontSize="{StaticResource FontSmall}" Foreground="#FFCC33" /></Border>
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
+                      <Border Background="{StaticResource BrandMetacriticBrush}" CornerRadius="{StaticResource RadiusChip}" Padding="{StaticResource Inline1}"><TextBlock Text="MC" FontWeight="SemiBold" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BrandMetacriticInkBrush}" /></Border>
                       <TextBlock Text="{Binding Metascore}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
                       <TextBlock Text="/ 100" Classes="muted" FontSize="{StaticResource FontSmall}" VerticalAlignment="Center" />
                     </StackPanel>
@@ -563,7 +563,7 @@
                 <TextBlock Text="{Binding Overview}" TextWrapping="Wrap" LineHeight="21" Foreground="{DynamicResource CinedexInk}" />
 
                 <!-- Classement -->
-                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding CollectionName, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}" IsVisible="{Binding CollectionName, Converter={x:Static ObjectConverters.IsNotNull}}">
                   <controls:Icon Kind="library" Width="16" Height="16" Foreground="{DynamicResource CinedexMuted}" />
                   <TextBlock Text="{Binding CollectionName}" Classes="muted" />
                 </StackPanel>
@@ -580,17 +580,17 @@
               </StackPanel>
 
               <!-- Distribution et équipe : chaque personne ouvre sa fiche -->
-              <StackPanel Spacing="8" IsVisible="{Binding HasDirectors}">
+              <StackPanel Spacing="{StaticResource Space2}" IsVisible="{Binding HasDirectors}">
                 <TextBlock Text="Réalisation" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
                 <ItemsControl ItemsSource="{Binding Directors}">
                   <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="people:CastMember">
-                      <Button Classes="tool" Width="104" Padding="4,6" Margin="0,0,4,4" VerticalContentAlignment="Top"
+                      <Button Classes="tool" Width="104" Padding="{StaticResource Inset1x2}" Margin="{StaticResource Trail1}" VerticalContentAlignment="Top"
                               Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenPersonCommand}" CommandParameter="{Binding}"
                               ToolTip.Tip="{Binding Name, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='Fiche de {0}'}">
-                        <StackPanel Spacing="4" HorizontalAlignment="Center">
-                          <Border Width="56" Height="56" CornerRadius="28" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}" HorizontalAlignment="Center">
+                        <StackPanel Spacing="{StaticResource Space1}" HorizontalAlignment="Center">
+                          <Border Width="56" Height="56" CornerRadius="{StaticResource RoundAvatarLarge}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}" HorizontalAlignment="Center">
                             <Panel>
                               <controls:Icon Kind="about" Width="22" Height="22" Foreground="{DynamicResource CinedexMuted}" />
                               <Image Source="{Binding PhotoPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=112}" Stretch="UniformToFill" />
@@ -604,17 +604,17 @@
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
               </StackPanel>
-              <StackPanel Spacing="8" IsVisible="{Binding HasCast}">
+              <StackPanel Spacing="{StaticResource Space2}" IsVisible="{Binding HasCast}">
                 <TextBlock Text="Distribution" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
                 <ItemsControl ItemsSource="{Binding Cast}">
                   <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="people:CastMember">
-                      <Button Classes="tool" Width="104" Padding="4,6" Margin="0,0,4,4" VerticalContentAlignment="Top"
+                      <Button Classes="tool" Width="104" Padding="{StaticResource Inset1x2}" Margin="{StaticResource Trail1}" VerticalContentAlignment="Top"
                               Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenPersonCommand}" CommandParameter="{Binding}"
                               ToolTip.Tip="{Binding Name, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='Fiche de {0}'}">
-                        <StackPanel Spacing="4" HorizontalAlignment="Center">
-                          <Border Width="56" Height="56" CornerRadius="28" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}" HorizontalAlignment="Center">
+                        <StackPanel Spacing="{StaticResource Space1}" HorizontalAlignment="Center">
+                          <Border Width="56" Height="56" CornerRadius="{StaticResource RoundAvatarLarge}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}" HorizontalAlignment="Center">
                             <Panel>
                               <controls:Icon Kind="about" Width="22" Height="22" Foreground="{DynamicResource CinedexMuted}" />
                               <Image Source="{Binding PhotoPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=112}" Stretch="UniformToFill" />
@@ -632,11 +632,11 @@
                          IsVisible="{Binding CrewText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
               <!-- Exemplaire et vidéo -->
-              <Border Background="{DynamicResource CinedexSurfaceAlt}" CornerRadius="{StaticResource RadiusCard}" Padding="14,12">
-                <StackPanel Spacing="6">
+              <Border Background="{DynamicResource CinedexSurfaceAlt}" CornerRadius="{StaticResource RadiusCard}" Padding="{StaticResource Inset4x3}">
+                <StackPanel Spacing="{StaticResource Space2}">
                   <Grid ColumnDefinitions="Auto,*,Auto">
                     <controls:Icon Kind="harddisk" Width="16" Height="16" Foreground="{DynamicResource CinedexMuted}" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="1" Margin="8,0,0,0" Text="Fichier et infos techniques" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Margin="{StaticResource Before2}" Text="Fichier et infos techniques" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
                     <Button Grid.Column="2" Classes="tool" Content="Relire (MediaInfo)" Command="{Binding RefreshTechnicalCommand}"
                             IsVisible="{Binding HasDetailFiles}" ToolTip.Tip="Relire codecs, résolution, pistes audio et sous-titres" />
                   </Grid>
@@ -645,9 +645,9 @@
               </Border>
 
               <!-- Prêt -->
-              <Border Background="{DynamicResource CinedexSurfaceAlt}" CornerRadius="{StaticResource RadiusCard}" Padding="14,12">
-                <StackPanel Spacing="8">
-                  <StackPanel Orientation="Horizontal" Spacing="8">
+              <Border Background="{DynamicResource CinedexSurfaceAlt}" CornerRadius="{StaticResource RadiusCard}" Padding="{StaticResource Inset4x3}">
+                <StackPanel Spacing="{StaticResource Space2}">
+                  <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
                     <controls:Icon Kind="loan" Width="16" Height="16" Foreground="{DynamicResource CinedexMuted}" />
                     <TextBlock Text="Prêt" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
                   </StackPanel>
@@ -657,9 +657,9 @@
                              IsVisible="{Binding Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNotNull}}" />
                   <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNull}}">
                     <TextBox PlaceholderText="Emprunteur" Text="{Binding BorrowerText}" />
-                    <Button Grid.Column="1" Margin="8,0,0,0" Content="Prêter" Command="{Binding LendCommand}" />
+                    <Button Grid.Column="1" Margin="{StaticResource Before2}" Content="Prêter" Command="{Binding LendCommand}" />
                   </Grid>
-                  <StackPanel Orientation="Horizontal" Spacing="8">
+                  <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
                     <Button Classes="tool" Content="Rendu" Command="{Binding ReturnLoanCommand}" />
                     <Button Classes="tool" Content="Historique" Command="{Binding ShowLoanHistoryCommand}" />
                   </StackPanel>

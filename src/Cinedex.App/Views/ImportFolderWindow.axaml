@@ -8,33 +8,33 @@
         WindowStartupLocation="CenterOwner"
         DragDrop.AllowDrop="True">
   <DockPanel Margin="{StaticResource WindowPadding}">
-    <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
+    <StackPanel DockPanel.Dock="Top" Spacing="{StaticResource Space2}" Margin="{StaticResource Below3}">
       <Grid ColumnDefinitions="*,Auto,Auto,Auto">
         <TextBox Text="{Binding Folder}" PlaceholderText="Dossier de films (ex. D:\Films)" />
-        <Button Grid.Column="1" Margin="8,0,0,0" Content="Parcourir..." Click="OnBrowse" />
-        <Button Grid.Column="2" Margin="8,0,0,0" Content="Analyser" Command="{Binding ScanCommand}" />
-        <Button Grid.Column="3" Margin="16,0,0,0" Content="Choisir des fichiers…" Click="OnPickFiles"
+        <Button Grid.Column="1" Margin="{StaticResource Before2}" Content="Parcourir..." Click="OnBrowse" />
+        <Button Grid.Column="2" Margin="{StaticResource Before2}" Content="Analyser" Command="{Binding ScanCommand}" />
+        <Button Grid.Column="3" Margin="{StaticResource Before4}" Content="Choisir des fichiers…" Click="OnPickFiles"
                 ToolTip.Tip="Ajouter un ou plusieurs fichiers vidéo à la liste (vous pouvez aussi les glisser dans cette fenêtre)" />
       </Grid>
       <WrapPanel>
-        <CheckBox Margin="0,0,16,0" Content="Sous-dossiers" IsChecked="{Binding Recursive}" />
-        <CheckBox Margin="0,0,16,0" Content="Ignorer ( ) et [ ] dans les noms" IsChecked="{Binding IgnoreBracketed}"
+        <CheckBox Margin="{StaticResource After4}" Content="Sous-dossiers" IsChecked="{Binding Recursive}" />
+        <CheckBox Margin="{StaticResource After4}" Content="Ignorer ( ) et [ ] dans les noms" IsChecked="{Binding IgnoreBracketed}"
                   ToolTip.Tip="« Heat (1995) [Director's Cut] 1080p.mkv » donne « Heat », 1995. Relancez l'analyse après avoir changé l'option." />
-        <CheckBox Margin="0,0,16,0" Content="Identifier avec TMDb dès l'import" IsChecked="{Binding UseTmdb}"
+        <CheckBox Margin="{StaticResource After4}" Content="Identifier avec TMDb dès l'import" IsChecked="{Binding UseTmdb}"
                   ToolTip.Tip="Décoché : les fichiers sont ajoutés tels quels ; lancez ensuite « Mettre à jour via TMDb »." />
-        <CheckBox Margin="0,0,16,0" Content="Si plusieurs fiches TMDb : prendre la première sans demander" IsChecked="{Binding UseFirstMatch}" ToolTip.Tip="Décoché : les cas ambigus vont dans « À vérifier », où vous choisissez" />
-        <CheckBox Margin="0,0,16,0" Content="Prendre en compte le fichier nfo si existant" IsChecked="{Binding ReadNfo}"
+        <CheckBox Margin="{StaticResource After4}" Content="Si plusieurs fiches TMDb : prendre la première sans demander" IsChecked="{Binding UseFirstMatch}" ToolTip.Tip="Décoché : les cas ambigus vont dans « À vérifier », où vous choisissez" />
+        <CheckBox Margin="{StaticResource After4}" Content="Prendre en compte le fichier nfo si existant" IsChecked="{Binding ReadNfo}"
                   ToolTip.Tip="Titre, année et identifiants TMDb ou IMDb lus dans le fichier .nfo placé à côté de la vidéo" />
-        <CheckBox Margin="0,0,16,0" Content="Infos techniques (MediaInfo)" IsChecked="{Binding ReadProperties}" />
-        <CheckBox Margin="0,0,16,0" Content="Créer ou compléter les .nfo" IsChecked="{Binding WriteNfo}" />
+        <CheckBox Margin="{StaticResource After4}" Content="Infos techniques (MediaInfo)" IsChecked="{Binding ReadProperties}" />
+        <CheckBox Margin="{StaticResource After4}" Content="Créer ou compléter les .nfo" IsChecked="{Binding WriteNfo}" />
         <CheckBox Content="Surveiller ce dossier" IsChecked="{Binding RememberFolder}" />
       </WrapPanel>
       <TextBox Text="{Binding NoiseWords}" PlaceholderText="Mots à retirer des noms de fichiers, séparés par des virgules (en plus des mots techniques usuels)" />
     </StackPanel>
 
-    <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,12,0,0">
+    <StackPanel DockPanel.Dock="Bottom" Spacing="{StaticResource Space2}" Margin="{StaticResource Above3}">
       <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
-      <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}" HorizontalAlignment="Right">
         <Button Content="Tout cocher" Command="{Binding SelectAllCommand}" CommandParameter="{x:True}" />
         <Button Content="Tout décocher" Command="{Binding SelectAllCommand}" CommandParameter="{x:False}" />
         <Button Content="Interrompre" Command="{Binding CancelCommand}" IsVisible="{Binding IsBusy}" />
@@ -48,7 +48,7 @@
         <DataTemplate x:DataType="vm:CandidateRow">
           <Grid ColumnDefinitions="Auto,*,60,180">
             <CheckBox IsChecked="{Binding IsSelected}" VerticalAlignment="Center" />
-            <StackPanel Grid.Column="1" Margin="8,0">
+            <StackPanel Grid.Column="1" Margin="{StaticResource Inline2}">
               <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
               <TextBlock Text="{Binding Path}" FontSize="{StaticResource FontSmall}" Opacity="0.6" TextTrimming="CharacterEllipsis" />
             </StackPanel>

@@ -13,13 +13,13 @@
     <Style Selector="TextBlock.h">
       <Setter Property="FontSize" Value="{StaticResource FontBody}" />
       <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="Margin" Value="0,10,0,0" />
+      <Setter Property="Margin" Value="{StaticResource Above3}" />
     </Style>
     <!-- Onglets compacts : tous tiennent dans la hauteur de la fenêtre. -->
     <Style Selector="TabControl#Tabs > TabItem">
       <Setter Property="FontSize" Value="{StaticResource FontBody}" />
       <Setter Property="MinHeight" Value="34" />
-      <Setter Property="Padding" Value="10,4" />
+      <Setter Property="Padding" Value="{StaticResource Inset3x1}" />
     </Style>
     <Style Selector="TextBlock.hint">
       <Setter Property="FontSize" Value="{StaticResource FontSmall}" />
@@ -29,13 +29,13 @@
   </Window.Styles>
 
   <DockPanel Margin="{StaticResource WindowPadding}">
-    <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,12,0,0">
+    <StackPanel DockPanel.Dock="Bottom" Spacing="{StaticResource Space2}" Margin="{StaticResource Above3}">
       <TextBlock Text="{Binding Error}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" TextWrapping="Wrap"
                  IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
       <Grid ColumnDefinitions="*,Auto">
-        <TextBlock Classes="hint" VerticalAlignment="Center" Margin="0,0,16,0"
+        <TextBlock Classes="hint" VerticalAlignment="Center" Margin="{StaticResource After4}"
                    Text="Les réglages d'import, d'affichage et de métadonnées sont propres au catalogue ouvert ; l'apparence vaut pour tous." />
-        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="{StaticResource Space2}">
           <Button Classes="tool" Content="Annuler" IsCancel="True" Click="OnCancel" />
           <Button Classes="primary" Content="Enregistrer" IsDefault="True" Click="OnSave" />
         </StackPanel>
@@ -46,14 +46,14 @@
       <!-- Général -->
       <TabItem Header="Général">
         <ScrollViewer>
-          <StackPanel Spacing="10" Margin="12,0,0,0">
+          <StackPanel Spacing="{StaticResource Space3}" Margin="{StaticResource Before3}">
             <TextBlock Classes="h" Text="Interface" Margin="0" />
-            <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding CanChooseTheme}">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}" IsVisible="{Binding CanChooseTheme}">
               <TextBlock Text="Langue de l'interface" VerticalAlignment="Center" />
               <ComboBox ItemsSource="{Binding LanguageChoices}" SelectedItem="{Binding SelectedLanguage}" MinWidth="220" />
               <TextBlock Text="(au redémarrage)" VerticalAlignment="Center" Opacity="0.65" />
             </StackPanel>
-            <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding CanChooseTheme}">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}" IsVisible="{Binding CanChooseTheme}">
               <TextBlock Text="Fenêtre au démarrage" VerticalAlignment="Center" />
               <ComboBox ItemsSource="{Binding StartupChoices}" SelectedItem="{Binding SelectedStartup}" MinWidth="300" />
             </StackPanel>
@@ -68,9 +68,9 @@
             <TextBlock Classes="h" Text="Mises à jour" />
             <TextBlock Text="{Binding CurrentVersion}" />
             <TextBlock Classes="hint" Text="{Binding UpdateIntro}" />
-            <StackPanel Spacing="8" IsVisible="{Binding CanUpdate}">
+            <StackPanel Spacing="{StaticResource Space2}" IsVisible="{Binding CanUpdate}">
               <CheckBox Content="Rechercher les mises à jour au démarrage" IsChecked="{Binding CheckUpdatesAtStartup}" />
-              <StackPanel Orientation="Horizontal" Spacing="8">
+              <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
                 <Button Classes="tool" Content="Rechercher maintenant" Command="{Binding CheckUpdatesCommand}" />
                 <Button Classes="primary" Content="Installer et redémarrer" Command="{Binding InstallUpdateCommand}" IsVisible="{Binding UpdateReady}" />
               </StackPanel>
@@ -80,11 +80,11 @@
             <TextBlock Text="Catalogues, images, sauvegardes et journaux sont rangés dans :" />
             <Grid ColumnDefinitions="*,Auto">
               <SelectableTextBlock Text="{Binding DataLocation}" VerticalAlignment="Center" TextWrapping="Wrap" FontFamily="Consolas,Menlo,monospace" />
-              <Button Grid.Column="1" Classes="tool" Content="Ouvrir le dossier" Click="OnOpenData" Margin="8,0,0,0" />
+              <Button Grid.Column="1" Classes="tool" Content="Ouvrir le dossier" Click="OnOpenData" Margin="{StaticResource Before2}" />
             </Grid>
             <TextBlock Classes="h" Text="Journal des actions" />
             <CheckBox Content="Noter dans un journal chaque action faite dans Cinedex (un fichier par jour, conservé 90 jours)" IsChecked="{Binding JournalEnabled}" />
-            <StackPanel Orientation="Horizontal" Spacing="8">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
               <Button Classes="tool" Content="Exporter le journal du jour…" Click="OnExportJournal" />
               <Button Classes="tool" Content="Ouvrir le dossier des journaux" Click="OnOpenJournalFolder" />
             </StackPanel>
@@ -97,7 +97,7 @@
       <!-- Apparence : thème, icônes, couleurs, police -->
       <TabItem Header="Apparence" IsVisible="{Binding CanChooseTheme}">
         <ScrollViewer>
-          <StackPanel Spacing="10" Margin="12,0,16,0">
+          <StackPanel Spacing="{StaticResource Space3}" Margin="{StaticResource Edges3_0_4_0}">
             <TextBlock Classes="h" Text="Thème" Margin="0" />
             <ComboBox ItemsSource="{Binding ThemeChoices}" SelectedItem="{Binding SelectedTheme}" MinWidth="220" />
 
@@ -110,8 +110,8 @@
               </ListBox.ItemsPanel>
               <ListBox.ItemTemplate>
                 <DataTemplate x:CompileBindings="False">
-                  <StackPanel Width="170" Spacing="8" Margin="4">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
+                  <StackPanel Width="170" Spacing="{StaticResource Space2}" Margin="{StaticResource Inset1}">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
                       <controls:Icon Kind="film" Variant="{Binding Value}" Width="22" Height="22" Foreground="{DynamicResource CinedexInk}" />
                       <controls:Icon Kind="search" Variant="{Binding Value}" Width="22" Height="22" Foreground="{DynamicResource CinedexInk}" />
                       <controls:Icon Kind="heart" Variant="{Binding Value}" Width="22" Height="22" Foreground="{DynamicResource CinedexAccent}" />
@@ -133,8 +133,8 @@
               </ListBox.ItemsPanel>
               <ListBox.ItemTemplate>
                 <DataTemplate x:CompileBindings="False">
-                  <StackPanel Width="96" Spacing="6" Margin="2">
-                    <Border Height="34" CornerRadius="{StaticResource RadiusControl}" BorderBrush="{DynamicResource CinedexBorder}" BorderThickness="1" ClipToBounds="True">
+                  <StackPanel Width="96" Spacing="{StaticResource Space2}" Margin="{StaticResource Inset1}">
+                    <Border Height="34" CornerRadius="{StaticResource RadiusControl}" BorderBrush="{DynamicResource CinedexBorder}" BorderThickness="{StaticResource Hairline}" ClipToBounds="True">
                       <Grid ColumnDefinitions="*,*">
                         <Border Background="{Binding LightBrush}" />
                         <Border Grid.Column="1" Background="{Binding DarkBrush}" />
@@ -155,8 +155,8 @@
               </ListBox.ItemsPanel>
               <ListBox.ItemTemplate>
                 <DataTemplate x:CompileBindings="False">
-                  <StackPanel Width="96" Spacing="6" Margin="2">
-                    <Border Height="34" CornerRadius="17" ClipToBounds="True">
+                  <StackPanel Width="96" Spacing="{StaticResource Space2}" Margin="{StaticResource Inset1}">
+                    <Border Height="34" CornerRadius="{StaticResource RoundPill}" ClipToBounds="True">
                       <Grid ColumnDefinitions="*,*">
                         <Border Background="{Binding LightBrush}" />
                         <Border Grid.Column="1" Background="{Binding DarkBrush}" />
@@ -170,8 +170,8 @@
 
             <TextBlock Classes="h" Text="Police" />
             <ComboBox ItemsSource="{Binding FontChoices}" SelectedItem="{Binding SelectedFont}" MinWidth="260" />
-            <Border Padding="12" CornerRadius="{StaticResource RadiusCard}" Background="{DynamicResource CinedexSurfaceAlt}">
-              <StackPanel Spacing="4">
+            <Border Padding="{StaticResource Inset3}" CornerRadius="{StaticResource RadiusCard}" Background="{DynamicResource CinedexSurfaceAlt}">
+              <StackPanel Spacing="{StaticResource Space1}">
                 <TextBlock Text="Retour vers le futur (1985)" FontFamily="{Binding FontPreview}" FontSize="{StaticResource FontSection}" FontWeight="SemiBold" />
                 <TextBlock Text="Aventure, Comédie, Science-Fiction · 1 h 56" FontFamily="{Binding FontPreview}" FontSize="{StaticResource FontSmall}" Classes="muted" />
               </StackPanel>
@@ -184,7 +184,7 @@
       <!-- Liste des films : colonnes affichées -->
       <TabItem Header="Liste des films">
         <ScrollViewer>
-          <StackPanel Spacing="10" Margin="12,0,16,0">
+          <StackPanel Spacing="{StaticResource Space3}" Margin="{StaticResource Edges3_0_4_0}">
             <TextBlock Classes="h" Text="Colonnes de la vue liste" Margin="0" />
             <TextBlock Classes="hint" Text="Informations affichées pour chaque film dans la vue liste de la fenêtre principale. Année, mention « Série », support, durée et genres forment la ligne sous le titre ; les autres s'affichent à droite." />
             <ItemsControl ItemsSource="{Binding ColumnToggles}">
@@ -195,7 +195,7 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:ColumnToggle">
-                  <CheckBox Content="{Binding Label}" IsChecked="{Binding IsShown}" Width="220" Margin="0,0,8,4" />
+                  <CheckBox Content="{Binding Label}" IsChecked="{Binding IsShown}" Width="220" Margin="{StaticResource Edges0_0_2_1}" />
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
@@ -206,11 +206,11 @@
       <!-- Économiseur d'écran -->
       <TabItem Header="Économiseur d'écran">
         <ScrollViewer>
-          <StackPanel Spacing="10" Margin="12,0,0,0">
+          <StackPanel Spacing="{StaticResource Space3}" Margin="{StaticResource Before3}">
             <TextBlock Classes="h" Text="Diaporama des affiches" Margin="0" />
             <CheckBox Content="Afficher un diaporama des affiches après une période d'inactivité" IsChecked="{Binding ScreenSaverEnabled}" />
-            <StackPanel Spacing="10" IsEnabled="{Binding ScreenSaverEnabled}">
-              <Grid ColumnDefinitions="Auto,Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="10">
+            <StackPanel Spacing="{StaticResource Space3}" IsEnabled="{Binding ScreenSaverEnabled}">
+              <Grid ColumnDefinitions="Auto,Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="{StaticResource Space2}" RowSpacing="{StaticResource Space3}">
                 <TextBlock Text="Lancer après" VerticalAlignment="Center" />
                 <NumericUpDown Grid.Column="1" Value="{Binding ScreenSaverIdleMinutes}" Minimum="1" Maximum="240" Increment="1" Width="120" FormatString="0" />
                 <TextBlock Grid.Column="2" Text="minutes sans utiliser le clavier ni la souris" VerticalAlignment="Center" TextWrapping="Wrap" />
@@ -229,7 +229,7 @@
       <!-- Bandeau gauche -->
       <TabItem Header="Bandeau gauche">
         <ScrollViewer>
-          <StackPanel Spacing="8" Margin="12,0,0,0">
+          <StackPanel Spacing="{StaticResource Space2}" Margin="{StaticResource Before3}">
             <TextBlock Classes="h" Text="Vues affichées" Margin="0" />
             <TextBlock Classes="hint" Text="« Tous les titres » est toujours affiché. Une vue masquée reste accessible par la recherche multicritère." />
             <ItemsControl ItemsSource="{Binding MainFilterToggles}">
@@ -269,18 +269,18 @@
       <!-- Import et scan -->
       <TabItem Header="Import et scan">
         <ScrollViewer>
-          <StackPanel Spacing="8" Margin="12,0,0,0">
+          <StackPanel Spacing="{StaticResource Space2}" Margin="{StaticResource Before3}">
             <TextBlock Classes="h" Text="Fichiers retenus" Margin="0" />
             <TextBlock Text="Extensions des fichiers vidéo (séparées par des espaces)" />
             <TextBox Text="{Binding ExtensionsText}" TextWrapping="Wrap" FontFamily="Consolas,Menlo,monospace" />
             <Button Classes="tool" Content="Rétablir les extensions par défaut" Click="OnResetExtensions" />
-            <StackPanel Orientation="Horizontal" Spacing="8">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
               <TextBlock Text="Taille minimale d'un fichier trouvé dans un dossier" VerticalAlignment="Center" />
               <NumericUpDown Value="{Binding MinimumMegabytes}" Minimum="0" Maximum="100000" Increment="10" Width="130" FormatString="0" />
               <TextBlock Text="Mo" VerticalAlignment="Center" />
             </StackPanel>
             <TextBlock Classes="hint" Text="Écarte les extraits et bandes-annonces. Un fichier choisi un par un est toujours proposé." />
-            <TextBlock Text="Fichiers ignorés s'ils contiennent l'un de ces mots (un par ligne)" Margin="0,6,0,0" />
+            <TextBlock Text="Fichiers ignorés s'ils contiennent l'un de ces mots (un par ligne)" Margin="{StaticResource Above2}" />
             <TextBox Text="{Binding IgnoreKeywordsText}" AcceptsReturn="True" Height="90" FontFamily="Consolas,Menlo,monospace" />
             <CheckBox Content="Parcourir aussi les sous-dossiers" IsChecked="{Binding Recursive}" />
 
@@ -301,20 +301,20 @@
       <!-- Métadonnées -->
       <TabItem Header="Métadonnées">
         <ScrollViewer>
-          <StackPanel Spacing="10" Margin="12,0,0,0">
+          <StackPanel Spacing="{StaticResource Space3}" Margin="{StaticResource Before3}">
             <TextBlock Classes="h" Text="TMDb" Margin="0" />
             <TextBlock Text="{Binding TokenState}" TextWrapping="Wrap" Opacity="0.8" />
             <Grid ColumnDefinitions="*,Auto">
               <TextBox Text="{Binding NewToken}" PasswordChar="•" PlaceholderText="Jeton d'accès en lecture (eyJ...)" />
-              <Button Grid.Column="1" Classes="tool" Margin="8,0,0,0" Content="Oublier le jeton" Click="OnForget" IsVisible="{Binding HasToken}" />
+              <Button Grid.Column="1" Classes="tool" Margin="{StaticResource Before2}" Content="Oublier le jeton" Click="OnForget" IsVisible="{Binding HasToken}" />
             </Grid>
             <Grid ColumnDefinitions="Auto,120,24,Auto,80">
-              <TextBlock Grid.Column="0" Text="Langue" VerticalAlignment="Center" Margin="0,0,8,0" />
+              <TextBlock Grid.Column="0" Text="Langue" VerticalAlignment="Center" Margin="{StaticResource After2}" />
               <TextBox Grid.Column="1" Text="{Binding Language}" PlaceholderText="fr-FR" />
-              <TextBlock Grid.Column="3" Text="Pays des certifications" VerticalAlignment="Center" Margin="0,0,8,0" />
+              <TextBlock Grid.Column="3" Text="Pays des certifications" VerticalAlignment="Center" Margin="{StaticResource After2}" />
               <TextBox Grid.Column="4" Text="{Binding Country}" PlaceholderText="FR" />
             </Grid>
-            <StackPanel Orientation="Horizontal" Spacing="8">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
               <TextBlock Text="Acteurs gardés dans la distribution d'un film" VerticalAlignment="Center" />
               <NumericUpDown Value="{Binding MaxActorsNumber}" Minimum="1" Maximum="200" Increment="5" Width="130" FormatString="0" />
             </StackPanel>
@@ -324,7 +324,7 @@
             <TextBlock Text="{Binding OmdbState}" TextWrapping="Wrap" Opacity="0.8" />
             <TextBox Text="{Binding NewOmdbKey}" PasswordChar="•" PlaceholderText="Clé API OMDb" />
             <CheckBox Content="Compléter la note IMDb avec le fichier officiel IMDb (téléchargé au plus une fois par jour, ~9 Mo)" IsChecked="{Binding UseImdbDataset}" />
-            <TextBlock Classes="hint" Margin="0,8,0,0"
+            <TextBlock Classes="hint" Margin="{StaticResource Above2}"
                        Text="Cinedex utilise l'API TMDb. This product uses the TMDB API but is not endorsed or certified by TMDB. IMDb n'est utilisé que pour les identifiants, les liens et son fichier public de notes." />
           </StackPanel>
         </ScrollViewer>
@@ -332,7 +332,7 @@
 
       <!-- .nfo -->
       <TabItem Header="Fichiers .nfo">
-        <StackPanel Spacing="10" Margin="12,0,0,0">
+        <StackPanel Spacing="{StaticResource Space3}" Margin="{StaticResource Before3}">
           <TextBlock Classes="h" Text="Fichiers .nfo (format Kodi)" Margin="0" />
           <CheckBox Content="Lire le .nfo au scan d'un dossier et compléter la fiche" IsChecked="{Binding NfoReadOnScan}" />
           <CheckBox Content="Créer ou compléter le .nfo après une mise à jour TMDb" IsChecked="{Binding NfoWriteAfterMetadata}" />
@@ -344,15 +344,15 @@
       <!-- Réseau : proxy -->
       <TabItem Header="Réseau" IsVisible="{Binding CanChooseTheme}">
         <ScrollViewer>
-          <StackPanel Spacing="10" Margin="12,0,16,0">
+          <StackPanel Spacing="{StaticResource Space3}" Margin="{StaticResource Edges3_0_4_0}">
             <TextBlock Classes="h" Text="Proxy" Margin="0" />
             <CheckBox Content="Passer par un proxy pour accéder à Internet (TMDb, OMDb, notes IMDb, images)" IsChecked="{Binding ProxyEnabled}" />
-            <Grid ColumnDefinitions="Auto,Auto,*" RowDefinitions="Auto" ColumnSpacing="8" IsEnabled="{Binding ProxyEnabled}">
+            <Grid ColumnDefinitions="Auto,Auto,*" RowDefinitions="Auto" ColumnSpacing="{StaticResource Space2}" IsEnabled="{Binding ProxyEnabled}">
               <TextBlock Text="Type" VerticalAlignment="Center" />
               <ComboBox Grid.Column="1" ItemsSource="{Binding ProxyTypes}" SelectedItem="{Binding SelectedProxyType}" MinWidth="110" />
               <TextBox Grid.Column="2" Text="{Binding ProxyAddress}" PlaceholderText="myserver.proxy.com:8080" FontFamily="Consolas,Menlo,monospace" />
             </Grid>
-            <StackPanel Orientation="Horizontal" Spacing="8">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
               <Button Classes="tool" Content="Tester la connexion" Command="{Binding TestProxyCommand}" IsEnabled="{Binding !IsTestingProxy}" />
             </StackPanel>
             <SelectableTextBlock Text="{Binding ProxyMessage}" TextWrapping="Wrap" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}"
@@ -365,7 +365,7 @@
       <!-- Lecture et outils -->
       <TabItem Header="Lecture et outils">
         <ScrollViewer>
-          <StackPanel Spacing="10" Margin="12,0,0,0">
+          <StackPanel Spacing="{StaticResource Space3}" Margin="{StaticResource Before3}">
             <TextBlock Classes="h" Text="Infos techniques" Margin="0" />
             <TextBox Text="{Binding MediaInfoPath}" PlaceholderText="Chemin de MediaInfo CLI (vide : MediaInfo fourni avec Cinedex, puis PATH)" />
             <TextBox Text="{Binding FfprobePath}" PlaceholderText="Repli : chemin de ffprobe (facultatif)" />
@@ -379,19 +379,19 @@
       <!-- Sauvegardes (dumps) du catalogue -->
       <TabItem Header="Sauvegardes" IsVisible="{Binding HasBackups}">
         <ScrollViewer DataContext="{Binding Backups}" x:DataType="vm:BackupsViewModel">
-          <StackPanel Spacing="10" Margin="12,0,16,0">
+          <StackPanel Spacing="{StaticResource Space3}" Margin="{StaticResource Edges3_0_4_0}">
             <TextBlock Classes="h" Text="Contenu des sauvegardes" Margin="0" />
             <CheckBox Content="Base de données : fiches, notes, prêts, fichiers, réglages du catalogue" IsChecked="{Binding IncludeDatabase}" />
             <CheckBox Content="Images : affiches, fonds, photos des acteurs, décors des collections" IsChecked="{Binding IncludeImages}" />
             <CheckBox Content="Préférences communes : apparence, langue, fenêtre, journal" IsChecked="{Binding IncludePreferences}" />
 
             <TextBlock Classes="h" Text="Dossier et planification" />
-            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="{StaticResource Space2}">
               <TextBox Text="{Binding Folder}" FontFamily="Consolas,Menlo,monospace" />
               <Button Grid.Column="1" Classes="tool" Content="Choisir…" Click="OnChooseBackupFolder" />
               <Button Grid.Column="2" Classes="tool" Content="Ouvrir" Click="OnOpenBackupFolder" />
             </Grid>
-            <Grid ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="8">
+            <Grid ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="{StaticResource Space3}" RowSpacing="{StaticResource Space2}">
               <TextBlock Text="Sauvegarde automatique" VerticalAlignment="Center" />
               <ComboBox Grid.Column="1" ItemsSource="{Binding Schedules}" SelectedItem="{Binding SelectedSchedule}" MinWidth="280" />
               <TextBlock Grid.Row="1" Text="Sauvegardes gardées (0 : toutes)" VerticalAlignment="Center" />
@@ -400,10 +400,10 @@
             <TextBlock Classes="hint" Text="La sauvegarde automatique se fait en arrière-plan pendant que Cinedex est ouvert, selon la fréquence choisie ; les plus anciennes au-delà du nombre gardé sont effacées. Réglages pris en compte à l'enregistrement." />
             <TextBlock Text="{Binding LastRun}" Classes="hint" />
 
-            <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0">
+            <Grid ColumnDefinitions="*,Auto" Margin="{StaticResource Above2}">
               <TextBlock Classes="h" Text="Sauvegardes du catalogue" Margin="0" VerticalAlignment="Center" />
               <Button Grid.Column="1" Classes="outline" Command="{Binding BackupNowCommand}">
-                <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
                   <controls:Icon Kind="backup" Width="16" Height="16" />
                   <TextBlock Text="Sauvegarder maintenant" />
                 </StackPanel>
@@ -414,7 +414,7 @@
             <ListBox ItemsSource="{Binding Dumps}" SelectedItem="{Binding SelectedDump}" MaxHeight="220">
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:DumpRow">
-                  <StackPanel Spacing="2">
+                  <StackPanel Spacing="{StaticResource Space1}">
                     <TextBlock Text="{Binding Date}" FontWeight="SemiBold" />
                     <TextBlock Text="{Binding Details}" Classes="muted" FontSize="{StaticResource FontSmall}" />
                   </StackPanel>
@@ -422,7 +422,7 @@
               </ListBox.ItemTemplate>
             </ListBox>
             <TextBlock Classes="hint" Text="Aucune sauvegarde dans ce dossier." IsVisible="{Binding !Dumps.Count}" />
-            <StackPanel Orientation="Horizontal" Spacing="8">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
               <Button Classes="tool" Content="Restaurer…" Command="{Binding RestoreCommand}"
                       ToolTip.Tip="Remplace la base du catalogue ouvert par celle de la sauvegarde et ajoute ses images ; une copie de la base actuelle est gardée" />
               <Button Classes="tool" Content="Supprimer…" Command="{Binding DeleteCommand}" />
@@ -434,15 +434,15 @@
       <!-- Export de la liste des films -->
       <TabItem Header="Export" IsVisible="{Binding HasExport}">
         <ScrollViewer DataContext="{Binding Export}" x:DataType="vm:ExportViewModel">
-          <StackPanel Spacing="10" Margin="12,0,16,0">
+          <StackPanel Spacing="{StaticResource Space3}" Margin="{StaticResource Edges3_0_4_0}">
             <TextBlock Classes="h" Text="Exporter la liste des films" Margin="0" />
-            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="8">
+            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="{StaticResource Space3}" RowSpacing="{StaticResource Space2}">
               <TextBlock Text="Films" VerticalAlignment="Center" />
               <ComboBox Grid.Column="1" ItemsSource="{Binding Scopes}" SelectedItem="{Binding SelectedScope}" HorizontalAlignment="Stretch" />
               <TextBlock Grid.Row="1" Text="Format" VerticalAlignment="Center" />
               <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Formats}" SelectedItem="{Binding SelectedFormat}" HorizontalAlignment="Stretch" />
             </Grid>
-            <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,6,0,0">
+            <Grid ColumnDefinitions="*,Auto,Auto" Margin="{StaticResource Above2}">
               <TextBlock Classes="h" Text="Colonnes" Margin="0" VerticalAlignment="Center" />
               <Button Grid.Column="1" Classes="tool" Content="Tout cocher" Click="OnExportAll" />
               <Button Grid.Column="2" Classes="tool" Content="Tout décocher" Click="OnExportNone" />
@@ -455,12 +455,12 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:ExportColumnToggle">
-                  <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked}" Width="200" Margin="0,0,8,2" />
+                  <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked}" Width="200" Margin="{StaticResource Edges0_0_2_1}" />
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
             <Button Classes="outline" HorizontalAlignment="Left" Click="OnExport">
-              <StackPanel Orientation="Horizontal" Spacing="8">
+              <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
                 <controls:Icon Kind="export" Width="16" Height="16" />
                 <TextBlock Text="Exporter…" />
               </StackPanel>
@@ -475,37 +475,37 @@
       <!-- Maintenance de la base du catalogue ouvert -->
       <TabItem Header="Maintenance" IsVisible="{Binding HasMaintenance}">
         <ScrollViewer DataContext="{Binding Maintenance}" x:DataType="vm:MaintenanceViewModel">
-          <StackPanel Spacing="10" Margin="12,0,16,0">
+          <StackPanel Spacing="{StaticResource Space3}" Margin="{StaticResource Edges3_0_4_0}">
             <TextBlock Classes="h" Text="Base de données" Margin="0" />
             <SelectableTextBlock Text="{Binding InfoText}" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" Opacity="0.8" />
             <TextBlock Classes="hint" Text="Les opérations ci-dessous s'appliquent tout de suite au catalogue ouvert, sans passer par « Enregistrer ». Une sauvegarde de la base est faite avant chaque opération qui la modifie." />
-            <Border Padding="10" CornerRadius="{StaticResource RadiusCard}" Background="{DynamicResource CinedexSurfaceAlt}" IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <Border Padding="{StaticResource Inset3}" CornerRadius="{StaticResource RadiusCard}" Background="{DynamicResource CinedexSurfaceAlt}" IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
               <SelectableTextBlock Text="{Binding Message}" TextWrapping="Wrap" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}" />
             </Border>
 
             <TextBlock Classes="h" Text="Catalogue" />
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource Space2}">
               <TextBox Text="{Binding NewName}" PlaceholderText="Nouveau nom du catalogue" />
               <Button Grid.Column="1" Classes="tool" Content="Renommer le catalogue…" Command="{Binding RenameCommand}" />
             </Grid>
             <WrapPanel>
-              <Button Classes="tool" Margin="0,0,8,8" Content="Sauvegarder maintenant" Command="{Binding BackupCommand}" />
-              <Button Classes="tool" Margin="0,0,8,8" Content="Ouvrir le dossier des sauvegardes" Click="OnOpenBackups" />
+              <Button Classes="tool" Margin="{StaticResource Trail2}" Content="Sauvegarder maintenant" Command="{Binding BackupCommand}" />
+              <Button Classes="tool" Margin="{StaticResource Trail2}" Content="Ouvrir le dossier des sauvegardes" Click="OnOpenBackups" />
             </WrapPanel>
 
             <TextBlock Classes="h" Text="Acteurs et réalisateurs" />
             <WrapPanel>
-              <Button Classes="tool" Margin="0,0,8,8" Content="{Binding UnusedPeopleLabel}" Command="{Binding RemoveUnusedPeopleCommand}"
+              <Button Classes="tool" Margin="{StaticResource Trail2}" Content="{Binding UnusedPeopleLabel}" Command="{Binding RemoveUnusedPeopleCommand}"
                       ToolTip.Tip="Personnes qui ne figurent plus dans le générique d'aucun film (films supprimés, distribution réduite)" />
-              <Button Classes="tool" Margin="0,0,8,8" Content="Fusionner les doublons d'acteurs et de réalisateurs…" Command="{Binding MergePeopleCommand}"
+              <Button Classes="tool" Margin="{StaticResource Trail2}" Content="Fusionner les doublons d'acteurs et de réalisateurs…" Command="{Binding MergePeopleCommand}"
                       ToolTip.Tip="Regroupe les fiches au nom identique ; les homonymes aux fiches TMDb ou IMDb différentes restent distincts" />
             </WrapPanel>
 
             <TextBlock Classes="h" Text="Films" />
             <WrapPanel>
-              <Button Classes="tool" Margin="0,0,8,8" Content="Trouver les films en double" Command="{Binding FindDuplicatesCommand}"
+              <Button Classes="tool" Margin="{StaticResource Trail2}" Content="Trouver les films en double" Command="{Binding FindDuplicatesCommand}"
                       ToolTip.Tip="Même identifiant IMDb, ou même titre et même année ; rien n'est supprimé" />
-              <Button Classes="tool" Margin="0,0,8,8" Content="{Binding RenumberLabel}" Command="{Binding RenumberCommand}"
+              <Button Classes="tool" Margin="{StaticResource Trail2}" Content="{Binding RenumberLabel}" Command="{Binding RenumberCommand}"
                       ToolTip.Tip="Numérote les exemplaires (colonne N°) de 1 à n dans l'ordre de tri de la liste principale" />
             </WrapPanel>
             <ListBox ItemsSource="{Binding Duplicates}" SelectedItem="{Binding SelectedDuplicate}" MaxHeight="260" DoubleTapped="OnDuplicateChosen"
@@ -514,7 +514,7 @@
                 <DataTemplate x:DataType="vm:DuplicateRow">
                   <Panel>
                     <TextBlock Text="{Binding Text}" FontWeight="SemiBold" FontSize="{StaticResource FontSmall}" Opacity="0.7" IsVisible="{Binding IsHeader}" />
-                    <TextBlock Text="{Binding Text}" Margin="14,0,0,0" IsVisible="{Binding !IsHeader}" ToolTip.Tip="Double-clic : afficher ce titre dans le catalogue" />
+                    <TextBlock Text="{Binding Text}" Margin="{StaticResource Before4}" IsVisible="{Binding !IsHeader}" ToolTip.Tip="Double-clic : afficher ce titre dans le catalogue" />
                   </Panel>
                 </DataTemplate>
               </ListBox.ItemTemplate>
@@ -522,15 +522,15 @@
 
             <TextBlock Classes="h" Text="Nettoyage" />
             <WrapPanel>
-              <Button Classes="tool" Margin="0,0,8,8" Content="Supprimer les collections, tags et groupes vides…" Command="{Binding RemoveEmptyLabelsCommand}" />
-              <Button Classes="tool" Margin="0,0,8,8" Content="Nettoyer les images inutilisées…" Command="{Binding RemoveUnusedImagesCommand}"
+              <Button Classes="tool" Margin="{StaticResource Trail2}" Content="Supprimer les collections, tags et groupes vides…" Command="{Binding RemoveEmptyLabelsCommand}" />
+              <Button Classes="tool" Margin="{StaticResource Trail2}" Content="Nettoyer les images inutilisées…" Command="{Binding RemoveUnusedImagesCommand}"
                       ToolTip.Tip="Affiches, fonds et photos que plus rien n'utilise, en base et sur le disque" />
             </WrapPanel>
 
             <TextBlock Classes="h" Text="Contrôle et optimisation" />
             <WrapPanel>
-              <Button Classes="tool" Margin="0,0,8,8" Content="Vérifier l'intégrité de la base" Command="{Binding CheckIntegrityCommand}" />
-              <Button Classes="tool" Margin="0,0,8,8" Content="Compacter et optimiser la base" Command="{Binding OptimizeCommand}"
+              <Button Classes="tool" Margin="{StaticResource Trail2}" Content="Vérifier l'intégrité de la base" Command="{Binding CheckIntegrityCommand}" />
+              <Button Classes="tool" Margin="{StaticResource Trail2}" Content="Compacter et optimiser la base" Command="{Binding OptimizeCommand}"
                       ToolTip.Tip="Récupère la place libérée par les suppressions et accélère les recherches" />
             </WrapPanel>
           </StackPanel>
@@ -540,7 +540,7 @@
       <!-- Statistiques du catalogue ouvert -->
       <TabItem Header="Statistiques" IsVisible="{Binding HasStatistics}">
         <ScrollViewer>
-          <StackPanel Spacing="14" Margin="12,0,0,0">
+          <StackPanel Spacing="{StaticResource Space4}" Margin="{StaticResource Before3}">
             <ItemsControl ItemsSource="{Binding StatCards}">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
@@ -549,9 +549,9 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:StatCard">
-                  <Border Width="150" Margin="0,0,10,10" Padding="12,10" CornerRadius="{StaticResource RadiusCard}" Background="{DynamicResource CinedexSurfaceAlt}"
-                          BorderBrush="{DynamicResource CinedexBorder}" BorderThickness="1">
-                    <StackPanel Spacing="2">
+                  <Border Width="150" Margin="{StaticResource Trail3}" Padding="{StaticResource Inset3}" CornerRadius="{StaticResource RadiusCard}" Background="{DynamicResource CinedexSurfaceAlt}"
+                          BorderBrush="{DynamicResource CinedexBorder}" BorderThickness="{StaticResource Hairline}">
+                    <StackPanel Spacing="{StaticResource Space1}">
                       <TextBlock Text="{Binding Value}" FontSize="{StaticResource FontTitle}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}" />
                       <TextBlock Text="{Binding Label}" FontSize="{StaticResource FontSmall}" Opacity="0.75" TextWrapping="Wrap" />
                     </StackPanel>
@@ -563,9 +563,9 @@
             <ItemsControl ItemsSource="{Binding Statistics.Genres}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="data:StatCount">
-                  <Grid ColumnDefinitions="200,*,60" Margin="0,2">
+                  <Grid ColumnDefinitions="200,*,60" Margin="{StaticResource Block1}">
                     <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                    <ProgressBar Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding Ratio}" Height="10" MinWidth="0" Margin="8,0" VerticalAlignment="Center" />
+                    <ProgressBar Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding Ratio}" Height="10" MinWidth="0" Margin="{StaticResource Inline2}" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="2" Text="{Binding Count}" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold" />
                   </Grid>
                 </DataTemplate>
@@ -575,9 +575,9 @@
             <ItemsControl ItemsSource="{Binding Statistics.Decades}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="data:StatCount">
-                  <Grid ColumnDefinitions="200,*,60" Margin="0,2">
+                  <Grid ColumnDefinitions="200,*,60" Margin="{StaticResource Block1}">
                     <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                    <ProgressBar Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding Ratio}" Height="10" MinWidth="0" Margin="8,0" VerticalAlignment="Center" />
+                    <ProgressBar Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding Ratio}" Height="10" MinWidth="0" Margin="{StaticResource Inline2}" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="2" Text="{Binding Count}" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold" />
                   </Grid>
                 </DataTemplate>
@@ -587,9 +587,9 @@
             <ItemsControl ItemsSource="{Binding Statistics.Definitions}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="data:StatCount">
-                  <Grid ColumnDefinitions="200,*,60" Margin="0,2">
+                  <Grid ColumnDefinitions="200,*,60" Margin="{StaticResource Block1}">
                     <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                    <ProgressBar Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding Ratio}" Height="10" MinWidth="0" Margin="8,0" VerticalAlignment="Center" />
+                    <ProgressBar Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding Ratio}" Height="10" MinWidth="0" Margin="{StaticResource Inline2}" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="2" Text="{Binding Count}" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold" />
                   </Grid>
                 </DataTemplate>
@@ -599,9 +599,9 @@
             <ItemsControl ItemsSource="{Binding Statistics.Media}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="data:StatCount">
-                  <Grid ColumnDefinitions="200,*,60" Margin="0,2">
+                  <Grid ColumnDefinitions="200,*,60" Margin="{StaticResource Block1}">
                     <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                    <ProgressBar Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding Ratio}" Height="10" MinWidth="0" Margin="8,0" VerticalAlignment="Center" />
+                    <ProgressBar Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding Ratio}" Height="10" MinWidth="0" Margin="{StaticResource Inline2}" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="2" Text="{Binding Count}" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold" />
                   </Grid>
                 </DataTemplate>
@@ -611,9 +611,9 @@
             <ItemsControl ItemsSource="{Binding Statistics.Disks}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="data:StatCount">
-                  <Grid ColumnDefinitions="200,*,60" Margin="0,2">
+                  <Grid ColumnDefinitions="200,*,60" Margin="{StaticResource Block1}">
                     <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                    <ProgressBar Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding Ratio}" Height="10" MinWidth="0" Margin="8,0" VerticalAlignment="Center" />
+                    <ProgressBar Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding Ratio}" Height="10" MinWidth="0" Margin="{StaticResource Inline2}" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="2" Text="{Binding Count}" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold" />
                   </Grid>
                 </DataTemplate>

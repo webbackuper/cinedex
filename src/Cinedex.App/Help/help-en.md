@@ -201,6 +201,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.4
+- **Design tokens**: every margin, spacing, corner radius, text size and exception colour now comes from a single dictionary, on a 4 px grid. Irregular spacings are aligned and the last decorative shadows removed. A test checks at every build that no hard-coded value comes back.
+
 ### 0.4.3
 - **New visual direction**: neutral stone ground, near-black ink and a single velvet-red accent kept for data; selected menu and list items as a grey pill; one near-black primary button per screen; pale chips; a scale of 5 text sizes and 3 corner radii across the app. The appearance presets become "Stone" (menus) and "Velvet red" / "Amber" (accent).
 

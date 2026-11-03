@@ -9,15 +9,15 @@
         Width="620" Height="480" MinWidth="460" MinHeight="360"
         WindowStartupLocation="CenterOwner">
   <DockPanel Margin="{StaticResource WindowPadding}">
-    <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Margin="0,0,0,8"
+    <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Margin="{StaticResource Below2}"
                Text="Chaque catalogue est une base indépendante, avec ses titres, ses images et ses réglages. Un nouveau catalogue reprend les réglages du catalogue ouvert." />
-    <TextBlock DockPanel.Dock="Top" Margin="0,0,0,12" FontWeight="SemiBold" Text="{Binding Current, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='Catalogue ouvert : {0}'}" />
+    <TextBlock DockPanel.Dock="Top" Margin="{StaticResource Below3}" FontWeight="SemiBold" Text="{Binding Current, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='Catalogue ouvert : {0}'}" />
 
-    <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,12,0,0">
+    <StackPanel DockPanel.Dock="Bottom" Spacing="{StaticResource Space2}" Margin="{StaticResource Above3}">
       <TextBox Text="{Binding NameText}" PlaceholderText="Nom (nouveau catalogue ou nouveau nom)" />
       <TextBlock Text="{Binding Message}" TextWrapping="Wrap" Opacity="0.8"
                  IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-      <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}" HorizontalAlignment="Right">
         <Button Content="Créer et ouvrir" Command="{Binding CreateCommand}" />
         <Button Content="Renommer" Command="{Binding RenameCommand}" />
         <Button Content="Retirer" Command="{Binding RemoveCommand}" ToolTip.Tip="Le catalogue est déplacé dans les sauvegardes, pas effacé" />

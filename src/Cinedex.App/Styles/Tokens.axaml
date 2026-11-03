@@ -1,0 +1,137 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!--
+    Jetons de design de Cinedex : la seule source des tailles, rayons, espacements et couleurs d'exception.
+    Aucune vue ne doit contenir de valeur en dur (le test DesignTokensTests le vérifie à chaque compilation).
+
+    Règles verrouillées du Taste Skill appliquées ici (« House rules », sans exception) :
+    - une grille sur une base de 4 px : espacements 4, 8, 12, 16, 24, 32, 48 et rien d'autre ;
+    - cinq tailles de texte au plus, éloignées ; une seule famille de caractères ;
+    - un sol, une encre, un accent (palette dans App.axaml, thèmes clair et sombre) ; jamais crème + terre cuite ;
+    - aucun dégradé, sauf le voile neutre sous un texte posé sur une photo (Scrim*) ;
+    - aucune ombre sur ce qui est au repos : seulement sur ce qui flotte (menu, boîte de dialogue, économiseur) ;
+    - pas de petites capitales espacées, pas d'emoji, pas de verre ni de flou décoratif ;
+    - bordures de 1 px tolérées sur les surfaces de travail (règle « écrans d'application » du skill).
+
+    Nommage des marges : l'unité vaut 4 px. Below3 = 12 px dessous, Inline4 = 16 px à gauche et à droite,
+    Inset2x1 = 8 px horizontal et 4 px vertical, Trail2 = 8 px à droite et dessous (éléments d'un WrapPanel),
+    Edges3_0_4_0 = gauche 12, haut 0, droite 16, bas 0.
+  -->
+
+  <!-- Échelle d'espacement (StackPanel.Spacing, Grid.ColumnSpacing…) -->
+  <x:Double x:Key="Space1">4</x:Double>
+  <x:Double x:Key="Space2">8</x:Double>
+  <x:Double x:Key="Space3">12</x:Double>
+  <x:Double x:Key="Space4">16</x:Double>
+  <x:Double x:Key="Space6">24</x:Double>
+  <x:Double x:Key="Space8">32</x:Double>
+  <x:Double x:Key="Space12">48</x:Double>
+
+  <!-- Texte : cinq tailles -->
+  <x:Double x:Key="FontSmall">12</x:Double>
+  <x:Double x:Key="FontBody">14</x:Double>
+  <x:Double x:Key="FontSection">16</x:Double>
+  <x:Double x:Key="FontTitle">20</x:Double>
+  <x:Double x:Key="FontPage">24</x:Double>
+  <!-- Économiseur d'écran : seul contexte d'affichage plein écran, lu de loin -->
+  <x:Double x:Key="FontDisplay">32</x:Double>
+  <x:Double x:Key="FontDisplaySubtitle">16</x:Double>
+
+  <!-- Rayons : trois valeurs serrées ; les photos de personnes et les pastilles rondes sont à moitié de leur taille -->
+  <CornerRadius x:Key="RadiusCard">8</CornerRadius>
+  <CornerRadius x:Key="RadiusControl">6</CornerRadius>
+  <CornerRadius x:Key="RadiusChip">4</CornerRadius>
+  <CornerRadius x:Key="RoundBadge">11</CornerRadius>        <!-- pastille ronde de 22 px sur une affiche -->
+  <CornerRadius x:Key="RoundPill">17</CornerRadius>         <!-- pastille de couleur de 34 px -->
+  <CornerRadius x:Key="RoundAvatar">20</CornerRadius>       <!-- photo de 40 px -->
+  <CornerRadius x:Key="RoundAvatarLarge">28</CornerRadius>  <!-- photo de 56 px -->
+
+  <!-- Bordure des surfaces de travail -->
+  <Thickness x:Key="Hairline">1</Thickness>
+  <Thickness x:Key="HairlineEnd">0,0,1,0</Thickness>
+
+  <!-- Marges et rembourrages -->
+  <Thickness x:Key="WindowPadding">24</Thickness>
+  <Thickness x:Key="ScreenSaverInset">64,48</Thickness>
+  <Thickness x:Key="Above1">0,4,0,0</Thickness>
+  <Thickness x:Key="Above2">0,8,0,0</Thickness>
+  <Thickness x:Key="Above3">0,12,0,0</Thickness>
+  <Thickness x:Key="Above6">0,24,0,0</Thickness>
+  <Thickness x:Key="After1">0,0,4,0</Thickness>
+  <Thickness x:Key="After2">0,0,8,0</Thickness>
+  <Thickness x:Key="After4">0,0,16,0</Thickness>
+  <Thickness x:Key="After6">0,0,24,0</Thickness>
+  <Thickness x:Key="Before1">4,0,0,0</Thickness>
+  <Thickness x:Key="Before2">8,0,0,0</Thickness>
+  <Thickness x:Key="Before3">12,0,0,0</Thickness>
+  <Thickness x:Key="Before4">16,0,0,0</Thickness>
+  <Thickness x:Key="Before6">24,0,0,0</Thickness>
+  <Thickness x:Key="Below2">0,0,0,8</Thickness>
+  <Thickness x:Key="Below3">0,0,0,12</Thickness>
+  <Thickness x:Key="Below4">0,0,0,16</Thickness>
+  <Thickness x:Key="Block1">0,4,0,4</Thickness>
+  <Thickness x:Key="Block2">0,8,0,8</Thickness>
+  <Thickness x:Key="Edges0_0_1_2">0,0,4,8</Thickness>
+  <Thickness x:Key="Edges0_0_2_1">0,0,8,4</Thickness>
+  <Thickness x:Key="Edges0_1_0_3">0,4,0,12</Thickness>
+  <Thickness x:Key="Edges0_4_4_4">0,16,16,16</Thickness>
+  <Thickness x:Key="Edges1_0_0_2">4,0,0,8</Thickness>
+  <Thickness x:Key="Edges1_0_0_3">4,0,0,12</Thickness>
+  <Thickness x:Key="Edges1_2_1_3">4,8,4,12</Thickness>
+  <Thickness x:Key="Edges2_1_2_0">8,4,8,0</Thickness>
+  <Thickness x:Key="Edges2_2_2_4">8,8,8,16</Thickness>
+  <Thickness x:Key="Edges3_0_1_0">12,0,4,0</Thickness>
+  <Thickness x:Key="Edges3_0_4_0">12,0,16,0</Thickness>
+  <Thickness x:Key="Edges3_2_2_0">12,8,8,0</Thickness>
+  <Thickness x:Key="Edges4_0_0_1">16,0,0,4</Thickness>
+  <Thickness x:Key="Edges4_0_0_2">16,0,0,8</Thickness>
+  <Thickness x:Key="Edges4_1_0_0">16,4,0,0</Thickness>
+  <Thickness x:Key="Edges4_6_0_2">16,24,0,8</Thickness>
+  <Thickness x:Key="Edges6_4_3_0">24,16,12,0</Thickness>
+  <Thickness x:Key="Edges6_6_4_2">24,24,16,8</Thickness>
+  <Thickness x:Key="Edges8_6_8_8">32,24,32,32</Thickness>
+  <Thickness x:Key="Inline1">4,0,4,0</Thickness>
+  <Thickness x:Key="Inline2">8,0,8,0</Thickness>
+  <Thickness x:Key="Inline3">12,0,12,0</Thickness>
+  <Thickness x:Key="Inline4">16,0,16,0</Thickness>
+  <Thickness x:Key="Inset1">4,4,4,4</Thickness>
+  <Thickness x:Key="Inset1x2">4,8,4,8</Thickness>
+  <Thickness x:Key="Inset2x1">8,4,8,4</Thickness>
+  <Thickness x:Key="Inset2">8,8,8,8</Thickness>
+  <Thickness x:Key="Inset3x1">12,4,12,4</Thickness>
+  <Thickness x:Key="Inset3x2">12,8,12,8</Thickness>
+  <Thickness x:Key="Inset3">12,12,12,12</Thickness>
+  <Thickness x:Key="Inset4x3">16,12,16,12</Thickness>
+  <Thickness x:Key="Inset4">16,16,16,16</Thickness>
+  <Thickness x:Key="Inset6x4">24,16,24,16</Thickness>
+  <Thickness x:Key="Inset6">24,24,24,24</Thickness>
+  <Thickness x:Key="Trail1">0,0,4,4</Thickness>
+  <Thickness x:Key="Trail2">0,0,8,8</Thickness>
+  <Thickness x:Key="Trail3">0,0,12,12</Thickness>
+
+  <!-- Couleurs d'exception : sur photo (voiles neutres) et logos des sources de notes (ce sont des données) -->
+  <Color x:Key="OnImageText">#D9FFFFFF</Color>
+  <SolidColorBrush x:Key="OnImageTextBrush" Color="{StaticResource OnImageText}" />
+  <Color x:Key="OnImageTitle">#E6FFFFFF</Color>
+  <SolidColorBrush x:Key="OnImageTitleBrush" Color="{StaticResource OnImageTitle}" />
+  <Color x:Key="OnImageSubtle">#B0FFFFFF</Color>
+  <SolidColorBrush x:Key="OnImageSubtleBrush" Color="{StaticResource OnImageSubtle}" />
+  <Color x:Key="OnImageLine">#99FFFFFF</Color>
+  <SolidColorBrush x:Key="OnImageLineBrush" Color="{StaticResource OnImageLine}" />
+  <Color x:Key="BadgeScrim">#B3000000</Color>
+  <SolidColorBrush x:Key="BadgeScrimBrush" Color="{StaticResource BadgeScrim}" />
+  <Color x:Key="ScrimTop">#33000000</Color>
+  <SolidColorBrush x:Key="ScrimTopBrush" Color="{StaticResource ScrimTop}" />
+  <Color x:Key="ScrimClear">#00000000</Color>
+  <SolidColorBrush x:Key="ScrimClearBrush" Color="{StaticResource ScrimClear}" />
+  <Color x:Key="ScrimBottom">#E6000000</Color>
+  <SolidColorBrush x:Key="ScrimBottomBrush" Color="{StaticResource ScrimBottom}" />
+  <Color x:Key="BrandImdb">#F5C518</Color>
+  <SolidColorBrush x:Key="BrandImdbBrush" Color="{StaticResource BrandImdb}" />
+  <Color x:Key="BrandRottenTomatoes">#FA320A</Color>
+  <SolidColorBrush x:Key="BrandRottenTomatoesBrush" Color="{StaticResource BrandRottenTomatoes}" />
+  <Color x:Key="BrandMetacritic">#2B2B2B</Color>
+  <SolidColorBrush x:Key="BrandMetacriticBrush" Color="{StaticResource BrandMetacritic}" />
+  <Color x:Key="BrandMetacriticInk">#FFCC33</Color>
+  <SolidColorBrush x:Key="BrandMetacriticInkBrush" Color="{StaticResource BrandMetacriticInk}" />
+</ResourceDictionary>

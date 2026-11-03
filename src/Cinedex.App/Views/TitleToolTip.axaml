@@ -5,11 +5,11 @@
              x:DataType="titles:TitleSummary"
              MaxWidth="380">
   <!-- Infobulle d'un film de la liste : titre, genres, note IMDb, début du synopsis (réglage « Infobulles »). -->
-  <StackPanel Spacing="4" Margin="2">
+  <StackPanel Spacing="{StaticResource Space1}" Margin="{StaticResource Inset1}">
     <TextBlock Text="{Binding TitleWithYear}" FontWeight="SemiBold" FontSize="{StaticResource FontBody}" TextWrapping="Wrap" />
     <TextBlock Text="{Binding GenresText}" FontSize="{StaticResource FontSmall}" Opacity="0.75" TextWrapping="Wrap" IsVisible="{Binding HasGenres}" />
     <TextBlock Text="{Binding ImdbText}" FontSize="{StaticResource FontSmall}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}" IsVisible="{Binding HasImdb}" />
-    <TextBlock Text="{Binding Overview}" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" MaxLines="8" TextTrimming="CharacterEllipsis" Margin="0,4,0,0"
+    <TextBlock Text="{Binding Overview}" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" MaxLines="8" TextTrimming="CharacterEllipsis" Margin="{StaticResource Above1}"
                IsVisible="{Binding HasOverview}" />
   </StackPanel>
 </UserControl>

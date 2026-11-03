@@ -9,14 +9,14 @@
         Width="860" Height="560" MinWidth="640" MinHeight="380"
         WindowStartupLocation="CenterOwner">
   <DockPanel Margin="{StaticResource WindowPadding}">
-    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="{StaticResource Space2}" Margin="{StaticResource Below3}">
       <TextBlock Text="Afficher les films qui respectent" VerticalAlignment="Center" />
       <ComboBox ItemsSource="{Binding MatchChoices}" SelectedItem="{Binding SelectedMatch}" MinWidth="260" />
     </StackPanel>
 
-    <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" Margin="0,12,0,0">
+    <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" Margin="{StaticResource Above3}">
       <TextBlock Text="{Binding CountText}" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}" />
-      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="{StaticResource Space2}">
         <Button Classes="tool" Content="Tout effacer" Command="{Binding ClearRulesCommand}" />
         <Button Classes="tool" Content="Annuler" IsCancel="True" Click="OnCancel" />
         <Button Classes="primary" Content="Rechercher" IsDefault="True" Click="OnSearch" />
@@ -24,15 +24,15 @@
     </Grid>
 
     <ScrollViewer>
-      <StackPanel Spacing="6">
+      <StackPanel Spacing="{StaticResource Space2}">
         <ItemsControl ItemsSource="{Binding Rules}">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="vm:RuleRowViewModel">
-              <Grid ColumnDefinitions="260,8,170,8,*,8,Auto" Margin="0,3">
+              <Grid ColumnDefinitions="260,8,170,8,*,8,Auto" Margin="{StaticResource Block1}">
                 <ComboBox ItemsSource="{Binding Fields}" SelectedItem="{Binding SelectedField}" HorizontalAlignment="Stretch" MaxDropDownHeight="420">
                   <ComboBox.ItemTemplate>
                     <DataTemplate x:DataType="titles:SearchField">
-                      <StackPanel Orientation="Horizontal" Spacing="6">
+                      <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
                         <TextBlock Text="{Binding Label}" />
                         <TextBlock Text="{Binding Group, StringFormat='· {0}'}" Opacity="0.5" />
                       </StackPanel>
@@ -52,12 +52,12 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
         <Button Classes="tool" HorizontalAlignment="Left" Command="{Binding AddRuleCommand}">
-          <StackPanel Orientation="Horizontal" Spacing="8">
+          <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
             <controls:Icon Kind="add" Width="16" Height="16" />
             <TextBlock Text="Ajouter une condition" />
           </StackPanel>
         </Button>
-        <TextBlock Margin="0,10,0,0" Opacity="0.6" TextWrapping="Wrap"
+        <TextBlock Margin="{StaticResource Above3}" Opacity="0.6" TextWrapping="Wrap"
                    Text="Exemple : Genre est Comédie, puis Note IMDb &gt; 7, puis Année ≥ 2000. Les textes ignorent les majuscules ; « contient » cherche une partie du texte." />
       </StackPanel>
     </ScrollViewer>

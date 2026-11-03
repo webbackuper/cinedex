@@ -6,7 +6,7 @@
         Title="Modification groupée"
         Width="560" SizeToContent="Height" CanResize="False"
         WindowStartupLocation="CenterOwner">
-  <StackPanel Margin="{StaticResource WindowPadding}" Spacing="10">
+  <StackPanel Margin="{StaticResource WindowPadding}" Spacing="{StaticResource Space3}">
     <TextBlock Text="{Binding Header}" TextWrapping="Wrap" FontWeight="SemiBold" />
     <TextBlock Text="Case grisée : inchangé. Cochée : oui. Décochée : non." Opacity="0.7" FontSize="{StaticResource FontSmall}" />
     <CheckBox IsThreeState="True" IsChecked="{Binding IsOwned}" Content="Possédé (non : liste de souhaits)" />
@@ -14,10 +14,10 @@
     <CheckBox IsThreeState="True" IsChecked="{Binding IsFavorite}" Content="Favori" />
     <CheckBox IsThreeState="True" IsChecked="{Binding IsShortlisted}" Content="Liste courte" />
     <CheckBox IsThreeState="True" IsChecked="{Binding IsLocked}" Content="Verrouillé contre les mises à jour Internet" />
-    <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" Margin="0,8,0,0">
+    <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" Margin="{StaticResource Above2}">
       <Grid.Styles>
         <Style Selector="Grid > :is(Control)">
-          <Setter Property="Margin" Value="0,4" />
+          <Setter Property="Margin" Value="{StaticResource Block1}" />
         </Style>
         <Style Selector="Grid > TextBlock">
           <Setter Property="VerticalAlignment" Value="Center" />
@@ -36,7 +36,7 @@
       <TextBlock Grid.Row="5" Text="Ajouter à des groupes" />
       <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding AddGroups}" />
     </Grid>
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,8,0,0">
+    <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}" HorizontalAlignment="Right" Margin="{StaticResource Above2}">
       <Button Classes="tool" Content="Annuler" IsCancel="True" Click="OnCancel" />
       <Button Classes="primary" Content="Appliquer" IsDefault="True" Click="OnApply" />
     </StackPanel>

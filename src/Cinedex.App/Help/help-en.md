@@ -201,6 +201,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.5
+- Right-hand panel: the **genres** of the selected title are shown as chips, between the buttons and the ratings.
+
 ### 0.4.4
 - **Design tokens**: every margin, spacing, corner radius, text size and exception colour now comes from a single dictionary, on a 4 px grid. Irregular spacings are aligned and the last decorative shadows removed. A test checks at every build that no hard-coded value comes back.
 

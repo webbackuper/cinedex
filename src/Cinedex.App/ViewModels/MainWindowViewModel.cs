@@ -506,6 +506,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public bool HasPeople => _media?.People is not null;
 
+    /// <summary>Genres du titre affiché, dans la langue de l'interface (pastilles sous les boutons de la fiche).</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasDetailGenres))]
+    public partial IReadOnlyList<string> DetailGenres { get; set; } = [];
+
+    public bool HasDetailGenres => DetailGenres.Count > 0;
+
     private void LoadCredits()
     {
         Cast.Clear();
@@ -747,6 +754,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         BackdropPath = Detail is null ? null : _images?.PathFor(Detail.Id, "backdrop");
         DetailFiles = Detail is null || _media is null ? [] : _media.Files.FilesOf(Detail.Id);
         TechnicalSummary = Detail is null ? null : MediaTextOf(Detail.Id);
+        DetailGenres = Detail is null ? [] : _titles.GenreLabels(Detail.Id).Select(Tr.T).ToList();
         LoadCredits();
         LinkToTmdbCommand.NotifyCanExecuteChanged();
         OpenSeriesCommand.NotifyCanExecuteChanged();

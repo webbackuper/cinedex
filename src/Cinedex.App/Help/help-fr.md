@@ -201,6 +201,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.5
+- Fiche du bandeau droit : les **genres** du titre sélectionné s'affichent en pastilles, entre les boutons et les notes.
+
 ### 0.4.4
 - **Jetons de design** : toutes les marges, espacements, rayons, tailles de texte et couleurs d'exception viennent d'un seul dictionnaire, sur une grille de 4 px. Les espacements irréguliers sont alignés et les dernières ombres décoratives retirées. Un test vérifie à chaque compilation qu'aucune valeur en dur ne revient.
 

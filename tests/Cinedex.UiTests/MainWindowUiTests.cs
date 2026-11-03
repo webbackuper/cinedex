@@ -146,4 +146,31 @@ public sealed class MainWindowUiTests(UiSession ui)
         Assert.All(vm.Titles, t => Assert.True(t.IsSeen));
         Assert.True(vm.Titles.Count < 1_000);
     });
+
+    [Fact]
+    public Task Detail_panel_shows_the_genres_between_the_buttons_and_the_ratings() => ui.Run(() =>
+    {
+        using var catalog = new UiCatalog(50);
+        var vm = catalog.ViewModel;
+        vm.SelectedTitles.Add(vm.Titles[3]);
+        UiCatalog.Pump(100);
+
+        var expected = catalog.Titles.GenreLabels(vm.Titles[3].Id);
+        Assert.NotEmpty(expected);
+        Assert.Equal(expected, vm.DetailGenres);
+
+        // Pastilles affichées dans la fiche, après la rangée de boutons et avant les notes.
+        var genres = catalog.Find<ItemsControl>(c => Avalonia.Automation.AutomationProperties.GetName(c) == "Genres");
+        Assert.True(genres.IsEffectivelyVisible);
+        var panel = Assert.IsType<StackPanel>(genres.Parent);
+        var index = panel.Children.IndexOf(genres);
+        Assert.IsType<WrapPanel>(panel.Children[index - 1]);
+        Assert.Equal(vm.Detail, panel.Children[index + 1].DataContext);
+        UiCatalog.Shot(catalog.Window, "fiche-genres");
+
+        // Plus de genres quand rien n'est sélectionné.
+        vm.SelectedTitles.Clear();
+        UiCatalog.Pump();
+        Assert.Empty(vm.DetailGenres);
+    });
 }

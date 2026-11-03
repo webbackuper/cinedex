@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Construit l'APK Android de Cinedex (consultation d'un catalogue importé depuis une sauvegarde .zip).
 

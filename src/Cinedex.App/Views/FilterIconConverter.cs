@@ -26,6 +26,7 @@ public sealed class FilterIconConverter : IValueConverter
         QuickFilter.PhysicalMedia => "harddisk",
         QuickFilter.MediaFiles => "folder",
         QuickFilter.MissingFiles => "alert",
+        QuickFilter.NoMetadata => "cloud",
         _ => "funnel",
     };
 

@@ -103,6 +103,7 @@ Example: Genre is Comedy, then IMDb rating > 7, then Year ≥ 2000.
 ## The left sidebar
 - **Library**: quick views (watched, favorites, shortlist, lent, video files…).
 - **Definition**: submenu Standard definition, High definition, Ultra HD (4K), 3D.
+- At the top, the **Library**: All titles, Watched, Not watched yet, Favorites, Shortlist, Movies only, Series only, Lent, Video files, **Films without info** (titles never updated from TMDb) and the Definition submenu.
 - At the bottom: **To review**, **Advanced search**, **Actors**, **Directors**, **Series tracker**, **Collections**, **Appearance**, **Settings** and **Help**.
 
 The views and links shown are chosen in **Settings > Left sidebar**.
@@ -210,6 +211,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.16
+- **Films without info**: a Library view (left sidebar) lists the titles never updated from TMDb — scanned or added by hand. It can be hidden in Settings > Left sidebar, like the other views.
+
 ### 0.4.15
 - **Update of never-imported media** (Settings > Metadata): a button runs the TMDb update on the titles without a TMDb entry only — scanned or added by hand. The settings close and the update starts, with its progress bar.
 

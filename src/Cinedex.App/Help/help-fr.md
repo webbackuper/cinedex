@@ -103,6 +103,7 @@ Exemple : Genre est Comédie, puis Note IMDb > 7, puis Année ≥ 2000.
 ## Le bandeau gauche
 - **Bibliothèque** : vues rapides (vus, favoris, liste courte, prêtés, fichiers vidéo…).
 - **Définition** : sous-menu Définition standard, Haute définition, Ultra HD (4K), 3D.
+- En haut, la **Bibliothèque** : Tous les titres, Vus, Pas encore vus, Favoris, Liste courte, Films seulement, Séries seulement, Prêtés, Fichiers vidéo, **Films sans infos** (titres jamais mis à jour depuis TMDb) et le sous-menu Définition.
 - En bas : **À vérifier**, **Recherche multicritère**, **Acteurs**, **Réalisateurs**, **Suivi des séries**, **Collections**, **Apparence**, **Réglages** et **Aide**.
 
 Les vues et liens affichés se choisissent dans **Réglages > Bandeau gauche**.
@@ -210,6 +211,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.16
+- **Films sans infos** : une vue de la Bibliothèque (bandeau gauche) liste les titres jamais mis à jour depuis TMDb — scannés ou ajoutés à la main. Elle se masque dans Réglages > Bandeau gauche, comme les autres vues.
+
 ### 0.4.15
 - **Mise à jour des médias jamais importés** (Réglages > Métadonnées) : un bouton lance la mise à jour via TMDb des seuls titres sans fiche TMDb — scannés ou ajoutés à la main. Les réglages se ferment et la mise à jour démarre, avec sa barre de progression.
 

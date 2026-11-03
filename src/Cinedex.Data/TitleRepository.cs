@@ -518,6 +518,7 @@ public sealed partial class TitleRepository(CatalogDatabase database)
         QuickFilter.PhysicalMedia => "m.code IS NOT NULL AND m.code NOT IN ('media_file', 'digital', 'streaming')",
         QuickFilter.MediaFiles => "EXISTS (SELECT 1 FROM media_file mf JOIN copy cf ON cf.id = mf.copy_id WHERE cf.title_id = t.id)",
         QuickFilter.MissingFiles => "EXISTS (SELECT 1 FROM media_file mf JOIN copy cf ON cf.id = mf.copy_id WHERE cf.title_id = t.id AND mf.is_missing = 1)",
+        QuickFilter.NoMetadata => "t.tmdb_id IS NULL",
         _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, null),
     };
 

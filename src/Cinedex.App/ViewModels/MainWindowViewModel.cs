@@ -165,6 +165,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         new(QuickFilter.Series, "Séries seulement"),
         new(QuickFilter.Loaned, "Prêtés"),
         new(QuickFilter.MediaFiles, "Fichiers vidéo"),
+        new(QuickFilter.NoMetadata, "Films sans infos"),
     ];
 
     /// <summary>Sous-menu « Définition » du bandeau gauche.</summary>

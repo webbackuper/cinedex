@@ -20,6 +20,7 @@ public enum QuickFilter
     PhysicalMedia,
     MediaFiles,
     MissingFiles,
+    NoMetadata,
 }
 
 public enum SortField

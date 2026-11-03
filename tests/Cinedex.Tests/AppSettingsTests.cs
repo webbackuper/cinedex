@@ -112,6 +112,30 @@ public sealed class AppSettingsTests : IDisposable
     }
 
     [Fact]
+    public void Films_without_metadata_have_their_own_sidebar_view()
+    {
+        var titles = new TitleRepository(_db);
+        titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));
+        var linked = titles.Add(new NewTitle(TitleKind.Movie, "Ran", 1985));
+        using (var connection = _db.Open())
+        {
+            connection.Execute("UPDATE title SET tmdb_id = 11645 WHERE id = @linked;", new { linked });
+        }
+
+        var files = new MediaFileRepository(_db);
+        var import = new LibraryImportService(titles, files, new ImageStore(_db, Path.Combine(_temp.Path, "img")), null,
+            () => new MediaProbe("absent", "absent"), NullLogger<LibraryImportService>.Instance);
+        var main = new MainWindowViewModel(titles, new AppPaths(_temp.Path, isPortable: false), new NoDialogs(), media: new MediaContext(files, import, _store));
+        main.Load();
+
+        main.SelectedFilter = main.Filters.Single(f => f.Value == QuickFilter.NoMetadata);
+        Assert.Equal(["Heat"], main.Titles.Select(t => t.Title));
+
+        // Le réglage « Bandeau gauche » propose de masquer cette vue, comme les autres.
+        Assert.Contains(new SettingsViewModel(new NoVault(), _store, _temp.Path).MainFilterToggles, t => t.Value == QuickFilter.NoMetadata);
+    }
+
+    [Fact]
     public void Wishlist_is_no_longer_offered_in_the_sidebar()
     {
         Assert.DoesNotContain(MainWindowViewModel.AllMainFilters, f => f.Value == QuickFilter.Wishlist);

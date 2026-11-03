@@ -138,8 +138,26 @@ public sealed class PeopleTests : IDisposable
         Assert.True(main.IsTitlesView);
         Assert.Null(main.PeopleBrowser);
 
-        // Un film choisi dans la fiche d'une personne : retour aux affiches, sur ce film.
+        // Un clic sur une personne : ses informations et ses films dans le bandeau droit ; un film y ramène aux affiches.
+        main.OpenPeopleCommand.Execute(null);
+        var pacino = main.PeopleBrowser!.People.Single(p => p.Name == "Al Pacino");
+        await main.SelectPersonCommand.ExecuteAsync(pacino);
+        Assert.True(main.HasPersonPage);
+        Assert.Equal("Al Pacino", main.PersonPage!.Name);
+        Assert.Contains(pacino.Id, main.SelectedPersonIds);
+        Assert.Equal(2, main.PersonPage.Titles.Count);
+        main.ChoosePersonTitleCommand.Execute(main.PersonPage.Titles.Single(t => t.TitleId == _heat));
+        Assert.True(main.IsTitlesView);
+        Assert.False(main.HasPersonPage);
+        Assert.Equal(_heat, main.Detail!.Id);
+
+        // Changer de galerie efface la personne choisie.
+        main.OpenPeopleCommand.Execute(null);
+        await main.SelectPersonCommand.ExecuteAsync(main.PeopleBrowser!.People[0]);
         main.OpenDirectorsCommand.Execute(null);
+        Assert.False(main.HasPersonPage);
+
+        // Double-clic : la fiche complète ; un film choisi dans la fiche ramène aux affiches, sur ce film.
         dialogs.PersonPage = page =>
         {
             page.Choose(page.Titles.Single(t => t.TitleId == _insider));

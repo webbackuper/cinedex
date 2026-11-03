@@ -642,7 +642,53 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void ShowTitles() => PeopleBrowser = null;
 
-    /// <summary>Fiche d'une personne de la galerie ; si l'un de ses titres y est choisi, retour aux affiches sur ce titre.</summary>
+    partial void OnPeopleBrowserChanged(PeopleBrowserViewModel? value) => PersonPage = null;
+
+    /// <summary>Personne choisie dans la galerie : ses informations remplacent la fiche du titre dans le bandeau droit.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPersonPage), nameof(SelectedPersonIds))]
+    public partial PersonViewModel? PersonPage { get; private set; }
+
+    public bool HasPersonPage => PersonPage is not null;
+
+    /// <summary>Personne sélectionnée, pour marquer sa carte dans la galerie (virtualisée).</summary>
+    public IReadOnlySet<long> SelectedPersonIds => PersonPage is { } page ? new HashSet<long> { page.PersonId } : new HashSet<long>();
+
+    /// <summary>Clic sur une personne de la galerie : bandeau droit, complété depuis TMDb si la fiche manque.</summary>
+    [RelayCommand]
+    private async Task SelectPersonAsync(PersonSummary? person)
+    {
+        if (person is null || PeopleBrowser is not { } browser || PersonPage?.PersonId == person.Id)
+        {
+            return;
+        }
+
+        var page = new PersonViewModel(browser.Service, person.Id, browser.Role);
+        PersonPage = page;
+        try
+        {
+            await page.LoadDetailsAsync();
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException or TaskCanceledException)
+        {
+            // Hors ligne : le bandeau garde ce que le catalogue connaît déjà.
+        }
+    }
+
+    /// <summary>Film choisi dans le bandeau d'une personne : retour aux affiches, sur ce film.</summary>
+    [RelayCommand]
+    private void ChoosePersonTitle(PersonCredit? credit)
+    {
+        if (credit is null)
+        {
+            return;
+        }
+
+        PeopleBrowser = null;
+        GoToTitle(credit.TitleId);
+    }
+
+    /// <summary>Double-clic sur une personne : sa fiche complète ; si l'un de ses titres y est choisi, retour aux affiches sur ce titre.</summary>
     [RelayCommand]
     private async Task OpenBrowsedPersonAsync(PersonSummary? person)
     {

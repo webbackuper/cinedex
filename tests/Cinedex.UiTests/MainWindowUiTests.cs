@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Input;
@@ -33,10 +34,20 @@ public sealed class MainWindowUiTests(UiSession ui)
         var search = catalog.Find<TextBox>(t => t.Name == "PeopleQueryBox");
         Assert.True(search.IsEffectivelyVisible);
         Assert.True(search.IsFocused);
-        var cards = catalog.All<Button>().Where(b => b.Command == vm.OpenBrowsedPersonCommand && b.IsEffectivelyVisible && b.Bounds.X >= 0).ToList();
+        var cards = catalog.All<Button>().Where(b => b.Command == vm.SelectPersonCommand && b.IsEffectivelyVisible && b.Bounds.X >= 0).ToList();
         Assert.Contains(vm.PeopleBrowser!.People, p => p.Name == "Acteur 1");
         Assert.InRange(cards.Count, 6, 200);
         UiCatalog.Shot(catalog.Window, "acteurs");
+
+        // Un clic : la personne dans le bandeau droit, sa carte marquée ; ses films y sont listés.
+        cards[0].Command!.Execute(cards[0].CommandParameter);
+        UiCatalog.Pump(300);
+        Assert.True(vm.HasPersonPage);
+        Assert.Contains(cards[0].Classes, c => c == "current");
+        var personPanel = catalog.Find<ScrollViewer>(s => AutomationProperties.GetName(s) == "Fiche de la personne");
+        Assert.True(personPanel.IsEffectivelyVisible);
+        Assert.Contains(catalog.All<Button>(), b => b.Command == vm.ChoosePersonTitleCommand && b.IsEffectivelyVisible);
+        UiCatalog.Shot(catalog.Window, "acteur-choisi");
 
         // Réalisateurs, puis retour aux affiches par le premier filtre de la bibliothèque, déjà choisi.
         vm.OpenDirectorsCommand.Execute(null);

@@ -65,7 +65,7 @@ Un clic sur un titre affiche sa fiche dans le panneau de droite, dont la largeur
 Les durées s'affichent en heures et minutes.
 
 ## Acteurs
-Les acteurs de chaque fiche TMDb sont conservés (nombre réglable dans **Réglages > Métadonnées**). Le lien **Acteurs** du bandeau gauche remplace les affiches de la zone centrale par toutes les personnes du catalogue (photo, nom, nombre de titres), avec une recherche en haut ; un clic sur un filtre de la **Bibliothèque** (Tous les titres, Films, Séries…) ou sur **Affiches** ramène les affiches. Un clic sur une personne ouvre sa fiche ; la fiche d'un acteur montre sa biographie, ses liens TMDb et IMDb, et tous ses films présents au catalogue.
+Les acteurs de chaque fiche TMDb sont conservés (nombre réglable dans **Réglages > Métadonnées**). Le lien **Acteurs** du bandeau gauche remplace les affiches de la zone centrale par toutes les personnes du catalogue (photo, nom, nombre de titres), avec une recherche en haut ; un clic sur un filtre de la **Bibliothèque** (Tous les titres, Films, Séries…) ou sur **Affiches** ramène les affiches. Un clic sur une personne affiche sa photo, sa biographie et ses films du catalogue dans le bandeau droit (un clic sur un film ramène aux affiches, sur ce film) ; un double-clic ouvre sa fiche complète ; la fiche d'un acteur montre sa biographie, ses liens TMDb et IMDb, et tous ses films présents au catalogue.
 
 ## Réalisateurs
 Les réalisateurs ont leur fiche, comme les acteurs. Dans la fiche d'un film (onglet **Distribution**) et dans le panneau de droite, la rubrique **Réalisation** les présente avec leur photo : un clic ouvre leur fiche (biographie, dates, lieu de naissance, liens TMDb et IMDb, téléchargés depuis TMDb à la première ouverture) et la liste de **tous leurs films réalisés** présents au catalogue ; un clic sur un film l'affiche dans la liste.
@@ -209,6 +209,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.12
+- **Personnes dans le bandeau droit** : dans la galerie des acteurs ou des réalisateurs, un clic affiche la personne dans le bandeau droit (photo, dates, biographie, liens TMDb et IMDb, ses films) ; un double-clic ouvre toujours sa fiche complète.
+
 ### 0.4.11
 - **Acteurs et réalisateurs dans la zone centrale** : les liens du bandeau gauche affichent les personnes à la place des affiches, avec une recherche en haut ; les filtres de la Bibliothèque ramènent les affiches. Choisir un film dans la fiche d'une personne revient aux affiches sur ce film.
 

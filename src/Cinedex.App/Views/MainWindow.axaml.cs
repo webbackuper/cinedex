@@ -343,6 +343,19 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
         }
     }
 
+    /// <summary>Double-clic sur une personne de la galerie : sa fiche complète, comme avant.</summary>
+    private void OnPersonDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm && sender is Control { DataContext: Cinedex.Core.People.PersonSummary person })
+        {
+            vm.OpenBrowsedPersonCommand.Execute(person);
+        }
+    }
+
+    private void OnOpenPersonTmdb(object? sender, RoutedEventArgs e) => WebLinks.Open((DataContext as MainWindowViewModel)?.PersonPage?.TmdbUrl);
+
+    private void OnOpenPersonImdb(object? sender, RoutedEventArgs e) => WebLinks.Open((DataContext as MainWindowViewModel)?.PersonPage?.ImdbUrl);
+
     /// <summary>Clic sur une affiche : sélection (Ctrl pour ajouter ou retirer, Maj pour une plage).</summary>
     private void OnPosterPressed(object? sender, PointerPressedEventArgs e)
     {

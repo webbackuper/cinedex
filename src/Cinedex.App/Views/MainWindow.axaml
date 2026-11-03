@@ -510,7 +510,7 @@
         <TextBlock Text="{Binding CountLabel}" Classes="muted" FontSize="{StaticResource FontSmall}" VerticalAlignment="Center" />
       </DockPanel>
 
-      <!-- Galerie virtualisée : photo, nom et nombre de titres ; un clic ouvre la fiche de la personne. -->
+      <!-- Galerie virtualisée : photo, nom et nombre de titres ; un clic montre la personne dans le bandeau droit, un double-clic ouvre sa fiche. -->
       <ScrollViewer HorizontalScrollBarVisibility="Disabled" Margin="{StaticResource Below4}" AutomationProperties.Name="Personnes du catalogue">
         <ItemsRepeater x:Name="PeopleGrid" ItemsSource="{Binding PeopleBrowser.People}" Margin="{StaticResource After2}">
           <ItemsRepeater.Layout>
@@ -519,9 +519,15 @@
           <ItemsRepeater.ItemTemplate>
             <DataTemplate x:DataType="people:PersonSummary">
               <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Top" Padding="{StaticResource Inset2}"
-                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenBrowsedPersonCommand}" CommandParameter="{Binding}"
-                      AutomationProperties.Name="{Binding Name}"
-                      ToolTip.Tip="{Binding Name, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='Fiche de {0}'}">
+                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SelectPersonCommand}" CommandParameter="{Binding}"
+                      DoubleTapped="OnPersonDoubleTapped" AutomationProperties.Name="{Binding Name}"
+                      ToolTip.Tip="Double-clic : fiche complète">
+                <Classes.current>
+                  <MultiBinding Converter="{x:Static views:SelectedIdConverter.Instance}">
+                    <Binding Path="Id" />
+                    <Binding Path="$parent[Window].((vm:MainWindowViewModel)DataContext).SelectedPersonIds" />
+                  </MultiBinding>
+                </Classes.current>
                 <StackPanel Spacing="{StaticResource Space1}">
                   <Border Height="172" CornerRadius="{StaticResource RadiusCard}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
                     <Panel>
@@ -548,6 +554,7 @@
     <!-- ======================= Fiche ======================= -->
     <Border Grid.Column="3" Margin="{StaticResource Edges0_4_4_4}" Classes="card" ClipToBounds="True">
       <Panel>
+      <Panel IsVisible="{Binding IsTitlesView}">
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="{StaticResource Space3}" IsVisible="{Binding !HasDetail}" Margin="{StaticResource Inset6}">
           <controls:Icon Kind="default" Width="44" Height="44" Foreground="{DynamicResource CinedexMuted}" />
           <TextBlock Classes="muted" TextAlignment="Center" TextWrapping="Wrap" Text="Sélectionnez un titre pour voir sa fiche." />
@@ -783,6 +790,70 @@
             </StackPanel>
           </StackPanel>
         </ScrollViewer>
+      </Panel>
+
+      <!-- Personne choisie dans la galerie des acteurs ou des réalisateurs -->
+      <Panel IsVisible="{Binding IsPeopleView}">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="{StaticResource Space3}" IsVisible="{Binding !HasPersonPage}" Margin="{StaticResource Inset6}">
+          <controls:Icon Kind="person" Width="44" Height="44" Foreground="{DynamicResource CinedexMuted}" />
+          <TextBlock Classes="muted" TextAlignment="Center" TextWrapping="Wrap" Text="Sélectionnez une personne pour voir sa fiche." />
+        </StackPanel>
+        <ScrollViewer IsVisible="{Binding HasPersonPage}" AutomationProperties.Name="Fiche de la personne">
+          <StackPanel DataContext="{Binding PersonPage}" x:DataType="vm:PersonViewModel" Margin="{StaticResource Inset6}" Spacing="{StaticResource Space4}">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="{StaticResource Space4}">
+              <Border Width="120" Height="180" CornerRadius="{StaticResource RadiusCard}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
+                <Panel>
+                  <controls:Icon Kind="person" Width="36" Height="36" Foreground="{DynamicResource CinedexMuted}" Opacity="0.6" />
+                  <Image Source="{Binding PhotoPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=240}" Stretch="UniformToFill" />
+                </Panel>
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Spacing="{StaticResource Space1}">
+                <TextBlock Text="{Binding Name}" FontSize="{StaticResource FontTitle}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding KnownFor}" Classes="muted" IsVisible="{Binding KnownFor, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                <TextBlock Text="{Binding Dates}" Classes="muted" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" />
+                <WrapPanel Margin="{StaticResource Above1}">
+                  <Button Classes="tool" Click="OnOpenPersonTmdb" IsVisible="{Binding TmdbUrl, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Ouvrir la fiche TMDb">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}"><controls:Icon Kind="link" Width="16" Height="16" /><TextBlock Text="TMDb" /></StackPanel>
+                  </Button>
+                  <Button Classes="tool" Click="OnOpenPersonImdb" IsVisible="{Binding ImdbUrl, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Ouvrir la fiche IMDb">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}"><controls:Icon Kind="link" Width="16" Height="16" /><TextBlock Text="IMDb" /></StackPanel>
+                  </Button>
+                </WrapPanel>
+              </StackPanel>
+            </Grid>
+            <TextBlock Text="Chargement de la fiche TMDb..." Classes="muted" IsVisible="{Binding IsLoading}" />
+            <SelectableTextBlock Text="{Binding Biography}" TextWrapping="Wrap" LineHeight="20" Foreground="{DynamicResource CinedexInk}"
+                                 IsVisible="{Binding Biography, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            <StackPanel Spacing="{StaticResource Space1}">
+              <TextBlock Text="{Binding Heading}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
+              <TextBlock Text="{Binding Count}" Classes="muted" FontSize="{StaticResource FontSmall}" />
+            </StackPanel>
+            <ItemsControl ItemsSource="{Binding Titles}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="people:PersonCredit">
+                  <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="{StaticResource Inset1}"
+                          Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ChoosePersonTitleCommand}" CommandParameter="{Binding}"
+                          AutomationProperties.Name="{Binding Title}" ToolTip.Tip="Afficher ce titre dans le catalogue">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                      <Border Width="40" Height="60" CornerRadius="{StaticResource RadiusChip}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
+                        <Panel>
+                          <controls:Icon Kind="default" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" Opacity="0.6" />
+                          <controls:AsyncImage Path="{Binding PosterPath}" DecodeWidth="80" Stretch="UniformToFill" />
+                        </Panel>
+                      </Border>
+                      <StackPanel Grid.Column="1" Margin="{StaticResource Inline3}" VerticalAlignment="Center" Spacing="{StaticResource Space1}">
+                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource CinedexInk}" />
+                        <TextBlock Text="{Binding Subtitle}" Classes="muted" FontSize="{StaticResource FontSmall}" TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
+                      <controls:Icon Grid.Column="2" Kind="chevron-down" Width="14" Height="14" Foreground="{DynamicResource CinedexMuted}" RenderTransform="rotate(-90deg)" />
+                    </Grid>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </ScrollViewer>
+      </Panel>
       </Panel>
     </Border>
   </Grid>

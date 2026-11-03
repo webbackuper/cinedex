@@ -26,6 +26,8 @@ public sealed partial class PersonViewModel : ObservableObject
 
     public ObservableCollection<PersonCredit> Titles { get; } = [];
 
+    public long PersonId => _personId;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Name), nameof(Dates), nameof(Biography), nameof(KnownFor), nameof(PhotoPath), nameof(TmdbUrl), nameof(ImdbUrl))]
     public partial PersonDetail? Person { get; set; }

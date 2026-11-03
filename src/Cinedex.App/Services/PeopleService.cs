@@ -41,6 +41,33 @@ public sealed class PeopleService(PeopleRepository people, TmdbClient tmdb, Imag
         return Resolve(people.Get(personId)!);
     }
 
+    /// <summary>
+    /// Télécharge depuis TMDb la fiche (biographie, dates, photo) des personnes qui ne l'ont pas encore ;
+    /// renvoie le nombre de fiches complétées.
+    /// </summary>
+    public async Task<int> EnsureAllDetailsAsync(IReadOnlyList<long> personIds, IProgress<string>? progress = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(personIds);
+        var done = 0;
+        for (var i = 0; i < personIds.Count; i++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (people.Get(personIds[i]) is not { } person || (person.HasDetails && person.PhotoRelativePath is not null) || person.TmdbId is null)
+            {
+                continue;
+            }
+
+            progress?.Report(Cinedex.Core.Localization.Tr.F("Fiches TMDb : {0} / {1} — {2}", i + 1, personIds.Count, person.Name));
+            var after = await EnsureDetailsAsync(person.Id, cancellationToken).ConfigureAwait(false);
+            if (after is { HasDetails: true })
+            {
+                done++;
+            }
+        }
+
+        return done;
+    }
+
     /// <summary>Télécharge les photos manquantes des premières personnes d'un générique ; renvoie le nombre ajouté.</summary>
     public async Task<int> EnsureCreditPhotosAsync(IEnumerable<CastMember> credits, int max = 12, CancellationToken cancellationToken = default)
     {

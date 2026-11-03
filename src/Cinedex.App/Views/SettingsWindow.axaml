@@ -261,6 +261,7 @@
             <TextBlock Classes="h" Text="Liens" />
             <CheckBox Content="Recherche multicritère" IsChecked="{Binding ShowRuleSearch}" />
             <CheckBox Content="Acteurs" IsChecked="{Binding ShowPeople}" />
+            <CheckBox Content="Réalisateurs" IsChecked="{Binding ShowDirectors}" />
           </StackPanel>
         </ScrollViewer>
       </TabItem>

@@ -123,4 +123,48 @@ public sealed class PeopleTests : IDisposable
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) => Task.FromResult(respond(request));
     }
+
+    [Fact]
+    public void Directors_are_listed_with_only_the_films_they_directed()
+    {
+        // Al Pacino réalise aussi un film du catalogue : il apparaît parmi les réalisateurs, compté sur ce film seul.
+        var looking = _metadata.Create(Movie(1, "Looking for Richard", 1996, [new MetadataCredit(CreditRole.Director, 1158, "Al Pacino", null, 0, null)]), ImportOptions.Default);
+
+        var directors = _people.Search(null, role: "director");
+        Assert.Equal([("Michael Mann", 2), ("Al Pacino", 1)], directors.Select(d => (d.Name, d.TitleCount)));
+        Assert.Empty(_people.Search("niro", role: "director"));
+
+        var pacino = directors[1].Id;
+        Assert.Equal([looking], _people.Filmography(pacino, "director").Select(f => f.TitleId));
+        Assert.Equal(3, _people.Filmography(pacino).Count);
+    }
+
+    [Fact]
+    public async Task Director_pages_and_directory_download_missing_records()
+    {
+        var calls = new List<string>();
+        var handler = new Handler(request =>
+        {
+            calls.Add(request.RequestUri!.AbsolutePath);
+            return request.RequestUri.Host == TmdbClient.ImageHost
+                ? new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]) }
+                : Json("""{"id":638,"name":"Michael Mann","biography":"Réalisateur de Heat.","birthday":"1943-02-05","known_for_department":"Directing","profile_path":"/mann.jpg"}""");
+        });
+        var service = new PeopleService(_people, new TmdbClient(new HttpClient(handler), _ => ValueTask.FromResult<string?>("token")), new ImageStore(_db, Path.Combine(_temp.Path, "img")), NullLogger<PeopleService>.Instance);
+
+        var directory = new PeopleBrowserViewModel(service, "director");
+        Assert.True(directory.IsDirectors);
+        var mann = Assert.Single(directory.People);
+        Assert.Equal("Michael Mann", mann.Name);
+
+        await directory.DownloadDetailsCommand.ExecuteAsync(null);
+        Assert.Contains("/3/person/638", calls);
+        Assert.Equal("Réalisateur de Heat.", _people.Get(mann.Id)!.Biography);
+        Assert.NotNull(_people.Get(mann.Id)!.PhotoRelativePath);
+
+        var page = new PersonViewModel(service, mann.Id, "director");
+        Assert.Equal("Films réalisés", page.Heading);
+        Assert.Equal([_insider, _heat], page.Titles.Select(t => t.TitleId));
+        Assert.Contains("2 film(s) réalisé(s)", page.Count, StringComparison.Ordinal);
+    }
 }

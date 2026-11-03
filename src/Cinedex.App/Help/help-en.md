@@ -66,6 +66,11 @@ Runtimes are shown in hours and minutes.
 ## Actors
 The actors of each TMDb entry are kept (the number can be set in **Settings > Metadata**). The **Actors** link in the left sidebar lists everyone in the catalog; an actor's page shows the biography, TMDb and IMDb links, and all their films in the catalog.
 
+## Directors
+Directors have their own page, like actors. In a film's details (**Cast** tab) and in the right panel, the **Directing** section shows them with their photo: a click opens their page (biography, dates, place of birth, TMDb and IMDb links, downloaded from TMDb the first time) and the list of **all the films they directed** in the catalog; clicking a film shows it in the list.
+
+The **Directors** link in the left sidebar opens the directory of the catalog's directors, sorted by number of films. **Download missing records** fetches the biography and photo of those who don't have them yet in one go. The link is shown or hidden in **Settings > Left sidebar**.
+
 ## Collections
 A **collection** groups the films of a saga or box set (Back to the Future, The Lord of the Rings…). It is created when a film linked to TMDb that belongs to a saga is imported, or by hand in the **Organization** tab of the details.
 
@@ -97,7 +102,7 @@ Example: Genre is Comedy, then IMDb rating > 7, then Year ≥ 2000.
 ## The left sidebar
 - **Library**: quick views (owned, wishlist, watched, favorites, lent, video files…).
 - **Definition**: submenu Standard definition, High definition, Ultra HD (4K), 3D.
-- At the bottom: **To review**, **Advanced search**, **Actors**, **Collections**, **Appearance**, **Settings** and **Help**.
+- At the bottom: **To review**, **Advanced search**, **Actors**, **Directors**, **Series tracker**, **Collections**, **Appearance**, **Settings** and **Help**.
 
 The views and links shown are chosen in **Settings > Left sidebar**.
 
@@ -195,6 +200,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.1
+- **Directors**: page with biography and films directed, opened with a click from a film's details (Cast tab) or the right panel; directory of directors in the left sidebar, shown or hidden in the settings.
+
 ### 0.4.0
 - **Large catalogs**: virtualized list and posters (only visible items exist), posters loaded in the background, targeted updates; tested on 12,000 films.
 - **Installation and automatic updates** (Cinedex-win-Setup.exe), Linux and macOS versions.

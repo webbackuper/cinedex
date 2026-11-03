@@ -112,6 +112,24 @@
           <StackPanel Spacing="12" Margin="0,8">
             <TextBlock Text="Aucun acteur enregistré : lancez une mise à jour depuis TMDb pour récupérer la distribution." Opacity="0.7" TextWrapping="Wrap"
                        IsVisible="{Binding !HasCast}" />
+            <TextBlock Text="Réalisation" FontWeight="SemiBold" IsVisible="{Binding HasDirectors}" />
+            <ItemsControl ItemsSource="{Binding Directors}" IsVisible="{Binding HasDirectors}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="people:CastMember">
+                  <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="4,3" Margin="0,1"
+                          Click="OnOpenPerson" Cursor="Hand" ToolTip.Tip="{Binding Name, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='Fiche de {0}'}">
+                    <Grid ColumnDefinitions="40,*,*">
+                      <Border Width="32" Height="40" CornerRadius="4" ClipToBounds="True" Background="{DynamicResource CinedexSurfaceAlt}">
+                        <Image Source="{Binding PhotoPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=64}" Stretch="UniformToFill" />
+                      </Border>
+                      <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="8,0" />
+                      <TextBlock Grid.Column="2" Text="{Binding Character}" Opacity="0.75" VerticalAlignment="Center" TextWrapping="Wrap" />
+                    </Grid>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Text="Acteurs" FontWeight="SemiBold" Margin="0,6,0,0" IsVisible="{Binding HasCast}" />
             <ItemsControl ItemsSource="{Binding Cast}" IsVisible="{Binding HasCast}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="people:CastMember">

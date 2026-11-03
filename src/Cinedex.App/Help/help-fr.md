@@ -66,6 +66,11 @@ Les durées s'affichent en heures et minutes.
 ## Acteurs
 Les acteurs de chaque fiche TMDb sont conservés (nombre réglable dans **Réglages > Métadonnées**). Le lien **Acteurs** du bandeau gauche liste toutes les personnes du catalogue ; la fiche d'un acteur montre sa biographie, ses liens TMDb et IMDb, et tous ses films présents au catalogue.
 
+## Réalisateurs
+Les réalisateurs ont leur fiche, comme les acteurs. Dans la fiche d'un film (onglet **Distribution**) et dans le panneau de droite, la rubrique **Réalisation** les présente avec leur photo : un clic ouvre leur fiche (biographie, dates, lieu de naissance, liens TMDb et IMDb, téléchargés depuis TMDb à la première ouverture) et la liste de **tous leurs films réalisés** présents au catalogue ; un clic sur un film l'affiche dans la liste.
+
+Le lien **Réalisateurs** du bandeau gauche ouvre l'annuaire des réalisateurs du catalogue, classés par nombre de films. **Télécharger les fiches manquantes** récupère d'un coup la biographie et la photo de ceux qui ne les ont pas encore. Le lien s'affiche ou se masque dans **Réglages > Bandeau gauche**.
+
 ## Collections
 Une **collection** regroupe les films d'une saga ou d'un coffret (Retour vers le futur, Le Seigneur des anneaux…). Elle est créée à l'import d'un film lié à TMDb qui appartient à une saga, ou à la main dans l'onglet **Classement** de la fiche.
 
@@ -97,7 +102,7 @@ Exemple : Genre est Comédie, puis Note IMDb > 7, puis Année ≥ 2000.
 ## Le bandeau gauche
 - **Bibliothèque** : vues rapides (possédés, liste de souhaits, vus, favoris, prêtés, fichiers vidéo…).
 - **Définition** : sous-menu Définition standard, Haute définition, Ultra HD (4K), 3D.
-- En bas : **À vérifier**, **Recherche multicritère**, **Acteurs**, **Collections**, **Apparence**, **Réglages** et **Aide**.
+- En bas : **À vérifier**, **Recherche multicritère**, **Acteurs**, **Réalisateurs**, **Suivi des séries**, **Collections**, **Apparence**, **Réglages** et **Aide**.
 
 Les vues et liens affichés se choisissent dans **Réglages > Bandeau gauche**.
 
@@ -195,6 +200,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.1
+- **Réalisateurs** : fiche avec biographie et films réalisés, ouverte d'un clic depuis la fiche d'un film (onglet Distribution) ou le panneau de droite ; annuaire des réalisateurs dans le bandeau gauche, affichable ou non dans les réglages.
+
 ### 0.4.0
 - **Grands catalogues** : liste et affiches virtualisées (seuls les éléments visibles existent), affiches chargées en arrière-plan, mises à jour ciblées ; testé sur 12 000 films.
 - **Installation et mises à jour automatiques** (Cinedex-win-Setup.exe), versions Linux et macOS.

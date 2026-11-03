@@ -104,6 +104,7 @@ public sealed record DisplaySettings
     public const string HiddenFiltersKey = "ui.hiddenFilters";
     public const string ShowRuleSearchKey = "ui.showRuleSearch";
     public const string ShowPeopleKey = "ui.showPeople";
+    public const string ShowDirectorsKey = "ui.showDirectors";
     public const string HideAdultKey = "ui.hideAdult";
     public const string ShowTooltipsKey = "ui.showTooltips";
     public const string CollectionsKey = "collections.enabled";
@@ -114,6 +115,9 @@ public sealed record DisplaySettings
     public bool ShowRuleSearch { get; init; } = true;
 
     public bool ShowPeople { get; init; } = true;
+
+    /// <summary>Lien « Réalisateurs » du bandeau gauche (activé par défaut).</summary>
+    public bool ShowDirectors { get; init; } = true;
 
     public bool HideAdult { get; init; }
 
@@ -140,6 +144,7 @@ public sealed record DisplaySettings
             HiddenFilters = hidden,
             ShowRuleSearch = settings.Get(ShowRuleSearchKey) != "false",
             ShowPeople = settings.Get(ShowPeopleKey) != "false",
+            ShowDirectors = settings.Get(ShowDirectorsKey) != "false",
             HideAdult = settings.Get(HideAdultKey) == "true",
             ShowTooltips = settings.Get(ShowTooltipsKey) == "true",
             ManageCollections = settings.Get(CollectionsKey) != "false",
@@ -152,6 +157,7 @@ public sealed record DisplaySettings
         settings.Set(HiddenFiltersKey, string.Join(',', HiddenFilters.Where(f => f != QuickFilter.All).Order()));
         settings.Set(ShowRuleSearchKey, ScanSettings.Flag(ShowRuleSearch));
         settings.Set(ShowPeopleKey, ScanSettings.Flag(ShowPeople));
+        settings.Set(ShowDirectorsKey, ScanSettings.Flag(ShowDirectors));
         settings.Set(HideAdultKey, ScanSettings.Flag(HideAdult));
         settings.Set(ShowTooltipsKey, ScanSettings.Flag(ShowTooltips));
         settings.Set(CollectionsKey, ScanSettings.Flag(ManageCollections));

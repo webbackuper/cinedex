@@ -379,6 +379,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(ShowRuleSearch));
         OnPropertyChanged(nameof(ShowTooltips));
         OnPropertyChanged(nameof(ShowPeopleLink));
+        OnPropertyChanged(nameof(ShowDirectorsLink));
         OnPropertyChanged(nameof(ShowCollections));
         if (SelectedFilter is not null && !Filters.Contains(SelectedFilter) && !DefinitionFilters.Contains(SelectedFilter))
         {
@@ -499,15 +500,22 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public bool HasCast => Cast.Count > 0;
 
+    /// <summary>Réalisateurs du titre affiché, cliquables (fiche et films réalisés).</summary>
+    public ObservableCollection<CastMember> Directors { get; } = [];
+
+    public bool HasDirectors => Directors.Count > 0;
+
     public bool HasPeople => _media?.People is not null;
 
     private void LoadCredits()
     {
         Cast.Clear();
+        Directors.Clear();
         CrewText = null;
         if (Detail is not { } detail || _media?.People is not { } people)
         {
             OnPropertyChanged(nameof(HasCast));
+            OnPropertyChanged(nameof(HasDirectors));
             return;
         }
 
@@ -517,10 +525,17 @@ public sealed partial class MainWindowViewModel : ObservableObject
             Cast.Add(actor with { PhotoPath = people.ResolvePhoto(actor.PhotoRelativePath) });
         }
 
-        var crew = credits.Where(c => c.Role != "actor").GroupBy(c => c.RoleLabel)
+        foreach (var director in credits.Where(c => c.Role == "director").GroupBy(c => c.PersonId).Select(g => g.First()))
+        {
+            Directors.Add(director with { PhotoPath = people.ResolvePhoto(director.PhotoRelativePath) });
+        }
+
+        // Réalisateurs affichés à part (cliquables) ; le reste de l'équipe en texte.
+        var crew = credits.Where(c => c.Role is not ("actor" or "director")).GroupBy(c => c.RoleLabel)
             .Select(g => $"{g.Key} : {string.Join(", ", g.Select(c => c.Name).Distinct())}");
         CrewText = string.Join('\n', crew);
         OnPropertyChanged(nameof(HasCast));
+        OnPropertyChanged(nameof(HasDirectors));
 
         // Photos manquantes téléchargées en arrière-plan ; la distribution est rechargée si le titre est toujours affiché.
         if (credits.Any(c => c.PhotoRelativePath is null && c.ProfilePath is not null))
@@ -553,12 +568,30 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        var page = new PersonViewModel(people, member.PersonId);
+        var page = new PersonViewModel(people, member.PersonId, member.Role == "director" ? "director" : null);
         if (await _dialogs.ShowPersonAsync(page) && page.ChosenTitleId is { } titleId)
         {
             GoToTitle(titleId);
         }
     }
+
+    /// <summary>Annuaire des réalisateurs du catalogue (lien du bandeau gauche).</summary>
+    [RelayCommand]
+    private async Task OpenDirectorsAsync()
+    {
+        if (_media?.People is not { } people)
+        {
+            return;
+        }
+
+        var browser = new PeopleBrowserViewModel(people, "director");
+        if (await _dialogs.ShowPeopleAsync(browser) && browser.ChosenTitleId is { } titleId)
+        {
+            GoToTitle(titleId);
+        }
+    }
+
+    public bool ShowDirectorsLink => HasPeople && _display.ShowDirectors;
 
     [RelayCommand]
     private async Task OpenPeopleAsync()
@@ -759,6 +792,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             _images?.PathFor(current.Id, "poster"),
             Detail?.Id == current.Id ? Cast.ToList() : null,
             Detail?.Id == current.Id ? CrewText : null,
+            Detail?.Id == current.Id ? Directors.ToList() : null,
             MediaTextOf(current.Id),
             _media is null ? null : async () =>
             {

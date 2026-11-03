@@ -39,7 +39,7 @@
     <!-- Ses titres dans le catalogue -->
     <DockPanel Grid.Column="1">
       <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="4,0,0,10">
-        <TextBlock Text="Dans le catalogue" FontSize="16" FontWeight="SemiBold" />
+        <TextBlock Text="{Binding Heading}" FontSize="16" FontWeight="SemiBold" />
         <TextBlock Text="{Binding Count}" Classes="muted" FontSize="12.5" />
       </StackPanel>
       <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">

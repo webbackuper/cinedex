@@ -12,11 +12,14 @@ public sealed partial class PersonViewModel : ObservableObject
 {
     private readonly PeopleService _people;
     private readonly long _personId;
+    private readonly string? _role;
 
-    public PersonViewModel(PeopleService people, long personId)
+    /// <param name="role">« director » : fiche d'un réalisateur, avec ses films réalisés seulement.</param>
+    public PersonViewModel(PeopleService people, long personId, string? role = null)
     {
         _people = people;
         _personId = personId;
+        _role = role;
         Person = people.Repository.Get(personId) is { } p ? people.Resolve(p) : null;
         LoadFilmography();
     }
@@ -47,11 +50,17 @@ public sealed partial class PersonViewModel : ObservableObject
 
     public string? ImdbUrl => Person?.ImdbId is { } id ? $"https://www.imdb.com/name/{id}/" : null;
 
-    public string Count => Titles.Count switch
+    public bool IsDirector => _role == "director";
+
+    public string Heading => IsDirector ? Tr.T("Films réalisés") : Tr.T("Dans le catalogue");
+
+    public string Count => (IsDirector, Titles.Count) switch
     {
-        0 => "Aucun titre du catalogue",
-        1 => "1 titre dans le catalogue",
-        var n => Tr.F("{0} titres dans le catalogue", n),
+        (true, 0) => Tr.T("Aucun film réalisé dans le catalogue"),
+        (true, var n) => Tr.F("{0} film(s) réalisé(s) dans le catalogue", n),
+        (false, 0) => "Aucun titre du catalogue",
+        (false, 1) => "1 titre dans le catalogue",
+        (false, var n) => Tr.F("{0} titres dans le catalogue", n),
     };
 
     /// <summary>Complète la fiche depuis TMDb (biographie, photo) si nécessaire.</summary>
@@ -83,7 +92,7 @@ public sealed partial class PersonViewModel : ObservableObject
     {
         Titles.Clear();
         // Un même titre peut apparaître deux fois (acteur et réalisateur) : une ligne par titre, rôle d'acteur en premier.
-        foreach (var credit in _people.Repository.Filmography(_personId).GroupBy(c => c.TitleId).Select(g => g.First()))
+        foreach (var credit in _people.Repository.Filmography(_personId, _role).GroupBy(c => c.TitleId).Select(g => g.First()))
         {
             Titles.Add(credit with { PosterPath = _people.ResolvePhoto(credit.PosterRelativePath) });
         }
@@ -92,18 +101,68 @@ public sealed partial class PersonViewModel : ObservableObject
     }
 }
 
-/// <summary>Recherche des personnes du catalogue.</summary>
+/// <summary>Recherche des personnes du catalogue : toutes (acteurs et équipe) ou les seuls réalisateurs.</summary>
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1001", Justification = "_cancel n'existe que pendant le téléchargement et est libéré à sa fin.")]
 public sealed partial class PeopleBrowserViewModel : ObservableObject
 {
     private readonly PeopleService _people;
+    private CancellationTokenSource? _cancel;
 
-    public PeopleBrowserViewModel(PeopleService people)
+    /// <param name="role">« director » : annuaire des réalisateurs.</param>
+    public PeopleBrowserViewModel(PeopleService people, string? role = null)
     {
         _people = people;
+        Role = role;
         Search();
     }
 
     public PeopleService Service => _people;
+
+    public string? Role { get; }
+
+    public bool IsDirectors => Role == "director";
+
+    public string WindowTitle => IsDirectors ? Tr.T("Réalisateurs du catalogue") : Tr.T("Acteurs du catalogue");
+
+    public string Placeholder => IsDirectors ? Tr.T("Nom d'un réalisateur") : Tr.T("Acteur, réalisateur, scénariste, compositeur…");
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(DownloadDetailsCommand))]
+    public partial bool IsBusy { get; private set; }
+
+    [ObservableProperty]
+    public partial string? Message { get; set; }
+
+    /// <summary>Télécharge les fiches TMDb (biographie, photo) des personnes listées qui ne les ont pas encore.</summary>
+    [RelayCommand(CanExecute = nameof(CanDownload))]
+    private async Task DownloadDetailsAsync()
+    {
+        IsBusy = true;
+        _cancel = new CancellationTokenSource();
+        try
+        {
+            var ids = People.Select(p => p.Id).ToList();
+            var done = await _people.EnsureAllDetailsAsync(ids, new Progress<string>(m => Message = m), _cancel.Token);
+            Message = Tr.F("{0} fiche(s) téléchargée(s) depuis TMDb.", done);
+            ActivityJournal.Current.Write($"Fiches TMDb des {(IsDirectors ? "réalisateurs" : "personnes")} : {done} téléchargée(s)");
+            Search();
+        }
+        catch (OperationCanceledException)
+        {
+            Message = Tr.T("Interrompu.");
+        }
+        finally
+        {
+            IsBusy = false;
+            _cancel.Dispose();
+            _cancel = null;
+        }
+    }
+
+    private bool CanDownload() => !IsBusy;
+
+    [RelayCommand]
+    private void Cancel() => _cancel?.Cancel();
 
     public ObservableCollection<PersonSummary> People { get; } = [];
 
@@ -121,7 +180,7 @@ public sealed partial class PeopleBrowserViewModel : ObservableObject
     private void Search()
     {
         People.Clear();
-        foreach (var person in _people.Repository.Search(Query))
+        foreach (var person in _people.Repository.Search(Query, role: Role))
         {
             People.Add(person with { PhotoPath = _people.ResolvePhoto(person.PhotoRelativePath) });
         }

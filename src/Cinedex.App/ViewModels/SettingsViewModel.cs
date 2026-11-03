@@ -79,6 +79,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             .Select(f => new FilterToggle(f.Value, f.Label, !display.HiddenFilters.Contains(f.Value)))];
         ShowRuleSearch = display.ShowRuleSearch;
         ShowPeople = display.ShowPeople;
+        ShowDirectors = display.ShowDirectors;
         HideAdult = display.HideAdult;
         ShowTooltips = display.ShowTooltips;
         var columns = ListColumns.Load(settings);
@@ -348,6 +349,9 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool ShowPeople { get; set; }
+
+    [ObservableProperty]
+    public partial bool ShowDirectors { get; set; }
 
     [ObservableProperty]
     public partial bool HideAdult { get; set; }
@@ -651,6 +655,7 @@ public sealed partial class SettingsViewModel : ObservableObject
             HiddenFilters = MainFilterToggles.Concat(DefinitionFilterToggles).Where(t => !t.IsShown).Select(t => t.Value).ToHashSet(),
             ShowRuleSearch = ShowRuleSearch,
             ShowPeople = ShowPeople,
+            ShowDirectors = ShowDirectors,
             HideAdult = HideAdult,
             ShowTooltips = ShowTooltips,
             ManageCollections = ManageCollections,

@@ -22,7 +22,7 @@ public sealed partial class PeopleWindow : Window
             return;
         }
 
-        var page = new PersonViewModel(vm.Service, person.Id);
+        var page = new PersonViewModel(vm.Service, person.Id, vm.Role);
         if (await new PersonWindow { DataContext = page }.ShowDialog<bool>(this) && page.ChosenTitleId is { } titleId)
         {
             vm.ChosenTitleId = titleId;

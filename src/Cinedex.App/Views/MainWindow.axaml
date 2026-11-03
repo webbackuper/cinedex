@@ -128,6 +128,13 @@
               <TextBlock Text="Acteurs" />
             </StackPanel>
           </Button>
+          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenDirectorsCommand}" IsVisible="{Binding ShowDirectorsLink}"
+                  ToolTip.Tip="Réalisateurs du catalogue : fiche, biographie et films réalisés">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <controls:Icon Kind="clapper" Width="18" Height="18" />
+              <TextBlock Text="Réalisateurs" />
+            </StackPanel>
+          </Button>
           <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenSeriesTrackingCommand}" IsVisible="{Binding HasSeries}"
                   ToolTip.Tip="Épisodes à regarder et prochaines diffusions de vos séries">
             <StackPanel Orientation="Horizontal" Spacing="10">
@@ -578,6 +585,30 @@
               </StackPanel>
 
               <!-- Distribution et équipe : chaque personne ouvre sa fiche -->
+              <StackPanel Spacing="8" IsVisible="{Binding HasDirectors}">
+                <TextBlock Text="Réalisation" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
+                <ItemsControl ItemsSource="{Binding Directors}">
+                  <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="people:CastMember">
+                      <Button Classes="tool" Width="104" Padding="4,6" Margin="0,0,4,4" VerticalContentAlignment="Top"
+                              Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenPersonCommand}" CommandParameter="{Binding}"
+                              ToolTip.Tip="{Binding Name, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='Fiche de {0}'}">
+                        <StackPanel Spacing="4" HorizontalAlignment="Center">
+                          <Border Width="56" Height="56" CornerRadius="28" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}" HorizontalAlignment="Center">
+                            <Panel>
+                              <controls:Icon Kind="about" Width="22" Height="22" Foreground="{DynamicResource CinedexMuted}" />
+                              <Image Source="{Binding PhotoPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=112}" Stretch="UniformToFill" />
+                            </Panel>
+                          </Border>
+                          <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding Character}" FontSize="11" Classes="muted" TextAlignment="Center" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
               <StackPanel Spacing="8" IsVisible="{Binding HasCast}">
                 <TextBlock Text="Distribution" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
                 <ItemsControl ItemsSource="{Binding Cast}">

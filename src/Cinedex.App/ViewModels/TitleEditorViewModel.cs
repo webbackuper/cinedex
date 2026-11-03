@@ -28,6 +28,7 @@ public sealed record TitleEditorExtras(
     string? PosterPath = null,
     IReadOnlyList<CastMember>? Cast = null,
     string? CrewText = null,
+    IReadOnlyList<CastMember>? Directors = null,
     string? MediaText = null,
     Func<Task<string?>>? RefreshMedia = null,
     Func<string, Task<string?>>? AddFile = null,
@@ -76,6 +77,7 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         ReloadFiles();
         PosterPath = extras.PosterPath;
         Cast = extras.Cast ?? [];
+        Directors = extras.Directors ?? [];
         CrewText = extras.CrewText ?? string.Empty;
         MediaText = extras.MediaText ?? "Aucun fichier vidéo rattaché à ce titre.";
         Collections = [new(null, "(aucune)"), .. (collections ?? []).Select(c => new Choice<long?>(c.Id, c.Name))];
@@ -178,7 +180,7 @@ public sealed partial class TitleEditorViewModel : ObservableObject
 
     /// <summary>Fiche d'un acteur de la distribution (null si les acteurs ne sont pas gérés).</summary>
     public PersonViewModel? PersonPage(CastMember member) =>
-        _people is null || member is null ? null : new PersonViewModel(_people, member.PersonId);
+        _people is null || member is null ? null : new PersonViewModel(_people, member.PersonId, member.Role == "director" ? "director" : null);
 
     public bool CanAddFile => _addFile is not null;
 
@@ -214,6 +216,11 @@ public sealed partial class TitleEditorViewModel : ObservableObject
     public IReadOnlyList<CastMember> Cast { get; }
 
     public bool HasCast => Cast.Count > 0;
+
+    /// <summary>Réalisateurs du titre (onglet Distribution), cliquables comme les acteurs.</summary>
+    public IReadOnlyList<CastMember> Directors { get; }
+
+    public bool HasDirectors => Directors.Count > 0;
 
     public string CrewText { get; }
 

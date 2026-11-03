@@ -53,8 +53,11 @@ public sealed class PeopleRepository(CatalogDatabase database)
         };
     }
 
-    /// <summary>Titres du catalogue auxquels la personne a participé, du plus récent au plus ancien.</summary>
-    public IReadOnlyList<PersonCredit> Filmography(long personId)
+    /// <summary>
+    /// Titres du catalogue auxquels la personne a participé, du plus récent au plus ancien ; avec un rôle
+    /// (« director »…), seulement ceux où elle tient ce rôle.
+    /// </summary>
+    public IReadOnlyList<PersonCredit> Filmography(long personId, string? role = null)
     {
         using var connection = database.Open();
         return connection.Query<(long Id, string Title, long? Year, string Kind, string Role, string? Character, string? Poster)>(
@@ -62,26 +65,29 @@ public sealed class PeopleRepository(CatalogDatabase database)
                 SELECT t.id, t.title, t.year, t.kind, c.role, c.character,
                        (SELECT i.rel_path FROM title_image ti JOIN image i ON i.id = ti.image_id WHERE ti.title_id = t.id AND ti.role = 'poster')
                 FROM credit c JOIN title t ON t.id = c.title_id
-                WHERE c.person_id = @personId
+                WHERE c.person_id = @personId AND (@role IS NULL OR c.role = @role)
                 ORDER BY t.year IS NULL, t.year DESC, t.sort_title, CASE c.role WHEN 'actor' THEN 0 ELSE 1 END;
                 """,
-                new { personId })
+                new { personId, role })
             .Select(r => new PersonCredit(r.Id, r.Title, (int?)r.Year, r.Kind == "series" ? TitleKind.Series : TitleKind.Movie, r.Role, r.Character, r.Poster))
             .ToList();
     }
 
-    /// <summary>Recherche par nom (contient), personnes les plus présentes dans le catalogue d'abord.</summary>
-    public IReadOnlyList<PersonSummary> Search(string? text, int limit = 200)
+    /// <summary>
+    /// Recherche par nom (contient), personnes les plus présentes dans le catalogue d'abord ; avec un rôle
+    /// (« director »…), seulement les personnes qui l'ont tenu, comptées sur ces titres-là.
+    /// </summary>
+    public IReadOnlyList<PersonSummary> Search(string? text, int limit = 200, string? role = null)
     {
         using var connection = database.Open();
         return connection.Query<(long Id, string Name, long Count, string? Photo)>(
                 $"""
                 SELECT p.id, p.name, count(DISTINCT c.title_id) AS n, {PhotoRel}
                 FROM person p JOIN credit c ON c.person_id = p.id
-                WHERE @pattern IS NULL OR p.name LIKE @pattern ESCAPE '!'
+                WHERE (@pattern IS NULL OR p.name LIKE @pattern ESCAPE '!') AND (@role IS NULL OR c.role = @role)
                 GROUP BY p.id ORDER BY n DESC, p.name LIMIT @limit;
                 """,
-                new { pattern = string.IsNullOrWhiteSpace(text) ? null : TitleRepository.Like(text), limit })
+                new { pattern = string.IsNullOrWhiteSpace(text) ? null : TitleRepository.Like(text), limit, role })
             .Select(r => new PersonSummary(r.Id, r.Name, (int)r.Count, r.Photo))
             .ToList();
     }

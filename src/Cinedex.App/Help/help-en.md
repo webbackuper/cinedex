@@ -201,6 +201,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.8
+- First version published on GitHub: installers for Windows, Linux and macOS, and portable archives.
+
 ### 0.4.7
 - Poster view: posters grow to fill the full width of the grid, with no gap on the right, and keep their shape.
 

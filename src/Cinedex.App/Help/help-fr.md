@@ -201,6 +201,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.8
+- Première version publiée sur GitHub : programmes d'installation pour Windows, Linux et macOS, et archives portables.
+
 ### 0.4.7
 - Vue affiches : les affiches s'agrandissent pour occuper toute la largeur de la grille, sans vide à droite, en gardant leur format.
 

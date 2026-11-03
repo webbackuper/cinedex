@@ -54,7 +54,7 @@ For a single title: **Link or update from TMDb** (Ctrl+U). For several titles: *
 If an API reaches its limit during an import, Cinedex offers to finish without it or to stop.
 
 ## A film's details
-A click on a title shows its details in the right panel; a double-click (or Alt+E) opens the full, editable entry with its tabs:
+A click on a title shows its details in the right panel, whose width you set by dragging the handle between it and the list; a double-click (or Alt+E) opens the full, editable entry with its tabs:
 - **Details**: titles, year, runtime, summary, countries, studio, IMDb ID, trailer.
 - **Ratings**: your rating and the TMDb, IMDb, Rotten Tomatoes and Metacritic ratings.
 - **Cast**: actors with their photo and role; a click opens the actor's page. The crew (directing, screenplay, music) follows.
@@ -101,7 +101,7 @@ Example: Genre is Comedy, then IMDb rating > 7, then Year ≥ 2000.
 **Tooltips**: turn on "Tooltip when hovering over a film" in **Settings > General** to show, when hovering over a film in the list or the posters, its title, genres, IMDb rating and the beginning of its synopsis. They are off by default.
 
 ## The left sidebar
-- **Library**: quick views (wishlist, watched, favorites, lent, video files…).
+- **Library**: quick views (watched, favorites, shortlist, lent, video files…).
 - **Definition**: submenu Standard definition, High definition, Ultra HD (4K), 3D.
 - At the bottom: **To review**, **Advanced search**, **Actors**, **Directors**, **Series tracker**, **Collections**, **Appearance**, **Settings** and **Help**.
 
@@ -201,6 +201,10 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.6
+- **Resizable right-hand panel**: drag the handle between the list and the details panel (300 to 760 px); the width is remembered for the catalog, and a double-click on the handle restores the default width. The poster grid adjusts how many posters fit on each row.
+- The "Wishlist" link is removed from the left sidebar.
+
 ### 0.4.5
 - Right-hand panel: the **genres** of the selected title are shown as chips, between the buttons and the ratings.
 

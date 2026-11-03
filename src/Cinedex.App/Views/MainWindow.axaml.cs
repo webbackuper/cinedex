@@ -68,6 +68,55 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
             }
         };
         Closed += (_, _) => _backupTimer.Stop();
+
+        // Largeur de la fiche : appliquée depuis le catalogue, et bornée pour laisser au moins 380 px à la liste.
+        DataContextChanged += (_, _) =>
+        {
+            if (DataContext is MainWindowViewModel vm)
+            {
+                ApplyDetailWidth(vm.DetailWidth);
+                vm.PropertyChanged += (_, e) =>
+                {
+                    if (e.PropertyName == nameof(MainWindowViewModel.DetailWidth))
+                    {
+                        ApplyDetailWidth(vm.DetailWidth);
+                    }
+                };
+            }
+        };
+        SizeChanged += (_, _) => LimitDetailWidth();
+    }
+
+    /// <summary>Colonne de la fiche dans la grille principale (la dernière).</summary>
+    private ColumnDefinition DetailColumn => MainGrid.ColumnDefinitions[^1];
+
+    private void ApplyDetailWidth(double width)
+    {
+        DetailColumn.Width = new GridLength(width);
+        LimitDetailWidth();
+    }
+
+    /// <summary>La fiche ne peut pas manger la liste : barre latérale, 380 px de liste et poignée restent visibles.</summary>
+    private void LimitDetailWidth()
+    {
+        var room = Bounds.Width - 232 - 380 - 8;
+        DetailColumn.MaxWidth = room > 0 ? Math.Clamp(room, MainWindowViewModel.MinDetailWidth, MainWindowViewModel.MaxDetailWidth) : MainWindowViewModel.MaxDetailWidth;
+    }
+
+    private void OnDetailSplitterDragCompleted(object? sender, Avalonia.Input.VectorEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.DetailWidth = Math.Round(DetailColumn.ActualWidth);
+        }
+    }
+
+    private void OnDetailSplitterDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.DetailWidth = MainWindowViewModel.DefaultDetailWidth;
+        }
     }
 
     /// <summary>Lance le diaporama des affiches si la fenêtre est active et inactive depuis la durée réglée.</summary>

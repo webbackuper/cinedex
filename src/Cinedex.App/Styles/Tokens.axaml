@@ -71,6 +71,7 @@
   <Thickness x:Key="Below4">0,0,0,16</Thickness>
   <Thickness x:Key="Block1">0,4,0,4</Thickness>
   <Thickness x:Key="Block2">0,8,0,8</Thickness>
+  <Thickness x:Key="Block6">0,24,0,24</Thickness>
   <Thickness x:Key="Edges0_0_1_2">0,0,4,8</Thickness>
   <Thickness x:Key="Edges0_0_2_1">0,0,8,4</Thickness>
   <Thickness x:Key="Edges0_1_0_3">0,4,0,12</Thickness>
@@ -87,7 +88,7 @@
   <Thickness x:Key="Edges4_0_0_2">16,0,0,8</Thickness>
   <Thickness x:Key="Edges4_1_0_0">16,4,0,0</Thickness>
   <Thickness x:Key="Edges4_6_0_2">16,24,0,8</Thickness>
-  <Thickness x:Key="Edges6_4_3_0">24,16,12,0</Thickness>
+  <Thickness x:Key="Edges6_4_1_0">24,16,4,0</Thickness>
   <Thickness x:Key="Edges6_6_4_2">24,24,16,8</Thickness>
   <Thickness x:Key="Edges8_6_8_8">32,24,32,32</Thickness>
   <Thickness x:Key="Inline1">4,0,4,0</Thickness>

@@ -54,7 +54,7 @@ Pour un titre isolé : **Lier ou mettre à jour depuis TMDb** (Ctrl+U). Pour plu
 Si une API atteint sa limite pendant un import, Cinedex vous propose de terminer sans elle ou d'interrompre.
 
 ## La fiche d'un film
-Un clic sur un titre affiche sa fiche dans le panneau de droite ; un double-clic (ou Alt+E) ouvre la fiche complète, modifiable, avec ses onglets :
+Un clic sur un titre affiche sa fiche dans le panneau de droite, dont la largeur se règle en glissant la poignée qui le sépare de la liste ; un double-clic (ou Alt+E) ouvre la fiche complète, modifiable, avec ses onglets :
 - **Fiche** : titres, année, durée, résumé, pays, studio, identifiant IMDb, bande-annonce.
 - **Notes** : votre note et les notes TMDb, IMDb, Rotten Tomatoes, Metacritic.
 - **Distribution** : acteurs avec leur photo et leur rôle ; un clic ouvre la fiche de l'acteur. L'équipe (réalisation, scénario, musique) suit.
@@ -101,7 +101,7 @@ Exemple : Genre est Comédie, puis Note IMDb > 7, puis Année ≥ 2000.
 **Infobulles** : activez « Infobulle au survol d'un film » dans **Réglages > Général** pour afficher, en survolant un film de la liste ou des affiches, son titre, ses genres, sa note IMDb et le début de son synopsis. Elles sont désactivées par défaut.
 
 ## Le bandeau gauche
-- **Bibliothèque** : vues rapides (liste de souhaits, vus, favoris, prêtés, fichiers vidéo…).
+- **Bibliothèque** : vues rapides (vus, favoris, liste courte, prêtés, fichiers vidéo…).
 - **Définition** : sous-menu Définition standard, Haute définition, Ultra HD (4K), 3D.
 - En bas : **À vérifier**, **Recherche multicritère**, **Acteurs**, **Réalisateurs**, **Suivi des séries**, **Collections**, **Apparence**, **Réglages** et **Aide**.
 
@@ -201,6 +201,10 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.6
+- **Fiche du bandeau droit redimensionnable** : glissez la poignée entre la liste et la fiche (de 300 à 760 px) ; la largeur est mémorisée pour le catalogue, un double-clic sur la poignée revient à la largeur par défaut. La grille d'affiches ajuste son nombre d'affiches par rangée à la place disponible.
+- Le lien « Liste de souhaits » est retiré du bandeau gauche.
+
 ### 0.4.5
 - Fiche du bandeau droit : les **genres** du titre sélectionné s'affichent en pastilles, entre les boutons et les notes.
 

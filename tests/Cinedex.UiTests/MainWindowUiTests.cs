@@ -173,4 +173,46 @@ public sealed class MainWindowUiTests(UiSession ui)
         UiCatalog.Pump();
         Assert.Empty(vm.DetailGenres);
     });
+
+    [Fact]
+    public Task Widening_the_detail_panel_reflows_the_poster_grid() => ui.Run(() =>
+    {
+        using var catalog = new UiCatalog(300);
+        var vm = catalog.ViewModel;
+        vm.IsGridView = true;
+        UiCatalog.Pump(300);
+
+        int PostersPerRow()
+        {
+            var cards = catalog.All<PosterCard>().Where(c => c.IsEffectivelyVisible).ToList();
+            var top = cards.Min(c => c.Bounds.Y);
+            return cards.Count(c => Math.Abs(c.Bounds.Y - top) < 1);
+        }
+
+        var detail = catalog.Find<GridSplitter>(s => s.Name == "DetailSplitter");
+        Assert.Equal("Largeur de la fiche", Avalonia.Automation.AutomationProperties.GetName(detail));
+        var before = PostersPerRow();
+
+        // Fiche élargie : la liste perd des colonnes d'affiches, sans rien couper.
+        vm.DetailWidth = 700;
+        UiCatalog.Pump(300);
+        var grid = Assert.IsType<Grid>(detail.Parent);
+        Assert.Equal(700, grid.ColumnDefinitions[^1].ActualWidth, 0.5);
+        var after = PostersPerRow();
+        UiCatalog.Report($"Affiches par rangée : {before} avec la fiche par défaut, {after} avec une fiche de 700 px");
+        Assert.True(after < before, $"{before} puis {after} affiches par rangée");
+        UiCatalog.Shot(catalog.Window, "fiche-large");
+
+        // La liste garde au moins 380 px même si la fenêtre rétrécit.
+        catalog.Window.Width = 1000;
+        UiCatalog.Pump(300);
+        Assert.True(grid.ColumnDefinitions[1].ActualWidth >= 379, $"liste {grid.ColumnDefinitions[1].ActualWidth} px");
+        Assert.True(PostersPerRow() >= 1);
+
+        // Retour à la largeur par défaut : autant d'affiches qu'au départ.
+        catalog.Window.Width = 1600;
+        vm.DetailWidth = Cinedex.App.ViewModels.MainWindowViewModel.DefaultDetailWidth;
+        UiCatalog.Pump(300);
+        Assert.Equal(before, PostersPerRow());
+    });
 }

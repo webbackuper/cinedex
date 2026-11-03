@@ -157,7 +157,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public static IReadOnlyList<FilterItem> AllMainFilters { get; } =
     [
         new(QuickFilter.All, "Tous les titres"),
-        new(QuickFilter.Wishlist, "Liste de souhaits"),
         new(QuickFilter.Seen, "Vus"),
         new(QuickFilter.Unseen, "Pas encore vus"),
         new(QuickFilter.Favorites, "Favoris"),
@@ -478,6 +477,26 @@ public sealed partial class MainWindowViewModel : ObservableObject
     // La vue choisie est mémorisée pour le catalogue.
     partial void OnIsGridViewChanged(bool value) => _media?.Settings.Set(GridViewKey, value ? "true" : "false");
 
+    /// <summary>Largeur de la fiche (bandeau droit), réglée avec la poignée et mémorisée pour le catalogue.</summary>
+    [ObservableProperty]
+    public partial double DetailWidth { get; set; } = DefaultDetailWidth;
+
+    public const double DefaultDetailWidth = 372;
+
+    public const double MinDetailWidth = 300;
+
+    public const double MaxDetailWidth = 760;
+
+    private const string DetailWidthKey = "ui.detailWidth";
+
+    partial void OnDetailWidthChanged(double value) =>
+        _media?.Settings.Set(DetailWidthKey, value.ToString("0", CultureInfo.InvariantCulture));
+
+    private static double ClampDetailWidth(string? stored) =>
+        double.TryParse(stored, NumberStyles.Float, CultureInfo.InvariantCulture, out var width)
+            ? Math.Clamp(width, MinDetailWidth, MaxDetailWidth)
+            : DefaultDetailWidth;
+
     [RelayCommand]
     private void ShowGrid() => IsGridView = true;
 
@@ -699,6 +718,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         _loaded = true;
         IsGridView = _media?.Settings.Get(GridViewKey) == "true";
+        DetailWidth = ClampDetailWidth(_media?.Settings.Get(DetailWidthKey));
         Refresh();
     }
 

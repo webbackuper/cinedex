@@ -42,7 +42,7 @@ public sealed class AppSettingsTests : IDisposable
         vm.IgnoreKeywordsText = "bonus";
         vm.DefaultUseTmdb = true;
         vm.HideAdult = true;
-        vm.MainFilterToggles.Single(t => t.Value == QuickFilter.Wishlist).IsShown = false;
+        vm.MainFilterToggles.Single(t => t.Value == QuickFilter.Shortlist).IsShown = false;
         foreach (var t in vm.DefinitionFilterToggles)
         {
             t.IsShown = false;
@@ -73,9 +73,39 @@ public sealed class AppSettingsTests : IDisposable
         var main = new MainWindowViewModel(titles, new AppPaths(_temp.Path, isPortable: false), new NoDialogs(), media: new MediaContext(files, import, _store));
         main.Load();
 
-        Assert.DoesNotContain(main.Filters, f => f.Value == QuickFilter.Wishlist);
+        Assert.DoesNotContain(main.Filters, f => f.Value == QuickFilter.Shortlist);
         Assert.False(main.HasDefinitionFilters);
         Assert.Equal(["Visible"], main.Titles.Select(t => t.Title));
+    }
+
+    [Fact]
+    public void Wishlist_is_no_longer_offered_in_the_sidebar()
+    {
+        Assert.DoesNotContain(MainWindowViewModel.AllMainFilters, f => f.Value == QuickFilter.Wishlist);
+        Assert.DoesNotContain(new SettingsViewModel(new NoVault(), _store, _temp.Path).MainFilterToggles, t => t.Value == QuickFilter.Wishlist);
+    }
+
+    [Fact]
+    public void Detail_panel_width_is_remembered_and_kept_in_bounds()
+    {
+        MainWindowViewModel Open()
+        {
+            var titles = new TitleRepository(_db);
+            var files = new MediaFileRepository(_db);
+            var import = new LibraryImportService(titles, files, new ImageStore(_db, Path.Combine(_temp.Path, "img")), null,
+                () => new MediaProbe("absent", "absent"), NullLogger<LibraryImportService>.Instance);
+            var vm = new MainWindowViewModel(titles, new AppPaths(_temp.Path, isPortable: false), new NoDialogs(), media: new MediaContext(files, import, _store));
+            vm.Load();
+            return vm;
+        }
+
+        Assert.Equal(MainWindowViewModel.DefaultDetailWidth, Open().DetailWidth);
+
+        Open().DetailWidth = 520;
+        Assert.Equal(520, Open().DetailWidth);
+
+        Open().DetailWidth = 5000;
+        Assert.Equal(MainWindowViewModel.MaxDetailWidth, Open().DetailWidth);
     }
 
     private sealed class NoVault : ISecretStore

@@ -74,9 +74,32 @@
     <Style Selector="controls|PosterCard.poster:selected">
       <Setter Property="Background" Value="{DynamicResource CinedexActive}" />
     </Style>
+    <!-- Poignée de la fiche : invisible au repos, trait gris au survol et pendant le glissement. -->
+    <Style Selector="GridSplitter.detail">
+      <Setter Property="Width" Value="8" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Cursor" Value="SizeWestEast" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Panel Background="{TemplateBinding Background}">
+            <Border Name="PART_Line" Width="2" CornerRadius="{StaticResource RadiusChip}" Margin="{StaticResource Block6}" Background="Transparent" />
+          </Panel>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+    <Style Selector="GridSplitter.detail:pointerover /template/ Border#PART_Line, GridSplitter.detail:pressed /template/ Border#PART_Line, GridSplitter.detail:focus-visible /template/ Border#PART_Line">
+      <Setter Property="Background" Value="{DynamicResource CinedexBorder}" />
+    </Style>
   </Window.Styles>
 
-  <Grid ColumnDefinitions="232,*,372">
+  <Grid x:Name="MainGrid">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="232" />
+      <ColumnDefinition Width="*" MinWidth="380" />
+      <ColumnDefinition Width="Auto" />
+      <!-- Fiche : largeur réglée par la poignée (300 à 760 px), mémorisée pour le catalogue. -->
+      <ColumnDefinition Width="372" MinWidth="300" MaxWidth="760" />
+    </Grid.ColumnDefinitions>
     <!-- ======================= Barre latérale ======================= -->
     <Border Grid.Column="0" Background="{DynamicResource CinedexSidebar}" BorderBrush="{DynamicResource CinedexBorder}" BorderThickness="{StaticResource HairlineEnd}">
       <DockPanel>
@@ -217,7 +240,7 @@
     </Border>
 
     <!-- ======================= Zone centrale ======================= -->
-    <DockPanel Grid.Column="1" Margin="{StaticResource Edges6_4_3_0}">
+    <DockPanel Grid.Column="1" Margin="{StaticResource Edges6_4_1_0}">
       <!-- Barre d'outils -->
       <DockPanel DockPanel.Dock="Top" Margin="{StaticResource Below3}">
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="{StaticResource Space2}" Margin="{StaticResource Before3}">
@@ -440,8 +463,14 @@
       </Panel>
     </DockPanel>
 
+    <!-- Poignée : glisser pour élargir la fiche, double-clic pour revenir à la largeur par défaut. -->
+    <GridSplitter x:Name="DetailSplitter" Grid.Column="2" Classes="detail" ResizeDirection="Columns"
+                  DragCompleted="OnDetailSplitterDragCompleted" DoubleTapped="OnDetailSplitterDoubleTapped"
+                  AutomationProperties.Name="Largeur de la fiche"
+                  ToolTip.Tip="Glisser pour changer la largeur de la fiche ; double-clic : largeur par défaut" />
+
     <!-- ======================= Fiche ======================= -->
-    <Border Grid.Column="2" Margin="{StaticResource Edges0_4_4_4}" Classes="card" ClipToBounds="True">
+    <Border Grid.Column="3" Margin="{StaticResource Edges0_4_4_4}" Classes="card" ClipToBounds="True">
       <Panel>
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="{StaticResource Space3}" IsVisible="{Binding !HasDetail}" Margin="{StaticResource Inset6}">
           <controls:Icon Kind="default" Width="44" Height="44" Foreground="{DynamicResource CinedexMuted}" />

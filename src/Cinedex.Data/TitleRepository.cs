@@ -35,11 +35,14 @@ public sealed partial class TitleRepository(CatalogDatabase database)
         END
         """;
 
-    /// <summary>Titres (films et séries) qui ne sont pas encore liés à une fiche TMDb, par ordre de tri.</summary>
-    public IReadOnlyList<long> NotLinkedToTmdb()
+    /// <summary>
+    /// Titres (films et séries) dont la fiche n'a jamais été rapatriée depuis TMDb, par ordre de tri. Un identifiant
+    /// TMDb ou IMDb connu (lu dans un .nfo, saisi à la main) ne suffit pas : seule une fiche téléchargée compte.
+    /// </summary>
+    public IReadOnlyList<long> NeverFetchedFromTmdb()
     {
         using var connection = database.Open();
-        return connection.Query<long>("SELECT id FROM title WHERE tmdb_id IS NULL ORDER BY sort_title, id;").ToList();
+        return connection.Query<long>("SELECT id FROM title WHERE metadata_fetched_at IS NULL ORDER BY sort_title, id;").ToList();
     }
 
     public long Add(NewTitle title)
@@ -518,7 +521,7 @@ public sealed partial class TitleRepository(CatalogDatabase database)
         QuickFilter.PhysicalMedia => "m.code IS NOT NULL AND m.code NOT IN ('media_file', 'digital', 'streaming')",
         QuickFilter.MediaFiles => "EXISTS (SELECT 1 FROM media_file mf JOIN copy cf ON cf.id = mf.copy_id WHERE cf.title_id = t.id)",
         QuickFilter.MissingFiles => "EXISTS (SELECT 1 FROM media_file mf JOIN copy cf ON cf.id = mf.copy_id WHERE cf.title_id = t.id AND mf.is_missing = 1)",
-        QuickFilter.NoMetadata => "t.tmdb_id IS NULL",
+        QuickFilter.NoMetadata => "t.metadata_fetched_at IS NULL",
         _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, null),
     };
 

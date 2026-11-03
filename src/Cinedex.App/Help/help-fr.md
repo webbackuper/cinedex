@@ -211,8 +211,11 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.17
+- **« Films sans infos » corrigé** : la vue (et le bouton de Réglages > Métadonnées) repère maintenant les fiches jamais rapatriées depuis TMDb. Un film dont le numéro TMDb ou IMDb est connu — lu dans un .nfo ou saisi à la main — mais dont la fiche n'a jamais été téléchargée y figure désormais ; avant, il en était exclu à tort.
+
 ### 0.4.16
-- **Films sans infos** : une vue de la Bibliothèque (bandeau gauche) liste les titres jamais mis à jour depuis TMDb — scannés ou ajoutés à la main. Elle se masque dans Réglages > Bandeau gauche, comme les autres vues.
+- **Films sans infos** : une vue de la Bibliothèque (bandeau gauche) liste les titres dont la fiche n'a jamais été rapatriée depuis TMDb — scannés, ajoutés à la main, ou identifiés par un .nfo sans que la fiche ait été téléchargée. Elle se masque dans Réglages > Bandeau gauche, comme les autres vues.
 
 ### 0.4.15
 - **Mise à jour des médias jamais importés** (Réglages > Métadonnées) : un bouton lance la mise à jour via TMDb des seuls titres sans fiche TMDb — scannés ou ajoutés à la main. Les réglages se ferment et la mise à jour démarre, avec sa barre de progression.

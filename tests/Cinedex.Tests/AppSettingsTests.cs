@@ -85,17 +85,22 @@ public sealed class AppSettingsTests : IDisposable
         var titles = new TitleRepository(_db);
         var scanned = titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));
         var manual = titles.Add(new NewTitle(TitleKind.Movie, "Alien", 1979));
-        var linked = titles.Add(new NewTitle(TitleKind.Movie, "Ran", 1985));
+        var fromNfo = titles.Add(new NewTitle(TitleKind.Movie, "Brazil", 1985));
+        var fetched = titles.Add(new NewTitle(TitleKind.Movie, "Ran", 1985));
         using (var connection = _db.Open())
         {
-            connection.Execute("UPDATE title SET tmdb_id = 11645 WHERE id = @linked;", new { linked });
+            // Identifiants lus dans un .nfo : connus, mais la fiche n'a jamais été rapatriée.
+            connection.Execute("UPDATE title SET tmdb_id = 68, imdb_id = 'tt0088846' WHERE id = @fromNfo;", new { fromNfo });
+            connection.Execute(
+                "UPDATE title SET tmdb_id = 11645, metadata_fetched_at = '2026-01-02T03:04:05.000Z' WHERE id = @fetched;",
+                new { fetched });
         }
 
-        Assert.Equal([manual, scanned], titles.NotLinkedToTmdb());
+        Assert.Equal([manual, fromNfo, scanned], titles.NeverFetchedFromTmdb());
 
         var vm = new SettingsViewModel(new NoVault(), _store, _temp.Path, new StatisticsRepository(_db).Compute());
-        Assert.Equal(2, vm.UnlinkedToTmdb);
-        Assert.Contains("2 titre(s)", vm.UpdateUnlinkedLabel, StringComparison.Ordinal);
+        Assert.Equal(3, vm.UnlinkedToTmdb);
+        Assert.Contains("3 titre(s)", vm.UpdateUnlinkedLabel, StringComparison.Ordinal);
         Assert.True(vm.UpdateUnlinkedCommand.CanExecute(null));
 
         // Le bouton demande la fermeture des réglages, puis la fenêtre principale lance la mise à jour.
@@ -105,10 +110,10 @@ public sealed class AppSettingsTests : IDisposable
         Assert.True(closed);
         Assert.True(vm.PendingUpdateUnlinked);
 
-        // Catalogue entièrement lié : rien à proposer.
-        var allLinked = new SettingsViewModel(new NoVault(), _store, _temp.Path,
-            new Cinedex.Data.CatalogStatistics { Films = 2, LinkedToTmdb = 2 });
-        Assert.False(allLinked.UpdateUnlinkedCommand.CanExecute(null));
+        // Toutes les fiches rapatriées : rien à proposer.
+        var allFetched = new SettingsViewModel(new NoVault(), _store, _temp.Path,
+            new Cinedex.Data.CatalogStatistics { Films = 2, LinkedToTmdb = 2, NeverFetched = 0 });
+        Assert.False(allFetched.UpdateUnlinkedCommand.CanExecute(null));
     }
 
     [Fact]
@@ -116,10 +121,15 @@ public sealed class AppSettingsTests : IDisposable
     {
         var titles = new TitleRepository(_db);
         titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));
-        var linked = titles.Add(new NewTitle(TitleKind.Movie, "Ran", 1985));
+        var fromNfo = titles.Add(new NewTitle(TitleKind.Movie, "Brazil", 1985));
+        var fetched = titles.Add(new NewTitle(TitleKind.Movie, "Ran", 1985));
         using (var connection = _db.Open())
         {
-            connection.Execute("UPDATE title SET tmdb_id = 11645 WHERE id = @linked;", new { linked });
+            // Un identifiant TMDb connu (lu dans un .nfo) ne veut pas dire fiche rapatriée : « Brazil » reste listé.
+            connection.Execute("UPDATE title SET tmdb_id = 68 WHERE id = @fromNfo;", new { fromNfo });
+            connection.Execute(
+                "UPDATE title SET tmdb_id = 11645, metadata_fetched_at = '2026-01-02T03:04:05.000Z' WHERE id = @fetched;",
+                new { fetched });
         }
 
         var files = new MediaFileRepository(_db);
@@ -129,7 +139,15 @@ public sealed class AppSettingsTests : IDisposable
         main.Load();
 
         main.SelectedFilter = main.Filters.Single(f => f.Value == QuickFilter.NoMetadata);
-        Assert.Equal(["Heat"], main.Titles.Select(t => t.Title));
+        Assert.Equal(["Brazil", "Heat"], main.Titles.Select(t => t.Title));
+
+        // Une vraie fiche rapatriée (le chemin suivi par l'import et la mise à jour) sort de la liste.
+        new MetadataRepository(_db).Create(
+            new Cinedex.Core.Metadata.MetadataRecord { Kind = TitleKind.Movie, SourceId = 348, Title = "Alien", Year = 1979 },
+            Cinedex.Core.Metadata.ImportOptions.Default);
+        main.Load();
+        main.SelectedFilter = main.Filters.Single(f => f.Value == QuickFilter.NoMetadata);
+        Assert.Equal(["Brazil", "Heat"], main.Titles.Select(t => t.Title));
 
         // Le réglage « Bandeau gauche » propose de masquer cette vue, comme les autres.
         Assert.Contains(new SettingsViewModel(new NoVault(), _store, _temp.Path).MainFilterToggles, t => t.Value == QuickFilter.NoMetadata);

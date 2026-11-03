@@ -211,8 +211,11 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.17
+- **"Films without info" fixed**: the view (and the button in Settings > Metadata) now finds the entries never downloaded from TMDb. A film whose TMDb or IMDb number is known — read from a .nfo or typed by hand — but whose entry was never downloaded now appears there; before, it was wrongly left out.
+
 ### 0.4.16
-- **Films without info**: a Library view (left sidebar) lists the titles never updated from TMDb — scanned or added by hand. It can be hidden in Settings > Left sidebar, like the other views.
+- **Films without info**: a Library view (left sidebar) lists the titles whose entry was never downloaded from TMDb — scanned, added by hand, or identified by a .nfo without the entry being downloaded. It can be hidden in Settings > Left sidebar, like the other views.
 
 ### 0.4.15
 - **Update of never-imported media** (Settings > Metadata): a button runs the TMDb update on the titles without a TMDb entry only — scanned or added by hand. The settings close and the update starts, with its progress bar.

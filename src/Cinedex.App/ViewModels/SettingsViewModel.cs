@@ -394,8 +394,8 @@ public sealed partial class SettingsViewModel : ObservableObject
     /// <summary>Statistiques du catalogue ouvert (onglet Statistiques) ; absentes hors catalogue.</summary>
     public CatalogStatistics? Statistics { get; }
 
-    /// <summary>Titres du catalogue sans fiche TMDb (scannés ou ajoutés à la main, jamais importés).</summary>
-    public int UnlinkedToTmdb => Statistics is { } s ? Math.Max(0, s.Films + s.Series - s.LinkedToTmdb) : 0;
+    /// <summary>Titres dont la fiche n'a jamais été rapatriée depuis TMDb (scannés, ajoutés à la main, lus d'un .nfo).</summary>
+    public int UnlinkedToTmdb => Statistics?.NeverFetched ?? 0;
 
     public string UpdateUnlinkedLabel => Tr.F("Mettre à jour via TMDb les {0} titre(s) sans fiche", UnlinkedToTmdb);
 

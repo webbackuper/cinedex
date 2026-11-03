@@ -1189,10 +1189,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        var ids = _titles.NotLinkedToTmdb();
+        var ids = _titles.NeverFetchedFromTmdb();
         if (ids.Count == 0)
         {
-            Status = Tr.T("Tous les titres sont déjà liés à TMDb.");
+            Status = Tr.T("Toutes les fiches ont déjà été rapatriées depuis TMDb.");
             return;
         }
 

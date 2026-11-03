@@ -116,6 +116,9 @@ public sealed partial class PeopleBrowserViewModel : ObservableObject
         Search();
     }
 
+    /// <summary>Personnes affichées au plus : la galerie est virtualisée, la recherche affine au-delà.</summary>
+    public const int MaxShown = 2000;
+
     public PeopleService Service => _people;
 
     public string? Role { get; }
@@ -164,25 +167,26 @@ public sealed partial class PeopleBrowserViewModel : ObservableObject
     [RelayCommand]
     private void Cancel() => _cancel?.Cancel();
 
-    public ObservableCollection<PersonSummary> People { get; } = [];
+    /// <summary>Personnes trouvées, les plus présentes dans le catalogue d'abord (liste remplacée à chaque recherche).</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CountLabel))]
+    public partial IReadOnlyList<PersonSummary> People { get; private set; } = [];
+
+    public string CountLabel => (IsDirectors, People.Count) switch
+    {
+        (_, 0) => Tr.T("Aucune personne trouvée"),
+        (true, var n) => Tr.F("{0} réalisateur(s)", n),
+        (false, var n) => Tr.F("{0} personne(s)", n),
+    };
 
     [ObservableProperty]
     public partial string Query { get; set; } = string.Empty;
-
-    [ObservableProperty]
-    public partial PersonSummary? Selected { get; set; }
-
-    public long? ChosenTitleId { get; set; }
 
     partial void OnQueryChanged(string value) => Search();
 
     [RelayCommand]
     private void Search()
     {
-        People.Clear();
-        foreach (var person in _people.Repository.Search(Query, role: Role))
-        {
-            People.Add(person with { PhotoPath = _people.ResolvePhoto(person.PhotoRelativePath) });
-        }
+        People = [.. _people.Repository.Search(Query, MaxShown, Role).Select(p => p with { PhotoPath = _people.ResolvePhoto(p.PhotoRelativePath) })];
     }
 }

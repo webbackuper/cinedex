@@ -17,6 +17,41 @@ public sealed class MainWindowUiTests(UiSession ui)
     private const int BigCatalog = 12_000;
 
     [Fact]
+    public Task Actors_and_directors_take_the_place_of_the_posters() => ui.Run(() =>
+    {
+        using var catalog = new UiCatalog(30, people: true);
+        var vm = catalog.ViewModel;
+        vm.IsGridView = true;
+        UiCatalog.Pump(200);
+        var posters = catalog.Find<ScrollViewer>(s => s.Name == "PosterScroll");
+        Assert.True(posters.IsEffectivelyVisible);
+
+        // Lien « Acteurs » du bandeau gauche : la galerie remplace les affiches, la recherche a le focus.
+        catalog.Find<Button>(b => b.Command == vm.OpenPeopleCommand).Command!.Execute(null);
+        UiCatalog.Pump(300);
+        Assert.False(posters.IsEffectivelyVisible);
+        var search = catalog.Find<TextBox>(t => t.Name == "PeopleQueryBox");
+        Assert.True(search.IsEffectivelyVisible);
+        Assert.True(search.IsFocused);
+        var cards = catalog.All<Button>().Where(b => b.Command == vm.OpenBrowsedPersonCommand && b.IsEffectivelyVisible && b.Bounds.X >= 0).ToList();
+        Assert.Contains(vm.PeopleBrowser!.People, p => p.Name == "Acteur 1");
+        Assert.InRange(cards.Count, 6, 200);
+        UiCatalog.Shot(catalog.Window, "acteurs");
+
+        // Réalisateurs, puis retour aux affiches par le premier filtre de la bibliothèque, déjà choisi.
+        vm.OpenDirectorsCommand.Execute(null);
+        UiCatalog.Pump(200);
+        Assert.Contains(vm.PeopleBrowser!.People, p => p.Name == "Réalisateur 1");
+        Assert.DoesNotContain(vm.PeopleBrowser.People, p => p.Name == "Acteur 1");
+        UiCatalog.Shot(catalog.Window, "realisateurs");
+        var library = catalog.Find<ListBox>(l => l.Classes.Contains("nav"));
+        library.RaiseEvent(new TappedEventArgs(InputElement.TappedEvent, new PointerEventArgs(InputElement.PointerReleasedEvent, library, null!, catalog.Window, default, 0, default, default)));
+        UiCatalog.Pump(200);
+        Assert.True(vm.IsTitlesView);
+        Assert.True(posters.IsEffectivelyVisible);
+    });
+
+    [Fact]
     public Task Big_catalog_opens_quickly_and_only_visible_rows_exist() => ui.Run(() =>
     {
         using var catalog = new UiCatalog(BigCatalog);

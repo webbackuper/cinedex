@@ -47,6 +47,13 @@
     <Style Selector="ListBox.nav ListBoxItem:selected /template/ ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource CinedexActive}" />
     </Style>
+    <!-- Acteurs ou réalisateurs affichés : leur lien porte la pilule, plus le filtre de la bibliothèque. -->
+    <Style Selector="ListBox.nav.away ListBoxItem:selected /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.tool.current /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource CinedexActive}" />
+    </Style>
     <!-- Liste et grille de titres. -->
     <Style Selector="ListBox.titles">
       <Setter Property="Background" Value="Transparent" />
@@ -139,13 +146,13 @@
               <TextBlock Text="{Binding UpdateLabel}" TextWrapping="Wrap" />
             </StackPanel>
           </Button>
-          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenPeopleCommand}" IsVisible="{Binding ShowPeopleLink}">
+          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenPeopleCommand}" IsVisible="{Binding ShowPeopleLink}" Classes.current="{Binding IsActorsView}">
             <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
               <controls:Icon Kind="person" Width="18" Height="18" />
               <TextBlock Text="Acteurs" />
             </StackPanel>
           </Button>
-          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenDirectorsCommand}" IsVisible="{Binding ShowDirectorsLink}"
+          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenDirectorsCommand}" IsVisible="{Binding ShowDirectorsLink}" Classes.current="{Binding IsDirectorsView}"
                   ToolTip.Tip="Réalisateurs du catalogue : fiche, biographie et films réalisés">
             <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
               <controls:Icon Kind="clapper" Width="18" Height="18" />
@@ -200,7 +207,7 @@
         <ScrollViewer>
           <StackPanel>
             <TextBlock Classes="section" Text="Bibliothèque" />
-            <ListBox Classes="nav" ItemsSource="{Binding Filters}" SelectedItem="{Binding SelectedMainFilter}">
+            <ListBox Classes="nav" ItemsSource="{Binding Filters}" SelectedItem="{Binding SelectedMainFilter}" Tapped="OnLibraryTapped" Classes.away="{Binding IsPeopleView}">
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:FilterItem">
                   <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
@@ -222,7 +229,7 @@
                                RenderTransformOrigin="50%,50%" RenderTransform="{Binding IsDefinitionExpanded, Converter={x:Static views:ExpandArrowConverter.Instance}}" />
               </Grid>
             </Button>
-            <ListBox Classes="nav" Margin="{StaticResource Before6}" ItemsSource="{Binding DefinitionFilters}" SelectedItem="{Binding SelectedDefinitionFilter}"
+            <ListBox Classes="nav" Margin="{StaticResource Before6}" ItemsSource="{Binding DefinitionFilters}" SelectedItem="{Binding SelectedDefinitionFilter}" Tapped="OnLibraryTapped" Classes.away="{Binding IsPeopleView}"
                      IsVisible="{Binding IsDefinitionExpanded}">
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:FilterItem">
@@ -240,7 +247,7 @@
     </Border>
 
     <!-- ======================= Zone centrale ======================= -->
-    <DockPanel Grid.Column="1" Margin="{StaticResource Edges6_4_1_0}">
+    <DockPanel Grid.Column="1" Margin="{StaticResource Edges6_4_1_0}" IsVisible="{Binding IsTitlesView}">
       <!-- Barre d'outils -->
       <DockPanel DockPanel.Dock="Top" Margin="{StaticResource Below3}">
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="{StaticResource Space2}" Margin="{StaticResource Before3}">
@@ -466,6 +473,70 @@
                      Text="Scannez un dossier de films, ajoutez un titre depuis TMDb, ou élargissez le filtre." />
         </StackPanel>
       </Panel>
+    </DockPanel>
+
+    <!-- ============ Zone centrale : acteurs ou réalisateurs (liens du bandeau gauche) ============ -->
+    <DockPanel Grid.Column="1" Margin="{StaticResource Edges6_4_1_0}" IsVisible="{Binding IsPeopleView}">
+      <DockPanel DockPanel.Dock="Top" Margin="{StaticResource Below3}" DataContext="{Binding PeopleBrowser}" x:DataType="vm:PeopleBrowserViewModel">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="{StaticResource Space2}" Margin="{StaticResource Before3}">
+          <Button Classes="tool" Command="{Binding DownloadDetailsCommand}"
+                  ToolTip.Tip="Biographie, dates et photo depuis TMDb pour les personnes listées qui ne les ont pas encore">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
+              <controls:Icon Kind="cloud" />
+              <TextBlock Text="Télécharger les fiches manquantes" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button Classes="tool" Content="Interrompre" Command="{Binding CancelCommand}" IsVisible="{Binding IsBusy}" />
+          <Button Classes="tool" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ShowTitlesCommand}" ToolTip.Tip="Revenir aux affiches des titres">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
+              <controls:Icon Kind="grid" />
+              <TextBlock Text="Affiches" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+        <Border Classes="card" CornerRadius="{StaticResource RadiusCard}" MinWidth="150" Padding="{StaticResource Inline3}">
+          <DockPanel>
+            <controls:Icon DockPanel.Dock="Left" Kind="search" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" />
+            <TextBox x:Name="PeopleQueryBox" Text="{Binding Query}" PlaceholderText="{Binding Placeholder}" AutomationProperties.Name="{Binding WindowTitle}"
+                     BorderThickness="0" Background="Transparent" Margin="{StaticResource Before1}" />
+          </DockPanel>
+        </Border>
+      </DockPanel>
+
+      <DockPanel DockPanel.Dock="Top" Margin="{StaticResource Edges1_0_0_2}" DataContext="{Binding PeopleBrowser}" x:DataType="vm:PeopleBrowserViewModel">
+        <TextBlock DockPanel.Dock="Left" Text="{Binding WindowTitle}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" Margin="{StaticResource After4}" />
+        <TextBlock Text="{Binding Message}" Classes="muted" FontSize="{StaticResource FontSmall}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                   IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" DockPanel.Dock="Right" />
+        <TextBlock Text="{Binding CountLabel}" Classes="muted" FontSize="{StaticResource FontSmall}" VerticalAlignment="Center" />
+      </DockPanel>
+
+      <!-- Galerie virtualisée : photo, nom et nombre de titres ; un clic ouvre la fiche de la personne. -->
+      <ScrollViewer HorizontalScrollBarVisibility="Disabled" Margin="{StaticResource Below4}" AutomationProperties.Name="Personnes du catalogue">
+        <ItemsRepeater x:Name="PeopleGrid" ItemsSource="{Binding PeopleBrowser.People}" Margin="{StaticResource After2}">
+          <ItemsRepeater.Layout>
+            <UniformGridLayout MinItemWidth="140" MinItemHeight="240" MinColumnSpacing="8" MinRowSpacing="8" ItemsStretch="Fill" />
+          </ItemsRepeater.Layout>
+          <ItemsRepeater.ItemTemplate>
+            <DataTemplate x:DataType="people:PersonSummary">
+              <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Top" Padding="{StaticResource Inset2}"
+                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenBrowsedPersonCommand}" CommandParameter="{Binding}"
+                      AutomationProperties.Name="{Binding Name}"
+                      ToolTip.Tip="{Binding Name, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='Fiche de {0}'}">
+                <StackPanel Spacing="{StaticResource Space1}">
+                  <Border Height="172" CornerRadius="{StaticResource RadiusCard}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
+                    <Panel>
+                      <controls:Icon Kind="person" Width="40" Height="40" Foreground="{DynamicResource CinedexMuted}" Opacity="0.6" />
+                      <controls:AsyncImage Path="{Binding PhotoPath}" DecodeWidth="280" Stretch="UniformToFill" />
+                    </Panel>
+                  </Border>
+                  <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource CinedexInk}" />
+                  <TextBlock Text="{Binding CountLabel}" Classes="muted" FontSize="{StaticResource FontSmall}" />
+                </StackPanel>
+              </Button>
+            </DataTemplate>
+          </ItemsRepeater.ItemTemplate>
+        </ItemsRepeater>
+      </ScrollViewer>
     </DockPanel>
 
     <!-- Poignée : glisser pour élargir la fiche, double-clic pour revenir à la largeur par défaut. -->

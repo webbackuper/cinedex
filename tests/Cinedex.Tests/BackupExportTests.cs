@@ -170,7 +170,7 @@ public sealed class BackupExportTests : IDisposable
     {
         Assert.Contains("person", Cinedex.App.Controls.Icon.AllKinds);
         Assert.True(File.Exists(Path.Combine(RepositoryRoot(), "src", "Cinedex.App", "Assets", "Icons", "person.png")), "person.png (jeu Buddha)");
-        foreach (var view in new[] { "MainWindow", "PeopleWindow", "PersonWindow" })
+        foreach (var view in new[] { "MainWindow", "PersonWindow" })
         {
             var xaml = File.ReadAllText(Path.Combine(RepositoryRoot(), "src", "Cinedex.App", "Views", view + ".axaml"));
             Assert.Contains("Kind=\"person\"", xaml, StringComparison.Ordinal);

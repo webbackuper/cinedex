@@ -164,9 +164,12 @@ public sealed class MainWindowViewModelTests : IDisposable
         Assert.Equal(["lot"], _repo.Get(_vm.Titles[0].Id)!.Tags);
     }
 
-    private sealed class FakeDialogs : IDialogs
+    internal sealed class FakeDialogs : IDialogs
     {
         public bool Answer { get; set; }
+
+        /// <summary>Réponse à la fiche d'une personne (choix d'un de ses titres, par exemple).</summary>
+        public Func<PersonViewModel, bool>? PersonPage { get; set; }
 
         public int Confirmations { get; private set; }
 
@@ -199,9 +202,7 @@ public sealed class MainWindowViewModelTests : IDisposable
 
         public Task<bool> ShowSeriesAsync(SeriesViewModel series) => Task.FromResult(false);
 
-        public Task<bool> ShowPersonAsync(PersonViewModel person) => Task.FromResult(false);
-
-        public Task<bool> ShowPeopleAsync(PeopleBrowserViewModel people) => Task.FromResult(false);
+        public Task<bool> ShowPersonAsync(PersonViewModel person) => Task.FromResult(PersonPage?.Invoke(person) ?? false);
 
         public Task<bool> ShowMatchReviewAsync(MatchReviewViewModel review) => Task.FromResult(false);
 

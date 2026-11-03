@@ -398,6 +398,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             if (value is not null)
             {
+                PeopleBrowser = null;
                 SelectedFilter = value;
             }
         }
@@ -410,6 +411,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             if (value is not null)
             {
+                PeopleBrowser = null;
                 SelectedFilter = value;
             }
         }
@@ -600,35 +602,59 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    /// <summary>Annuaire des réalisateurs du catalogue (lien du bandeau gauche).</summary>
-    [RelayCommand]
-    private async Task OpenDirectorsAsync()
-    {
-        if (_media?.People is not { } people)
-        {
-            return;
-        }
+    /// <summary>
+    /// Galerie des acteurs ou des réalisateurs, affichée dans la zone centrale à la place des affiches
+    /// (liens du bandeau gauche) ; les filtres de la bibliothèque ramènent les affiches.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsPeopleView), nameof(IsTitlesView), nameof(IsActorsView), nameof(IsDirectorsView))]
+    public partial PeopleBrowserViewModel? PeopleBrowser { get; private set; }
 
-        var browser = new PeopleBrowserViewModel(people, "director");
-        if (await _dialogs.ShowPeopleAsync(browser) && browser.ChosenTitleId is { } titleId)
-        {
-            GoToTitle(titleId);
-        }
-    }
+    public bool IsPeopleView => PeopleBrowser is not null;
+
+    public bool IsTitlesView => PeopleBrowser is null;
+
+    public bool IsActorsView => PeopleBrowser is { IsDirectors: false };
+
+    public bool IsDirectorsView => PeopleBrowser is { IsDirectors: true };
+
+    /// <summary>Réalisateurs du catalogue dans la zone centrale (lien du bandeau gauche).</summary>
+    [RelayCommand]
+    private void OpenDirectors() => ShowPeople("director");
 
     public bool ShowDirectorsLink => HasPeople && _display.ShowDirectors;
 
+    /// <summary>Acteurs et équipe du catalogue dans la zone centrale (lien du bandeau gauche).</summary>
     [RelayCommand]
-    private async Task OpenPeopleAsync()
+    private void OpenPeople() => ShowPeople(null);
+
+    private void ShowPeople(string? role)
     {
-        if (_media?.People is not { } people)
+        if (_media?.People is not { } people || (PeopleBrowser is { } current && current.Role == role))
         {
             return;
         }
 
-        var browser = new PeopleBrowserViewModel(people);
-        if (await _dialogs.ShowPeopleAsync(browser) && browser.ChosenTitleId is { } titleId)
+        PeopleBrowser = new PeopleBrowserViewModel(people, role);
+    }
+
+    /// <summary>Revient aux affiches des titres (filtres du haut du bandeau gauche).</summary>
+    [RelayCommand]
+    private void ShowTitles() => PeopleBrowser = null;
+
+    /// <summary>Fiche d'une personne de la galerie ; si l'un de ses titres y est choisi, retour aux affiches sur ce titre.</summary>
+    [RelayCommand]
+    private async Task OpenBrowsedPersonAsync(PersonSummary? person)
+    {
+        if (person is null || PeopleBrowser is not { } browser)
         {
+            return;
+        }
+
+        var page = new PersonViewModel(browser.Service, person.Id, browser.Role);
+        if (await _dialogs.ShowPersonAsync(page) && page.ChosenTitleId is { } titleId)
+        {
+            PeopleBrowser = null;
             GoToTitle(titleId);
         }
     }

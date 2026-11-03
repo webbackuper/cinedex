@@ -65,12 +65,12 @@ A click on a title shows its details in the right panel, whose width you set by 
 Runtimes are shown in hours and minutes.
 
 ## Actors
-The actors of each TMDb entry are kept (the number can be set in **Settings > Metadata**). The **Actors** link in the left sidebar lists everyone in the catalog; an actor's page shows the biography, TMDb and IMDb links, and all their films in the catalog.
+The actors of each TMDb entry are kept (the number can be set in **Settings > Metadata**). The **Actors** link in the left sidebar replaces the posters in the central area with everyone in the catalog (photo, name, number of titles), with a search box at the top; clicking a **Library** filter (All titles, Movies, Series…) or **Posters** brings the posters back. Clicking a person opens their page; an actor's page shows the biography, TMDb and IMDb links, and all their films in the catalog.
 
 ## Directors
 Directors have their own page, like actors. In a film's details (**Cast** tab) and in the right panel, the **Directing** section shows them with their photo: a click opens their page (biography, dates, place of birth, TMDb and IMDb links, downloaded from TMDb the first time) and the list of **all the films they directed** in the catalog; clicking a film shows it in the list.
 
-The **Directors** link in the left sidebar opens the directory of the catalog's directors, sorted by number of films. **Download missing records** fetches the biography and photo of those who don't have them yet in one go. The link is shown or hidden in **Settings > Left sidebar**.
+The **Directors** link in the left sidebar shows the catalog's directors in the central area, in place of the posters, sorted by number of films; the **Library** filters bring the posters back. **Download missing records** fetches the biography and photo of those who don't have them yet in one go. The link is shown or hidden in **Settings > Left sidebar**.
 
 ## Collections
 A **collection** groups the films of a saga or box set (Back to the Future, The Lord of the Rings…). It is created when a film linked to TMDb that belongs to a saga is imported, or by hand in the **Organization** tab of the details.
@@ -209,6 +209,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.11
+- **Actors and directors in the central area**: the left sidebar links show people in place of the posters, with a search box at the top; the Library filters bring the posters back. Choosing a film on a person's page goes back to the posters on that film.
+
 ### 0.4.10
 - **Actor icon**: a small figure replaces the "i" in the sidebar, the cast and the people pages, in every icon set (Buddha included).
 

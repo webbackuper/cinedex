@@ -108,6 +108,48 @@ public sealed class PeopleTests : IDisposable
         Assert.Null(_people.Credits(_heat).Single(c => c.Name == "Robert De Niro").PhotoRelativePath);
     }
 
+    [Fact]
+    public async Task Actors_and_directors_replace_the_posters_until_a_library_filter_is_chosen()
+    {
+        var service = new PeopleService(_people, new TmdbClient(new HttpClient(new Handler(_ => new HttpResponseMessage(HttpStatusCode.NotFound))), _ => ValueTask.FromResult<string?>(null)),
+            new ImageStore(_db, Path.Combine(_temp.Path, "img")), NullLogger<PeopleService>.Instance);
+        var files = new MediaFileRepository(_db);
+        var import = new LibraryImportService(_titles, files, new ImageStore(_db, Path.Combine(_temp.Path, "img")), null,
+            () => new Cinedex.Media.MediaProbe("absent", "absent"), NullLogger<LibraryImportService>.Instance);
+        var dialogs = new MainWindowViewModelTests.FakeDialogs();
+        var main = new MainWindowViewModel(_titles, new Cinedex.Core.AppPaths(_temp.Path, isPortable: false), dialogs,
+            media: new MediaContext(files, import, new SettingsStore(_db), People: service));
+        main.Load();
+        Assert.True(main.IsTitlesView);
+
+        // Acteurs : galerie dans la zone centrale, avec sa recherche.
+        main.OpenPeopleCommand.Execute(null);
+        Assert.True(main.IsActorsView);
+        Assert.False(main.IsTitlesView);
+        Assert.Equal(["Al Pacino", "Michael Mann", "Robert De Niro"], main.PeopleBrowser!.People.Select(p => p.Name).Order(StringComparer.Ordinal));
+        main.PeopleBrowser.Query = "niro";
+        Assert.Equal("Robert De Niro", Assert.Single(main.PeopleBrowser.People).Name);
+
+        // Réalisateurs, puis retour aux affiches par un filtre de la bibliothèque (même celui déjà choisi).
+        main.OpenDirectorsCommand.Execute(null);
+        Assert.True(main.IsDirectorsView);
+        Assert.Equal("Michael Mann", Assert.Single(main.PeopleBrowser!.People).Name);
+        main.SelectedMainFilter = main.Filters[0];
+        Assert.True(main.IsTitlesView);
+        Assert.Null(main.PeopleBrowser);
+
+        // Un film choisi dans la fiche d'une personne : retour aux affiches, sur ce film.
+        main.OpenDirectorsCommand.Execute(null);
+        dialogs.PersonPage = page =>
+        {
+            page.Choose(page.Titles.Single(t => t.TitleId == _insider));
+            return true;
+        };
+        await main.OpenBrowsedPersonCommand.ExecuteAsync(main.PeopleBrowser!.People[0]);
+        Assert.True(main.IsTitlesView);
+        Assert.Equal(_insider, main.Detail!.Id);
+    }
+
     private static MetadataRecord Movie(long id, string title, int year, IReadOnlyList<MetadataCredit> credits) => new()
     {
         Kind = TitleKind.Movie,

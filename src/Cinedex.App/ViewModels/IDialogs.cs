@@ -27,8 +27,6 @@ public interface IDialogs
 
     Task<bool> ShowPersonAsync(PersonViewModel person);
 
-    Task<bool> ShowPeopleAsync(PeopleBrowserViewModel people);
-
     Task<bool> ShowMatchReviewAsync(MatchReviewViewModel review);
 
     Task<bool> ShowCollectionsAsync(CollectionsViewModel collections);

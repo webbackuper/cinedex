@@ -81,6 +81,10 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
                     {
                         ApplyDetailWidth(vm.DetailWidth);
                     }
+                    else if (e.PropertyName == nameof(MainWindowViewModel.PeopleBrowser) && vm.IsPeopleView)
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() => PeopleQueryBox.Focus());
+                    }
                 };
             }
         };
@@ -330,8 +334,14 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
     public Task<bool> ShowCollectionsAsync(CollectionsViewModel collections) =>
         new CollectionsWindow { DataContext = collections }.ShowDialog<bool>(this);
 
-    public Task<bool> ShowPeopleAsync(PeopleBrowserViewModel people) =>
-        new PeopleWindow { DataContext = people }.ShowDialog<bool>(this);
+    /// <summary>Clic sur un filtre de la bibliothèque : les affiches reviennent, même si le filtre était déjà choisi.</summary>
+    private void OnLibraryTapped(object? sender, TappedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel { IsPeopleView: true } vm)
+        {
+            vm.ShowTitlesCommand.Execute(null);
+        }
+    }
 
     /// <summary>Clic sur une affiche : sélection (Ctrl pour ajouter ou retirer, Maj pour une plage).</summary>
     private void OnPosterPressed(object? sender, PointerPressedEventArgs e)

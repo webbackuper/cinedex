@@ -7,8 +7,14 @@ using Avalonia.VisualTree;
 using Cinedex.App.ViewModels;
 using Cinedex.App.Views;
 using Cinedex.Core;
+using Cinedex.App.Services;
+using Cinedex.Core.Metadata;
+using Cinedex.Core.Titles;
 using Cinedex.Data;
+using Cinedex.Media;
+using Cinedex.Metadata.Tmdb;
 using Cinedex.Tests;
+using Microsoft.Extensions.Logging.Abstractions;
 
 [assembly: AssemblyFixture(typeof(Cinedex.UiTests.UiSession))]
 
@@ -51,7 +57,8 @@ internal sealed class UiCatalog : IDisposable
 {
     private readonly TempDirectory _temp = new();
 
-    public UiCatalog(int titles)
+    /// <param name="people">Ajoute des films avec distribution et réalisateurs (galerie des personnes).</param>
+    public UiCatalog(int titles, bool people = false)
     {
         var paths = new AppPaths(_temp.Path, isPortable: true);
         paths.EnsureCreated();
@@ -72,7 +79,7 @@ internal sealed class UiCatalog : IDisposable
 
         Titles = new TitleRepository(Database);
         Window = new MainWindow { Width = 1600, Height = 1000 };
-        ViewModel = new MainWindowViewModel(Titles, paths, Window, images: new ImageStore(Database, images));
+        ViewModel = new MainWindowViewModel(Titles, paths, Window, images: new ImageStore(Database, images), media: people ? SeedPeople(images) : null);
         Window.DataContext = ViewModel;
         var watch = Stopwatch.StartNew();
         ViewModel.Load();
@@ -83,6 +90,31 @@ internal sealed class UiCatalog : IDisposable
     }
 
     public CatalogDatabase Database { get; }
+
+    /// <summary>Douze films, chacun avec un réalisateur et six acteurs pris parmi quarante (TMDb injoignable).</summary>
+    private MediaContext SeedPeople(string images)
+    {
+        var metadata = new MetadataRepository(Database);
+        for (var film = 0; film < 12; film++)
+        {
+            var credits = new List<MetadataCredit> { new(CreditRole.Director, 9000 + (film % 5), $"Réalisateur {film % 5 + 1}", null, 0, null) };
+            credits.AddRange(Enumerable.Range(0, 6).Select(i => new MetadataCredit(CreditRole.Actor, 100 + ((film * 3) + i) % 40, $"Acteur {((film * 3) + i) % 40 + 1}", "Rôle", i, null)));
+            metadata.Create(new MetadataRecord { Kind = TitleKind.Movie, SourceId = 50_000 + film, Title = $"Film {film + 1}", Year = 1990 + film, Credits = credits }, ImportOptions.Default);
+        }
+
+        var store = new ImageStore(Database, images);
+        var offline = new TmdbClient(new HttpClient(new OfflineHandler()), _ => ValueTask.FromResult<string?>(null));
+        var people = new PeopleService(new PeopleRepository(Database), offline, store, NullLogger<PeopleService>.Instance);
+        var files = new MediaFileRepository(Database);
+        var import = new LibraryImportService(Titles, files, store, null, () => new MediaProbe("absent", "absent"), NullLogger<LibraryImportService>.Instance);
+        return new MediaContext(files, import, new SettingsStore(Database), People: people);
+    }
+
+    private sealed class OfflineHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
+            Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.NotFound));
+    }
 
     public TitleRepository Titles { get; }
 

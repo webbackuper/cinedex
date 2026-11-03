@@ -1,0 +1,77 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Cinedex.Android.ViewModels"
+             xmlns:titles="using:Cinedex.Core.Titles"
+             xmlns:views="using:Cinedex.Android.Views"
+             x:Class="Cinedex.Android.Views.MainView"
+             x:DataType="vm:CatalogViewModel"
+             Background="{DynamicResource CinedexBackground}">
+  <Panel>
+    <!-- ======================= Liste ======================= -->
+    <DockPanel IsVisible="{Binding IsListVisible}">
+      <StackPanel DockPanel.Dock="Top" Margin="{StaticResource Inset4}" Spacing="{StaticResource Space3}">
+        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="{StaticResource Space3}">
+          <Image Source="avares://Cinedex.Android/Assets/cinedex.png" Width="32" Height="32" />
+          <TextBlock Grid.Column="1" Text="Cinedex" FontSize="{StaticResource FontTitle}" FontWeight="SemiBold" VerticalAlignment="Center" />
+          <Button Grid.Column="2" Classes="primary" Content="{x:Static vm:CatalogViewModel.ImportLabel}" Click="OnImport" />
+        </Grid>
+        <TextBox Text="{Binding SearchText}" PlaceholderText="{x:Static vm:CatalogViewModel.SearchPlaceholder}" IsVisible="{Binding HasCatalog}"
+                 AutomationProperties.Name="{x:Static vm:CatalogViewModel.SearchPlaceholder}" />
+        <TextBlock Text="{Binding Status}" Classes="muted" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" />
+      </StackPanel>
+
+      <Panel>
+        <TextBlock Text="{x:Static vm:CatalogViewModel.EmptyText}" IsVisible="{Binding IsEmpty}" Classes="muted" TextWrapping="Wrap" TextAlignment="Center"
+                   VerticalAlignment="Center" Margin="{StaticResource Inset6}" />
+        <ListBox x:Name="TitleList" ItemsSource="{Binding Titles}" IsVisible="{Binding HasCatalog}" Background="Transparent" SelectionMode="Single"
+                 SelectionChanged="OnTitleChosen">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="titles:TitleSummary">
+              <Grid ColumnDefinitions="Auto,*" ColumnSpacing="{StaticResource Space3}" AutomationProperties.Name="{Binding TitleWithYear}">
+                <Border Width="56" Height="84" CornerRadius="{StaticResource RadiusControl}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
+                  <Image Source="{Binding PosterPath, Converter={x:Static views:PosterConverter.Thumbnail}}" Stretch="UniformToFill" />
+                </Border>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="{StaticResource Space1}">
+                  <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Text="{Binding Subtitle}" Classes="muted" FontSize="{StaticResource FontSmall}" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Text="{Binding GenresText}" Classes="muted" FontSize="{StaticResource FontSmall}" TextTrimming="CharacterEllipsis" IsVisible="{Binding HasGenres}" />
+                </StackPanel>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Panel>
+    </DockPanel>
+
+    <!-- ======================= Fiche ======================= -->
+    <DockPanel IsVisible="{Binding HasDetail}">
+      <Button DockPanel.Dock="Top" Content="{x:Static vm:CatalogViewModel.BackLabel}" Command="{Binding BackCommand}" Margin="{StaticResource Inset4}" />
+      <ScrollViewer>
+        <StackPanel DataContext="{Binding Detail}" x:DataType="vm:TitlePage" Margin="{StaticResource Inline4}" Spacing="{StaticResource Space4}">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="{StaticResource Space4}">
+            <Border Width="120" Height="180" CornerRadius="{StaticResource RadiusCard}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
+              <Image Source="{Binding PosterPath, Converter={x:Static views:PosterConverter.Large}}" Stretch="UniformToFill" />
+            </Border>
+            <StackPanel Grid.Column="1" Spacing="{StaticResource Space2}" VerticalAlignment="Bottom">
+              <TextBlock Text="{Binding Title}" FontSize="{StaticResource FontTitle}" FontWeight="SemiBold" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding Subtitle}" Classes="muted" />
+              <TextBlock Text="{Binding UserRating}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}" IsVisible="{Binding UserRating, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              <TextBlock Text="{Binding ImdbRating}" IsVisible="{Binding ImdbRating, Converter={x:Static ObjectConverters.IsNotNull}}" />
+            </StackPanel>
+          </Grid>
+          <ItemsControl ItemsSource="{Binding Genres}">
+            <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="x:String">
+                <Border Classes="chip"><TextBlock Text="{Binding}" FontSize="{StaticResource FontSmall}" /></Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <TextBlock Text="{Binding Overview}" TextWrapping="Wrap" />
+          <TextBlock Text="{Binding Directors}" TextWrapping="Wrap" Classes="muted" IsVisible="{Binding Directors, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <TextBlock Text="{Binding Cast}" TextWrapping="Wrap" Classes="muted" Margin="{StaticResource Below4}" IsVisible="{Binding Cast, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        </StackPanel>
+      </ScrollViewer>
+    </DockPanel>
+  </Panel>
+</UserControl>

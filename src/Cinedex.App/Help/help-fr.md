@@ -187,6 +187,14 @@ Cinedex est conçu pour des catalogues de plus de 10 000 films : seules les lign
 - **Sauvegardes gardées** : au-delà de ce nombre, les plus anciennes sont effacées (0 : toutes gardées).
 - **Restaurer…** remplace la base du catalogue par celle de la sauvegarde choisie (une copie de la base actuelle est gardée d'abord) et ajoute les images manquantes ; les réglages se ferment et le catalogue est rouvert.
 
+## Cinedex sur Android
+L'application Android (fichier .apk, à installer à la main, hors Play Store) permet de consulter le catalogue sur un téléphone, en lecture seule : recherche, liste avec affiches et genres, fiche de chaque film (résumé, notes, réalisation, distribution).
+1. Sur l'ordinateur, créez une sauvegarde avec la base et les images (**Réglages > Sauvegardes**).
+2. Copiez le fichier .zip sur le téléphone (câble USB, cloud, e-mail…).
+3. Dans Cinedex sur le téléphone, touchez **Importer une sauvegarde** et choisissez ce fichier. Un nouvel import remplace le catalogue du téléphone.
+
+Pour installer l'APK, autorisez l'installation d'applications provenant de sources inconnues dans les réglages Android.
+
 ## Export de la liste
 **Réglages > Export** enregistre la liste des films en **CSV**, **TSV** ou **Excel (.xlsx)** : la liste affichée (recherche, filtre et tri actuels) ou tout le catalogue, avec les colonnes cochées (numéro, titre, titre original, année, genres, durée, réalisateurs, acteurs principaux, notes, vu, favori, support, emplacement, collection, prêt, résolution, MediaID, fichiers, taille, identifiants TMDb et IMDb, date d'ajout, synopsis). Le CSV utilise le séparateur de la langue du système (« ; » en français) et s'ouvre directement dans Excel. Colonnes et format sont retenus.
 
@@ -201,6 +209,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.9
+- **Cinedex sur Android** : application de consultation (fichier .apk) qui importe une sauvegarde faite sur l'ordinateur ; voir la rubrique « Cinedex sur Android ».
+
 ### 0.4.8
 - Première version publiée sur GitHub : programmes d'installation pour Windows, Linux et macOS, et archives portables.
 

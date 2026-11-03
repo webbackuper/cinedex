@@ -1,0 +1,61 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Cinedex.Android.App"
+             RequestedThemeVariant="Default">
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <!-- Mêmes jetons de design que l'application de bureau (fichier partagé). -->
+        <ResourceInclude Source="avares://Cinedex.Android/Styles/Tokens.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+      <!-- Palette par défaut de l'application de bureau : sol de pierre, encre, accent rouge velours. -->
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="CinedexBackground" Color="#F7F7F5" />
+          <SolidColorBrush x:Key="CinedexSurface" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="CinedexBorder" Color="#E6E6E3" />
+          <SolidColorBrush x:Key="CinedexInk" Color="#161616" />
+          <SolidColorBrush x:Key="CinedexMuted" Color="#5F6066" />
+          <SolidColorBrush x:Key="CinedexAccent" Color="#9B1C2E" />
+          <SolidColorBrush x:Key="CinedexActive" Color="#E8E8E5" />
+          <SolidColorBrush x:Key="CinedexPrimary" Color="#1D1F20" />
+          <SolidColorBrush x:Key="CinedexOnPrimary" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="CinedexPosterBack" Color="#E9E9E6" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="CinedexBackground" Color="#121212" />
+          <SolidColorBrush x:Key="CinedexSurface" Color="#1B1B1B" />
+          <SolidColorBrush x:Key="CinedexBorder" Color="#2E2E2E" />
+          <SolidColorBrush x:Key="CinedexInk" Color="#F2F2F2" />
+          <SolidColorBrush x:Key="CinedexMuted" Color="#ABABAB" />
+          <SolidColorBrush x:Key="CinedexAccent" Color="#E2707F" />
+          <SolidColorBrush x:Key="CinedexActive" Color="#2A2A2A" />
+          <SolidColorBrush x:Key="CinedexPrimary" Color="#F2F2F2" />
+          <SolidColorBrush x:Key="CinedexOnPrimary" Color="#111111" />
+          <SolidColorBrush x:Key="CinedexPosterBack" Color="#242424" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+  <Application.Styles>
+    <FluentTheme />
+    <Style Selector="TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource CinedexInk}" />
+    </Style>
+    <Style Selector="TextBlock.muted">
+      <Setter Property="Foreground" Value="{DynamicResource CinedexMuted}" />
+    </Style>
+    <Style Selector="Border.chip">
+      <Setter Property="Background" Value="{DynamicResource CinedexActive}" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusChip}" />
+      <Setter Property="Padding" Value="{StaticResource Inset2x1}" />
+      <Setter Property="Margin" Value="{StaticResource Trail2}" />
+    </Style>
+    <Style Selector="Button.primary">
+      <Setter Property="Background" Value="{DynamicResource CinedexPrimary}" />
+      <Setter Property="Foreground" Value="{DynamicResource CinedexOnPrimary}" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
+      <Setter Property="Padding" Value="{StaticResource Inset4x3}" />
+    </Style>
+  </Application.Styles>
+</Application>

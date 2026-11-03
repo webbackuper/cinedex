@@ -34,7 +34,7 @@ def keep(s):
 # 1. XAML
 ATTR = re.compile(r'\b(Text|Content|Header|Title|PlaceholderText|Watermark|ToolTip\.Tip)="([^"{][^"]*)"')
 PARAM = re.compile(r"ConverterParameter='([^']*)'")
-for dirpath, _, files in os.walk(os.path.join(ROOT, 'Cinedex.App')):
+for dirpath, _, files in [w for app in ('Cinedex.App', 'Cinedex.Android') for w in os.walk(os.path.join(ROOT, app))]:
     if SKIP_DIR.search(dirpath):
         continue
     for f in files:

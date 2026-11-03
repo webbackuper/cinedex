@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Cinedex sur Android : consultation d'un catalogue importé depuis une sauvegarde .zip de l'application de bureau.
+    Hors de Cinedex.slnx : la CI (Windows, Linux, macOS) n'a pas besoin de l'outillage Android.
+    Construction : build/android.ps1.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-android</TargetFramework>
+    <SupportedOSPlatformVersion>24</SupportedOSPlatformVersion>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Cinedex.Android</RootNamespace>
+    <AssemblyName>Cinedex.Android</AssemblyName>
+    <ApplicationId>io.github.webbackuper.cinedex</ApplicationId>
+    <ApplicationTitle>Cinedex</ApplicationTitle>
+    <ApplicationDisplayVersion>$(Version)</ApplicationDisplayVersion>
+    <!-- 0.4.8 → 408 : le numéro de version Android doit croître à chaque version. -->
+    <_CinedexMajor>$([System.Version]::Parse('$(Version)').Major)</_CinedexMajor>
+    <_CinedexMinor>$([System.Version]::Parse('$(Version)').Minor)</_CinedexMinor>
+    <_CinedexBuild>$([System.Version]::Parse('$(Version)').Build)</_CinedexBuild>
+    <ApplicationVersion>$([MSBuild]::Add($([MSBuild]::Multiply($(_CinedexMajor), 10000)), $([MSBuild]::Add($([MSBuild]::Multiply($(_CinedexMinor), 100)), $(_CinedexBuild)))))</ApplicationVersion>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="..\Cinedex.App\Styles\Tokens.axaml" Link="Styles\Tokens.axaml" />
+    <AvaloniaResource Include="..\Cinedex.App\Assets\cinedex.png" Link="Assets\cinedex.png" />
+    <AndroidResource Include="..\Cinedex.App\Assets\cinedex.png" Link="Resources\drawable\icon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Android" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Cinedex.Core\Cinedex.Core.csproj" />
+    <ProjectReference Include="..\Cinedex.Data\Cinedex.Data.csproj" />
+  </ItemGroup>
+</Project>

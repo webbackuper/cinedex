@@ -187,6 +187,14 @@ Cinedex is built for catalogs of more than 10,000 films: only the visible rows a
 - **Backups kept**: beyond this number the oldest are deleted (0: all kept).
 - **Restore…** replaces the catalog database with the chosen backup's (a copy of the current one is kept first) and adds missing images; Settings close and the catalog reopens.
 
+## Cinedex on Android
+The Android app (an .apk file, installed by hand, outside the Play Store) lets you browse the catalog on a phone, read-only: search, list with posters and genres, and each film's details (overview, ratings, director, cast).
+1. On the computer, create a backup with the database and the images (**Settings > Backups**).
+2. Copy the .zip file to the phone (USB cable, cloud, e-mail…).
+3. In Cinedex on the phone, tap **Import a backup** and pick that file. A new import replaces the phone's catalog.
+
+To install the APK, allow installing apps from unknown sources in the Android settings.
+
 ## Exporting the list
 **Settings > Export** saves the film list as **CSV**, **TSV** or **Excel (.xlsx)**: the displayed list (current search, filter and sort) or the whole catalog, with the checked columns (number, title, original title, year, genres, runtime, directors, main actors, ratings, watched, favorite, medium, location, collection, loan, resolution, MediaID, files, size, TMDb and IMDb IDs, date added, synopsis). The CSV uses the system language's separator (";" in French) and opens directly in Excel. Columns and format are remembered.
 
@@ -201,6 +209,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.9
+- **Cinedex on Android**: a browsing app (.apk file) that imports a backup made on the computer; see "Cinedex on Android".
+
 ### 0.4.8
 - First version published on GitHub: installers for Windows, Linux and macOS, and portable archives.
 

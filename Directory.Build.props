@@ -14,7 +14,7 @@
     <NuGetAudit>true</NuGetAudit>
     <NuGetAuditMode>all</NuGetAuditMode>
     <NuGetAuditLevel>low</NuGetAuditLevel>
-    <Version>0.4.14</Version>
+    <Version>0.4.15</Version>
     <Product>Cinedex</Product>
     <Company>Cinedex</Company>
   </PropertyGroup>

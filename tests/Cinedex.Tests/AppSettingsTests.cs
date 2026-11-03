@@ -5,6 +5,7 @@ using Cinedex.Core;
 using Cinedex.Core.Titles;
 using Cinedex.Data;
 using Cinedex.Media;
+using Dapper;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Cinedex.Tests;
@@ -76,6 +77,38 @@ public sealed class AppSettingsTests : IDisposable
         Assert.DoesNotContain(main.Filters, f => f.Value == QuickFilter.Shortlist);
         Assert.False(main.HasDefinitionFilters);
         Assert.Equal(["Visible"], main.Titles.Select(t => t.Title));
+    }
+
+    [Fact]
+    public void Metadata_tab_offers_to_update_the_titles_never_imported_from_tmdb()
+    {
+        var titles = new TitleRepository(_db);
+        var scanned = titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));
+        var manual = titles.Add(new NewTitle(TitleKind.Movie, "Alien", 1979));
+        var linked = titles.Add(new NewTitle(TitleKind.Movie, "Ran", 1985));
+        using (var connection = _db.Open())
+        {
+            connection.Execute("UPDATE title SET tmdb_id = 11645 WHERE id = @linked;", new { linked });
+        }
+
+        Assert.Equal([manual, scanned], titles.NotLinkedToTmdb());
+
+        var vm = new SettingsViewModel(new NoVault(), _store, _temp.Path, new StatisticsRepository(_db).Compute());
+        Assert.Equal(2, vm.UnlinkedToTmdb);
+        Assert.Contains("2 titre(s)", vm.UpdateUnlinkedLabel, StringComparison.Ordinal);
+        Assert.True(vm.UpdateUnlinkedCommand.CanExecute(null));
+
+        // Le bouton demande la fermeture des réglages, puis la fenêtre principale lance la mise à jour.
+        var closed = false;
+        vm.CloseRequested += (_, _) => closed = true;
+        vm.UpdateUnlinkedCommand.Execute(null);
+        Assert.True(closed);
+        Assert.True(vm.PendingUpdateUnlinked);
+
+        // Catalogue entièrement lié : rien à proposer.
+        var allLinked = new SettingsViewModel(new NoVault(), _store, _temp.Path,
+            new Cinedex.Data.CatalogStatistics { Films = 2, LinkedToTmdb = 2 });
+        Assert.False(allLinked.UpdateUnlinkedCommand.CanExecute(null));
     }
 
     [Fact]

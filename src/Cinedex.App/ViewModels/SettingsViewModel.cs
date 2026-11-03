@@ -394,6 +394,26 @@ public sealed partial class SettingsViewModel : ObservableObject
     /// <summary>Statistiques du catalogue ouvert (onglet Statistiques) ; absentes hors catalogue.</summary>
     public CatalogStatistics? Statistics { get; }
 
+    /// <summary>Titres du catalogue sans fiche TMDb (scannés ou ajoutés à la main, jamais importés).</summary>
+    public int UnlinkedToTmdb => Statistics is { } s ? Math.Max(0, s.Films + s.Series - s.LinkedToTmdb) : 0;
+
+    public string UpdateUnlinkedLabel => Tr.F("Mettre à jour via TMDb les {0} titre(s) sans fiche", UnlinkedToTmdb);
+
+    /// <summary>La mise à jour TMDb des titres non liés démarre à la fermeture des réglages.</summary>
+    public bool PendingUpdateUnlinked { get; private set; }
+
+    /// <summary>La fenêtre des réglages doit se fermer (mise à jour TMDb à lancer).</summary>
+    public event EventHandler? CloseRequested;
+
+    public bool CanUpdateUnlinked => UnlinkedToTmdb > 0;
+
+    [CommunityToolkit.Mvvm.Input.RelayCommand(CanExecute = nameof(CanUpdateUnlinked))]
+    private void UpdateUnlinked()
+    {
+        PendingUpdateUnlinked = true;
+        CloseRequested?.Invoke(this, EventArgs.Empty);
+    }
+
     public bool HasStatistics => Statistics is not null;
 
     public IReadOnlyList<StatCard> StatCards => Statistics is not { } s ? [] :

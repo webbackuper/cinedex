@@ -35,6 +35,13 @@ public sealed partial class TitleRepository(CatalogDatabase database)
         END
         """;
 
+    /// <summary>Titres (films et séries) qui ne sont pas encore liés à une fiche TMDb, par ordre de tri.</summary>
+    public IReadOnlyList<long> NotLinkedToTmdb()
+    {
+        using var connection = database.Open();
+        return connection.Query<long>("SELECT id FROM title WHERE tmdb_id IS NULL ORDER BY sort_title, id;").ToList();
+    }
+
     public long Add(NewTitle title)
     {
         ArgumentNullException.ThrowIfNull(title);

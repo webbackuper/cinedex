@@ -1177,6 +1177,29 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         var ids = SelectedTitles.Count > 0 ? SelectedIds : Titles.Select(t => t.Id).ToList();
         var scope = SelectedTitles.Count > 0 ? Tr.F("les {0} titre(s) sélectionné(s)", ids.Count) : Tr.F("les {0} titre(s) affiché(s)", ids.Count);
+        await UpdateViaTmdbAsync(ids, scope);
+    }
+
+    /// <summary>Mise à jour TMDb des seuls titres sans fiche TMDb (bouton de Réglages > Métadonnées).</summary>
+    public async Task UpdateUnlinkedFromTmdbAsync()
+    {
+        if (_metadata is null || IsBusy)
+        {
+            return;
+        }
+
+        var ids = _titles.NotLinkedToTmdb();
+        if (ids.Count == 0)
+        {
+            Status = Tr.T("Tous les titres sont déjà liés à TMDb.");
+            return;
+        }
+
+        await UpdateViaTmdbAsync(ids, Tr.F("les {0} titre(s) sans fiche TMDb", ids.Count));
+    }
+
+    private async Task UpdateViaTmdbAsync(IReadOnlyList<long> ids, string scope)
+    {
         if (ids.Count == 0 || !await _dialogs.ConfirmAsync(
                 "Mettre à jour via TMDb",
                 Tr.F("Mettre à jour {0} depuis TMDb ?\nLes fiches existantes sont complétées sur place, aucune entrée n'est créée. Les titres verrouillés sont ignorés.", scope)))
@@ -1260,6 +1283,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
             if (maintenance?.PendingTitleId is { } titleId)
             {
                 GoToTitle(titleId);
+            }
+
+            if (settings.PendingUpdateUnlinked)
+            {
+                // Bouton de l'onglet Métadonnées : la fenêtre vient de se fermer, la mise à jour démarre ici.
+                await UpdateUnlinkedFromTmdbAsync();
             }
         }
     }

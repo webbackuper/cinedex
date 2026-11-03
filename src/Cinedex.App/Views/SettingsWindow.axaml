@@ -319,6 +319,10 @@
               <NumericUpDown Value="{Binding MaxActorsNumber}" Minimum="1" Maximum="200" Increment="5" Width="130" FormatString="0" />
             </StackPanel>
             <TextBlock Classes="hint" Text="Appliqué aux prochains imports et mises à jour TMDb. Pour les films déjà au catalogue, relancez « Mettre à jour via TMDb »." />
+            <WrapPanel Margin="{StaticResource Above2}">
+              <Button Classes="tool" Content="{Binding UpdateUnlinkedLabel}" Command="{Binding UpdateUnlinkedCommand}"
+                      ToolTip.Tip="Cherche sur TMDb (par titre et année) la fiche des médias jamais importés — scannés ou ajoutés à la main — et la télécharge. Les réglages se ferment et la mise à jour démarre, avec sa barre de progression." />
+            </WrapPanel>
 
             <TextBlock Classes="h" Text="Notes IMDb, Rotten Tomatoes, Metacritic" />
             <TextBlock Text="{Binding OmdbState}" TextWrapping="Wrap" Opacity="0.8" />

@@ -134,7 +134,7 @@ Plusieurs catalogues indépendants peuvent coexister (par exemple : films, séri
 - **Économiseur d'écran** : activation, durée d'inactivité, intervalle du diaporama, titres sous les affiches.
 - **Bandeau gauche** : vues et liens affichés.
 - **Import et scan** : extensions vidéo, taille minimale, mots qui font ignorer un fichier, sous-dossiers, termes retirés des titres, options cochées par défaut.
-- **Métadonnées** : jeton TMDb, langue et pays, nombre d'acteurs, clé OMDb, fichier IMDb.
+- **Métadonnées** : jeton TMDb, langue et pays, nombre d'acteurs, clé OMDb, fichier IMDb ; un bouton met à jour via TMDb les seuls titres sans fiche TMDb (jamais importés).
 - **Fichiers .nfo** et **Lecture et outils** (MediaInfo, lecteur externe, marquer comme vu à la lecture).
 - **Maintenance** : entretien de la base du catalogue ouvert (voir ci-dessous).
 - **Statistiques** : chiffres du catalogue ouvert (films, séries, épisodes, acteurs, réalisateurs, vus, favoris, prêtés, fichiers, taille des fichiers, durée totale des films, titres liés à TMDb, à vérifier) et répartitions par genre, décennie, définition, support et disque (MediaID).
@@ -210,6 +210,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.15
+- **Mise à jour des médias jamais importés** (Réglages > Métadonnées) : un bouton lance la mise à jour via TMDb des seuls titres sans fiche TMDb — scannés ou ajoutés à la main. Les réglages se ferment et la mise à jour démarre, avec sa barre de progression.
+
 ### 0.4.14
 - **Sélection multiple** : le bandeau droit affiche le nombre de titres sélectionnés et leur liste ; chaque affiche sélectionnée porte une croix dans un rond (coin haut droit), qui retire le titre de la sélection d'un clic.
 - **Barres de progression** : la mise à jour via TMDb, la relecture des infos techniques et l'import d'un dossier affichent une barre de progression avec le détail de l'étape en cours.

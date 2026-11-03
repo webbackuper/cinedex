@@ -13,6 +13,11 @@ public sealed partial class SettingsWindow : Window
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
+        if (DataContext is SettingsViewModel vm)
+        {
+            vm.CloseRequested += (_, _) => Close(false);
+        }
+
         if (DataContext is SettingsViewModel { Maintenance: { } maintenance })
         {
             maintenance.Confirm = (title, message) => MessageWindow.ShowAsync(this, title, message, confirm: true);

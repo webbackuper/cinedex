@@ -134,7 +134,7 @@ Several independent catalogs can coexist (for example: films, series, a relative
 - **Screen saver**: on or off, idle time, slideshow interval, titles under the posters.
 - **Left sidebar**: views and links shown.
 - **Import and scan**: video extensions, minimum size, words that make a file ignored, subfolders, terms removed from titles, options checked by default.
-- **Metadata**: TMDb token, language and country, number of actors, OMDb key, IMDb file.
+- **Metadata**: TMDb token, language and country, number of actors, OMDb key, IMDb file; a button updates via TMDb only the titles without a TMDb entry (never imported).
 - **.nfo files** and **Playback and tools** (MediaInfo, external player, mark as watched on playback).
 - **Maintenance**: upkeep of the open catalog's database (see below).
 - **Statistics**: figures for the open catalog (films, series, episodes, actors, directors, watched, favorites, lent, files, file size, total film runtime, titles linked to TMDb, to review) and breakdowns by genre, decade, definition, medium and drive (MediaID).
@@ -210,6 +210,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.15
+- **Update of never-imported media** (Settings > Metadata): a button runs the TMDb update on the titles without a TMDb entry only — scanned or added by hand. The settings close and the update starts, with its progress bar.
+
 ### 0.4.14
 - **Multiple selection**: the right panel shows how many titles are selected and lists them; each selected poster carries a cross in a circle (top-right corner), which removes the title from the selection in one click.
 - **Progress bars**: the TMDb update, the technical-info refresh and the folder import show a progress bar with the current step.

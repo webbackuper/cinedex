@@ -201,6 +201,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.7
+- Vue affiches : les affiches s'agrandissent pour occuper toute la largeur de la grille, sans vide à droite, en gardant leur format.
+
 ### 0.4.6
 - **Fiche du bandeau droit redimensionnable** : glissez la poignée entre la liste et la fiche (de 300 à 760 px) ; la largeur est mémorisée pour le catalogue, un double-clic sur la poignée revient à la largeur par défaut. La grille d'affiches ajuste son nombre d'affiches par rangée à la place disponible.
 - Le lien « Liste de souhaits » est retiré du bandeau gauche.

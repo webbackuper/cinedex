@@ -201,6 +201,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.7
+- Poster view: posters grow to fill the full width of the grid, with no gap on the right, and keep their shape.
+
 ### 0.4.6
 - **Resizable right-hand panel**: drag the handle between the list and the details panel (300 to 760 px); the width is remembered for the catalog, and a double-click on the handle restores the default width. The poster grid adjusts how many posters fit on each row.
 - The "Wishlist" link is removed from the left sidebar.

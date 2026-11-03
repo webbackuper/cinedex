@@ -85,6 +85,42 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
             }
         };
         SizeChanged += (_, _) => LimitDetailWidth();
+        PosterGrid.SizeChanged += (_, e) => FitPosters(e.NewSize.Width);
+    }
+
+    // Affiche de base : carte de 172 × 300 px, image de 156 × 234 px (rapport 2:3), 8 px entre les cartes.
+    private const double PosterMinWidth = 172;
+    private const double PosterMinHeight = 300;
+    private const double PosterImageMinHeight = 234;
+    private const double PosterSpacing = 8;
+
+    private Avalonia.Layout.UniformGridLayout PosterLayout => (Avalonia.Layout.UniformGridLayout)PosterGrid.Layout!;
+
+    /// <summary>
+    /// Autant de colonnes que la largeur en permet avec des cartes d'au moins 172 px, puis les cartes s'élargissent
+    /// pour remplir la rangée ; l'image garde son rapport 2:3, donc la carte grandit aussi en hauteur.
+    /// </summary>
+    private void FitPosters(double width)
+    {
+        if (width <= 0)
+        {
+            return;
+        }
+
+        var columns = Math.Max(1, (int)((width + PosterSpacing) / (PosterMinWidth + PosterSpacing)));
+        // Un demi-pixel de marge : la grille doit retrouver exactement le même nombre de colonnes.
+        var cardWidth = Math.Floor((width - (PosterSpacing * (columns - 1))) / columns) - 0.5;
+        cardWidth = Math.Max(PosterMinWidth, cardWidth);
+        var extra = (cardWidth - PosterMinWidth) * 1.5;
+        if (Math.Abs(cardWidth - PosterLayout.MinItemWidth) < 0.1)
+        {
+            return;
+        }
+
+        PosterGrid.Resources["PosterCardWidth"] = cardWidth;
+        PosterGrid.Resources["PosterImageHeight"] = PosterImageMinHeight + extra;
+        PosterLayout.MinItemWidth = cardWidth;
+        PosterLayout.MinItemHeight = PosterMinHeight + extra;
     }
 
     /// <summary>Colonne de la fiche dans la grille principale (la dernière).</summary>
@@ -322,8 +358,8 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
             return;
         }
 
-        var columns = Math.Max(1, (int)((PosterScroll.Viewport.Width + 8) / (172 + 8)));
-        var rows = Math.Max(1, (int)(PosterScroll.Viewport.Height / (300 + 8)));
+        var columns = Math.Max(1, (int)((PosterGrid.Bounds.Width + PosterSpacing) / (PosterLayout.MinItemWidth + PosterSpacing)));
+        var rows = Math.Max(1, (int)(PosterScroll.Viewport.Height / (PosterLayout.MinItemHeight + PosterSpacing)));
         var extend = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
         int? delta = e.Key switch
         {

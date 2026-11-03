@@ -408,13 +408,18 @@
         <!-- Vue affiches : grille virtualisée (seules les affiches visibles existent, même avec 10 000 titres). -->
         <ScrollViewer x:Name="PosterScroll" IsVisible="{Binding IsGridView}" HorizontalScrollBarVisibility="Disabled" Focusable="True"
                       KeyDown="OnGridKeyDown" AutomationProperties.Name="Affiches des titres">
+          <!-- Les affiches s'agrandissent pour occuper toute la largeur : taille recalculée par OnPosterAreaResized. -->
           <ItemsRepeater x:Name="PosterGrid" ItemsSource="{Binding Titles}" Margin="{StaticResource After2}">
+            <ItemsRepeater.Resources>
+              <x:Double x:Key="PosterCardWidth">172</x:Double>
+              <x:Double x:Key="PosterImageHeight">234</x:Double>
+            </ItemsRepeater.Resources>
             <ItemsRepeater.Layout>
               <UniformGridLayout MinItemWidth="172" MinItemHeight="300" MinColumnSpacing="8" MinRowSpacing="8" ItemsStretch="None" />
             </ItemsRepeater.Layout>
             <ItemsRepeater.ItemTemplate>
             <DataTemplate x:DataType="titles:TitleSummary">
-              <controls:PosterCard Classes="poster" Width="172" Padding="{StaticResource Inset2}" CornerRadius="{StaticResource RadiusCard}" Background="Transparent" Cursor="Hand"
+              <controls:PosterCard Classes="poster" Width="{DynamicResource PosterCardWidth}" Padding="{StaticResource Inset2}" CornerRadius="{StaticResource RadiusCard}" Background="Transparent" Cursor="Hand"
                       PointerPressed="OnPosterPressed" DoubleTapped="OnListDoubleTapped"
                       AutomationProperties.Name="{Binding TitleWithYear}">
                 <controls:PosterCard.IsSelected>
@@ -427,7 +432,7 @@
                 <ToolTip.Tip>
                   <views:TitleToolTip DataContext="{Binding}" />
                 </ToolTip.Tip>
-                <Border Height="234" CornerRadius="{StaticResource RadiusCard}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
+                <Border Height="{DynamicResource PosterImageHeight}" CornerRadius="{StaticResource RadiusCard}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
                   <Panel>
                     <StackPanel VerticalAlignment="Center" Spacing="{StaticResource Space2}" Margin="{StaticResource Inset3}">
                       <controls:Icon Kind="default" Width="36" Height="36" Foreground="{DynamicResource CinedexMuted}" Opacity="0.6" />

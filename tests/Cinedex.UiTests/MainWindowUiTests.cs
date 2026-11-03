@@ -184,11 +184,23 @@ public sealed class MainWindowUiTests(UiSession ui)
 
         int PostersPerRow()
         {
-            var cards = catalog.All<PosterCard>().Where(c => c.IsEffectivelyVisible).ToList();
+            var cards = catalog.All<PosterCard>().Where(c => c.IsEffectivelyVisible && c.Bounds.X >= 0).ToList(); // les cartes recyclées sont rangées hors champ
             var top = cards.Min(c => c.Bounds.Y);
             return cards.Count(c => Math.Abs(c.Bounds.Y - top) < 1);
         }
 
+        // Les affiches remplissent toute la largeur : la dernière de la rangée touche le bord droit de la grille.
+        void AssertRowIsFilled()
+        {
+            var repeater = catalog.Find<ItemsRepeater>(r => r.Name == "PosterGrid");
+            var cards = catalog.All<PosterCard>().Where(c => c.IsEffectivelyVisible && c.Bounds.X >= 0).ToList(); // les cartes recyclées sont rangées hors champ
+            var top = cards.Min(c => c.Bounds.Y);
+            var right = cards.Where(c => Math.Abs(c.Bounds.Y - top) < 1).Max(c => c.Bounds.Right);
+            Assert.InRange(repeater.Bounds.Width - right, 0, PostersPerRow());
+            Assert.All(cards, c => Assert.True(c.Bounds.Width >= 172, $"carte de {c.Bounds.Width} px"));
+        }
+
+        AssertRowIsFilled();
         var detail = catalog.Find<GridSplitter>(s => s.Name == "DetailSplitter");
         Assert.Equal("Largeur de la fiche", Avalonia.Automation.AutomationProperties.GetName(detail));
         var before = PostersPerRow();
@@ -201,6 +213,7 @@ public sealed class MainWindowUiTests(UiSession ui)
         var after = PostersPerRow();
         UiCatalog.Report($"Affiches par rangée : {before} avec la fiche par défaut, {after} avec une fiche de 700 px");
         Assert.True(after < before, $"{before} puis {after} affiches par rangée");
+        AssertRowIsFilled();
         UiCatalog.Shot(catalog.Window, "fiche-large");
 
         // La liste garde au moins 380 px même si la fenêtre rétrécit.
@@ -208,6 +221,7 @@ public sealed class MainWindowUiTests(UiSession ui)
         UiCatalog.Pump(300);
         Assert.True(grid.ColumnDefinitions[1].ActualWidth >= 379, $"liste {grid.ColumnDefinitions[1].ActualWidth} px");
         Assert.True(PostersPerRow() >= 1);
+        AssertRowIsFilled();
 
         // Retour à la largeur par défaut : autant d'affiches qu'au départ.
         catalog.Window.Width = 1600;

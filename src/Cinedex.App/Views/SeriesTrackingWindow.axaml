@@ -7,7 +7,7 @@
         Title="Suivi des séries"
         Width="1100" Height="740" MinWidth="760" MinHeight="460"
         WindowStartupLocation="CenterOwner">
-  <DockPanel Margin="16">
+  <DockPanel Margin="{StaticResource WindowPadding}">
     <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" Margin="0,12,0,0">
       <TextBlock Text="{Binding Message}" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource CinedexAccent}" FontWeight="SemiBold" />
       <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
@@ -18,7 +18,7 @@
 
     <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="0,0,0,12">
       <StackPanel Spacing="2">
-        <TextBlock Text="Suivi des séries" FontSize="20" FontWeight="SemiBold" />
+        <TextBlock Text="Suivi des séries" FontSize="{StaticResource FontTitle}" FontWeight="SemiBold" />
         <TextBlock Text="{Binding Summary}" Classes="muted" />
       </StackPanel>
       <ComboBox Grid.Column="1" ItemsSource="{Binding Filters}" SelectedItem="{Binding SelectedFilter}" MinWidth="240" VerticalAlignment="Center"
@@ -35,7 +35,7 @@
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:TrackingRow">
             <Grid ColumnDefinitions="Auto,*,Auto" Margin="2,4" AutomationProperties.Name="{Binding Title}">
-              <Border Width="54" Height="80" CornerRadius="6" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
+              <Border Width="54" Height="80" CornerRadius="{StaticResource RadiusControl}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
                 <Panel>
                   <controls:Icon Kind="tv" Width="22" Height="22" Foreground="{DynamicResource CinedexMuted}" Opacity="0.6" />
                   <controls:AsyncImage Path="{Binding PosterPath}" DecodeWidth="108" Stretch="UniformToFill" />
@@ -43,16 +43,16 @@
               </Border>
               <StackPanel Grid.Column="1" Margin="14,0" Spacing="4" VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                  <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="15" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="{StaticResource FontBody}" TextTrimming="CharacterEllipsis" />
                   <Border Classes="chip" IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                     <TextBlock Text="{Binding Status}" />
                   </Border>
                 </StackPanel>
                 <ProgressBar Value="{Binding Percent}" Maximum="100" Height="6" MinHeight="6" Foreground="{DynamicResource CinedexAccent}"
                              AutomationProperties.Name="{Binding Progress}" />
-                <TextBlock Text="{Binding Progress}" Classes="muted" FontSize="12" />
-                <TextBlock Text="{Binding NextText}" FontSize="12.5" TextTrimming="CharacterEllipsis" />
-                <TextBlock Text="{Binding AiringText}" Classes="muted" FontSize="12" TextTrimming="CharacterEllipsis"
+                <TextBlock Text="{Binding Progress}" Classes="muted" FontSize="{StaticResource FontSmall}" />
+                <TextBlock Text="{Binding NextText}" FontSize="{StaticResource FontSmall}" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding AiringText}" Classes="muted" FontSize="{StaticResource FontSmall}" TextTrimming="CharacterEllipsis"
                            IsVisible="{Binding AiringText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
               </StackPanel>
               <Button Grid.Column="2" Classes="tool" VerticalAlignment="Center" IsVisible="{Binding HasNext}"
@@ -68,8 +68,8 @@
       <!-- Calendrier des diffusions -->
       <DockPanel Grid.Column="2">
         <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="4,0,0,8">
-          <TextBlock Text="Prochaines diffusions" FontSize="16" FontWeight="SemiBold" />
-          <TextBlock Text="Épisodes annoncés dans les 60 prochains jours" Classes="muted" FontSize="12" />
+          <TextBlock Text="Prochaines diffusions" FontSize="{StaticResource FontSection}" FontWeight="SemiBold" />
+          <TextBlock Text="Épisodes annoncés dans les 60 prochains jours" Classes="muted" FontSize="{StaticResource FontSmall}" />
         </StackPanel>
         <Panel>
           <TextBlock Text="Aucune diffusion annoncée. « Actualiser depuis TMDb » récupère les nouvelles dates." Classes="muted" TextWrapping="Wrap" Margin="4"
@@ -81,7 +81,7 @@
                   <TextBlock Text="{Binding Date}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}" />
                   <StackPanel Grid.Column="1" Spacing="1">
                     <TextBlock Text="{Binding Series}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                    <TextBlock Text="{Binding Episode}" Classes="muted" FontSize="12" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding Episode}" Classes="muted" FontSize="{StaticResource FontSmall}" TextTrimming="CharacterEllipsis" />
                   </StackPanel>
                 </Grid>
               </DataTemplate>

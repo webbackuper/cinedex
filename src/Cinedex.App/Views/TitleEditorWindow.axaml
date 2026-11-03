@@ -15,13 +15,13 @@
     </Style>
   </Window.Styles>
 
-  <DockPanel Margin="16">
+  <DockPanel Margin="{StaticResource WindowPadding}">
     <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,12,0,0">
       <TextBlock Text="{Binding LastError}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" TextWrapping="Wrap"
                  IsVisible="{Binding LastError, Converter={x:Static ObjectConverters.IsNotNull}}" />
       <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
         <Button Classes="tool" Content="Annuler" IsCancel="True" Click="OnCancel" />
-        <Button Classes="accent" Content="Enregistrer" IsDefault="True" Click="OnSave" />
+        <Button Classes="primary" Content="Enregistrer" IsDefault="True" Click="OnSave" />
       </StackPanel>
     </StackPanel>
 
@@ -72,7 +72,7 @@
               <TextBlock Classes="label" Grid.Row="14" Text="Bande-annonce" />
               <TextBox Grid.Row="14" Grid.Column="1" Text="{Binding TrailerUrl}" PlaceholderText="https://" />
             </Grid>
-            <Border Grid.Column="1" Width="150" Height="225" Margin="16,4,0,0" VerticalAlignment="Top" CornerRadius="8" ClipToBounds="True"
+            <Border Grid.Column="1" Width="150" Height="225" Margin="16,4,0,0" VerticalAlignment="Top" CornerRadius="{StaticResource RadiusCard}" ClipToBounds="True"
                     Background="{DynamicResource CinedexSurfaceAlt}"
                     IsVisible="{Binding PosterPath, Converter={x:Static ObjectConverters.IsNotNull}}">
               <Image Source="{Binding PosterPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=300}" Stretch="UniformToFill" />
@@ -119,7 +119,7 @@
                   <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="4,3" Margin="0,1"
                           Click="OnOpenPerson" Cursor="Hand" ToolTip.Tip="{Binding Name, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='Fiche de {0}'}">
                     <Grid ColumnDefinitions="40,*,*">
-                      <Border Width="32" Height="40" CornerRadius="4" ClipToBounds="True" Background="{DynamicResource CinedexSurfaceAlt}">
+                      <Border Width="32" Height="40" CornerRadius="{StaticResource RadiusChip}" ClipToBounds="True" Background="{DynamicResource CinedexSurfaceAlt}">
                         <Image Source="{Binding PhotoPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=64}" Stretch="UniformToFill" />
                       </Border>
                       <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="8,0" />
@@ -136,7 +136,7 @@
                   <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="4,3" Margin="0,1"
                           Click="OnOpenPerson" Cursor="Hand" ToolTip.Tip="{Binding Name, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='Fiche de {0}'}">
                     <Grid ColumnDefinitions="40,*,*">
-                      <Border Width="32" Height="40" CornerRadius="4" ClipToBounds="True" Background="{DynamicResource CinedexSurfaceAlt}">
+                      <Border Width="32" Height="40" CornerRadius="{StaticResource RadiusChip}" ClipToBounds="True" Background="{DynamicResource CinedexSurfaceAlt}">
                         <Image Source="{Binding PhotoPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=64}" Stretch="UniformToFill" />
                       </Border>
                       <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="8,0" />
@@ -166,14 +166,14 @@
           </StackPanel>
           <ScrollViewer>
             <StackPanel Spacing="12">
-              <Border Padding="12,10" CornerRadius="8" Background="{DynamicResource CinedexSurfaceAlt}" IsVisible="{Binding HasFiles}">
+              <Border Padding="12,10" CornerRadius="{StaticResource RadiusCard}" Background="{DynamicResource CinedexSurfaceAlt}" IsVisible="{Binding HasFiles}">
                 <StackPanel Spacing="6">
                   <TextBlock Text="MediaID : nom du disque où se trouve le fichier" FontWeight="SemiBold" />
                   <ItemsControl ItemsSource="{Binding Files}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate x:DataType="vm:FileVolumeRow">
                         <Grid ColumnDefinitions="200,*" Margin="0,3">
-                          <TextBox Text="{Binding MediaId}" Watermark="Nom du disque" ToolTip.Tip="Rempli au scan avec le nom du disque (Propriétés dans Windows)" />
+                          <TextBox Text="{Binding MediaId}" PlaceholderText="Nom du disque" ToolTip.Tip="Rempli au scan avec le nom du disque (Propriétés dans Windows)" />
                           <TextBlock Grid.Column="1" Margin="10,0,0,0" Text="{Binding Header}" VerticalAlignment="Center" TextWrapping="Wrap" Opacity="0.75" />
                         </Grid>
                       </DataTemplate>
@@ -219,23 +219,23 @@
           </Grid>
 
           <!-- Prêt : enregistré aussitôt, indépendamment du bouton Enregistrer. -->
-          <Border Margin="0,8,0,8" Padding="14,12" CornerRadius="10" Background="{DynamicResource CinedexSurfaceAlt}"
+          <Border Margin="0,8,0,8" Padding="14,12" CornerRadius="{StaticResource RadiusCard}" Background="{DynamicResource CinedexSurfaceAlt}"
                   IsVisible="{Binding $parent[Window].((vm:TitleEditorViewModel)DataContext).HasLoans}" DataContext="{Binding Loans}" x:DataType="vm:LoanEditorViewModel">
             <StackPanel Spacing="10">
-              <TextBlock Text="Prêt" FontWeight="SemiBold" FontSize="15" />
+              <TextBlock Text="Prêt" FontWeight="SemiBold" FontSize="{StaticResource FontBody}" />
               <TextBlock Text="{Binding StatusText}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}" />
 
               <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding !IsLoaned}">
                 <AutoCompleteBox Width="240" Text="{Binding BorrowerText}" ItemsSource="{Binding Borrowers}"
-                                 FilterMode="ContainsOrdinal" Watermark="Emprunteur" />
+                                 FilterMode="ContainsOrdinal" PlaceholderText="Emprunteur" />
                 <CalendarDatePicker SelectedDate="{Binding LoanDate}" Width="150" />
-                <Button Classes="accent" Content="Prêter" Command="{Binding LendCommand}" />
+                <Button Classes="outline" Content="Prêter" Command="{Binding LendCommand}" />
               </StackPanel>
 
               <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsLoaned}">
                 <TextBlock Text="Rendu le" VerticalAlignment="Center" />
                 <CalendarDatePicker SelectedDate="{Binding ReturnDate}" Width="150" />
-                <Button Classes="accent" Content="Marquer comme rendu" Command="{Binding ReturnCommand}" />
+                <Button Classes="outline" Content="Marquer comme rendu" Command="{Binding ReturnCommand}" />
               </StackPanel>
 
               <TextBlock Text="{Binding Error}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" TextWrapping="Wrap"

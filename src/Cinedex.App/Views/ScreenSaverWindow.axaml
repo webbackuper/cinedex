@@ -5,7 +5,7 @@
         x:Class="Cinedex.App.Views.ScreenSaverWindow"
         x:DataType="vm:ScreenSaverViewModel"
         Title="Cinedex"
-        SystemDecorations="None" WindowState="FullScreen" Topmost="True" ShowInTaskbar="False"
+        WindowDecorations="None" WindowState="FullScreen" Topmost="True" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner" Background="Black" Cursor="None">
   <TransitioningContentControl Content="{Binding Current}">
     <TransitioningContentControl.PageTransition>

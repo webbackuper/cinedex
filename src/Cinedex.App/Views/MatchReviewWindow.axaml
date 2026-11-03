@@ -6,11 +6,11 @@
         Title="À vérifier : choisir la bonne fiche TMDb"
         Width="1180" Height="760" MinWidth="820" MinHeight="480"
         WindowStartupLocation="CenterOwner">
-  <DockPanel Margin="16">
+  <DockPanel Margin="{StaticResource WindowPadding}">
     <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" Margin="0,12,0,0">
       <TextBlock Text="{Binding Message}" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource CinedexAccent}" FontWeight="SemiBold" />
       <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-        <TextBlock VerticalAlignment="Center" Opacity="0.6" FontSize="11" Margin="16,0"
+        <TextBlock VerticalAlignment="Center" Opacity="0.6" FontSize="{StaticResource FontSmall}" Margin="16,0"
                    Text="This product uses the TMDB API but is not endorsed or certified by TMDB." />
         <Button Classes="tool" Content="Fermer" IsCancel="True" Click="OnClose" />
       </StackPanel>
@@ -23,7 +23,7 @@
           <DataTemplate x:DataType="vm:ReviewItem">
             <StackPanel Spacing="2" Margin="0,4">
               <TextBlock Text="{Binding Header}" FontWeight="SemiBold" TextWrapping="Wrap" />
-              <TextBlock Text="{Binding FileName}" FontSize="11.5" Opacity="0.65" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding FilePath}" />
+              <TextBlock Text="{Binding FileName}" FontSize="{StaticResource FontSmall}" Opacity="0.65" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding FilePath}" />
             </StackPanel>
           </DataTemplate>
         </ListBox.ItemTemplate>
@@ -32,9 +32,9 @@
       <!-- Candidats du titre choisi -->
       <DockPanel Grid.Column="2" IsVisible="{Binding HasSelection}">
         <StackPanel DockPanel.Dock="Top" Spacing="6" Margin="0,0,0,12" DataContext="{Binding SelectedItem}" x:DataType="vm:ReviewItem">
-          <TextBlock Text="{Binding Header}" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap" />
-          <SelectableTextBlock Text="{Binding FilePath}" FontSize="12" Opacity="0.7" TextWrapping="Wrap" />
-          <TextBlock Text="{Binding SearchText}" FontSize="12.5" Opacity="0.8" />
+          <TextBlock Text="{Binding Header}" FontSize="{StaticResource FontTitle}" FontWeight="SemiBold" TextWrapping="Wrap" />
+          <SelectableTextBlock Text="{Binding FilePath}" FontSize="{StaticResource FontSmall}" Opacity="0.7" TextWrapping="Wrap" />
+          <TextBlock Text="{Binding SearchText}" FontSize="{StaticResource FontSmall}" Opacity="0.8" />
           <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
             <Button Classes="tool" Content="Voir toutes les propositions sur TMDb ↗" Click="OnOpenSearch"
                     ToolTip.Tip="Ouvre la même recherche sur le site TMDb, dans le navigateur" />
@@ -54,22 +54,22 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:TmdbCandidate">
-                <Border Width="400" Margin="0,0,12,12" Padding="12" CornerRadius="10" Background="{DynamicResource CinedexSurfaceAlt}"
+                <Border Width="400" Margin="0,0,12,12" Padding="12" CornerRadius="{StaticResource RadiusCard}" Background="{DynamicResource CinedexSurfaceAlt}"
                         BorderBrush="{DynamicResource CinedexBorder}" BorderThickness="1">
                   <Grid ColumnDefinitions="92,12,*">
-                    <Border Width="92" Height="138" CornerRadius="6" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}" VerticalAlignment="Top">
+                    <Border Width="92" Height="138" CornerRadius="{StaticResource RadiusControl}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}" VerticalAlignment="Top">
                       <Image Source="{Binding Poster}" Stretch="UniformToFill" />
                     </Border>
                     <DockPanel Grid.Column="2">
                       <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
-                        <Button Classes="accent" Content="Choisir"
+                        <Button Classes="primary" Content="Choisir"
                                 Command="{Binding $parent[Window].((vm:MatchReviewViewModel)DataContext).ChooseCommand}" CommandParameter="{Binding}" />
                         <Button Classes="tool" Content="Voir sur TMDb ↗" Click="OnOpenCandidate" />
                       </StackPanel>
                       <StackPanel Spacing="3">
-                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="15" TextWrapping="Wrap" />
-                        <TextBlock Text="{Binding Details}" FontSize="12" Opacity="0.7" TextWrapping="Wrap" />
-                        <TextBlock Text="{Binding Overview}" FontSize="12" TextWrapping="Wrap" MaxLines="5" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="{StaticResource FontBody}" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding Details}" FontSize="{StaticResource FontSmall}" Opacity="0.7" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding Overview}" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" MaxLines="5" TextTrimming="CharacterEllipsis" />
                       </StackPanel>
                     </DockPanel>
                   </Grid>
@@ -80,7 +80,7 @@
         </ScrollViewer>
       </DockPanel>
 
-      <TextBlock Grid.Column="2" Text="Plus rien à vérifier." FontSize="16" Opacity="0.6" HorizontalAlignment="Center" VerticalAlignment="Center"
+      <TextBlock Grid.Column="2" Text="Plus rien à vérifier." FontSize="{StaticResource FontSection}" Opacity="0.6" HorizontalAlignment="Center" VerticalAlignment="Center"
                  IsVisible="{Binding !HasSelection}" />
     </Grid>
   </DockPanel>

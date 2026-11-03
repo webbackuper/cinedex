@@ -34,7 +34,8 @@ public enum IconSet
 /// <summary>Couleur du bandeau gauche (menus).</summary>
 public enum MenuColor
 {
-    Sand,
+    /// <summary>Pierre : le sol de la page (défaut).</summary>
+    Stone,
     Slate,
     Sage,
     Lavender,
@@ -45,11 +46,13 @@ public enum MenuColor
 /// <summary>Couleur d'accent : élément choisi, boutons principaux, notes.</summary>
 public enum AccentColor
 {
-    TerraCotta,
+    /// <summary>Rouge velours, les fauteuils et le rideau de la salle (défaut).</summary>
+    Velvet,
     Blue,
     Green,
     Violet,
-    Red,
+    /// <summary>Ambre, la lumière d'un projecteur.</summary>
+    Amber,
     Graphite,
 }
 
@@ -78,7 +81,7 @@ public sealed record AppearanceStyle
         MenuColor.Lavender => (Color.Parse("#E9E4F0"), Color.Parse("#17141C")),
         MenuColor.Rose => (Color.Parse("#F2E2E2"), Color.Parse("#1C1415")),
         MenuColor.White => (Color.Parse("#FFFFFF"), Color.Parse("#211E1B")),
-        _ => (Color.Parse("#EEE8DF"), Color.Parse("#171513")),
+        _ => (Color.Parse("#F7F7F5"), Color.Parse("#121212")),
     };
 
     /// <summary>Accent en thème clair et sombre (plus lumineux sur fond sombre).</summary>
@@ -87,9 +90,9 @@ public sealed record AppearanceStyle
         AccentColor.Blue => (Color.Parse("#2F6DAE"), Color.Parse("#6FA8E4")),
         AccentColor.Green => (Color.Parse("#2E7A4E"), Color.Parse("#63B585")),
         AccentColor.Violet => (Color.Parse("#6C4AAE"), Color.Parse("#A88CE6")),
-        AccentColor.Red => (Color.Parse("#AE3646"), Color.Parse("#E27A87")),
+        AccentColor.Amber => (Color.Parse("#9A5800"), Color.Parse("#E0A84A")),
         AccentColor.Graphite => (Color.Parse("#4B5058"), Color.Parse("#A9B0BA")),
-        _ => (Color.Parse("#B4572C"), Color.Parse("#E2895A")),
+        _ => (Color.Parse("#9B1C2E"), Color.Parse("#E2707F")),
     };
 
     /// <summary>Mélange de deux couleurs (part de la seconde entre 0 et 1).</summary>
@@ -117,8 +120,8 @@ public static class Appearance
         return new AppearanceStyle
         {
             Icons = state?.Icons is { } icons && Enum.IsDefined(icons) ? icons : IconSet.Fine,
-            Menu = state?.Menu is { } menu && Enum.IsDefined(menu) ? menu : MenuColor.Sand,
-            Accent = state?.Accent is { } accent && Enum.IsDefined(accent) ? accent : AccentColor.TerraCotta,
+            Menu = state?.Menu is { } menu && Enum.IsDefined(menu) ? menu : MenuColor.Stone,
+            Accent = state?.Accent is { } accent && Enum.IsDefined(accent) ? accent : AccentColor.Velvet,
             Font = state?.Font is { Length: > 0 } font && AppearanceStyle.Fonts.Contains(font) ? font : AppearanceStyle.DefaultFont,
         };
     }
@@ -156,7 +159,7 @@ public static class Appearance
         var (menuLight, menuDark) = AppearanceStyle.MenuColors(style.Menu);
         var (accentLight, accentDark) = AppearanceStyle.AccentColors(style.Accent);
         SetBrushes(app, ThemeVariant.Light, menuLight, accentLight, AppearanceStyle.Mix(accentLight, Colors.White, 0.84));
-        SetBrushes(app, ThemeVariant.Dark, menuDark, accentDark, AppearanceStyle.Mix(accentDark, Color.Parse("#1C1A18"), 0.78));
+        SetBrushes(app, ThemeVariant.Dark, menuDark, accentDark, AppearanceStyle.Mix(accentDark, Color.Parse("#121212"), 0.78));
         // Palette Fluent (cases à cocher, curseurs, sélection) : même accent.
         if (app.Styles.OfType<Avalonia.Themes.Fluent.FluentTheme>().FirstOrDefault() is { } fluent)
         {

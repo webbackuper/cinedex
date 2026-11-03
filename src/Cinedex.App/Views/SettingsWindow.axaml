@@ -11,24 +11,24 @@
         WindowStartupLocation="CenterOwner">
   <Window.Styles>
     <Style Selector="TextBlock.h">
-      <Setter Property="FontSize" Value="15" />
+      <Setter Property="FontSize" Value="{StaticResource FontBody}" />
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="Margin" Value="0,10,0,0" />
     </Style>
     <!-- Onglets compacts : tous tiennent dans la hauteur de la fenêtre. -->
     <Style Selector="TabControl#Tabs > TabItem">
-      <Setter Property="FontSize" Value="14" />
+      <Setter Property="FontSize" Value="{StaticResource FontBody}" />
       <Setter Property="MinHeight" Value="34" />
       <Setter Property="Padding" Value="10,4" />
     </Style>
     <Style Selector="TextBlock.hint">
-      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="FontSize" Value="{StaticResource FontSmall}" />
       <Setter Property="Opacity" Value="0.65" />
       <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
   </Window.Styles>
 
-  <DockPanel Margin="16">
+  <DockPanel Margin="{StaticResource WindowPadding}">
     <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,12,0,0">
       <TextBlock Text="{Binding Error}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" TextWrapping="Wrap"
                  IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
@@ -37,7 +37,7 @@
                    Text="Les réglages d'import, d'affichage et de métadonnées sont propres au catalogue ouvert ; l'apparence vaut pour tous." />
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
           <Button Classes="tool" Content="Annuler" IsCancel="True" Click="OnCancel" />
-          <Button Classes="accent" Content="Enregistrer" IsDefault="True" Click="OnSave" />
+          <Button Classes="primary" Content="Enregistrer" IsDefault="True" Click="OnSave" />
         </StackPanel>
       </Grid>
     </StackPanel>
@@ -72,7 +72,7 @@
               <CheckBox Content="Rechercher les mises à jour au démarrage" IsChecked="{Binding CheckUpdatesAtStartup}" />
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <Button Classes="tool" Content="Rechercher maintenant" Command="{Binding CheckUpdatesCommand}" />
-                <Button Classes="accent" Content="Installer et redémarrer" Command="{Binding InstallUpdateCommand}" IsVisible="{Binding UpdateReady}" />
+                <Button Classes="primary" Content="Installer et redémarrer" Command="{Binding InstallUpdateCommand}" IsVisible="{Binding UpdateReady}" />
               </StackPanel>
               <TextBlock Text="{Binding UpdateMessage}" Classes="hint" IsVisible="{Binding UpdateMessage, Converter={x:Static ObjectConverters.IsNotNull}}" />
             </StackPanel>
@@ -118,7 +118,7 @@
                       <controls:Icon Kind="folder" Variant="{Binding Value}" Width="22" Height="22" Foreground="{DynamicResource CinedexInk}" />
                       <controls:Icon Kind="options" Variant="{Binding Value}" Width="22" Height="22" Foreground="{DynamicResource CinedexInk}" />
                     </StackPanel>
-                    <TextBlock Text="{Binding Label}" FontSize="12.5" />
+                    <TextBlock Text="{Binding Label}" FontSize="{StaticResource FontSmall}" />
                   </StackPanel>
                 </DataTemplate>
               </ListBox.ItemTemplate>
@@ -134,13 +134,13 @@
               <ListBox.ItemTemplate>
                 <DataTemplate x:CompileBindings="False">
                   <StackPanel Width="96" Spacing="6" Margin="2">
-                    <Border Height="34" CornerRadius="6" BorderBrush="{DynamicResource CinedexBorder}" BorderThickness="1" ClipToBounds="True">
+                    <Border Height="34" CornerRadius="{StaticResource RadiusControl}" BorderBrush="{DynamicResource CinedexBorder}" BorderThickness="1" ClipToBounds="True">
                       <Grid ColumnDefinitions="*,*">
                         <Border Background="{Binding LightBrush}" />
                         <Border Grid.Column="1" Background="{Binding DarkBrush}" />
                       </Grid>
                     </Border>
-                    <TextBlock Text="{Binding Label}" FontSize="12" HorizontalAlignment="Center" />
+                    <TextBlock Text="{Binding Label}" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center" />
                   </StackPanel>
                 </DataTemplate>
               </ListBox.ItemTemplate>
@@ -162,7 +162,7 @@
                         <Border Grid.Column="1" Background="{Binding DarkBrush}" />
                       </Grid>
                     </Border>
-                    <TextBlock Text="{Binding Label}" FontSize="12" HorizontalAlignment="Center" />
+                    <TextBlock Text="{Binding Label}" FontSize="{StaticResource FontSmall}" HorizontalAlignment="Center" />
                   </StackPanel>
                 </DataTemplate>
               </ListBox.ItemTemplate>
@@ -170,10 +170,10 @@
 
             <TextBlock Classes="h" Text="Police" />
             <ComboBox ItemsSource="{Binding FontChoices}" SelectedItem="{Binding SelectedFont}" MinWidth="260" />
-            <Border Padding="12" CornerRadius="8" Background="{DynamicResource CinedexSurfaceAlt}">
+            <Border Padding="12" CornerRadius="{StaticResource RadiusCard}" Background="{DynamicResource CinedexSurfaceAlt}">
               <StackPanel Spacing="4">
-                <TextBlock Text="Retour vers le futur (1985)" FontFamily="{Binding FontPreview}" FontSize="17" FontWeight="SemiBold" />
-                <TextBlock Text="Aventure, Comédie, Science-Fiction · 1 h 56" FontFamily="{Binding FontPreview}" FontSize="13" Classes="muted" />
+                <TextBlock Text="Retour vers le futur (1985)" FontFamily="{Binding FontPreview}" FontSize="{StaticResource FontSection}" FontWeight="SemiBold" />
+                <TextBlock Text="Aventure, Comédie, Science-Fiction · 1 h 56" FontFamily="{Binding FontPreview}" FontSize="{StaticResource FontSmall}" Classes="muted" />
               </StackPanel>
             </Border>
             <TextBlock Classes="hint" Text="Les deux moitiés de chaque pastille montrent la couleur en thème clair et en thème sombre. Tout s'applique à l'enregistrement, à toutes les fenêtres." />
@@ -402,9 +402,9 @@
 
             <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0">
               <TextBlock Classes="h" Text="Sauvegardes du catalogue" Margin="0" VerticalAlignment="Center" />
-              <Button Grid.Column="1" Classes="accent" Command="{Binding BackupNowCommand}">
+              <Button Grid.Column="1" Classes="outline" Command="{Binding BackupNowCommand}">
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                  <controls:Icon Kind="backup" Width="16" Height="16" Foreground="White" />
+                  <controls:Icon Kind="backup" Width="16" Height="16" />
                   <TextBlock Text="Sauvegarder maintenant" />
                 </StackPanel>
               </Button>
@@ -416,7 +416,7 @@
                 <DataTemplate x:DataType="vm:DumpRow">
                   <StackPanel Spacing="2">
                     <TextBlock Text="{Binding Date}" FontWeight="SemiBold" />
-                    <TextBlock Text="{Binding Details}" Classes="muted" FontSize="12" />
+                    <TextBlock Text="{Binding Details}" Classes="muted" FontSize="{StaticResource FontSmall}" />
                   </StackPanel>
                 </DataTemplate>
               </ListBox.ItemTemplate>
@@ -459,9 +459,9 @@
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
-            <Button Classes="accent" HorizontalAlignment="Left" Click="OnExport">
+            <Button Classes="outline" HorizontalAlignment="Left" Click="OnExport">
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <controls:Icon Kind="export" Width="16" Height="16" Foreground="White" />
+                <controls:Icon Kind="export" Width="16" Height="16" />
                 <TextBlock Text="Exporter…" />
               </StackPanel>
             </Button>
@@ -477,9 +477,9 @@
         <ScrollViewer DataContext="{Binding Maintenance}" x:DataType="vm:MaintenanceViewModel">
           <StackPanel Spacing="10" Margin="12,0,16,0">
             <TextBlock Classes="h" Text="Base de données" Margin="0" />
-            <SelectableTextBlock Text="{Binding InfoText}" FontSize="12" TextWrapping="Wrap" Opacity="0.8" />
+            <SelectableTextBlock Text="{Binding InfoText}" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" Opacity="0.8" />
             <TextBlock Classes="hint" Text="Les opérations ci-dessous s'appliquent tout de suite au catalogue ouvert, sans passer par « Enregistrer ». Une sauvegarde de la base est faite avant chaque opération qui la modifie." />
-            <Border Padding="10" CornerRadius="8" Background="{DynamicResource CinedexSurfaceAlt}" IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <Border Padding="10" CornerRadius="{StaticResource RadiusCard}" Background="{DynamicResource CinedexSurfaceAlt}" IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
               <SelectableTextBlock Text="{Binding Message}" TextWrapping="Wrap" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}" />
             </Border>
 
@@ -513,7 +513,7 @@
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:DuplicateRow">
                   <Panel>
-                    <TextBlock Text="{Binding Text}" FontWeight="SemiBold" FontSize="12" Opacity="0.7" IsVisible="{Binding IsHeader}" />
+                    <TextBlock Text="{Binding Text}" FontWeight="SemiBold" FontSize="{StaticResource FontSmall}" Opacity="0.7" IsVisible="{Binding IsHeader}" />
                     <TextBlock Text="{Binding Text}" Margin="14,0,0,0" IsVisible="{Binding !IsHeader}" ToolTip.Tip="Double-clic : afficher ce titre dans le catalogue" />
                   </Panel>
                 </DataTemplate>
@@ -549,11 +549,11 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:StatCard">
-                  <Border Width="150" Margin="0,0,10,10" Padding="12,10" CornerRadius="10" Background="{DynamicResource CinedexSurfaceAlt}"
+                  <Border Width="150" Margin="0,0,10,10" Padding="12,10" CornerRadius="{StaticResource RadiusCard}" Background="{DynamicResource CinedexSurfaceAlt}"
                           BorderBrush="{DynamicResource CinedexBorder}" BorderThickness="1">
                     <StackPanel Spacing="2">
-                      <TextBlock Text="{Binding Value}" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}" />
-                      <TextBlock Text="{Binding Label}" FontSize="12" Opacity="0.75" TextWrapping="Wrap" />
+                      <TextBlock Text="{Binding Value}" FontSize="{StaticResource FontTitle}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}" />
+                      <TextBlock Text="{Binding Label}" FontSize="{StaticResource FontSmall}" Opacity="0.75" TextWrapping="Wrap" />
                     </StackPanel>
                   </Border>
                 </DataTemplate>

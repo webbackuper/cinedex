@@ -8,7 +8,7 @@
         Title="Recherche multicritère"
         Width="860" Height="560" MinWidth="640" MinHeight="380"
         WindowStartupLocation="CenterOwner">
-  <DockPanel Margin="16">
+  <DockPanel Margin="{StaticResource WindowPadding}">
     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
       <TextBlock Text="Afficher les films qui respectent" VerticalAlignment="Center" />
       <ComboBox ItemsSource="{Binding MatchChoices}" SelectedItem="{Binding SelectedMatch}" MinWidth="260" />
@@ -19,7 +19,7 @@
       <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
         <Button Classes="tool" Content="Tout effacer" Command="{Binding ClearRulesCommand}" />
         <Button Classes="tool" Content="Annuler" IsCancel="True" Click="OnCancel" />
-        <Button Classes="accent" Content="Rechercher" IsDefault="True" Click="OnSearch" />
+        <Button Classes="primary" Content="Rechercher" IsDefault="True" Click="OnSearch" />
       </StackPanel>
     </Grid>
 
@@ -40,7 +40,7 @@
                   </ComboBox.ItemTemplate>
                 </ComboBox>
                 <ComboBox Grid.Column="2" ItemsSource="{Binding Operators}" SelectedItem="{Binding SelectedOperator}" HorizontalAlignment="Stretch" />
-                <TextBox Grid.Column="4" Text="{Binding Value}" Watermark="{Binding Watermark}" IsVisible="{Binding IsTextValue}" />
+                <TextBox Grid.Column="4" Text="{Binding Value}" PlaceholderText="{Binding Watermark}" IsVisible="{Binding IsTextValue}" />
                 <ComboBox Grid.Column="4" ItemsSource="{Binding Genres}" SelectedItem="{Binding SelectedGenre}" HorizontalAlignment="Stretch"
                           IsVisible="{Binding IsGenreValue}" MaxDropDownHeight="420" />
                 <Button Grid.Column="6" Classes="tool" ToolTip.Tip="Retirer cette condition"

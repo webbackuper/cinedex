@@ -8,12 +8,12 @@
         Title="Collections"
         Width="1180" Height="780" MinWidth="860" MinHeight="520"
         WindowStartupLocation="CenterOwner">
-  <DockPanel Margin="16">
+  <DockPanel Margin="{StaticResource WindowPadding}">
     <!-- Barre du bas : message, mention TMDb, fermeture -->
     <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" Margin="0,12,0,0">
       <TextBlock Text="{Binding Message}" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource CinedexAccent}" FontWeight="SemiBold" />
       <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-        <TextBlock VerticalAlignment="Center" Opacity="0.6" FontSize="11" Margin="16,0"
+        <TextBlock VerticalAlignment="Center" Opacity="0.6" FontSize="{StaticResource FontSmall}" Margin="16,0"
                    Text="This product uses the TMDB API but is not endorsed or certified by TMDB." />
         <Button Classes="tool" Content="Interrompre" Command="{Binding CancelCommand}" IsVisible="{Binding IsBusy}" />
         <Button Classes="tool" Content="Fermer" IsCancel="True" Click="OnClose" />
@@ -24,14 +24,14 @@
       <!-- Liste des collections -->
       <DockPanel>
         <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,10">
-          <Border Classes="card" CornerRadius="10" Padding="10,0">
+          <Border Classes="card" CornerRadius="{StaticResource RadiusCard}" Padding="10,0">
             <DockPanel>
               <controls:Icon DockPanel.Dock="Left" Kind="search" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" />
               <TextBox x:Name="QueryBox" Text="{Binding Query}" PlaceholderText="Chercher une collection" BorderThickness="0" Background="Transparent" Margin="4,0,0,0" />
             </DockPanel>
           </Border>
           <CheckBox Content="Seulement les collections incomplètes" IsChecked="{Binding OnlyIncomplete}" />
-          <TextBlock Text="{Binding CountText}" Classes="muted" FontSize="12" />
+          <TextBlock Text="{Binding CountText}" Classes="muted" FontSize="{StaticResource FontSmall}" />
         </StackPanel>
         <Button DockPanel.Dock="Bottom" Classes="tool" HorizontalAlignment="Stretch" Margin="0,10,0,0" Command="{Binding SyncCommand}"
                 ToolTip.Tip="Retrouve sur TMDb les collections créées à la main (par leur nom), puis télécharge la présentation, la liste des films, l'affiche et le décor des collections qui ne les ont pas encore">
@@ -47,7 +47,7 @@
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="vm:CollectionRow">
                 <Grid ColumnDefinitions="Auto,*" Margin="2">
-                  <Border Width="40" Height="60" CornerRadius="5" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
+                  <Border Width="40" Height="60" CornerRadius="{StaticResource RadiusChip}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
                     <Panel>
                       <controls:Icon Kind="collection" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" Opacity="0.6" />
                       <Image Source="{Binding PosterPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=80}" Stretch="UniformToFill" />
@@ -55,7 +55,7 @@
                   </Border>
                   <StackPanel Grid.Column="1" Margin="12,0,4,0" VerticalAlignment="Center" Spacing="2">
                     <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
-                    <TextBlock Text="{Binding CountLabel}" Classes="muted" FontSize="12" />
+                    <TextBlock Text="{Binding CountLabel}" Classes="muted" FontSize="{StaticResource FontSmall}" />
                   </StackPanel>
                 </Grid>
               </DataTemplate>
@@ -67,7 +67,7 @@
       <!-- Fiche de la collection choisie -->
       <DockPanel Grid.Column="2" IsVisible="{Binding HasDetail}">
         <!-- Décor, affiche et nom -->
-        <Border DockPanel.Dock="Top" Height="230" CornerRadius="12" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
+        <Border DockPanel.Dock="Top" Height="230" CornerRadius="{StaticResource RadiusCard}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
           <Panel>
             <Image Source="{Binding BackdropPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=1280}" Stretch="UniformToFill" />
             <Border>
@@ -79,15 +79,15 @@
               </Border.Background>
             </Border>
             <Grid ColumnDefinitions="Auto,*" Margin="18" VerticalAlignment="Bottom">
-              <Border Width="100" Height="150" CornerRadius="8" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}" BoxShadow="0 4 14 0 #60000000">
+              <Border Width="100" Height="150" CornerRadius="{StaticResource RadiusCard}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}" BoxShadow="0 2 8 0 #29000000">
                 <Panel>
                   <controls:Icon Kind="collection" Width="32" Height="32" Foreground="{DynamicResource CinedexMuted}" />
                   <Image Source="{Binding PosterPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=200}" Stretch="UniformToFill" />
                 </Panel>
               </Border>
               <StackPanel Grid.Column="1" Margin="18,0,0,0" VerticalAlignment="Bottom" Spacing="4">
-                <TextBlock Text="{Binding Name}" FontSize="24" FontWeight="SemiBold" Foreground="White" TextWrapping="Wrap" />
-                <TextBlock Text="{Binding Summary}" FontSize="13" Foreground="#E6FFFFFF" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Name}" FontSize="{StaticResource FontPage}" FontWeight="SemiBold" Foreground="White" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Summary}" FontSize="{StaticResource FontSmall}" Foreground="#E6FFFFFF" TextWrapping="Wrap" />
               </StackPanel>
             </Grid>
           </Panel>
@@ -108,7 +108,7 @@
                 <StackPanel Spacing="8" Width="320">
                   <TextBlock Text="Nom de la collection" FontWeight="SemiBold" />
                   <TextBox Text="{Binding EditedName}" />
-                  <Button Classes="accent" HorizontalAlignment="Right" Content="Renommer" Command="{Binding RenameCommand}" Click="OnRenamed" />
+                  <Button Classes="primary" HorizontalAlignment="Right" Content="Renommer" Command="{Binding RenameCommand}" Click="OnRenamed" />
                 </StackPanel>
               </Flyout>
             </Button.Flyout>
@@ -134,23 +134,23 @@
                 <Button Classes="tool" Width="148" Margin="0,0,10,10" Padding="6" VerticalAlignment="Top" HorizontalContentAlignment="Stretch" Click="OnFilmClick"
                         ToolTip.Tip="{Binding Subtitle}">
                   <StackPanel Spacing="6">
-                    <Border Width="132" Height="198" CornerRadius="6" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
+                    <Border Width="132" Height="198" CornerRadius="{StaticResource RadiusControl}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
                       <Panel>
                         <controls:Icon Kind="film" Width="28" Height="28" Foreground="{DynamicResource CinedexMuted}" Opacity="0.6" />
                         <Image Source="{Binding PosterPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=264}" Stretch="UniformToFill" />
                         <Border Background="{DynamicResource CinedexPosterBack}" IsVisible="{Binding Thumbnail, Converter={x:Static ObjectConverters.IsNotNull}}">
                           <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" Opacity="0.5" />
                         </Border>
-                        <Border IsVisible="{Binding !IsOwned}" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="6" Padding="6,2" CornerRadius="4" Background="#C0000000">
-                          <TextBlock Text="Manquant" FontSize="11" Foreground="White" />
+                        <Border IsVisible="{Binding !IsOwned}" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="6" Padding="6,2" CornerRadius="{StaticResource RadiusChip}" Background="#C0000000">
+                          <TextBlock Text="Manquant" FontSize="{StaticResource FontSmall}" Foreground="White" />
                         </Border>
-                        <Border IsVisible="{Binding IsOwned}" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="6" Padding="3" CornerRadius="10" Background="{DynamicResource CinedexAccent}">
+                        <Border IsVisible="{Binding IsOwned}" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="6" Padding="3" CornerRadius="{StaticResource RadiusCard}" Background="{DynamicResource CinedexAccent}">
                           <controls:Icon Kind="check" Width="12" Height="12" Foreground="White" />
                         </Border>
                       </Panel>
                     </Border>
-                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
-                    <TextBlock Text="{Binding Subtitle}" Classes="muted" FontSize="11.5" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding Subtitle}" Classes="muted" FontSize="{StaticResource FontSmall}" TextTrimming="CharacterEllipsis" />
                   </StackPanel>
                 </Button>
               </DataTemplate>

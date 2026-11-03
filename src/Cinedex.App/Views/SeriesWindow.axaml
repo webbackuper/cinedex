@@ -10,7 +10,7 @@
         Width="920" Height="620" MinWidth="680" MinHeight="420"
         Background="{DynamicResource CinedexBackground}"
         WindowStartupLocation="CenterOwner">
-  <DockPanel Margin="18">
+  <DockPanel Margin="{StaticResource WindowPadding}">
     <DockPanel DockPanel.Dock="Top" Margin="0,0,0,14">
       <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
         <Button Classes="tool" Click="OnAttachFolder" ToolTip.Tip="Rattacher les fichiers S01E02 d'un dossier">
@@ -19,16 +19,16 @@
             <TextBlock Text="Dossier d'épisodes" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
-        <Button Classes="accent" Command="{Binding SyncCommand}" IsEnabled="{Binding !IsBusy}">
+        <Button Classes="primary" Command="{Binding SyncCommand}" IsEnabled="{Binding !IsBusy}">
           <StackPanel Orientation="Horizontal" Spacing="6">
-            <controls:Icon Kind="cloud" Foreground="White" Width="18" Height="18" />
+            <controls:Icon Kind="cloud" Width="18" Height="18" />
             <TextBlock Text="Mettre à jour depuis TMDb" />
           </StackPanel>
         </Button>
       </StackPanel>
       <StackPanel Orientation="Horizontal" Spacing="10">
         <controls:Icon Kind="tv" Width="26" Height="26" Foreground="{DynamicResource CinedexAccent}" />
-        <TextBlock Text="{Binding Title}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
+        <TextBlock Text="{Binding Title}" FontSize="{StaticResource FontTitle}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
       </StackPanel>
     </DockPanel>
 
@@ -48,7 +48,7 @@
             <DataTemplate x:DataType="data:SeasonView">
               <StackPanel Spacing="2" Margin="2,4">
                 <TextBlock Text="{Binding Label}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
-                <TextBlock Text="{Binding Progress}" Classes="muted" FontSize="12" />
+                <TextBlock Text="{Binding Progress}" Classes="muted" FontSize="{StaticResource FontSmall}" />
               </StackPanel>
             </DataTemplate>
           </ListBox.ItemTemplate>
@@ -72,9 +72,9 @@
               <DataTemplate x:DataType="vm:EpisodeRow">
                 <Grid ColumnDefinitions="Auto,70,*,Auto,Auto">
                   <CheckBox IsChecked="{Binding IsSeen}" ToolTip.Tip="Vu" VerticalAlignment="Center" />
-                  <TextBlock Grid.Column="1" Text="{Binding Code}" Classes="muted" FontSize="12" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="1" Text="{Binding Code}" Classes="muted" FontSize="{StaticResource FontSmall}" VerticalAlignment="Center" />
                   <TextBlock Grid.Column="2" Text="{Binding Name}" Foreground="{DynamicResource CinedexInk}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                  <TextBlock Grid.Column="3" Text="{Binding Aired}" Classes="muted" FontSize="12" Margin="12,0" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="3" Text="{Binding Aired}" Classes="muted" FontSize="{StaticResource FontSmall}" Margin="12,0" VerticalAlignment="Center" />
                   <controls:Icon Grid.Column="4" Kind="folder" Width="16" Height="16" Foreground="{DynamicResource CinedexAccent}"
                                  IsVisible="{Binding HasFile}" ToolTip.Tip="Fichier disponible" />
                 </Grid>

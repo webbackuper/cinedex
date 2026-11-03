@@ -11,11 +11,11 @@
   <Grid ColumnDefinitions="280,*">
     <!-- Sommaire et recherche -->
     <Border Background="{DynamicResource CinedexSidebar}" BorderBrush="{DynamicResource CinedexBorder}" BorderThickness="0,0,1,0">
-      <DockPanel Margin="14,16">
+      <DockPanel Margin="{StaticResource WindowPadding}">
         <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0,0,0,12">
           <StackPanel Orientation="Horizontal" Spacing="10">
             <Image Source="/Assets/cinedex.png" Width="28" Height="28" />
-            <TextBlock Text="{x:Static vm:HelpViewModel.VersionText}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
+            <TextBlock Text="{x:Static vm:HelpViewModel.VersionText}" FontSize="{StaticResource FontSection}" FontWeight="SemiBold" VerticalAlignment="Center" />
           </StackPanel>
           <TextBox x:Name="SearchBox" Text="{Binding SearchText}" PlaceholderText="Rechercher dans l'aide…" />
         </StackPanel>
@@ -32,17 +32,17 @@
     <!-- Rubrique -->
     <ScrollViewer Grid.Column="1" x:Name="Reader">
       <StackPanel Margin="32,24,32,32" Spacing="10" MaxWidth="760" HorizontalAlignment="Left" DataContext="{Binding SelectedSection}" x:DataType="services:HelpSection">
-        <TextBlock Text="{Binding Title}" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,6" />
+        <TextBlock Text="{Binding Title}" FontSize="{StaticResource FontPage}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,6" />
         <ItemsControl ItemsSource="{Binding Blocks}">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="services:HelpBlock">
               <Panel Margin="0,4">
-                <controls:RichLine Markup="{Binding Text}" TextWrapping="Wrap" LineHeight="22" FontSize="14" IsVisible="{Binding IsParagraph}" />
+                <controls:RichLine Markup="{Binding Text}" TextWrapping="Wrap" LineHeight="22" FontSize="{StaticResource FontBody}" IsVisible="{Binding IsParagraph}" />
                 <Grid ColumnDefinitions="22,*" IsVisible="{Binding IsBullet}">
-                  <TextBlock Text="•" Foreground="{DynamicResource CinedexAccent}" FontSize="14" />
-                  <controls:RichLine Grid.Column="1" Markup="{Binding Text}" TextWrapping="Wrap" LineHeight="22" FontSize="14" />
+                  <TextBlock Text="•" Foreground="{DynamicResource CinedexAccent}" FontSize="{StaticResource FontBody}" />
+                  <controls:RichLine Grid.Column="1" Markup="{Binding Text}" TextWrapping="Wrap" LineHeight="22" FontSize="{StaticResource FontBody}" />
                 </Grid>
-                <TextBlock Text="{Binding Text}" FontSize="17" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}" Margin="0,10,0,0"
+                <TextBlock Text="{Binding Text}" FontSize="{StaticResource FontSection}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}" Margin="0,10,0,0"
                            IsVisible="{Binding IsSubheading}" />
               </Panel>
             </DataTemplate>

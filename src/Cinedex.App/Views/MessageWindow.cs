@@ -9,7 +9,7 @@ internal static class MessageWindow
 {
     public static async Task<bool> ShowAsync(Window owner, string title, string message, bool confirm, string? okLabel = null, string? cancelLabel = null)
     {
-        var ok = new Button { Content = okLabel ?? (confirm ? "Confirmer" : "Fermer"), IsDefault = true, Classes = { "accent" } };
+        var ok = new Button { Content = okLabel ?? (confirm ? "Confirmer" : "Fermer"), IsDefault = true, Classes = { "primary" } };
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right };
         var window = new Window
         {

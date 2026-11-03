@@ -8,7 +8,7 @@
         Title="Catalogues"
         Width="620" Height="480" MinWidth="460" MinHeight="360"
         WindowStartupLocation="CenterOwner">
-  <DockPanel Margin="16">
+  <DockPanel Margin="{StaticResource WindowPadding}">
     <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Margin="0,0,0,8"
                Text="Chaque catalogue est une base indépendante, avec ses titres, ses images et ses réglages. Un nouveau catalogue reprend les réglages du catalogue ouvert." />
     <TextBlock DockPanel.Dock="Top" Margin="0,0,0,12" FontWeight="SemiBold" Text="{Binding Current, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='Catalogue ouvert : {0}'}" />
@@ -31,7 +31,7 @@
         <DataTemplate x:DataType="data:CatalogEntry">
           <Grid ColumnDefinitions="*,Auto">
             <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
-            <TextBlock Grid.Column="1" Text="{Binding LastModifiedUtc, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='modifié le {0:d}'}" Opacity="0.6" FontSize="12" />
+            <TextBlock Grid.Column="1" Text="{Binding LastModifiedUtc, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='modifié le {0:d}'}" Opacity="0.6" FontSize="{StaticResource FontSmall}" />
           </Grid>
         </DataTemplate>
       </ListBox.ItemTemplate>

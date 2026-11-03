@@ -7,7 +7,7 @@
         Width="900" Height="640" MinWidth="640" MinHeight="460"
         WindowStartupLocation="CenterOwner"
         DragDrop.AllowDrop="True">
-  <DockPanel Margin="16">
+  <DockPanel Margin="{StaticResource WindowPadding}">
     <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
       <Grid ColumnDefinitions="*,Auto,Auto,Auto">
         <TextBox Text="{Binding Folder}" PlaceholderText="Dossier de films (ex. D:\Films)" />
@@ -39,7 +39,7 @@
         <Button Content="Tout décocher" Command="{Binding SelectAllCommand}" CommandParameter="{x:False}" />
         <Button Content="Interrompre" Command="{Binding CancelCommand}" IsVisible="{Binding IsBusy}" />
         <Button Classes="tool" Content="Fermer" IsCancel="True" Click="OnClose" />
-        <Button Classes="accent" Content="Importer la sélection" IsDefault="True" Command="{Binding ImportCommand}" />
+        <Button Classes="primary" Content="Importer la sélection" IsDefault="True" Command="{Binding ImportCommand}" />
       </StackPanel>
     </StackPanel>
 
@@ -50,10 +50,10 @@
             <CheckBox IsChecked="{Binding IsSelected}" VerticalAlignment="Center" />
             <StackPanel Grid.Column="1" Margin="8,0">
               <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
-              <TextBlock Text="{Binding Path}" FontSize="11" Opacity="0.6" TextTrimming="CharacterEllipsis" />
+              <TextBlock Text="{Binding Path}" FontSize="{StaticResource FontSmall}" Opacity="0.6" TextTrimming="CharacterEllipsis" />
             </StackPanel>
             <TextBlock Grid.Column="2" Text="{Binding Year}" VerticalAlignment="Center" />
-            <TextBlock Grid.Column="3" Text="{Binding Hint}" VerticalAlignment="Center" Opacity="0.7" FontSize="12" />
+            <TextBlock Grid.Column="3" Text="{Binding Hint}" VerticalAlignment="Center" Opacity="0.7" FontSize="{StaticResource FontSmall}" />
           </Grid>
         </DataTemplate>
       </ListBox.ItemTemplate>

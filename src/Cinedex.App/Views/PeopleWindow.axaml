@@ -9,8 +9,8 @@
         Title="{Binding WindowTitle}"
         Width="560" Height="640" MinWidth="420" MinHeight="400"
         WindowStartupLocation="CenterOwner">
-  <DockPanel Margin="18">
-    <Border DockPanel.Dock="Top" Classes="card" CornerRadius="10" Padding="10,0" Margin="0,0,0,12">
+  <DockPanel Margin="{StaticResource WindowPadding}">
+    <Border DockPanel.Dock="Top" Classes="card" CornerRadius="{StaticResource RadiusCard}" Padding="10,0" Margin="0,0,0,12">
       <DockPanel>
         <controls:Icon DockPanel.Dock="Left" Kind="search" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" />
         <TextBox x:Name="QueryBox" Text="{Binding Query}" PlaceholderText="{Binding Placeholder}" BorderThickness="0" Background="Transparent" Margin="4,0,0,0" />
@@ -22,7 +22,7 @@
                 ToolTip.Tip="Biographie, dates et photo depuis TMDb pour les personnes listées qui ne les ont pas encore">
           <StackPanel Orientation="Horizontal" Spacing="6"><controls:Icon Kind="cloud" Width="16" Height="16" /><TextBlock Text="Télécharger les fiches manquantes" /></StackPanel>
         </Button>
-        <TextBlock Text="{Binding Message}" Classes="muted" FontSize="12" TextWrapping="Wrap"
+        <TextBlock Text="{Binding Message}" Classes="muted" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"
                    IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
       </StackPanel>
       <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Bottom">
@@ -41,7 +41,7 @@
               </Panel>
             </Border>
             <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="SemiBold" Margin="12,0" VerticalAlignment="Center" />
-            <TextBlock Grid.Column="2" Text="{Binding CountLabel}" Classes="muted" FontSize="12" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="2" Text="{Binding CountLabel}" Classes="muted" FontSize="{StaticResource FontSmall}" VerticalAlignment="Center" />
           </Grid>
         </DataTemplate>
       </ListBox.ItemTemplate>

@@ -4,49 +4,75 @@
              x:Class="Cinedex.App.App"
              RequestedThemeVariant="Default">
   <!--
-    Palette « Cinedex » : papier chaud et encre brune, un seul accent terre cuite (la robe des moines,
-    en écho aux icônes Buddha). Thème clair et sombre suivent le réglage du système.
+    Palette « Cinedex » : sol de pierre neutre, encre presque noire, un seul accent rouge velours (les fauteuils
+    et le rideau de la salle) réservé aux données : notes, progression, sélection d'une affiche. Le chrome reste
+    neutre : menu sélectionné en pilule grise, bouton principal presque noir. Thème clair et sombre suivent le
+    réglage du système ; l'accent et la couleur des menus se choisissent dans Réglages > Apparence.
+
+    Jetons partagés (Font*, Radius*, WindowPadding) : cinq tailles de texte, trois rayons, une marge de fenêtre.
   -->
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
-          <SolidColorBrush x:Key="CinedexBackground" Color="#F6F3EE" />
-          <SolidColorBrush x:Key="CinedexSidebar" Color="#EEE8DF" />
+          <SolidColorBrush x:Key="CinedexBackground" Color="#F7F7F5" />
+          <SolidColorBrush x:Key="CinedexSidebar" Color="#F7F7F5" />
           <SolidColorBrush x:Key="CinedexSurface" Color="#FFFFFF" />
-          <SolidColorBrush x:Key="CinedexSurfaceAlt" Color="#FAF7F2" />
-          <SolidColorBrush x:Key="CinedexBorder" Color="#E3DCD1" />
-          <SolidColorBrush x:Key="CinedexInk" Color="#2B2622" />
-          <SolidColorBrush x:Key="CinedexMuted" Color="#7C7268" />
-          <SolidColorBrush x:Key="CinedexAccent" Color="#B4572C" />
-          <SolidColorBrush x:Key="CinedexAccentSoft" Color="#F4E3D7" />
-          <SolidColorBrush x:Key="CinedexHover" Color="#E7E0D5" />
-          <SolidColorBrush x:Key="CinedexPosterBack" Color="#E6DFD5" />
+          <SolidColorBrush x:Key="CinedexSurfaceAlt" Color="#F1F1EE" />
+          <SolidColorBrush x:Key="CinedexBorder" Color="#E6E6E3" />
+          <SolidColorBrush x:Key="CinedexInk" Color="#161616" />
+          <SolidColorBrush x:Key="CinedexMuted" Color="#5F6066" />
+          <SolidColorBrush x:Key="CinedexAccent" Color="#9B1C2E" />
+          <SolidColorBrush x:Key="CinedexAccentSoft" Color="#F6E6E8" />
+          <SolidColorBrush x:Key="CinedexHover" Color="#EEEEEB" />
+          <SolidColorBrush x:Key="CinedexActive" Color="#E8E8E5" />
+          <SolidColorBrush x:Key="CinedexPrimary" Color="#1D1F20" />
+          <SolidColorBrush x:Key="CinedexOnPrimary" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="CinedexNegative" Color="#C4242A" />
+          <SolidColorBrush x:Key="CinedexPosterBack" Color="#E9E9E6" />
+          <SolidColorBrush x:Key="TabItemHeaderSelectedPipeFill" Color="#161616" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
-          <SolidColorBrush x:Key="CinedexBackground" Color="#1C1A18" />
-          <SolidColorBrush x:Key="CinedexSidebar" Color="#171513" />
-          <SolidColorBrush x:Key="CinedexSurface" Color="#252220" />
-          <SolidColorBrush x:Key="CinedexSurfaceAlt" Color="#2A2724" />
-          <SolidColorBrush x:Key="CinedexBorder" Color="#38332E" />
-          <SolidColorBrush x:Key="CinedexInk" Color="#EDE7DF" />
-          <SolidColorBrush x:Key="CinedexMuted" Color="#A69B8E" />
-          <SolidColorBrush x:Key="CinedexAccent" Color="#E2895A" />
-          <SolidColorBrush x:Key="CinedexAccentSoft" Color="#3B2B21" />
-          <SolidColorBrush x:Key="CinedexHover" Color="#2F2B27" />
-          <SolidColorBrush x:Key="CinedexPosterBack" Color="#2E2A26" />
+          <SolidColorBrush x:Key="CinedexBackground" Color="#121212" />
+          <SolidColorBrush x:Key="CinedexSidebar" Color="#121212" />
+          <SolidColorBrush x:Key="CinedexSurface" Color="#1B1B1B" />
+          <SolidColorBrush x:Key="CinedexSurfaceAlt" Color="#202020" />
+          <SolidColorBrush x:Key="CinedexBorder" Color="#2E2E2E" />
+          <SolidColorBrush x:Key="CinedexInk" Color="#F2F2F2" />
+          <SolidColorBrush x:Key="CinedexMuted" Color="#ABABAB" />
+          <SolidColorBrush x:Key="CinedexAccent" Color="#E2707F" />
+          <SolidColorBrush x:Key="CinedexAccentSoft" Color="#3A1F24" />
+          <SolidColorBrush x:Key="CinedexHover" Color="#232323" />
+          <SolidColorBrush x:Key="CinedexActive" Color="#2A2A2A" />
+          <SolidColorBrush x:Key="CinedexPrimary" Color="#F2F2F2" />
+          <SolidColorBrush x:Key="CinedexOnPrimary" Color="#111111" />
+          <SolidColorBrush x:Key="CinedexNegative" Color="#E5566F" />
+          <SolidColorBrush x:Key="CinedexPosterBack" Color="#242424" />
+          <SolidColorBrush x:Key="TabItemHeaderSelectedPipeFill" Color="#F2F2F2" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
       <!-- Police de l'interface (Réglages > Apparence) ; remplacée au lancement selon le choix enregistré. -->
       <FontFamily x:Key="CinedexFont">fonts:Inter#Inter</FontFamily>
+      <!-- Cinq tailles de texte, éloignées les unes des autres (rien sous 12). -->
+      <x:Double x:Key="FontSmall">12</x:Double>
+      <x:Double x:Key="FontBody">14</x:Double>
+      <x:Double x:Key="FontSection">16</x:Double>
+      <x:Double x:Key="FontTitle">20</x:Double>
+      <x:Double x:Key="FontPage">24</x:Double>
+      <!-- Trois rayons, serrés ; les photos de personnes restent rondes. -->
+      <CornerRadius x:Key="RadiusCard">8</CornerRadius>
+      <CornerRadius x:Key="RadiusControl">6</CornerRadius>
+      <CornerRadius x:Key="RadiusChip">4</CornerRadius>
+      <!-- Une seule marge intérieure pour toutes les fenêtres. -->
+      <Thickness x:Key="WindowPadding">24</Thickness>
     </ResourceDictionary>
   </Application.Resources>
 
   <Application.Styles>
     <FluentTheme>
       <FluentTheme.Palettes>
-        <ColorPaletteResources x:Key="Light" Accent="#B4572C" RegionColor="#F6F3EE" />
-        <ColorPaletteResources x:Key="Dark" Accent="#E2895A" RegionColor="#1C1A18" />
+        <ColorPaletteResources x:Key="Light" Accent="#9B1C2E" RegionColor="#F7F7F5" />
+        <ColorPaletteResources x:Key="Dark" Accent="#E2707F" RegionColor="#121212" />
       </FluentTheme.Palettes>
     </FluentTheme>
 
@@ -58,16 +84,27 @@
       <Setter Property="FontFamily" Value="{DynamicResource CinedexFont}" />
     </Style>
     <Style Selector="TabItem">
-      <Setter Property="FontSize" Value="15" />
+      <Setter Property="FontSize" Value="{StaticResource FontBody}" />
     </Style>
     <Style Selector="TextBox">
-      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
     </Style>
     <Style Selector="ComboBox">
-      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
     </Style>
     <Style Selector="ListBox">
       <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <!-- Élément choisi d'une liste : la pilule grise du menu, partout (jamais l'accent sur le chrome). -->
+    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource CinedexActive}" />
+      <Setter Property="Foreground" Value="{DynamicResource CinedexInk}" />
+    </Style>
+    <Style Selector="ListBoxItem:selected:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource CinedexActive}" />
+    </Style>
+    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource CinedexHover}" />
     </Style>
 
     <!-- Bouton plat à icône, utilisé partout dans les barres d'outils. -->
@@ -75,62 +112,80 @@
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderThickness" Value="0" />
       <Setter Property="Padding" Value="8,6" />
-      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
       <Setter Property="Foreground" Value="{DynamicResource CinedexInk}" />
     </Style>
     <Style Selector="Button.tool:pointerover /template/ ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource CinedexHover}" />
     </Style>
     <Style Selector="Button.tool:disabled">
-      <Setter Property="Opacity" Value="0.35" />
+      <Setter Property="Opacity" Value="0.55" />
     </Style>
-    <Style Selector="Button.accent">
-      <Setter Property="Background" Value="{DynamicResource CinedexAccent}" />
-      <Setter Property="Foreground" Value="White" />
-      <Setter Property="CornerRadius" Value="8" />
-      <Setter Property="Padding" Value="12,7" />
+    <!-- Bouton secondaire : contour d'un pas plus fort que les bordures, fond transparent. -->
+    <Style Selector="Button.outline">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{DynamicResource CinedexBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
+      <Setter Property="Padding" Value="12,6" />
+      <Setter Property="Foreground" Value="{DynamicResource CinedexInk}" />
     </Style>
-    <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource CinedexAccent}" />
-      <Setter Property="Opacity" Value="0.9" />
+    <Style Selector="Button.outline:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource CinedexHover}" />
+    </Style>
+    <!-- Bouton principal : un seul par écran, presque noir (blanc en thème sombre). -->
+    <Style Selector="Button.primary">
+      <Setter Property="Background" Value="{DynamicResource CinedexPrimary}" />
+      <Setter Property="Foreground" Value="{DynamicResource CinedexOnPrimary}" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
+      <Setter Property="Padding" Value="12,6" />
+    </Style>
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource CinedexPrimary}" />
+      <Setter Property="Foreground" Value="{DynamicResource CinedexOnPrimary}" />
+      <Setter Property="Opacity" Value="0.88" />
+    </Style>
+    <Style Selector="Button.primary controls|Icon">
+      <Setter Property="Foreground" Value="{DynamicResource CinedexOnPrimary}" />
     </Style>
     <Style Selector="ToggleButton.tool">
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderThickness" Value="0" />
       <Setter Property="Padding" Value="8,6" />
-      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
     </Style>
+    <!-- Bascule active (liste / affiches) : la même pilule grise que le menu, sans couleur d'accent. -->
     <Style Selector="ToggleButton.tool:checked /template/ ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource CinedexAccentSoft}" />
+      <Setter Property="Background" Value="{DynamicResource CinedexActive}" />
     </Style>
     <Style Selector="ToggleButton.tool:checked controls|Icon">
-      <Setter Property="Foreground" Value="{DynamicResource CinedexAccent}" />
+      <Setter Property="Foreground" Value="{DynamicResource CinedexInk}" />
     </Style>
     <Style Selector="TextBlock.muted">
       <Setter Property="Foreground" Value="{DynamicResource CinedexMuted}" />
     </Style>
+    <!-- Libellé de groupe du bandeau : casse normale, gris, sans espacement des lettres. -->
     <Style Selector="TextBlock.section">
       <Setter Property="Foreground" Value="{DynamicResource CinedexMuted}" />
-      <Setter Property="FontSize" Value="11" />
-      <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="LetterSpacing" Value="0.8" />
-      <Setter Property="Margin" Value="12,16,0,6" />
+      <Setter Property="FontSize" Value="{StaticResource FontSmall}" />
+      <Setter Property="Margin" Value="18,20,0,6" />
     </Style>
     <Style Selector="Border.card">
       <Setter Property="Background" Value="{DynamicResource CinedexSurface}" />
       <Setter Property="BorderBrush" Value="{DynamicResource CinedexBorder}" />
       <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusCard}" />
     </Style>
+    <!-- Pastille (genre, tag, statut) : fond pâle neutre, encre ; jamais d'accent saturé. -->
     <Style Selector="Border.chip">
-      <Setter Property="Background" Value="{DynamicResource CinedexAccentSoft}" />
-      <Setter Property="CornerRadius" Value="10" />
-      <Setter Property="Padding" Value="8,2" />
+      <Setter Property="Background" Value="{DynamicResource CinedexActive}" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusChip}" />
+      <Setter Property="Padding" Value="6,2" />
       <Setter Property="Margin" Value="0,0,6,6" />
     </Style>
     <Style Selector="Border.chip > TextBlock">
-      <Setter Property="FontSize" Value="12" />
-      <Setter Property="Foreground" Value="{DynamicResource CinedexAccent}" />
+      <Setter Property="FontSize" Value="{StaticResource FontSmall}" />
+      <Setter Property="Foreground" Value="{DynamicResource CinedexInk}" />
     </Style>
   </Application.Styles>
 </Application>

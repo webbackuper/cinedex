@@ -117,7 +117,7 @@ Cinedex reads and writes .nfo files in Kodi format (Settings > .nfo files):
 
 ## Appearance, language and window
 - **Appearance** (left sidebar) or **Settings > Appearance**: light mode, dark mode or same as the system.
-- **Settings > Appearance** also sets the **icon set** (thin line, bold line, two-tone, or classic Buddha), the **menu color** (left sidebar: sand, slate, sage, lavender, dusty rose, white), the **accent color** (terracotta, blue, green, violet, red, graphite) and the **font** (Inter included with Cinedex, system font, Segoe UI, Calibri, Verdana, Trebuchet MS, Georgia, Arial). Each swatch shows the color in light and dark theme; everything applies when saved, without restarting.
+- **Settings > Appearance** also sets the **icon set** (thin line, bold line, two-tone, or classic Buddha), the **menu color** (left sidebar: stone, slate, sage, lavender, dusty rose, white), the **accent color** (velvet red, blue, green, violet, amber, graphite) and the **font** (Inter included with Cinedex, system font, Segoe UI, Calibri, Verdana, Trebuchet MS, Georgia, Arial). Each swatch shows the color in light and dark theme; everything applies when saved, without restarting.
 - **Interface language**: French, English, Chinese, Hindi, Spanish, Arabic, Portuguese, Russian, German, Japanese. It applies on restart, which is offered right away.
 - **Window at startup**: maximized (default), full screen, or the size from last time. **F11** toggles full screen.
 - The language of TMDb summaries and genres is set separately (Settings > Metadata, fr-FR by default).
@@ -201,6 +201,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.3
+- **New visual direction**: neutral stone ground, near-black ink and a single velvet-red accent kept for data; selected menu and list items as a grey pill; one near-black primary button per screen; pale chips; a scale of 5 text sizes and 3 corner radii across the app. The appearance presets become "Stone" (menus) and "Velvet red" / "Amber" (accent).
+
 ### 0.4.2
 - Adding from disk: **Use the nfo file if there is one** checkbox (checked by default). Unchecked, .nfo files next to the videos are ignored: title and year come from the file name.
 

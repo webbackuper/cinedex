@@ -256,7 +256,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         MenuColor.Lavender => Tr.T("Lavande"),
         MenuColor.Rose => Tr.T("Rose poudré"),
         MenuColor.White => Tr.T("Blanc"),
-        _ => Tr.T("Sable"),
+        _ => Tr.T("Pierre"),
     };
 
     private static string AccentLabel(AccentColor accent) => accent switch
@@ -264,9 +264,9 @@ public sealed partial class SettingsViewModel : ObservableObject
         AccentColor.Blue => Tr.T("Bleu"),
         AccentColor.Green => Tr.T("Vert"),
         AccentColor.Violet => Tr.T("Violet"),
-        AccentColor.Red => Tr.T("Rouge"),
+        AccentColor.Amber => Tr.T("Ambre"),
         AccentColor.Graphite => Tr.T("Graphite"),
-        _ => Tr.T("Terre cuite"),
+        _ => Tr.T("Rouge velours"),
     };
 
     [ObservableProperty]

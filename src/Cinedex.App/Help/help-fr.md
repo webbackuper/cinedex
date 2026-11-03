@@ -117,7 +117,7 @@ Cinedex lit et écrit les fichiers .nfo au format Kodi (Réglages > Fichiers .nf
 
 ## Apparence, langue et fenêtre
 - **Apparence** (bandeau gauche) ou **Réglages > Apparence** : mode clair, sombre ou comme le système.
-- **Réglages > Apparence** règle aussi le **jeu d'icônes** (trait fin, trait marqué, deux tons, ou classique Buddha), la **couleur des menus** (bandeau gauche : sable, ardoise, sauge, lavande, rose poudré, blanc), la **couleur d'accent** (terre cuite, bleu, vert, violet, rouge, graphite) et la **police** (Inter fournie avec Cinedex, police du système, Segoe UI, Calibri, Verdana, Trebuchet MS, Georgia, Arial). Chaque pastille montre la couleur en thème clair et sombre ; tout s'applique à l'enregistrement, sans redémarrer.
+- **Réglages > Apparence** règle aussi le **jeu d'icônes** (trait fin, trait marqué, deux tons, ou classique Buddha), la **couleur des menus** (bandeau gauche : pierre, ardoise, sauge, lavande, rose poudré, blanc), la **couleur d'accent** (rouge velours, bleu, vert, violet, ambre, graphite) et la **police** (Inter fournie avec Cinedex, police du système, Segoe UI, Calibri, Verdana, Trebuchet MS, Georgia, Arial). Chaque pastille montre la couleur en thème clair et sombre ; tout s'applique à l'enregistrement, sans redémarrer.
 - **Langue de l'interface** : français, anglais, chinois, hindi, espagnol, arabe, portugais, russe, allemand, japonais. Elle s'applique au redémarrage, proposé tout de suite.
 - **Fenêtre au démarrage** : agrandie à l'écran (par défaut), plein écran, ou taille de la dernière fois. **F11** bascule le plein écran.
 - La langue des résumés et genres TMDb se règle à part (Réglages > Métadonnées, fr-FR par défaut).
@@ -201,6 +201,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.3
+- **Nouvelle direction visuelle** : sol de pierre neutre, encre presque noire et un seul accent rouge velours réservé aux données ; menu et listes sélectionnés en pilule grise ; un seul bouton principal par écran, presque noir ; pastilles pâles ; échelle de 5 tailles de texte et 3 rayons d'angle dans toute l'application. Les préréglages d'apparence deviennent « Pierre » (menus) et « Rouge velours » / « Ambre » (accent).
+
 ### 0.4.2
 - Ajout depuis le disque : case **Prendre en compte le fichier nfo si existant** (cochée par défaut). Décochée, les fichiers .nfo à côté des vidéos sont ignorés : titre et année viennent du nom du fichier.
 

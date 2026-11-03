@@ -739,6 +739,41 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(AddFromTmdbCommand), nameof(LinkToTmdbCommand), nameof(UpdateAllFromTmdbCommand))]
     public partial bool IsBusy { get; set; }
 
+    /// <summary>Progression du travail en cours : nombre d'étapes faites et total (0 : durée inconnue, barre animée).</summary>
+    [ObservableProperty]
+    public partial int BusyDone { get; private set; }
+
+    [ObservableProperty]
+    public partial int BusyTotal { get; private set; }
+
+    public bool IsBusyIndeterminate => IsBusy && BusyTotal == 0;
+
+    partial void OnIsBusyChanged(bool value)
+    {
+        if (value)
+        {
+            BusyDone = 0;
+            BusyTotal = 0;
+        }
+
+        OnPropertyChanged(nameof(IsBusyIndeterminate));
+    }
+
+    partial void OnBusyTotalChanged(int value) => OnPropertyChanged(nameof(IsBusyIndeterminate));
+
+    /// <summary>Progression affichée dans la barre : chaque signalement compte une étape sur le total annoncé.</summary>
+    private Progress<string> TrackedProgress(int total)
+    {
+        BusyDone = 0;
+        BusyTotal = total;
+        var done = 0;
+        return new Progress<string>(message =>
+        {
+            Status = message;
+            BusyDone = Math.Min(++done, total);
+        });
+    }
+
     public bool HasMetadataSource => _metadata is not null;
 
     public bool HasDetail => Detail is not null;
@@ -839,9 +874,47 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     partial void OnSortDescendingChanged(bool value) => Refresh();
 
+    /// <summary>Plusieurs titres sélectionnés : le bandeau droit affiche leur nombre et leur liste.</summary>
+    public bool HasMultiSelection => SelectedTitles.Count > 1;
+
+    /// <summary>Un seul ou aucun titre, sans fiche : invite du bandeau droit.</summary>
+    public bool ShowDetailHint => Detail is null && SelectedTitles.Count <= 1;
+
+    public string SelectionLabel => Tr.F("{0} titres sélectionnés", SelectedTitles.Count);
+
+    /// <summary>Titres sélectionnés montrés dans le bandeau droit (bornés, pour rester léger).</summary>
+    public IReadOnlyList<string> SelectionPreview
+    {
+        get
+        {
+            const int cap = 60;
+            List<string> preview = [.. SelectedTitles.Take(cap).Select(t => t.Title)];
+            if (SelectedTitles.Count > cap)
+            {
+                preview.Add(Tr.F("… et {0} autre(s)", SelectedTitles.Count - cap));
+            }
+
+            return preview;
+        }
+    }
+
+    /// <summary>Croix d'une affiche sélectionnée : retire ce titre de la sélection.</summary>
+    [RelayCommand]
+    private void RemoveFromSelection(TitleSummary? title)
+    {
+        if (title is not null)
+        {
+            SelectedTitles.Remove(title);
+        }
+    }
+
     private void OnSelectionChanged()
     {
         Detail = SelectedTitles.Count == 1 ? _titles.Get(SelectedTitles[0].Id) : null;
+        OnPropertyChanged(nameof(HasMultiSelection));
+        OnPropertyChanged(nameof(ShowDetailHint));
+        OnPropertyChanged(nameof(SelectionLabel));
+        OnPropertyChanged(nameof(SelectionPreview));
         PosterPath = Detail is null ? null : _images?.PathFor(Detail.Id, "poster");
         BackdropPath = Detail is null ? null : _images?.PathFor(Detail.Id, "backdrop");
         DetailFiles = Detail is null || _media is null ? [] : _media.Files.FilesOf(Detail.Id);
@@ -1114,7 +1187,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         await RunMetadataAsync(async () =>
         {
             var targets = ids.Select(_titles.Get).OfType<TitleDetail>().ToList();
-            var progress = new Progress<string>(message => Status = message);
+            var progress = TrackedProgress(targets.Count);
             var result = await _metadata!.UpdateTitlesAsync(targets, ImportOptions.Default, progress, CancellationToken.None);
             Refresh(selectIds: ids);
             Status = Tr.F("{0} mis à jour, {1} à vérifier, {2} non trouvé(s), {3} doublon(s) évité(s), {4} ignoré(s), {5} échec(s)", result.Updated, result.ToReview, result.NotFound, result.Duplicates, result.Skipped, result.Failed);
@@ -1417,7 +1490,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         IsBusy = true;
         try
         {
-            var (read, tool) = await _media.Import.RefreshTechnicalAsync(ids, new Progress<string>(m => Status = m), CancellationToken.None);
+            var (read, tool) = await _media.Import.RefreshTechnicalAsync(ids, TrackedProgress(ids.Sum(id => _media.Files.FilesOf(id).Count)), CancellationToken.None);
             Refresh(selectIds: SelectedIds);
             Status = tool == "aucun"
                 ? "MediaInfo introuvable : indiquez son chemin dans les réglages."

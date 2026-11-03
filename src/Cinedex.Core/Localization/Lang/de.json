@@ -383,6 +383,7 @@
  "Lecture du nom de fichier": "Lesen des Dateinamens",
  "Lecture en cours…": "Wird gelesen…",
  "Lecture et outils": "Wiedergabe und Werkzeuge",
+ "Les actions s'appliquent à toute la sélection : modifier, vu, favori, mise à jour via TMDb, supprimer…": "Aktionen gelten für die gesamte Auswahl: Bearbeiten, Gesehen, Favorit, TMDb-Aktualisierung, Löschen…",
  "Les deux moitiés de chaque pastille montrent la couleur en thème clair et en thème sombre. Tout s'applique à l'enregistrement, à toutes les fenêtres.": "Die beiden Hälften jedes Farbfelds zeigen die Farbe im hellen und im dunklen Design. Alles gilt beim Speichern für alle Fenster.",
  "Les fichiers déjà traités restent dans le catalogue.": "Bereits verarbeitete Dateien bleiben im Katalog.",
  "Les fichiers vidéo sur le disque ne sont pas touchés.": "Die Videodateien auf dem Datenträger werden nicht verändert.",
@@ -670,6 +671,7 @@
  "Sélection multiple : Ctrl+clic ou Maj+clic": "Mehrfachauswahl: Strg+Klick oder Umschalt+Klick",
  "Sélectionnez un titre pour voir sa fiche.": "Wählen Sie einen Titel, um seine Details zu sehen.",
  "Sélectionnez une personne pour voir sa fiche.": "Wählen Sie eine Person aus, um ihr Profil zu sehen.",
+ "Sélectionné : un clic le retire de la sélection": "Ausgewählt: ein Klick entfernt ihn aus der Auswahl",
  "Série": "Serie",
  "Série : {0}": "Serie: {0}",
  "Série non vue": "Serie nicht gesehen",
@@ -843,6 +845,7 @@
  "{0} titres": "{0} Titel",
  "{0} titres dans le catalogue": "{0} Titel im Katalog",
  "{0} titres modifiés": "{0} Titel geändert",
+ "{0} titres sélectionnés": "{0} Titel ausgewählt",
  "{0} titres à vérifier.": "{0} Titel zu prüfen.",
  "{0} · {1} · version du schéma {2}\n{3} titre(s), {4} exemplaire(s), {5} personne(s), {6} image(s)": "{0} · {1} · Schemaversion {2}\n{3} Titel, {4} Exemplar(e), {5} Person(en), {6} Bild(er)",
  "{0} échec(s).": "{0} Fehler.",
@@ -879,5 +882,6 @@
  "Épisodes à regarder et prochaines diffusions de vos séries": "Anzusehende Folgen und nächste Ausstrahlungen Ihrer Serien",
  "Équipe": "Crew",
  "Étagère, boîte… (le chemin du fichier est dans l'onglet Fichier)": "Regal, Kiste… (der Dateipfad steht im Reiter Datei)",
- "épisode (géré avec les séries)": "Episode (mit den Serien verwaltet)"
+ "épisode (géré avec les séries)": "Episode (mit den Serien verwaltet)",
+ "… et {0} autre(s)": "… und {0} weitere"
 }

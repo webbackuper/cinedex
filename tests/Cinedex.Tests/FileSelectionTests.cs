@@ -42,10 +42,20 @@ public sealed class FileSelectionTests
         await vm.AddPathsAsync([alien, heat]);
         Assert.Equal(2, vm.Candidates.Count);
 
+        Assert.False(vm.IsIndeterminate);
         await vm.ImportCommand.ExecuteAsync(null);
 
         Assert.True(vm.Imported);
         Assert.Equal(["Alien", "Heat"], titles.ListAll().Select(t => t.Title));
+
+        // La barre de progression a suivi l'import fichier par fichier (les signalements arrivent en différé).
+        Assert.Equal(2, vm.Total);
+        for (var waited = 0; vm.Done < 2 && waited < 2000; waited += 10)
+        {
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+        }
+
+        Assert.Equal(2, vm.Done);
     }
 
     private static string Touch(TempDirectory temp, string folder, string name, int bytes)

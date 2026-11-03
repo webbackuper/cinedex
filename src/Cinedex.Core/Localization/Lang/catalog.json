@@ -436,6 +436,7 @@
  "Lecture du nom de fichier",
  "Lecture en cours…",
  "Lecture et outils",
+ "Les actions s'appliquent à toute la sélection : modifier, vu, favori, mise à jour via TMDb, supprimer…",
  "Les deux moitiés de chaque pastille montrent la couleur en thème clair et en thème sombre. Tout s'applique à l'enregistrement, à toutes les fenêtres.",
  "Les fichiers déjà traités restent dans le catalogue.",
  "Les fichiers vidéo sur le disque ne sont pas touchés.",
@@ -759,6 +760,7 @@
  "Sélection multiple : Ctrl+clic ou Maj+clic",
  "Sélectionnez un titre pour voir sa fiche.",
  "Sélectionnez une personne pour voir sa fiche.",
+ "Sélectionné : un clic le retire de la sélection",
  "séparés par des virgules",
  "Série",
  "Série : {0}",
@@ -928,6 +930,7 @@
  "{0} titres",
  "{0} titres dans le catalogue",
  "{0} titres modifiés",
+ "{0} titres sélectionnés",
  "{0} titres à vérifier.",
  "{0} · {1} · version du schéma {2}\n{3} titre(s), {4} exemplaire(s), {5} personne(s), {6} image(s)",
  "{0} échec(s).",
@@ -964,5 +967,6 @@
  "Épisodes spéciaux",
  "Épisodes à regarder et prochaines diffusions de vos séries",
  "Équipe",
- "Étagère, boîte… (le chemin du fichier est dans l'onglet Fichier)"
+ "Étagère, boîte… (le chemin du fichier est dans l'onglet Fichier)",
+ "… et {0} autre(s)"
 ]

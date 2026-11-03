@@ -210,6 +210,10 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.14
+- **Sélection multiple** : le bandeau droit affiche le nombre de titres sélectionnés et leur liste ; chaque affiche sélectionnée porte une croix dans un rond (coin haut droit), qui retire le titre de la sélection d'un clic.
+- **Barres de progression** : la mise à jour via TMDb, la relecture des infos techniques et l'import d'un dossier affichent une barre de progression avec le détail de l'étape en cours.
+
 ### 0.4.13
 - **Purger le catalogue** (Réglages > Maintenance) : vide entièrement le catalogue ouvert (titres, exemplaires, personnes, collections, prêts, images) après deux confirmations ; ses réglages restent. La base est sauvegardée juste avant, les images ne le sont pas.
 

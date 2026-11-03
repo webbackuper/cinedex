@@ -67,6 +67,19 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, S
     [NotifyCanExecuteChangedFor(nameof(ScanCommand), nameof(ImportCommand))]
     public partial bool IsBusy { get; set; }
 
+    /// <summary>Progression de l'import : fichiers traités et total (0 pendant l'analyse : barre animée).</summary>
+    [ObservableProperty]
+    public partial int Done { get; private set; }
+
+    [ObservableProperty]
+    public partial int Total { get; private set; }
+
+    public bool IsIndeterminate => IsBusy && Total == 0;
+
+    partial void OnIsBusyChanged(bool value) => OnPropertyChanged(nameof(IsIndeterminate));
+
+    partial void OnTotalChanged(int value) => OnPropertyChanged(nameof(IsIndeterminate));
+
     [ObservableProperty] public partial string Message { get; set; } = "Choisissez un dossier à analyser, ou des fichiers vidéo (bouton ou glisser-déposer).";
 
     private ScanOptions CurrentScanOptions => _defaults.ToScanOptions() with
@@ -144,7 +157,13 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, S
             }
 
             var options = new LibraryImportOptions { UseTmdb = UseTmdb, UseFirstMatch = UseFirstMatch, ReadTechnicalProperties = ReadProperties, WriteNfo = WriteNfo, ReadNfo = ReadNfo };
-            var progress = new Progress<string>(m => Message = m);
+            Total = selected.Count;
+            var done = 0;
+            var progress = new Progress<string>(m =>
+            {
+                Message = m;
+                Done = Math.Min(++done, Total);
+            });
             var result = await import.ImportAsync(selected, options, progress, token);
             Imported = true;
             ToReview += result.ToReview;
@@ -187,6 +206,8 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, S
     private async Task RunAsync(Func<CancellationToken, Task> action)
     {
         IsBusy = true;
+        Done = 0;
+        Total = 0;
         _cancel = new CancellationTokenSource();
         try
         {

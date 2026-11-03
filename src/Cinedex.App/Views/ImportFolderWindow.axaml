@@ -33,6 +33,9 @@
     </StackPanel>
 
     <StackPanel DockPanel.Dock="Bottom" Spacing="{StaticResource Space2}" Margin="{StaticResource Above3}">
+      <!-- Analyse : barre animée ; import : progression fichier par fichier. -->
+      <ProgressBar IsVisible="{Binding IsBusy}" Minimum="0" Maximum="{Binding Total}" Value="{Binding Done}" IsIndeterminate="{Binding IsIndeterminate}"
+                   AutomationProperties.Name="Progression de l'import" />
       <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
       <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}" HorizontalAlignment="Right">
         <Button Content="Tout cocher" Command="{Binding SelectAllCommand}" CommandParameter="{x:True}" />

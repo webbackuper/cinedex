@@ -390,6 +390,7 @@
  "Lecture du nom de fichier": "قراءة اسم الملف",
  "Lecture en cours…": "جارٍ القراءة…",
  "Lecture et outils": "التشغيل والأدوات",
+ "Les actions s'appliquent à toute la sélection : modifier, vu, favori, mise à jour via TMDb, supprimer…": "تنطبق الإجراءات على التحديد كله: تعديل، مُشاهد، مفضّل، تحديث TMDb، حذف…",
  "Les deux moitiés de chaque pastille montrent la couleur en thème clair et en thème sombre. Tout s'applique à l'enregistrement, à toutes les fenêtres.": "يُظهر نصفا كل عيّنة اللون في السمة الفاتحة والداكنة. يُطبَّق كل شيء على جميع النوافذ عند الحفظ.",
  "Les fichiers déjà traités restent dans le catalogue.": "تبقى الملفات المعالجة في الفهرس.",
  "Les fichiers vidéo sur le disque ne sont pas touchés.": "لا تُمس ملفات الفيديو على القرص.",
@@ -682,6 +683,7 @@
  "Sélection multiple : Ctrl+clic ou Maj+clic": "تحديد متعدد: Ctrl+نقرة أو Shift+نقرة",
  "Sélectionnez un titre pour voir sa fiche.": "اختر عنوانًا لعرض بطاقته.",
  "Sélectionnez une personne pour voir sa fiche.": "اختر شخصًا لعرض بطاقته.",
+ "Sélectionné : un clic le retire de la sélection": "محدَّد: نقرة واحدة تزيله من التحديد",
  "Série": "مسلسل",
  "Série : {0}": "مسلسل: {0}",
  "Série non vue": "مسلسل غير مُشاهَد",
@@ -859,6 +861,7 @@
  "{0} titres": "{0} عنوان",
  "{0} titres dans le catalogue": "{0} عنوان في الفهرس",
  "{0} titres modifiés": "تم تعديل {0} عنوان",
+ "{0} titres sélectionnés": "{0} عنوانًا محددًا",
  "{0} titres à vérifier.": "{0} عنوان للمراجعة.",
  "{0} · {1} · version du schéma {2}\n{3} titre(s), {4} exemplaire(s), {5} personne(s), {6} image(s)": "{0} · {1} · إصدار المخطط {2}\n{3} عنوان، {4} نسخة، {5} شخص، {6} صورة",
  "{0} échec(s).": "{0} إخفاق.",
@@ -895,5 +898,6 @@
  "Épisodes à regarder et prochaines diffusions de vos séries": "الحلقات للمشاهدة والبث القادم لمسلسلاتك",
  "Équipe": "الطاقم الفني",
  "Étagère, boîte… (le chemin du fichier est dans l'onglet Fichier)": "رف، صندوق… (مسار الملف في تبويب «الملف»)",
- "épisode (géré avec les séries)": "حلقة (تُدار مع المسلسلات)"
+ "épisode (géré avec les séries)": "حلقة (تُدار مع المسلسلات)",
+ "… et {0} autre(s)": "… و{0} غيرها"
 }

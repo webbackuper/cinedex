@@ -390,6 +390,7 @@
  "Lecture du nom de fichier": "ファイル名の読み取り",
  "Lecture en cours…": "読み込み中…",
  "Lecture et outils": "再生とツール",
+ "Les actions s'appliquent à toute la sélection : modifier, vu, favori, mise à jour via TMDb, supprimer…": "操作は選択全体に適用されます：編集、視聴済み、お気に入り、TMDb 更新、削除…",
  "Les deux moitiés de chaque pastille montrent la couleur en thème clair et en thème sombre. Tout s'applique à l'enregistrement, à toutes les fenêtres.": "各見本の左右はライトテーマとダークテーマでの色です。保存するとすべてのウィンドウに反映されます。",
  "Les fichiers déjà traités restent dans le catalogue.": "処理済みのファイルはカタログに残ります。",
  "Les fichiers vidéo sur le disque ne sont pas touchés.": "ディスク上の動画ファイルは変更されません。",
@@ -681,6 +682,7 @@
  "Sélection multiple : Ctrl+clic ou Maj+clic": "複数選択：Ctrl+クリックまたは Shift+クリック",
  "Sélectionnez un titre pour voir sa fiche.": "タイトルを選択すると詳細が表示されます。",
  "Sélectionnez une personne pour voir sa fiche.": "人物を選ぶと詳細が表示されます。",
+ "Sélectionné : un clic le retire de la sélection": "選択中：クリックで選択から外します",
  "Série": "シリーズ",
  "Série : {0}": "シリーズ：{0}",
  "Série non vue": "シリーズ未視聴",
@@ -859,6 +861,7 @@
  "{0} titres": "{0} タイトル",
  "{0} titres dans le catalogue": "カタログ内に {0} タイトル",
  "{0} titres modifiés": "{0} タイトルを変更しました",
+ "{0} titres sélectionnés": "{0} 作品を選択中",
  "{0} titres à vérifier.": "確認待ちのタイトルが {0} 件あります。",
  "{0} · {1} · version du schéma {2}\n{3} titre(s), {4} exemplaire(s), {5} personne(s), {6} image(s)": "{0} · {1} · スキーマ版 {2}\n作品 {3}・所蔵品 {4}・人物 {5}・画像 {6}",
  "{0} échec(s).": "{0} 件失敗。",
@@ -895,5 +898,6 @@
  "Épisodes à regarder et prochaines diffusions de vos séries": "シリーズの見るエピソードと今後の放送",
  "Équipe": "スタッフ",
  "Étagère, boîte… (le chemin du fichier est dans l'onglet Fichier)": "棚、箱…（ファイルのパスは「ファイル」タブにあります）",
- "épisode (géré avec les séries)": "エピソード（シリーズで管理）"
+ "épisode (géré avec les séries)": "エピソード（シリーズで管理）",
+ "… et {0} autre(s)": "…他 {0} 件"
 }

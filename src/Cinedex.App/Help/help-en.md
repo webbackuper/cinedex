@@ -210,6 +210,10 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.14
+- **Multiple selection**: the right panel shows how many titles are selected and lists them; each selected poster carries a cross in a circle (top-right corner), which removes the title from the selection in one click.
+- **Progress bars**: the TMDb update, the technical-info refresh and the folder import show a progress bar with the current step.
+
 ### 0.4.13
 - **Purge the catalog** (Settings > Maintenance): empties the open catalog completely (titles, copies, people, collections, loans, images) after two confirmations; its settings are kept. The database is backed up just before; images are not.
 

@@ -390,6 +390,7 @@
  "Lecture du nom de fichier": "Чтение имени файла",
  "Lecture en cours…": "Чтение…",
  "Lecture et outils": "Воспроизведение и инструменты",
+ "Les actions s'appliquent à toute la sélection : modifier, vu, favori, mise à jour via TMDb, supprimer…": "Действия применяются ко всему выделению: изменить, просмотрено, избранное, обновление TMDb, удалить…",
  "Les deux moitiés de chaque pastille montrent la couleur en thème clair et en thème sombre. Tout s'applique à l'enregistrement, à toutes les fenêtres.": "Две половины каждого образца показывают цвет в светлой и тёмной теме. Всё применяется ко всем окнам при сохранении.",
  "Les fichiers déjà traités restent dans le catalogue.": "Уже обработанные файлы остаются в каталоге.",
  "Les fichiers vidéo sur le disque ne sont pas touchés.": "Видеофайлы на диске не затрагиваются.",
@@ -682,6 +683,7 @@
  "Sélection multiple : Ctrl+clic ou Maj+clic": "Множественный выбор: Ctrl+щелчок или Shift+щелчок",
  "Sélectionnez un titre pour voir sa fiche.": "Выберите название, чтобы увидеть его карточку.",
  "Sélectionnez une personne pour voir sa fiche.": "Выберите человека, чтобы увидеть его карточку.",
+ "Sélectionné : un clic le retire de la sélection": "Выбрано: один щелчок убирает его из выделения",
  "Série": "Сериал",
  "Série : {0}": "Сериал: {0}",
  "Série non vue": "Сериал не просмотрен",
@@ -859,6 +861,7 @@
  "{0} titres": "Названий: {0}",
  "{0} titres dans le catalogue": "Названий в каталоге: {0}",
  "{0} titres modifiés": "Изменено названий: {0}",
+ "{0} titres sélectionnés": "Выбрано названий: {0}",
  "{0} titres à vérifier.": "Названий на проверку: {0}.",
  "{0} · {1} · version du schéma {2}\n{3} titre(s), {4} exemplaire(s), {5} personne(s), {6} image(s)": "{0} · {1} · версия схемы {2}\nФильмов: {3}, экземпляров: {4}, людей: {5}, изображений: {6}",
  "{0} échec(s).": "Ошибок: {0}.",
@@ -895,5 +898,6 @@
  "Épisodes à regarder et prochaines diffusions de vos séries": "Эпизоды к просмотру и ближайшие выходы ваших сериалов",
  "Équipe": "Съёмочная группа",
  "Étagère, boîte… (le chemin du fichier est dans l'onglet Fichier)": "Полка, коробка… (путь к файлу — на вкладке «Файл»)",
- "épisode (géré avec les séries)": "эпизод (обрабатывается вместе с сериалами)"
+ "épisode (géré avec les séries)": "эпизод (обрабатывается вместе с сериалами)",
+ "… et {0} autre(s)": "… и ещё {0}"
 }

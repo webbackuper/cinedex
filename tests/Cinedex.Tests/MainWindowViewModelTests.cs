@@ -66,6 +66,34 @@ public sealed class MainWindowViewModelTests : IDisposable
     }
 
     [Fact]
+    public void Multiple_selection_is_summarized_and_the_cross_removes_one_title()
+    {
+        _repo.Add(new NewTitle(TitleKind.Movie, "A", 2000));
+        _repo.Add(new NewTitle(TitleKind.Movie, "B", 2001));
+        _repo.Add(new NewTitle(TitleKind.Movie, "C", 2002));
+        _vm.Load();
+        Assert.True(_vm.ShowDetailHint);
+
+        foreach (var title in _vm.Titles.ToList())
+        {
+            _vm.SelectedTitles.Add(title);
+        }
+
+        Assert.True(_vm.HasMultiSelection);
+        Assert.False(_vm.ShowDetailHint);
+        Assert.Null(_vm.Detail);
+        Assert.Equal("3 titres sélectionnés", _vm.SelectionLabel);
+        Assert.Equal(["A", "B", "C"], _vm.SelectionPreview);
+
+        // La croix d'une affiche retire ce titre ; à un seul titre restant, sa fiche revient.
+        _vm.RemoveFromSelectionCommand.Execute(_vm.SelectedTitles[0]);
+        Assert.Equal(["B", "C"], _vm.SelectionPreview);
+        _vm.RemoveFromSelectionCommand.Execute(_vm.SelectedTitles[0]);
+        Assert.False(_vm.HasMultiSelection);
+        Assert.Equal("C", _vm.Detail!.Title);
+    }
+
+    [Fact]
     public async Task Delete_asks_for_confirmation()
     {
         _repo.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));

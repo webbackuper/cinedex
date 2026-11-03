@@ -390,6 +390,7 @@
  "Lecture du nom de fichier": "Lectura del nombre de archivo",
  "Lecture en cours…": "Leyendo…",
  "Lecture et outils": "Reproducción y herramientas",
+ "Les actions s'appliquent à toute la sélection : modifier, vu, favori, mise à jour via TMDb, supprimer…": "Las acciones se aplican a toda la selección: editar, visto, favorito, actualización TMDb, eliminar…",
  "Les deux moitiés de chaque pastille montrent la couleur en thème clair et en thème sombre. Tout s'applique à l'enregistrement, à toutes les fenêtres.": "Las dos mitades de cada muestra enseñan el color en tema claro y oscuro. Todo se aplica a todas las ventanas al guardar.",
  "Les fichiers déjà traités restent dans le catalogue.": "Los archivos ya procesados permanecen en el catálogo.",
  "Les fichiers vidéo sur le disque ne sont pas touchés.": "Los archivos de vídeo del disco no se tocan.",
@@ -678,6 +679,7 @@
  "Sélection multiple : Ctrl+clic ou Maj+clic": "Selección múltiple: Ctrl+clic o Mayús+clic",
  "Sélectionnez un titre pour voir sa fiche.": "Seleccione un título para ver su ficha.",
  "Sélectionnez une personne pour voir sa fiche.": "Seleccione una persona para ver su ficha.",
+ "Sélectionné : un clic le retire de la sélection": "Seleccionado: un clic lo quita de la selección",
  "Série": "Serie",
  "Série : {0}": "Serie: {0}",
  "Série non vue": "Serie no vista",
@@ -852,6 +854,7 @@
  "{0} titres": "{0} títulos",
  "{0} titres dans le catalogue": "{0} títulos en el catálogo",
  "{0} titres modifiés": "{0} títulos modificados",
+ "{0} titres sélectionnés": "{0} títulos seleccionados",
  "{0} titres à vérifier.": "{0} títulos por revisar.",
  "{0} · {1} · version du schéma {2}\n{3} titre(s), {4} exemplaire(s), {5} personne(s), {6} image(s)": "{0} · {1} · versión del esquema {2}\n{3} título(s), {4} ejemplar(es), {5} persona(s), {6} imagen(es)",
  "{0} échec(s).": "{0} error(es).",
@@ -888,5 +891,6 @@
  "Épisodes à regarder et prochaines diffusions de vos séries": "Episodios por ver y próximas emisiones de sus series",
  "Équipe": "Equipo",
  "Étagère, boîte… (le chemin du fichier est dans l'onglet Fichier)": "Estante, caja… (la ruta del archivo está en la pestaña Archivo)",
- "épisode (géré avec les séries)": "episodio (gestionado con las series)"
+ "épisode (géré avec les séries)": "episodio (gestionado con las series)",
+ "… et {0} autre(s)": "… y {0} más"
 }

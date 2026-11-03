@@ -67,6 +67,24 @@
     <Style Selector="ListBox.titles ListBoxItem:selected /template/ ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource CinedexActive}" />
     </Style>
+    <!-- Pastille de sélection d'une affiche : croix dans un rond, visible quand la carte est sélectionnée. -->
+    <Style Selector="Button.selbadge">
+      <Setter Property="IsVisible" Value="False" />
+      <Setter Property="Width" Value="22" />
+      <Setter Property="Height" Value="22" />
+      <Setter Property="CornerRadius" Value="{StaticResource RoundBadge}" />
+      <Setter Property="Background" Value="{DynamicResource CinedexAccent}" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="controls|PosterCard:selected Button.selbadge">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="Button.selbadge:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource CinedexAccent}" />
+      <Setter Property="Opacity" Value="0.85" />
+    </Style>
     <Style Selector="Border.rating">
       <Setter Property="Background" Value="{DynamicResource CinedexSurfaceAlt}" />
       <Setter Property="BorderBrush" Value="{DynamicResource CinedexBorder}" />
@@ -351,7 +369,12 @@
           <controls:Icon Kind="grid" />
         </ToggleButton>
         </StackPanel>
-        <TextBlock Text="{Binding Status}" Classes="muted" FontSize="{StaticResource FontSmall}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+        <DockPanel VerticalAlignment="Center">
+          <ProgressBar DockPanel.Dock="Left" Width="150" MinWidth="0" Margin="{StaticResource After2}" VerticalAlignment="Center" IsVisible="{Binding IsBusy}"
+                       Minimum="0" Maximum="{Binding BusyTotal}" Value="{Binding BusyDone}" IsIndeterminate="{Binding IsBusyIndeterminate}"
+                       AutomationProperties.Name="Progression du traitement" />
+          <TextBlock Text="{Binding Status}" Classes="muted" FontSize="{StaticResource FontSmall}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+        </DockPanel>
       </DockPanel>
 
       <!-- Barre d'état -->
@@ -435,6 +458,7 @@
                     <Binding Path="$parent[Window].((vm:MainWindowViewModel)DataContext).SelectedIdSet" />
                   </MultiBinding>
                 </controls:PosterCard.IsSelected>
+              <Panel>
               <StackPanel Spacing="{StaticResource Space2}" Background="Transparent" ToolTip.ServiceEnabled="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ShowTooltips}" ToolTip.ShowDelay="500">
                 <ToolTip.Tip>
                   <views:TitleToolTip DataContext="{Binding}" />
@@ -459,6 +483,13 @@
                 <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource CinedexInk}" />
                 <TextBlock Text="{Binding Year}" Classes="muted" FontSize="{StaticResource FontSmall}" Margin="0,-4,0,0" />
               </StackPanel>
+              <!-- Croix dans un rond : le titre est sélectionné ; un clic le retire de la sélection. -->
+              <Button Classes="selbadge" HorizontalAlignment="Right" VerticalAlignment="Top"
+                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).RemoveFromSelectionCommand}" CommandParameter="{Binding}"
+                      AutomationProperties.Name="Retirer de la sélection" ToolTip.Tip="Sélectionné : un clic le retire de la sélection">
+                <controls:Icon Kind="close" Width="11" Height="11" Foreground="White" />
+              </Button>
+              </Panel>
               </controls:PosterCard>
             </DataTemplate>
             </ItemsRepeater.ItemTemplate>
@@ -555,10 +586,30 @@
     <Border Grid.Column="3" Margin="{StaticResource Edges0_4_4_4}" Classes="card" ClipToBounds="True">
       <Panel>
       <Panel IsVisible="{Binding IsTitlesView}">
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="{StaticResource Space3}" IsVisible="{Binding !HasDetail}" Margin="{StaticResource Inset6}">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="{StaticResource Space3}" IsVisible="{Binding ShowDetailHint}" Margin="{StaticResource Inset6}">
           <controls:Icon Kind="default" Width="44" Height="44" Foreground="{DynamicResource CinedexMuted}" />
           <TextBlock Classes="muted" TextAlignment="Center" TextWrapping="Wrap" Text="Sélectionnez un titre pour voir sa fiche." />
         </StackPanel>
+
+        <!-- Plusieurs titres sélectionnés : leur nombre et leur liste -->
+        <DockPanel IsVisible="{Binding HasMultiSelection}" Margin="{StaticResource Inset6}">
+          <StackPanel DockPanel.Dock="Top" Spacing="{StaticResource Space3}" Margin="{StaticResource Below4}">
+            <controls:Icon Kind="check" Width="40" Height="40" Foreground="{DynamicResource CinedexAccent}" HorizontalAlignment="Center" />
+            <TextBlock Text="{Binding SelectionLabel}" FontSize="{StaticResource FontSection}" FontWeight="SemiBold" TextAlignment="Center"
+                       Foreground="{DynamicResource CinedexInk}" />
+            <TextBlock Classes="muted" FontSize="{StaticResource FontSmall}" TextAlignment="Center" TextWrapping="Wrap"
+                       Text="Les actions s'appliquent à toute la sélection : modifier, vu, favori, mise à jour via TMDb, supprimer…" />
+          </StackPanel>
+          <ScrollViewer>
+            <ItemsControl ItemsSource="{Binding SelectionPreview}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                  <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" Margin="{StaticResource Below2}" Foreground="{DynamicResource CinedexInk}" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </DockPanel>
 
         <ScrollViewer IsVisible="{Binding HasDetail}">
           <StackPanel>

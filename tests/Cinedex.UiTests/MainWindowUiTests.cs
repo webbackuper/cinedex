@@ -4,6 +4,7 @@ using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Input;
+using Avalonia.VisualTree;
 using Cinedex.App.Controls;
 using Cinedex.Core.Titles;
 
@@ -60,6 +61,39 @@ public sealed class MainWindowUiTests(UiSession ui)
         UiCatalog.Pump(200);
         Assert.True(vm.IsTitlesView);
         Assert.True(posters.IsEffectivelyVisible);
+    });
+
+    [Fact]
+    public Task Multiple_selection_shows_its_count_and_badges() => ui.Run(() =>
+    {
+        using var catalog = new UiCatalog(30);
+        var vm = catalog.ViewModel;
+        vm.IsGridView = true;
+        UiCatalog.Pump(200);
+
+        foreach (var title in vm.Titles.Take(3).ToList())
+        {
+            vm.SelectedTitles.Add(title);
+        }
+
+        UiCatalog.Pump(200);
+
+        // Bandeau droit : le nombre de titres sélectionnés et leur liste.
+        Assert.True(vm.HasMultiSelection);
+        var label = catalog.Find<TextBlock>(t => t.Text == vm.SelectionLabel);
+        Assert.True(label.IsEffectivelyVisible);
+
+        // Chaque affiche sélectionnée porte sa croix dans un rond.
+        var badges = catalog.All<Button>()
+            .Where(b => b.Classes.Contains("selbadge") && b.IsEffectivelyVisible && b.FindAncestorOfType<PosterCard>() is { Bounds.X: >= 0 })
+            .ToList();
+        Assert.Equal(3, badges.Count);
+        UiCatalog.Shot(catalog.Window, "selection-multiple");
+
+        // La croix retire le titre de la sélection.
+        badges[0].Command!.Execute(badges[0].CommandParameter);
+        UiCatalog.Pump(100);
+        Assert.Equal(2, vm.SelectedTitles.Count);
     });
 
     [Fact]

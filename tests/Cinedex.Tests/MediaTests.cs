@@ -89,6 +89,22 @@ public sealed class MediaTests
     }
 
     [Fact]
+    public void Nfo_files_are_used_only_when_asked()
+    {
+        using var temp = new TempDirectory();
+        var video = Path.Combine(temp.Path, "Heat.mkv");
+        File.WriteAllBytes(video, new byte[10]);
+        File.WriteAllText(Path.Combine(temp.Path, "Heat.nfo"), "<movie><title>Heat (version longue)</title><year>1995</year><tmdbid>949</tmdbid></movie>");
+
+        var withNfo = Assert.Single(LibraryScanner.Scan(temp.Path, new ScanOptions { MinimumBytes = 0 }, cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Equal((949L, "Heat (version longue)"), (withNfo.Nfo!.TmdbId!.Value, withNfo.BestTitle));
+
+        var withoutNfo = Assert.Single(LibraryScanner.Scan(temp.Path, new ScanOptions { MinimumBytes = 0, ReadNfo = false }, cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Null(withoutNfo.Nfo);
+        Assert.Equal("Heat", withoutNfo.BestTitle);
+    }
+
+    [Fact]
     public void Kodi_nfo_is_read()
     {
         var info = NfoReader.ReadXml("""

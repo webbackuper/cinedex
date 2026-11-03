@@ -18,6 +18,7 @@ Cette aide s'ouvre avec **F1** ou le lien **Aide** en bas du bandeau gauche. La 
 
 Options de l'import :
 - **Identifier avec TMDb dès l'import** : cherche la fiche de chaque film. Sinon, les films sont ajoutés avec leur seul titre, et vous lancerez plus tard « Mettre à jour via TMDb ».
+- **Prendre en compte le fichier nfo si existant** (cochée par défaut) : titre, année et identifiants TMDb ou IMDb sont lus dans le fichier .nfo à côté de la vidéo ; décochée, seuls le nom du fichier et du dossier comptent.
 - **Infos techniques (MediaInfo)** : lit codecs, résolution, durée, pistes audio et sous-titres.
 - **Ignorer ( ) et [ ] dans les noms** : « 17 fois Cécile Cassard (Christophe Honoré - 2002).mp4 » donne le titre « 17 fois Cécile Cassard » ; l'année entre parenthèses est tout de même lue.
 - Les termes de diffusion (1080p, x265, TrueHD, VOSTFR, etc.) sont retirés des titres. La liste se modifie dans **Réglages > Import et scan**.
@@ -200,6 +201,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.2
+- Ajout depuis le disque : case **Prendre en compte le fichier nfo si existant** (cochée par défaut). Décochée, les fichiers .nfo à côté des vidéos sont ignorés : titre et année viennent du nom du fichier.
+
 ### 0.4.1
 - **Réalisateurs** : fiche avec biographie et films réalisés, ouverte d'un clic depuis la fiche d'un film (onglet Distribution) ou le panneau de droite ; annuaire des réalisateurs dans le bandeau gauche, affichable ou non dans les réglages.
 - Le lien « Possédés » est retiré du bandeau gauche.

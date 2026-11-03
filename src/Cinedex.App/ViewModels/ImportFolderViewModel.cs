@@ -56,6 +56,9 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, S
 
     [ObservableProperty] public partial bool WriteNfo { get; set; } = defaults?.WriteNfo ?? false;
 
+    /// <summary>Prendre en compte le fichier .nfo de chaque vidéo s'il existe (coché par défaut).</summary>
+    [ObservableProperty] public partial bool ReadNfo { get; set; } = true;
+
     [ObservableProperty] public partial bool RememberFolder { get; set; } = true;
 
     [ObservableProperty] public partial string NoiseWords { get; set; } = string.Empty;
@@ -70,6 +73,7 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, S
     {
         Recursive = Recursive,
         IgnoreBracketed = IgnoreBracketed,
+        ReadNfo = ReadNfo,
         NoiseWords = [.. _defaults.NoiseWords, .. TitleEditorViewModel.SplitList(NoiseWords)],
     };
 
@@ -129,7 +133,8 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, S
     [RelayCommand(CanExecute = nameof(CanImport))]
     private async Task ImportAsync()
     {
-        var selected = Candidates.Where(c => c.IsSelected).Select(c => c.Candidate).ToList();
+        // Case décochée après l'analyse : les .nfo déjà lus sont ignorés à l'import.
+        var selected = Candidates.Where(c => c.IsSelected).Select(c => ReadNfo ? c.Candidate : c.Candidate with { Nfo = null }).ToList();
         await RunAsync(async token =>
         {
             if (RememberFolder && Directory.Exists(Folder))
@@ -138,7 +143,7 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, S
                 import.RememberFolder(Folder);
             }
 
-            var options = new LibraryImportOptions { UseTmdb = UseTmdb, UseFirstMatch = UseFirstMatch, ReadTechnicalProperties = ReadProperties, WriteNfo = WriteNfo };
+            var options = new LibraryImportOptions { UseTmdb = UseTmdb, UseFirstMatch = UseFirstMatch, ReadTechnicalProperties = ReadProperties, WriteNfo = WriteNfo, ReadNfo = ReadNfo };
             var progress = new Progress<string>(m => Message = m);
             var result = await import.ImportAsync(selected, options, progress, token);
             Imported = true;

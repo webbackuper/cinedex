@@ -22,6 +22,9 @@ public sealed record ScanOptions
     public long MinimumBytes { get; init; } = 20L * 1024 * 1024;
 
     public int MaxFiles { get; init; } = 50_000;
+
+    /// <summary>Lire le fichier .nfo placé à côté de la vidéo (titre, année, identifiants TMDb et IMDb), s'il existe.</summary>
+    public bool ReadNfo { get; init; } = true;
 }
 
 /// <summary>Fichier vidéo trouvé, avec ce qu'on en déduit localement (nom, .nfo, jaquette).</summary>
@@ -148,7 +151,7 @@ public static class LibraryScanner
             }
         }
 
-        var nfoPath = NfoReader.FindFor(file.FullName);
+        var nfoPath = options.ReadNfo ? NfoReader.FindFor(file.FullName) : null;
         var cover = Path.Combine(file.DirectoryName!, Path.GetFileNameWithoutExtension(file.Name) + ".jpg");
         var localCover = File.Exists(cover)
             ? cover

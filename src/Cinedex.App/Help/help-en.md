@@ -18,6 +18,7 @@ This help opens with **F1** or the **Help** link at the bottom of the left sideb
 
 Import options:
 - **Identify with TMDb during import**: looks up each film's entry. Otherwise films are added with their title only, and you can run "Update from TMDb" later.
+- **Use the nfo file if there is one** (checked by default): title, year and TMDb or IMDb IDs are read from the .nfo file next to the video; unchecked, only the file and folder names count.
 - **Technical info (MediaInfo)**: reads codecs, resolution, runtime, audio tracks and subtitles.
 - **Ignore ( ) and [ ] in names**: "17 fois Cécile Cassard (Christophe Honoré - 2002).mp4" gives the title "17 fois Cécile Cassard"; the year in brackets is still read.
 - Release terms (1080p, x265, TrueHD, VOSTFR, etc.) are removed from titles. The list can be edited in **Settings > Import and scan**.
@@ -200,6 +201,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.2
+- Adding from disk: **Use the nfo file if there is one** checkbox (checked by default). Unchecked, .nfo files next to the videos are ignored: title and year come from the file name.
+
 ### 0.4.1
 - **Directors**: page with biography and films directed, opened with a click from a film's details (Cast tab) or the right panel; directory of directors in the left sidebar, shown or hidden in the settings.
 - The "Owned" link is removed from the left sidebar.

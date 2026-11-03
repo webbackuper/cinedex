@@ -23,6 +23,8 @@
         <CheckBox Margin="0,0,16,0" Content="Identifier avec TMDb dès l'import" IsChecked="{Binding UseTmdb}"
                   ToolTip.Tip="Décoché : les fichiers sont ajoutés tels quels ; lancez ensuite « Mettre à jour via TMDb »." />
         <CheckBox Margin="0,0,16,0" Content="Si plusieurs fiches TMDb : prendre la première sans demander" IsChecked="{Binding UseFirstMatch}" ToolTip.Tip="Décoché : les cas ambigus vont dans « À vérifier », où vous choisissez" />
+        <CheckBox Margin="0,0,16,0" Content="Prendre en compte le fichier nfo si existant" IsChecked="{Binding ReadNfo}"
+                  ToolTip.Tip="Titre, année et identifiants TMDb ou IMDb lus dans le fichier .nfo placé à côté de la vidéo" />
         <CheckBox Margin="0,0,16,0" Content="Infos techniques (MediaInfo)" IsChecked="{Binding ReadProperties}" />
         <CheckBox Margin="0,0,16,0" Content="Créer ou compléter les .nfo" IsChecked="{Binding WriteNfo}" />
         <CheckBox Content="Surveiller ce dossier" IsChecked="{Binding RememberFolder}" />

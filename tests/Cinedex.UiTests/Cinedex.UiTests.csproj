@@ -18,6 +18,9 @@
     <!-- Catalogue de test volumineux et dossiers temporaires, partagés avec les tests unitaires. -->
     <Compile Include="..\Cinedex.Tests\CatalogSeeder.cs" Link="Shared\CatalogSeeder.cs" />
     <Compile Include="..\Cinedex.Tests\TempDirectory.cs" Link="Shared\TempDirectory.cs" />
+    <!-- Tests exécutés l'un après l'autre : un seul fil d'interface ; en parallèle, un test pourrait exécuter le
+         travail d'un autre en vidant la file d'attente et fausser ses mesures de temps. -->
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\src\Cinedex.App\Assets\cinedex.png" Link="Assets\poster.png" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>

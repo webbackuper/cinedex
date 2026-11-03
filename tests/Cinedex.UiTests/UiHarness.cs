@@ -12,10 +12,6 @@ using Cinedex.Tests;
 
 [assembly: AssemblyFixture(typeof(Cinedex.UiTests.UiSession))]
 
-// Un seul fil d'interface : en parallèle, un test pourrait exécuter le travail d'un autre en vidant la file
-// d'attente (Pump) et fausser ses mesures de temps.
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
-
 namespace Cinedex.UiTests;
 
 /// <summary>

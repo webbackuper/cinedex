@@ -100,7 +100,7 @@ Example: Genre is Comedy, then IMDb rating > 7, then Year ≥ 2000.
 **Tooltips**: turn on "Tooltip when hovering over a film" in **Settings > General** to show, when hovering over a film in the list or the posters, its title, genres, IMDb rating and the beginning of its synopsis. They are off by default.
 
 ## The left sidebar
-- **Library**: quick views (owned, wishlist, watched, favorites, lent, video files…).
+- **Library**: quick views (wishlist, watched, favorites, lent, video files…).
 - **Definition**: submenu Standard definition, High definition, Ultra HD (4K), 3D.
 - At the bottom: **To review**, **Advanced search**, **Actors**, **Directors**, **Series tracker**, **Collections**, **Appearance**, **Settings** and **Help**.
 
@@ -202,6 +202,7 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 ## What's new
 ### 0.4.1
 - **Directors**: page with biography and films directed, opened with a click from a film's details (Cast tab) or the right panel; directory of directors in the left sidebar, shown or hidden in the settings.
+- The "Owned" link is removed from the left sidebar.
 
 ### 0.4.0
 - **Large catalogs**: virtualized list and posters (only visible items exist), posters loaded in the background, targeted updates; tested on 12,000 films.

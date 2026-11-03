@@ -100,7 +100,7 @@ Exemple : Genre est Comédie, puis Note IMDb > 7, puis Année ≥ 2000.
 **Infobulles** : activez « Infobulle au survol d'un film » dans **Réglages > Général** pour afficher, en survolant un film de la liste ou des affiches, son titre, ses genres, sa note IMDb et le début de son synopsis. Elles sont désactivées par défaut.
 
 ## Le bandeau gauche
-- **Bibliothèque** : vues rapides (possédés, liste de souhaits, vus, favoris, prêtés, fichiers vidéo…).
+- **Bibliothèque** : vues rapides (liste de souhaits, vus, favoris, prêtés, fichiers vidéo…).
 - **Définition** : sous-menu Définition standard, Haute définition, Ultra HD (4K), 3D.
 - En bas : **À vérifier**, **Recherche multicritère**, **Acteurs**, **Réalisateurs**, **Suivi des séries**, **Collections**, **Apparence**, **Réglages** et **Aide**.
 
@@ -202,6 +202,7 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 ## Nouveautés
 ### 0.4.1
 - **Réalisateurs** : fiche avec biographie et films réalisés, ouverte d'un clic depuis la fiche d'un film (onglet Distribution) ou le panneau de droite ; annuaire des réalisateurs dans le bandeau gauche, affichable ou non dans les réglages.
+- Le lien « Possédés » est retiré du bandeau gauche.
 
 ### 0.4.0
 - **Grands catalogues** : liste et affiches virtualisées (seuls les éléments visibles existent), affiches chargées en arrière-plan, mises à jour ciblées ; testé sur 12 000 films.

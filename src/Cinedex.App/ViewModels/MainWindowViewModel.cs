@@ -157,7 +157,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public static IReadOnlyList<FilterItem> AllMainFilters { get; } =
     [
         new(QuickFilter.All, "Tous les titres"),
-        new(QuickFilter.Owned, "Possédés"),
         new(QuickFilter.Wishlist, "Liste de souhaits"),
         new(QuickFilter.Seen, "Vus"),
         new(QuickFilter.Unseen, "Pas encore vus"),

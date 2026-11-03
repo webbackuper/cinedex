@@ -15,7 +15,7 @@
       <StackPanel Spacing="{StaticResource Space3}">
         <Border Width="220" Height="300" CornerRadius="{StaticResource RadiusCard}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}" HorizontalAlignment="Left">
           <Panel>
-            <controls:Icon Kind="about" Width="48" Height="48" Foreground="{DynamicResource CinedexMuted}" />
+            <controls:Icon Kind="person" Width="48" Height="48" Foreground="{DynamicResource CinedexMuted}" />
             <Image Source="{Binding PhotoPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=440}" Stretch="UniformToFill" />
           </Panel>
         </Border>

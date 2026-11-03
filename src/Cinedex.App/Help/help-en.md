@@ -209,6 +209,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.10
+- **Actor icon**: a small figure replaces the "i" in the sidebar, the cast and the people pages, in every icon set (Buddha included).
+
 ### 0.4.9
 - **Cinedex on Android**: a browsing app (.apk file) that imports a backup made on the computer; see "Cinedex on Android".
 

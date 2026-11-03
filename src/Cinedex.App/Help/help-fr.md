@@ -209,6 +209,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.10
+- **Icône des acteurs** : un petit personnage remplace le « i » dans la barre latérale, la distribution et les fiches de personnes, dans tous les jeux d'icônes (Buddha compris).
+
 ### 0.4.9
 - **Cinedex sur Android** : application de consultation (fichier .apk) qui importe une sauvegarde faite sur l'ordinateur ; voir la rubrique « Cinedex sur Android ».
 

@@ -36,7 +36,7 @@
           <Grid ColumnDefinitions="Auto,*,Auto" Margin="{StaticResource Inset1}">
             <Border Width="40" Height="40" CornerRadius="{StaticResource RoundAvatar}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
               <Panel>
-                <controls:Icon Kind="about" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" />
+                <controls:Icon Kind="person" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" />
                 <Image Source="{Binding PhotoPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=80}" Stretch="UniformToFill" />
               </Panel>
             </Border>

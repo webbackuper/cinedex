@@ -141,7 +141,7 @@
           </Button>
           <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenPeopleCommand}" IsVisible="{Binding ShowPeopleLink}">
             <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
-              <controls:Icon Kind="about" Width="18" Height="18" />
+              <controls:Icon Kind="person" Width="18" Height="18" />
               <TextBlock Text="Acteurs" />
             </StackPanel>
           </Button>
@@ -636,7 +636,7 @@
                         <StackPanel Spacing="{StaticResource Space1}" HorizontalAlignment="Center">
                           <Border Width="56" Height="56" CornerRadius="{StaticResource RoundAvatarLarge}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}" HorizontalAlignment="Center">
                             <Panel>
-                              <controls:Icon Kind="about" Width="22" Height="22" Foreground="{DynamicResource CinedexMuted}" />
+                              <controls:Icon Kind="person" Width="22" Height="22" Foreground="{DynamicResource CinedexMuted}" />
                               <Image Source="{Binding PhotoPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=112}" Stretch="UniformToFill" />
                             </Panel>
                           </Border>
@@ -660,7 +660,7 @@
                         <StackPanel Spacing="{StaticResource Space1}" HorizontalAlignment="Center">
                           <Border Width="56" Height="56" CornerRadius="{StaticResource RoundAvatarLarge}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}" HorizontalAlignment="Center">
                             <Panel>
-                              <controls:Icon Kind="about" Width="22" Height="22" Foreground="{DynamicResource CinedexMuted}" />
+                              <controls:Icon Kind="person" Width="22" Height="22" Foreground="{DynamicResource CinedexMuted}" />
                               <Image Source="{Binding PhotoPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=112}" Stretch="UniformToFill" />
                             </Panel>
                           </Border>

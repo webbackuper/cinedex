@@ -30,7 +30,7 @@ public sealed class Icon : Control
     private static readonly HashSet<string> BitmapKinds = new(StringComparer.Ordinal)
     {
         "about", "add", "database", "default", "delete", "edit", "exit", "export", "filter", "harddisk",
-        "insert", "options", "play", "print", "random", "search", "sort", "statistics", "view",
+        "insert", "options", "person", "play", "print", "random", "search", "sort", "statistics", "view",
     };
 
     // Icônes dessinées pour Cinedex, grille 24×24 (épaisseur du trait selon le jeu choisi).
@@ -49,6 +49,7 @@ public sealed class Icon : Control
         ["harddisk"] = "M3.5 13 L6 5 H18 L20.5 13 V18.5 A 1.5 1.5 0 0 1 19 20 H5 A 1.5 1.5 0 0 1 3.5 18.5 Z M3.5 13 H20.5 M16.5 16.5 H17",
         ["insert"] = "M12 3.5 V14 M8 10 L12 14 L16 10 M5 12 V19 A 1.5 1.5 0 0 0 6.5 20.5 H17.5 A 1.5 1.5 0 0 0 19 19 V12",
         ["options"] = "M4 7 H20 M4 12 H20 M4 17 H20 M15 5 V9 M8 10 V14 M16.5 15 V19",
+        ["person"] = "M16 8 A 4 4 0 1 1 8 8 A 4 4 0 1 1 16 8 Z M4.5 20.5 C 4.5 16.4 7.9 13.5 12 13.5 C 16.1 13.5 19.5 16.4 19.5 20.5 Z",
         ["play"] = "M21 12 A 9 9 0 1 1 3 12 A 9 9 0 1 1 21 12 Z M10 8.5 L15.5 12 L10 15.5 Z",
         ["print"] = "M7 9 V3.5 H17 V9 M7 17.5 H4.5 V10.5 A 1.5 1.5 0 0 1 6 9 H18 A 1.5 1.5 0 0 1 19.5 10.5 V17.5 H17 M7 14 H17 V20.5 H7 Z",
         ["random"] = "M3.5 7 H7 C 11 7 13 17 17 17 H20.5 M18 14.5 L20.5 17 L18 19.5 M3.5 17 H7 C 8.6 17 9.8 15.4 10.8 13.6 M13.2 10.4 C 14.2 8.6 15.4 7 17 7 H20.5 M18 4.5 L20.5 7 L18 9.5",

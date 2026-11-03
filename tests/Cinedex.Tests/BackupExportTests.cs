@@ -164,4 +164,27 @@ public sealed class BackupExportTests : IDisposable
     [Fact]
     public void Every_icon_has_a_drawn_version_for_the_coherent_sets() =>
         Assert.All(Cinedex.App.Controls.Icon.AllKinds, kind => Assert.True(Cinedex.App.Controls.Icon.HasPath(kind), kind));
+
+    [Fact]
+    public void People_are_shown_with_the_person_icon_in_every_set()
+    {
+        Assert.Contains("person", Cinedex.App.Controls.Icon.AllKinds);
+        Assert.True(File.Exists(Path.Combine(RepositoryRoot(), "src", "Cinedex.App", "Assets", "Icons", "person.png")), "person.png (jeu Buddha)");
+        foreach (var view in new[] { "MainWindow", "PeopleWindow", "PersonWindow" })
+        {
+            var xaml = File.ReadAllText(Path.Combine(RepositoryRoot(), "src", "Cinedex.App", "Views", view + ".axaml"));
+            Assert.Contains("Kind=\"person\"", xaml, StringComparison.Ordinal);
+        }
+    }
+
+    private static string RepositoryRoot()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "Cinedex.slnx")))
+        {
+            dir = dir.Parent;
+        }
+
+        return dir?.FullName ?? throw new DirectoryNotFoundException("Racine du dépôt introuvable.");
+    }
 }

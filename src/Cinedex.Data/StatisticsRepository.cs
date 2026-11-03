@@ -35,8 +35,8 @@ public sealed record CatalogStatistics
 
     public int LinkedToTmdb { get; init; }
 
-    /// <summary>Titres dont la fiche n'a jamais été rapatriée depuis TMDb (identifiant connu ou non).</summary>
-    public int NeverFetched { get; init; }
+    /// <summary>Titres sans synopsis ni genre : ceux dont la fiche reste à compléter.</summary>
+    public int WithoutMetadata { get; init; }
 
     public int ToReview { get; init; }
 
@@ -73,7 +73,7 @@ public sealed class StatisticsRepository(CatalogDatabase database)
             TotalBytes = connection.ExecuteScalar<long?>("SELECT sum(size_bytes) FROM media_file;") ?? 0,
             FilmMinutes = connection.ExecuteScalar<long?>("SELECT sum(runtime_minutes) FROM title WHERE kind = 'movie';") ?? 0,
             LinkedToTmdb = Count("SELECT count(*) FROM title WHERE tmdb_id IS NOT NULL;"),
-            NeverFetched = Count("SELECT count(*) FROM title WHERE metadata_fetched_at IS NULL;"),
+            WithoutMetadata = Count($"SELECT count(*) FROM title t WHERE {TitleRepository.WithoutMetadata};"),
             ToReview = Count("SELECT count(*) FROM match_review;"),
             Genres = Distribution(connection,
                 """

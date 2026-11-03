@@ -36,13 +36,18 @@ public sealed partial class TitleRepository(CatalogDatabase database)
         """;
 
     /// <summary>
-    /// Titres (films et séries) dont la fiche n'a jamais été rapatriée depuis TMDb, par ordre de tri. Un identifiant
-    /// TMDb ou IMDb connu (lu dans un .nfo, saisi à la main) ne suffit pas : seule une fiche téléchargée compte.
+    /// Un titre « sans infos » : ni synopsis ni genre, ce que laisse une fiche jamais rapatriée. On juge le contenu
+    /// plutôt que la date de rapatriement, qu'un .nfo lu au scan pose aussi sans rien apporter de descriptif.
+    /// L'alias de la table doit être <c>t</c>.
     /// </summary>
-    public IReadOnlyList<long> NeverFetchedFromTmdb()
+    public const string WithoutMetadata =
+        "coalesce(t.overview, '') = '' AND NOT EXISTS (SELECT 1 FROM title_genre tg WHERE tg.title_id = t.id)";
+
+    /// <summary>Titres (films et séries) sans synopsis ni genre, par ordre de tri : ceux qui restent à compléter.</summary>
+    public IReadOnlyList<long> WithoutMetadataIds()
     {
         using var connection = database.Open();
-        return connection.Query<long>("SELECT id FROM title WHERE metadata_fetched_at IS NULL ORDER BY sort_title, id;").ToList();
+        return connection.Query<long>($"SELECT t.id FROM title t WHERE {WithoutMetadata} ORDER BY t.sort_title, t.id;").ToList();
     }
 
     public long Add(NewTitle title)
@@ -521,7 +526,7 @@ public sealed partial class TitleRepository(CatalogDatabase database)
         QuickFilter.PhysicalMedia => "m.code IS NOT NULL AND m.code NOT IN ('media_file', 'digital', 'streaming')",
         QuickFilter.MediaFiles => "EXISTS (SELECT 1 FROM media_file mf JOIN copy cf ON cf.id = mf.copy_id WHERE cf.title_id = t.id)",
         QuickFilter.MissingFiles => "EXISTS (SELECT 1 FROM media_file mf JOIN copy cf ON cf.id = mf.copy_id WHERE cf.title_id = t.id AND mf.is_missing = 1)",
-        QuickFilter.NoMetadata => "t.metadata_fetched_at IS NULL",
+        QuickFilter.NoMetadata => WithoutMetadata,
         _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, null),
     };
 

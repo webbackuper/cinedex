@@ -89,14 +89,16 @@ public sealed class AppSettingsTests : IDisposable
         var fetched = titles.Add(new NewTitle(TitleKind.Movie, "Ran", 1985));
         using (var connection = _db.Open())
         {
-            // Identifiants lus dans un .nfo : connus, mais la fiche n'a jamais été rapatriée.
-            connection.Execute("UPDATE title SET tmdb_id = 68, imdb_id = 'tt0088846' WHERE id = @fromNfo;", new { fromNfo });
+            // Lu dans un .nfo : identifiants connus et date posée, mais rien de descriptif n'a été rapatrié.
             connection.Execute(
-                "UPDATE title SET tmdb_id = 11645, metadata_fetched_at = '2026-01-02T03:04:05.000Z' WHERE id = @fetched;",
+                "UPDATE title SET tmdb_id = 68, imdb_id = 'tt0088846', metadata_fetched_at = '2026-01-02T03:04:05.000Z' WHERE id = @fromNfo;",
+                new { fromNfo });
+            connection.Execute(
+                "UPDATE title SET tmdb_id = 11645, overview = 'Un seigneur vieillissant partage son royaume.' WHERE id = @fetched;",
                 new { fetched });
         }
 
-        Assert.Equal([manual, fromNfo, scanned], titles.NeverFetchedFromTmdb());
+        Assert.Equal([manual, fromNfo, scanned], titles.WithoutMetadataIds());
 
         var vm = new SettingsViewModel(new NoVault(), _store, _temp.Path, new StatisticsRepository(_db).Compute());
         Assert.Equal(3, vm.UnlinkedToTmdb);
@@ -110,9 +112,9 @@ public sealed class AppSettingsTests : IDisposable
         Assert.True(closed);
         Assert.True(vm.PendingUpdateUnlinked);
 
-        // Toutes les fiches rapatriées : rien à proposer.
+        // Toutes les fiches complètes : rien à proposer.
         var allFetched = new SettingsViewModel(new NoVault(), _store, _temp.Path,
-            new Cinedex.Data.CatalogStatistics { Films = 2, LinkedToTmdb = 2, NeverFetched = 0 });
+            new Cinedex.Data.CatalogStatistics { Films = 2, LinkedToTmdb = 2, WithoutMetadata = 0 });
         Assert.False(allFetched.UpdateUnlinkedCommand.CanExecute(null));
     }
 
@@ -122,14 +124,19 @@ public sealed class AppSettingsTests : IDisposable
         var titles = new TitleRepository(_db);
         titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));
         var fromNfo = titles.Add(new NewTitle(TitleKind.Movie, "Brazil", 1985));
+        var byGenre = titles.Add(new NewTitle(TitleKind.Movie, "Dune", 1984));
         var fetched = titles.Add(new NewTitle(TitleKind.Movie, "Ran", 1985));
         using (var connection = _db.Open())
         {
-            // Un identifiant TMDb connu (lu dans un .nfo) ne veut pas dire fiche rapatriée : « Brazil » reste listé.
-            connection.Execute("UPDATE title SET tmdb_id = 68 WHERE id = @fromNfo;", new { fromNfo });
+            // Cas de JLB : le .nfo a posé les identifiants et la date, sans rien de descriptif. « Brazil » reste listé.
             connection.Execute(
-                "UPDATE title SET tmdb_id = 11645, metadata_fetched_at = '2026-01-02T03:04:05.000Z' WHERE id = @fetched;",
-                new { fetched });
+                "UPDATE title SET tmdb_id = 68, metadata_fetched_at = '2026-01-02T03:04:05.000Z' WHERE id = @fromNfo;",
+                new { fromNfo });
+            // Un genre suffit à sortir de la liste, même sans synopsis.
+            connection.Execute(
+                "INSERT INTO title_genre (title_id, genre_id) SELECT @byGenre, id FROM genre LIMIT 1;",
+                new { byGenre });
+            connection.Execute("UPDATE title SET overview = 'Un seigneur vieillissant.' WHERE id = @fetched;", new { fetched });
         }
 
         var files = new MediaFileRepository(_db);
@@ -143,7 +150,14 @@ public sealed class AppSettingsTests : IDisposable
 
         // Une vraie fiche rapatriée (le chemin suivi par l'import et la mise à jour) sort de la liste.
         new MetadataRepository(_db).Create(
-            new Cinedex.Core.Metadata.MetadataRecord { Kind = TitleKind.Movie, SourceId = 348, Title = "Alien", Year = 1979 },
+            new Cinedex.Core.Metadata.MetadataRecord
+            {
+                Kind = TitleKind.Movie,
+                SourceId = 348,
+                Title = "Alien",
+                Year = 1979,
+                Overview = "L'équipage du Nostromo répond à un signal de détresse.",
+            },
             Cinedex.Core.Metadata.ImportOptions.Default);
         main.Load();
         main.SelectedFilter = main.Filters.Single(f => f.Value == QuickFilter.NoMetadata);

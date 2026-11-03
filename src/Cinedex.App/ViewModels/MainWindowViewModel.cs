@@ -1189,14 +1189,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        var ids = _titles.NeverFetchedFromTmdb();
+        var ids = _titles.WithoutMetadataIds();
         if (ids.Count == 0)
         {
-            Status = Tr.T("Toutes les fiches ont déjà été rapatriées depuis TMDb.");
+            Status = Tr.T("Tous les titres ont déjà leur synopsis et leurs genres.");
             return;
         }
 
-        await UpdateViaTmdbAsync(ids, Tr.F("les {0} titre(s) sans fiche TMDb", ids.Count));
+        await UpdateViaTmdbAsync(ids, Tr.F("les {0} titre(s) sans synopsis ni genre", ids.Count));
     }
 
     private async Task UpdateViaTmdbAsync(IReadOnlyList<long> ids, string scope)

@@ -394,10 +394,10 @@ public sealed partial class SettingsViewModel : ObservableObject
     /// <summary>Statistiques du catalogue ouvert (onglet Statistiques) ; absentes hors catalogue.</summary>
     public CatalogStatistics? Statistics { get; }
 
-    /// <summary>Titres dont la fiche n'a jamais été rapatriée depuis TMDb (scannés, ajoutés à la main, lus d'un .nfo).</summary>
-    public int UnlinkedToTmdb => Statistics?.NeverFetched ?? 0;
+    /// <summary>Titres sans synopsis ni genre : ceux dont la fiche reste à compléter depuis TMDb.</summary>
+    public int UnlinkedToTmdb => Statistics?.WithoutMetadata ?? 0;
 
-    public string UpdateUnlinkedLabel => Tr.F("Mettre à jour via TMDb les {0} titre(s) sans fiche", UnlinkedToTmdb);
+    public string UpdateUnlinkedLabel => Tr.F("Mettre à jour via TMDb les {0} titre(s) sans infos", UnlinkedToTmdb);
 
     /// <summary>La mise à jour TMDb des titres non liés démarre à la fermeture des réglages.</summary>
     public bool PendingUpdateUnlinked { get; private set; }

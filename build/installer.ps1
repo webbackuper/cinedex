@@ -37,7 +37,25 @@ Get-ChildItem -Path $staging -Filter '*.pdb' | Remove-Item -Force
 Copy-Item (Join-Path $root 'README.md') $staging
 
 $mainExe = if ($channel -eq 'win') { 'Cinedex.exe' } else { 'Cinedex' }
-$icon = if ($channel -eq 'win') { Join-Path $root 'src/Cinedex.App/Assets/cinedex.ico' } else { Join-Path $root 'src/Cinedex.App/Assets/cinedex.png' }
+$png = Join-Path $root 'src/Cinedex.App/Assets/cinedex.png'
+$icon = switch ($channel) {
+    'win' { Join-Path $root 'src/Cinedex.App/Assets/cinedex.ico' }
+    'osx' {
+        # macOS exige une icône .icns : fabriquée à partir du PNG avec les outils du système (sips, iconutil).
+        $iconset = Join-Path ([IO.Path]::GetTempPath()) 'cinedex.iconset'
+        if (Test-Path $iconset) { Remove-Item -Recurse -Force $iconset }
+        New-Item -ItemType Directory -Path $iconset | Out-Null
+        foreach ($size in 16, 32, 128, 256, 512) {
+            & sips -z $size $size $png --out (Join-Path $iconset "icon_${size}x${size}.png") | Out-Null
+            & sips -z ($size * 2) ($size * 2) $png --out (Join-Path $iconset "icon_${size}x${size}@2x.png") | Out-Null
+        }
+        $icns = Join-Path ([IO.Path]::GetTempPath()) 'cinedex.icns'
+        & iconutil -c icns $iconset -o $icns
+        if ($LASTEXITCODE -ne 0) { throw "Échec de la création de l'icône macOS" }
+        $icns
+    }
+    default { $png }
+}
 $arguments = @(
     'pack', '--packId', 'Cinedex', '--packVersion', $version, '--packDir', $staging, '--mainExe', $mainExe,
     '--packTitle', 'Cinedex', '--packAuthors', 'Cinedex', '--icon', $icon, '--channel', $channel,

@@ -150,6 +150,7 @@ Everything is set in **Settings > Screen saver**: on or off, idle time (1 to 240
 The **Settings > Maintenance** tab shows the location, size and contents of the open catalog's database, and offers:
 - **Rename the catalog…**: the open catalog gets a new name; Settings close and it reopens right away.
 - **Back up now** and **Open the backups folder**.
+- **Purge the catalog**: deletes all the content of the open catalog (titles, copies, files, people, collections, loans, series, images). Its settings, reference lists, custom fields, saved filters and scan folders are kept. Two confirmations are asked; the database is backed up just before (backups folder), but images are not.
 - **Remove unused actors**: people who no longer appear in any credits (the number is shown on the button).
 - **Merge duplicate actors and directors**: records with the same name (ignoring accents and capitals) are grouped; two namesakes with different TMDb or IMDb records stay separate.
 - **Find duplicate films**: same IMDb ID, or same title and same year. Nothing is deleted; double-clicking a title shows it in the list.
@@ -209,6 +210,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.13
+- **Purge the catalog** (Settings > Maintenance): empties the open catalog completely (titles, copies, people, collections, loans, images) after two confirmations; its settings are kept. The database is backed up just before; images are not.
+
 ### 0.4.12
 - **People in the right panel**: in the actors or directors gallery, a click shows the person in the right panel (photo, dates, biography, TMDb and IMDb links, their films); a double-click still opens their full page.
 

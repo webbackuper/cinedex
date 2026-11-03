@@ -17,6 +17,9 @@ public sealed record DuplicateGroup(string Reason, IReadOnlyList<DuplicateTitle>
 /// <summary>Bilan d'un nettoyage d'images : lignes retirées de la base, fichiers effacés du disque.</summary>
 public sealed record ImageCleanup(int Rows, int Files, long Bytes);
 
+/// <summary>Bilan d'une purge du catalogue : ce qu'il contenait, et les fichiers d'images effacés.</summary>
+public sealed record CatalogPurge(int Titles, int Copies, int People, int ImageFiles, long ImageBytes);
+
 /// <summary>
 /// Opérations de maintenance du catalogue ouvert : nettoyages, doublons, renumérotation, contrôle et compactage.
 /// Les opérations qui modifient la base sont chacune faites dans une transaction.
@@ -231,6 +234,76 @@ public sealed class MaintenanceRepository(CatalogDatabase database)
         }
 
         return new ImageCleanup(rows, files, bytes);
+    }
+
+    /// <summary>
+    /// Tables gardées par la purge : réglages du catalogue, listes de référence, genres, champs personnalisés,
+    /// filtres enregistrés et dossiers à analyser. Tout le reste (titres, personnes, images, prêts…) est vidé.
+    /// </summary>
+    public static IReadOnlySet<string> KeptByPurge { get; } = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "setting", "ref_list", "genre", "custom_field", "saved_filter", "scan_root",
+    };
+
+    /// <summary>
+    /// Vide complètement le catalogue ouvert (titres, exemplaires, fichiers, personnes, collections, images, prêts,
+    /// séries…) et efface son dossier d'images ; ses réglages et listes de référence restent. Renvoie ce qui a été retiré.
+    /// </summary>
+    public CatalogPurge Purge(string imagesDirectory)
+    {
+        var before = Info();
+        using (var connection = database.Open())
+        {
+            // Les tables sont vidées d'un bloc : l'ordre des clés étrangères n'a pas à être suivi.
+            connection.Execute("PRAGMA foreign_keys = OFF;");
+            try
+            {
+                using var transaction = connection.BeginTransaction();
+                var tables = connection.Query<string>(
+                        """
+                        SELECT name FROM sqlite_master
+                        WHERE type = 'table' AND name NOT LIKE 'sqlite!_%' ESCAPE '!' AND name NOT LIKE 'title!_fts%' ESCAPE '!';
+                        """,
+                        transaction: transaction)
+                    .Where(t => !KeptByPurge.Contains(t))
+                    .ToList();
+                foreach (var table in tables)
+                {
+                    connection.Execute($"DELETE FROM \"{table}\";", transaction: transaction);
+                }
+
+                connection.Execute("INSERT INTO title_fts (title_fts) VALUES ('delete-all');", transaction: transaction);
+                if (connection.ExecuteScalar<int>("SELECT count(*) FROM sqlite_master WHERE name = 'sqlite_sequence';", transaction: transaction) > 0)
+                {
+                    connection.Execute("DELETE FROM sqlite_sequence;", transaction: transaction);
+                }
+
+                transaction.Commit();
+            }
+            finally
+            {
+                connection.Execute("PRAGMA foreign_keys = ON;");
+            }
+        }
+
+        int files = 0;
+        long bytes = 0;
+        if (Directory.Exists(imagesDirectory))
+        {
+            foreach (var file in Directory.EnumerateFiles(imagesDirectory, "*", SearchOption.AllDirectories))
+            {
+                bytes += new FileInfo(file).Length;
+                File.Delete(file);
+                files++;
+            }
+
+            foreach (var folder in Directory.EnumerateDirectories(imagesDirectory))
+            {
+                Directory.Delete(folder, recursive: true);
+            }
+        }
+
+        return new CatalogPurge(before.Titles, before.Copies, before.People, files, bytes);
     }
 
     /// <summary>Contrôle complet de la base : intégrité des pages et des clés étrangères. Renvoie les anomalies.</summary>

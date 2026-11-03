@@ -150,6 +150,7 @@ Tout se règle dans **Réglages > Économiseur d'écran** : activation, durée d
 L'onglet **Réglages > Maintenance** affiche l'emplacement, la taille et le contenu de la base du catalogue ouvert, et propose :
 - **Renommer le catalogue…** : le catalogue ouvert change de nom ; les réglages se ferment et il est rouvert aussitôt.
 - **Sauvegarder maintenant** et **Ouvrir le dossier des sauvegardes**.
+- **Purger le catalogue** : efface tout le contenu du catalogue ouvert (titres, exemplaires, fichiers, personnes, collections, prêts, séries, images). Ses réglages, listes de référence, champs personnalisés, filtres enregistrés et dossiers à analyser restent. Deux confirmations sont demandées ; la base est sauvegardée juste avant (dossier des sauvegardes), mais pas les images.
 - **Retirer les acteurs inutilisés** : personnes qui ne figurent plus dans aucun générique (le nombre est indiqué sur le bouton).
 - **Fusionner les doublons d'acteurs et de réalisateurs** : les fiches au nom identique (accents et majuscules ignorés) sont regroupées ; deux homonymes aux fiches TMDb ou IMDb différentes restent distincts.
 - **Trouver les films en double** : même identifiant IMDb, ou même titre et même année. Rien n'est supprimé ; un double-clic sur un titre l'affiche dans la liste.
@@ -209,6 +210,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.13
+- **Purger le catalogue** (Réglages > Maintenance) : vide entièrement le catalogue ouvert (titres, exemplaires, personnes, collections, prêts, images) après deux confirmations ; ses réglages restent. La base est sauvegardée juste avant, les images ne le sont pas.
+
 ### 0.4.12
 - **Personnes dans le bandeau droit** : dans la galerie des acteurs ou des réalisateurs, un clic affiche la personne dans le bandeau droit (photo, dates, biographie, liens TMDb et IMDb, ses films) ; un double-clic ouvre toujours sa fiche complète.
 

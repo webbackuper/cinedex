@@ -114,6 +114,11 @@
     <Style Selector="Button.tool:disabled">
       <Setter Property="Opacity" Value="0.55" />
     </Style>
+    <!-- Action destructive (purge) : libellé dans la couleur d'accent pour qu'on ne la confonde pas avec les autres. -->
+    <Style Selector="Button.tool.danger">
+      <Setter Property="Foreground" Value="{DynamicResource CinedexAccent}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
     <!-- Bouton secondaire : contour d'un pas plus fort que les bordures, fond transparent. -->
     <Style Selector="Button.outline">
       <Setter Property="Background" Value="Transparent" />

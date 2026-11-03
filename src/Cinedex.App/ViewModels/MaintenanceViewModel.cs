@@ -77,7 +77,7 @@ public sealed partial class MaintenanceViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(RemoveUnusedPeopleCommand), nameof(MergePeopleCommand), nameof(FindDuplicatesCommand), nameof(RenumberCommand),
-        nameof(RemoveEmptyLabelsCommand), nameof(RemoveUnusedImagesCommand), nameof(CheckIntegrityCommand), nameof(OptimizeCommand), nameof(BackupCommand), nameof(RenameCommand))]
+        nameof(RemoveEmptyLabelsCommand), nameof(RemoveUnusedImagesCommand), nameof(CheckIntegrityCommand), nameof(OptimizeCommand), nameof(BackupCommand), nameof(RenameCommand), nameof(PurgeCatalogCommand))]
     public partial bool IsBusy { get; private set; }
 
     public string UnusedPeopleLabel => Tr.F("Retirer les acteurs inutilisés ({0})", UnusedPeople);
@@ -245,6 +245,34 @@ public sealed partial class MaintenanceViewModel : ObservableObject
         ActivityJournal.Current.Write($"Maintenance : sauvegarde {path}");
         return () => Message = Tr.F("Sauvegarde créée : {0}", path);
     });
+
+    /// <summary>
+    /// Vide tout le catalogue ouvert après deux confirmations ; la base est sauvegardée juste avant (pas les images).
+    /// Ses réglages, listes de référence, champs personnalisés et filtres enregistrés restent.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanRun))]
+    private async Task PurgeCatalogAsync()
+    {
+        var info = _repository.Info();
+        if (!await AskAsync(Tr.T("Purger le catalogue"),
+                Tr.F("Effacer tout le contenu du catalogue « {0} » : {1} titre(s), {2} exemplaire(s), {3} personne(s) et toutes ses images ? Ses réglages sont gardés.",
+                    CatalogName, info.Titles, info.Copies, info.People)) ||
+            !await AskAsync(Tr.T("Dernière confirmation"),
+                Tr.F("Le catalogue « {0} » va être vidé. Une sauvegarde de la base est faite juste avant, mais les images effacées ne pourront pas être récupérées. Purger maintenant ?", CatalogName)))
+        {
+            return;
+        }
+
+        await RunAsync(() =>
+        {
+            _repository.Backup(_backupsDirectory, "avant-purge");
+            var purge = _repository.Purge(_imagesDirectory);
+            Changed = true;
+            ActivityJournal.Current.Write($"Maintenance : catalogue purgé ({purge.Titles} titre(s), {purge.People} personne(s), {purge.ImageFiles} image(s))");
+            return () => Message = Tr.F("Catalogue purgé : {0} titre(s), {1} personne(s) et {2} image(s) ({3}) effacés.",
+                purge.Titles, purge.People, purge.ImageFiles, FormatSize(purge.ImageBytes));
+        });
+    }
 
     /// <summary>Opération qui modifie la base : confirmation, sauvegarde préalable, exécution, compte rendu.</summary>
     private async Task ModifyAsync(string title, string question, string backupLabel, Func<string> action)

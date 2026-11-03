@@ -43,6 +43,53 @@ public sealed class MaintenanceTests : IDisposable
     }
 
     [Fact]
+    public async Task Purge_empties_the_catalog_after_two_confirmations_but_keeps_its_settings()
+    {
+        var film = _titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));
+        _titles.Add(new NewTitle(TitleKind.Series, "Twin Peaks", 1990));
+        Credit(film, Person("Al Pacino"));
+        new SettingsStore(_db).Set("ui.detailWidth", "500");
+        var images = Path.Combine(_temp.Path, "images");
+        Directory.CreateDirectory(Path.Combine(images, "ab"));
+        File.WriteAllBytes(Path.Combine(images, "ab", new string('a', 64) + ".jpg"), new byte[100]);
+        var backups = Path.Combine(_temp.Path, "backups");
+        var vm = new MaintenanceViewModel(_maintenance, new CatalogManager(new AppPaths(_temp.Path, isPortable: true)), "tests", backups, images);
+
+        // Deux confirmations : un refus à la seconde ne touche à rien.
+        var questions = new List<string>();
+        vm.Confirm = (title, _) =>
+        {
+            questions.Add(title);
+            return Task.FromResult(questions.Count == 1);
+        };
+        await vm.PurgeCatalogCommand.ExecuteAsync(null);
+        Assert.Equal(["Purger le catalogue", "Dernière confirmation"], questions);
+        Assert.Equal(2, Scalar<int>("SELECT count(*) FROM title;"));
+        Assert.False(vm.Changed);
+
+        vm.Confirm = (_, _) => Task.FromResult(true);
+        await vm.PurgeCatalogCommand.ExecuteAsync(null);
+
+        Assert.True(vm.Changed);
+        Assert.Contains("2 titre(s)", vm.Message, StringComparison.Ordinal);
+        foreach (var table in new[] { "title", "copy", "person", "credit", "image", "title_fts" })
+        {
+            Assert.Equal(0, Scalar<int>($"SELECT count(*) FROM {table};"));
+        }
+
+        Assert.Equal("500", new SettingsStore(_db).Get("ui.detailWidth"));
+        Assert.True(Scalar<int>("SELECT count(*) FROM genre;") > 0);
+        Assert.True(Scalar<int>("SELECT count(*) FROM ref_list;") > 0);
+        Assert.Empty(Directory.EnumerateFileSystemEntries(images));
+        Assert.Contains(Directory.EnumerateFiles(backups), f => f.Contains("avant-purge", StringComparison.Ordinal));
+        Assert.Empty(_maintenance.CheckIntegrity());
+
+        // Le catalogue vidé reste utilisable.
+        _titles.Add(new NewTitle(TitleKind.Movie, "Alien", 1979));
+        Assert.Equal(1, Scalar<int>("SELECT count(*) FROM title;"));
+    }
+
+    [Fact]
     public void Unused_people_are_removed()
     {
         var film = _titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));

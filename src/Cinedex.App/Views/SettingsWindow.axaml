@@ -491,6 +491,8 @@
             <WrapPanel>
               <Button Classes="tool" Margin="{StaticResource Trail2}" Content="Sauvegarder maintenant" Command="{Binding BackupCommand}" />
               <Button Classes="tool" Margin="{StaticResource Trail2}" Content="Ouvrir le dossier des sauvegardes" Click="OnOpenBackups" />
+              <Button Classes="tool danger" Margin="{StaticResource Trail2}" Content="Purger le catalogue…" Command="{Binding PurgeCatalogCommand}"
+                      ToolTip.Tip="Efface tous les titres, exemplaires, personnes, collections, prêts et images du catalogue ouvert ; ses réglages restent. Deux confirmations sont demandées." />
             </WrapPanel>
 
             <TextBlock Classes="h" Text="Acteurs et réalisateurs" />

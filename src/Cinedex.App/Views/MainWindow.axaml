@@ -685,6 +685,10 @@
                 <Button Classes="tool" Margin="{StaticResource Edges0_0_1_2}" Command="{Binding EditCommand}" ToolTip.Tip="Modifier la fiche (Alt+E)">
                   <controls:Icon Kind="edit" />
                 </Button>
+                <Button Classes="tool" Margin="{StaticResource Edges0_0_1_2}" Command="{Binding ClearDetailCommand}"
+                        ToolTip.Tip="Vider la fiche : efface le descriptif, les identifiants, les notes des sites, les genres, la distribution et l'affiche. Le titre, vos saisies et les fichiers restent.">
+                  <controls:Icon Kind="eraser" />
+                </Button>
                 <Button Classes="tool" Margin="{StaticResource Edges0_0_1_2}" Command="{Binding LinkToTmdbCommand}" ToolTip.Tip="Lier ou mettre à jour depuis TMDb (Ctrl+U)">
                   <controls:Icon Kind="cloud" />
                 </Button>

@@ -227,4 +227,55 @@ public sealed class PeopleTests : IDisposable
         Assert.Equal([_insider, _heat], page.Titles.Select(t => t.TitleId));
         Assert.Contains("2 film(s) réalisé(s)", page.Count, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void Clearing_a_title_keeps_its_name_its_own_entries_and_its_files()
+    {
+        var images = new ImageStore(_db, Path.Combine(_temp.Path, "img"));
+        var files = new MediaFileRepository(_db);
+        var id = _metadata.Create(Movie(603, "Matrix", 1999, [
+            new MetadataCredit(CreditRole.Director, 638, "Michael Mann", null, 0, null),
+            new MetadataCredit(CreditRole.Actor, 1158, "Al Pacino", "Vincent Hanna", 0, null),
+        ]), ImportOptions.Default);
+
+        // Ce que l'utilisateur a saisi lui-même, et son fichier vidéo avec ses infos MediaInfo.
+        var titles = new TitleRepository(_db);
+        titles.Update(titles.Get(id)! with
+        {
+            UserRating = 9,
+            IsFavorite = true,
+            Comments = "Vu au cinéma.",
+            Tags = ["polar"],
+            Overview = "Un pirate découvre la vérité.",
+        });
+        var fileId = files.Attach(id, Path.Combine(_temp.Path, "Matrix.mkv"), 700);
+        files.SaveProperties(fileId, new MediaFileProperties("mkv", "h264", 1920, 1080, 24, 8, "16:9", [], 10_000, [], []));
+        images.Attach(id, images.Save([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]), "poster");
+        Assert.NotNull(images.PathFor(id, "poster"));
+
+        titles.ClearMetadata(id);
+
+        // Ce qui venait d'une source extérieure est parti.
+        var cleared = titles.Get(id)!;
+        Assert.Equal("Matrix", cleared.Title);
+        Assert.Null(cleared.Year);
+        Assert.Null(cleared.Overview);
+        Assert.Null(cleared.TmdbId);
+        Assert.Null(cleared.ImdbId);
+        Assert.Empty(cleared.GenreCodes);
+        Assert.Empty(_people.Credits(id));
+        Assert.Null(images.PathFor(id, "poster"));
+
+        // Ce que l'utilisateur a saisi, et son fichier, sont intacts.
+        Assert.Equal(9, cleared.UserRating);
+        Assert.True(cleared.IsFavorite);
+        Assert.Equal("Vu au cinéma.", cleared.Comments);
+        Assert.Equal(["polar"], cleared.Tags);
+        var kept = Assert.Single(files.TechnicalDetails(id));
+        Assert.Equal(("h264", 1920), (kept.VideoCodec, kept.Width));
+
+        // La fiche vidée rejoint « Films sans infos » et peut être rechargée depuis TMDb.
+        Assert.Contains(id, titles.WithoutMetadataIds());
+    }
+
 }

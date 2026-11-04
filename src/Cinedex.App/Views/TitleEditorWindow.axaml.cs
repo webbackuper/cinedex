@@ -22,6 +22,26 @@ public sealed partial class TitleEditorWindow : Window
 
     private void OnCancel(object? sender, RoutedEventArgs e) => Close(false);
 
+    /// <summary>Choisit une image du disque comme affiche du titre.</summary>
+    private async void OnChoosePoster(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not TitleEditorViewModel editor)
+        {
+            return;
+        }
+
+        var chosen = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Affiche du titre",
+            AllowMultiple = false,
+            FileTypeFilter = [FilePickerFileTypes.ImageAll, FilePickerFileTypes.All],
+        });
+        if (chosen.Count > 0 && chosen[0].TryGetLocalPath() is { Length: > 0 } path)
+        {
+            await editor.SetPosterAsync(path);
+        }
+    }
+
     /// <summary>Fiche de l'acteur cliqué ; si l'on y choisit un film, la fiche se ferme et le catalogue s'y place.</summary>
     private async void OnOpenPerson(object? sender, RoutedEventArgs e)
     {

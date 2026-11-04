@@ -971,6 +971,34 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private bool CanAdd() => !string.IsNullOrWhiteSpace(NewTitleText);
 
+    /// <summary>
+    /// Vide la fiche de tout ce qui vient d'une source extérieure (descriptif, identifiants, notes des sites,
+    /// genres, distribution, affiche) ; le titre, ce que l'utilisateur a saisi et les fichiers restent.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(HasSelection))]
+    private async Task ClearDetailAsync()
+    {
+        var targets = SelectedTitles.Select(t => (t.Id, t.Title)).ToList();
+        if (targets.Count == 0 || !await _dialogs.ConfirmAsync(
+                "Vider la fiche",
+                Tr.F("Effacer le descriptif, les identifiants, les notes des sites, les genres, la distribution et l'affiche de {0} ?\nLe titre, vos propres saisies (note, tags, groupes, commentaires, vu, prêts) et les fichiers vidéo avec leurs infos MediaInfo sont gardés.",
+                    targets.Count == 1 ? Tr.F("« {0} »", targets[0].Title) : Tr.F("{0} titres", targets.Count))))
+        {
+            return;
+        }
+
+        foreach (var (id, _) in targets)
+        {
+            _titles.ClearMetadata(id);
+        }
+
+        Journal($"Fiche(s) vidée(s) : {Names(SelectedTitles.ToList())}");
+        Status = targets.Count == 1
+            ? Tr.F("Fiche de « {0} » vidée : relancez « Lier ou mettre à jour depuis TMDb » pour la remplir.", targets[0].Title)
+            : Tr.F("{0} fiches vidées : relancez « Mettre à jour via TMDb » pour les remplir.", targets.Count);
+        Refresh(selectIds: targets.Select(t => t.Id).ToList());
+    }
+
     /// <summary>Un titre : fiche complète. Plusieurs : modification groupée.</summary>
     [RelayCommand(CanExecute = nameof(HasSelection))]
     private async Task EditAsync()
@@ -1009,7 +1037,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
             },
             _media?.People,
             new LoanEditorViewModel(_titles, current.Id),
-            _media?.Files);
+            _media?.Files,
+            _images is null ? null : path => Task.Run(() => _images.SetFromFile(current.Id, path, "poster")),
+            _images is null ? null : () =>
+            {
+                _images.Remove(current.Id, "poster");
+                return Task.CompletedTask;
+            });
         var editor = new TitleEditorViewModel(
             current, _titles.Genres(), _titles.RefItems("medium"), _titles.RefItems("case"), _titles.RefItems("version"), _titles.Collections(), extras);
         // La fenêtre d'édition valide elle-même (TryBuild) avant de se fermer sur « Enregistrer ».

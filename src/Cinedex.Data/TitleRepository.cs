@@ -282,6 +282,38 @@ public sealed partial class TitleRepository(CatalogDatabase database)
         };
     }
 
+    /// <summary>
+    /// Vide une fiche de tout ce qui vient d'une source extérieure (TMDb, OMDb, notes IMDb, .nfo) : descriptif,
+    /// identifiants, notes des sites, genres, distribution, images et collection. Sont gardés le titre, le genre de
+    /// fiche, ce que l'utilisateur a saisi (sa note, ses tags, ses groupes, ses commentaires, favori, vu, prêts) et
+    /// les fichiers vidéo avec leurs propriétés MediaInfo.
+    /// </summary>
+    public void ClearMetadata(long titleId)
+    {
+        using var connection = database.Open();
+        using var transaction = connection.BeginTransaction();
+        connection.Execute(
+            """
+            UPDATE title SET
+                original_title = NULL, alternative_title = NULL, year = NULL, runtime_minutes = NULL,
+                tagline = NULL, overview = NULL, overview_long = NULL, certification = NULL,
+                countries = NULL, spoken_languages = NULL, studio = NULL, web_link = NULL, trailer_url = NULL,
+                tmdb_id = NULL, imdb_id = NULL, tmdb_rating = NULL, tmdb_votes = NULL,
+                imdb_rating = NULL, imdb_votes = NULL, metascore = NULL, tomatometer = NULL, popcornmeter = NULL,
+                imdb_top250 = NULL, awards = NULL, series_status = NULL, collection_id = NULL,
+                is_adult = 0, metadata_fetched_at = NULL,
+                updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+            WHERE id = @titleId;
+            """,
+            new { titleId },
+            transaction);
+        connection.Execute("DELETE FROM title_genre WHERE title_id = @titleId;", new { titleId }, transaction);
+        connection.Execute("DELETE FROM credit WHERE title_id = @titleId;", new { titleId }, transaction);
+        connection.Execute("DELETE FROM title_image WHERE title_id = @titleId;", new { titleId }, transaction);
+        connection.Execute("DELETE FROM match_review WHERE title_id = @titleId;", new { titleId }, transaction);
+        transaction.Commit();
+    }
+
     /// <summary>Enregistre les champs éditables d'une fiche et de son exemplaire principal.</summary>
     public void Update(TitleDetail detail)
     {
@@ -301,7 +333,7 @@ public sealed partial class TitleRepository(CatalogDatabase database)
                 sort_title = @SortTitle, year = @Year, runtime_minutes = @RuntimeMinutes, tagline = @Tagline,
                 overview = @Overview, certification = @Certification, countries = @Countries,
                 spoken_languages = @SpokenLanguages, studio = @Studio, web_link = @WebLink, trailer_url = @TrailerUrl,
-                imdb_id = @ImdbId, user_rating = @UserRating, comments = @Comments,
+                tmdb_id = @TmdbId, imdb_id = @ImdbId, user_rating = @UserRating, comments = @Comments,
                 tmdb_rating = @TmdbRating, imdb_rating = @ImdbRating, imdb_votes = @ImdbVotes,
                 tomatometer = @Tomatometer, metascore = @Metascore,
                 is_owned = @IsOwned, is_favorite = @IsFavorite, is_shortlisted = @IsShortlisted,
@@ -327,6 +359,7 @@ public sealed partial class TitleRepository(CatalogDatabase database)
                 Studio = Blank(detail.Studio),
                 WebLink = Blank(detail.WebLink),
                 TrailerUrl = Blank(detail.TrailerUrl),
+                detail.TmdbId,
                 ImdbId = Blank(detail.ImdbId),
                 detail.UserRating,
                 detail.TmdbRating,

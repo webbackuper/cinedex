@@ -212,6 +212,10 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.23
+- **Vider la fiche** : un bouton de la fiche de droite, entre « Modifier » et « Lier ou mettre à jour depuis TMDb », efface tout ce qui vient d'une source extérieure (descriptif, identifiants, notes des sites, genres, distribution, affiche). Le titre, vos propres saisies et les fichiers vidéo avec leurs infos MediaInfo sont gardés ; la fiche rejoint « Films sans infos » et se recharge depuis TMDb.
+- **Affiche et numéro TMDb modifiables** : dans l'éditeur, l'affiche se change par une image du disque ou se retire, et le numéro TMDb se saisit à la main — vidé, la fiche se détache de TMDb ; changé, elle suit une autre fiche à la prochaine mise à jour.
+
 ### 0.4.22
 - **Replier la fiche de droite** : elle peut maintenant se replier contre le bord droit, en une bande étroite, pour parcourir les affiches sur presque toute la largeur. Trois façons de le faire : le bouton de la sous-barre (à droite des vues liste et affiches), la touche **F9**, ou tirer la poignée vers la droite au-delà d'un seuil. Le bouton de la bande, un double-clic sur la poignée ou F9 la rouvrent à sa largeur précédente. L'état est mémorisé avec le catalogue.
 

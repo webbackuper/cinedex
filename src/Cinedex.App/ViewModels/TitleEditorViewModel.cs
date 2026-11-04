@@ -34,7 +34,9 @@ public sealed record TitleEditorExtras(
     Func<string, Task<string?>>? AddFile = null,
     PeopleService? People = null,
     LoanEditorViewModel? Loans = null,
-    MediaFileRepository? Files = null);
+    MediaFileRepository? Files = null,
+    Func<string, Task<string?>>? SetPoster = null,
+    Func<Task>? RemovePoster = null);
 
 /// <summary>Un fichier du titre dans l'onglet Fichier : chemin complet et MediaID (nom du disque) modifiable.</summary>
 public sealed partial class FileVolumeRow(MediaFileEntry file) : ObservableObject
@@ -76,6 +78,8 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         _files = extras.Files;
         ReloadFiles();
         PosterPath = extras.PosterPath;
+        _setPoster = extras.SetPoster;
+        _removePoster = extras.RemovePoster;
         Cast = extras.Cast ?? [];
         Directors = extras.Directors ?? [];
         CrewText = extras.CrewText ?? string.Empty;
@@ -102,6 +106,7 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         Countries = original.Countries ?? string.Empty;
         Studio = original.Studio ?? string.Empty;
         ImdbId = original.ImdbId ?? string.Empty;
+        TmdbId = original.TmdbId?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
         WebLink = original.WebLink ?? string.Empty;
         UserRating = original.UserRating?.ToString("0.#", CultureInfo.CurrentCulture) ?? string.Empty;
         TmdbRating = original.TmdbRating?.ToString("0.0", CultureInfo.CurrentCulture) ?? string.Empty;
@@ -133,6 +138,10 @@ public sealed partial class TitleEditorViewModel : ObservableObject
     }
 
     private readonly Func<Task<string?>>? _refreshMedia;
+
+    private readonly Func<string, Task<string?>>? _setPoster;
+
+    private readonly Func<Task>? _removePoster;
 
     private readonly Func<string, Task<string?>>? _addFile;
 
@@ -211,7 +220,49 @@ public sealed partial class TitleEditorViewModel : ObservableObject
 
     public string WindowTitle => Tr.F("Modifier : {0}", _original.Title);
 
-    public string? PosterPath { get; }
+    /// <summary>Affiche du titre : remplaçable par une image du disque, ou retirable, depuis l'éditeur.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPoster))]
+    [NotifyCanExecuteChangedFor(nameof(RemovePosterCommand))]
+    public partial string? PosterPath { get; private set; }
+
+    public bool HasPoster => PosterPath is not null;
+
+    public bool CanChoosePoster => _setPoster is not null;
+
+    private bool CanRemovePoster() => _removePoster is not null && HasPoster;
+
+    /// <summary>Prend l'image choisie sur le disque comme affiche ; l'ancienne est remplacée.</summary>
+    public async Task SetPosterAsync(string path)
+    {
+        if (_setPoster is null)
+        {
+            return;
+        }
+
+        try
+        {
+            PosterPath = await _setPoster(path);
+            LastError = null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
+        {
+            LastError = ex.Message;
+        }
+    }
+
+    /// <summary>Retire l'affiche : la fiche reprend l'image par défaut.</summary>
+    [RelayCommand(CanExecute = nameof(CanRemovePoster))]
+    private async Task RemovePosterAsync()
+    {
+        if (_removePoster is null)
+        {
+            return;
+        }
+
+        await _removePoster();
+        PosterPath = null;
+    }
 
     public IReadOnlyList<CastMember> Cast { get; }
 
@@ -317,6 +368,9 @@ public sealed partial class TitleEditorViewModel : ObservableObject
 
     [ObservableProperty] public partial string ImdbId { get; set; }
 
+    /// <summary>Numéro TMDb du titre : vidé, la fiche n'est plus liée ; changé, elle suit une autre fiche TMDb.</summary>
+    [ObservableProperty] public partial string TmdbId { get; set; }
+
     [ObservableProperty] public partial string WebLink { get; set; }
 
     [ObservableProperty] public partial string UserRating { get; set; }
@@ -401,6 +455,20 @@ public sealed partial class TitleEditorViewModel : ObservableObject
             errors.Add(Tr.T("L'identifiant IMDb doit avoir la forme tt1234567."));
         }
 
+        var tmdbText = TmdbId.Trim();
+        long? tmdb = null;
+        if (tmdbText.Length > 0)
+        {
+            if (long.TryParse(tmdbText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) && parsed > 0)
+            {
+                tmdb = parsed;
+            }
+            else
+            {
+                errors.Add(Tr.T("Le numéro TMDb doit être un nombre entier positif."));
+            }
+        }
+
         var link = WebLink.Trim();
         if (link.Length > 0 && !IsWebLink(link))
         {
@@ -433,6 +501,7 @@ public sealed partial class TitleEditorViewModel : ObservableObject
             Certification = Certification,
             Countries = Countries,
             Studio = Studio,
+            TmdbId = tmdb,
             ImdbId = imdb,
             WebLink = link,
             UserRating = rating is null ? null : (double)Math.Round(rating.Value * 2, MidpointRounding.AwayFromZero) / 2,

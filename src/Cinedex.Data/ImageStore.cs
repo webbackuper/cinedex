@@ -64,6 +64,27 @@ public sealed class ImageStore(CatalogDatabase database, string imagesDirectory)
             transaction);
     }
 
+    /// <summary>Retire l'image d'un titre pour un rôle ; le fichier reste en réserve jusqu'au nettoyage des images.</summary>
+    public void Remove(long titleId, string role)
+    {
+        using var connection = database.Open();
+        connection.Execute("DELETE FROM title_image WHERE title_id = @titleId AND role = @role;", new { titleId, role });
+    }
+
+    /// <summary>Enregistre une image lue sur le disque et l'associe au titre ; renvoie son chemin dans la réserve.</summary>
+    public string? SetFromFile(long titleId, string path, string role)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        var content = File.ReadAllBytes(path);
+        if (content.Length > MaxBytes)
+        {
+            throw new InvalidOperationException(Cinedex.Core.Localization.Tr.F("Image trop lourde ({0} Mo au plus).", MaxBytes / 1024 / 1024));
+        }
+
+        Attach(titleId, Save(content), role);
+        return PathFor(titleId, role);
+    }
+
     public bool HasImage(long titleId, string role)
     {
         using var connection = database.Open();

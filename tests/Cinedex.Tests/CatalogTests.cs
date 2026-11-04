@@ -62,4 +62,76 @@ public sealed class CatalogTests
         Assert.True(vm.Switched);
         Assert.Equal("fr-FR", new SettingsStore(new CatalogDatabase(manager.DatabasePath("Enfants"))).Get("tmdb.language"));
     }
+
+    [Fact]
+    public void The_editor_changes_the_tmdb_number_and_the_poster()
+    {
+        using var temp = new TempDirectory();
+        var db = new CatalogDatabase(Path.Combine(temp.Path, "cinedex.db"));
+        db.Initialize(temp.Path);
+        var titles = new TitleRepository(db);
+        var images = new ImageStore(db, Path.Combine(temp.Path, "img"));
+        var id = titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));
+        var source = Path.Combine(temp.Path, "affiche.png");
+        File.WriteAllBytes(source, [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+
+        var editor = new TitleEditorViewModel(titles.Get(id)!, titles.Genres(), [], [], [], null, new TitleEditorExtras(
+            SetPoster: path => Task.FromResult(images.SetFromFile(id, path, "poster")),
+            RemovePoster: () =>
+            {
+                images.Remove(id, "poster");
+                return Task.CompletedTask;
+            }));
+
+        // Le numéro TMDb se saisit, se vérifie et s'enregistre.
+        Assert.Equal(string.Empty, editor.TmdbId);
+        editor.TmdbId = "pas un nombre";
+        Assert.False(editor.TryBuild(out _));
+        Assert.Contains("TMDb", editor.LastError!, StringComparison.Ordinal);
+        editor.TmdbId = "949";
+        Assert.True(editor.TryBuild(out var linked));
+        titles.Update(linked!);
+        Assert.Equal(949, titles.Get(id)!.TmdbId);
+
+        // Vidé, il détache la fiche de TMDb.
+        editor.TmdbId = string.Empty;
+        Assert.True(editor.TryBuild(out var detached));
+        titles.Update(detached!);
+        Assert.Null(titles.Get(id)!.TmdbId);
+    }
+
+    [Fact]
+    public async Task The_editor_sets_and_removes_the_poster()
+    {
+        using var temp = new TempDirectory();
+        var db = new CatalogDatabase(Path.Combine(temp.Path, "cinedex.db"));
+        db.Initialize(temp.Path);
+        var titles = new TitleRepository(db);
+        var images = new ImageStore(db, Path.Combine(temp.Path, "img"));
+        var id = titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));
+        var source = Path.Combine(temp.Path, "affiche.png");
+        File.WriteAllBytes(source, [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+
+        var editor = new TitleEditorViewModel(titles.Get(id)!, titles.Genres(), [], [], [], null, new TitleEditorExtras(
+            SetPoster: path => Task.FromResult(images.SetFromFile(id, path, "poster")),
+            RemovePoster: () =>
+            {
+                images.Remove(id, "poster");
+                return Task.CompletedTask;
+            }));
+
+        Assert.False(editor.HasPoster);
+        Assert.True(editor.CanChoosePoster);
+        Assert.False(editor.RemovePosterCommand.CanExecute(null));
+
+        await editor.SetPosterAsync(source);
+        Assert.True(editor.HasPoster);
+        Assert.NotNull(images.PathFor(id, "poster"));
+        Assert.True(editor.RemovePosterCommand.CanExecute(null));
+
+        await editor.RemovePosterCommand.ExecuteAsync(null);
+        Assert.False(editor.HasPoster);
+        Assert.Null(images.PathFor(id, "poster"));
+    }
+
 }

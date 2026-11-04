@@ -212,6 +212,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.22
+- **Fold the right panel away**: it can now fold against the right edge, down to a narrow strip, to browse the posters across almost the full width. Three ways to do it: the button in the sub-bar (right of the list and poster views), the **F9** key, or dragging the handle to the right past a threshold. The strip's button, a double-click on the handle or F9 bring it back at its previous width. The state is remembered with the catalog.
+
 ### 0.4.21
 - **Merge duplicate films** (Settings > Maintenance): each group of duplicates becomes a single entry that keeps every video file, one encoding version per part. The report says how many files have exactly the same MediaInfo characteristics as another of the same film, so which ones are mere copies rather than another version. No file on the disk is touched, and the database is backed up first.
 

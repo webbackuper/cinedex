@@ -30,6 +30,7 @@
     <KeyBinding Gesture="Ctrl+H" Command="{Binding ImportFolderCommand}" />
     <KeyBinding Gesture="Ctrl+D1" Command="{Binding ShowListCommand}" />
     <KeyBinding Gesture="Ctrl+D2" Command="{Binding ShowGridCommand}" />
+    <KeyBinding Gesture="F9" Command="{Binding ToggleDetailCommand}" />
   </Window.KeyBindings>
 
   <Window.Styles>
@@ -368,6 +369,11 @@
         <ToggleButton Classes="tool" IsChecked="{Binding IsGridView, Mode=OneWay}" Command="{Binding ShowGridCommand}" ToolTip.Tip="Affiches (Ctrl+2)">
           <controls:Icon Kind="grid" />
         </ToggleButton>
+        <Border Width="1" Margin="{StaticResource Inset2}" Background="{DynamicResource CinedexBorder}" />
+        <ToggleButton Classes="tool" IsChecked="{Binding !DetailCollapsed, Mode=OneWay}" Command="{Binding ToggleDetailCommand}"
+                      ToolTip.Tip="{Binding DetailToggleTip}" AutomationProperties.Name="{Binding DetailToggleTip}">
+          <controls:Icon Kind="columns" />
+        </ToggleButton>
         </StackPanel>
         <DockPanel VerticalAlignment="Center">
           <ProgressBar DockPanel.Dock="Left" Width="150" MinWidth="0" Margin="{StaticResource After2}" VerticalAlignment="Center" IsVisible="{Binding IsBusy}"
@@ -583,7 +589,16 @@
                   ToolTip.Tip="Glisser pour changer la largeur de la fiche ; double-clic : largeur par défaut" />
 
     <!-- ======================= Fiche ======================= -->
-    <Border Grid.Column="3" Margin="{StaticResource Edges0_4_4_4}" Classes="card" ClipToBounds="True">
+    <!-- Fiche repliée : une bande contre le bord droit, qui ne garde que le bouton pour la rouvrir. -->
+    <Border Grid.Column="3" Margin="{StaticResource Edges0_4_4_4}" Classes="card" ClipToBounds="True" IsVisible="{Binding DetailCollapsed}">
+      <Button Classes="tool" VerticalAlignment="Top" HorizontalAlignment="Stretch" Padding="{StaticResource Inset1}"
+              Command="{Binding ToggleDetailCommand}" ToolTip.Tip="{Binding DetailToggleTip}"
+              AutomationProperties.Name="{Binding DetailToggleTip}">
+        <controls:Icon Kind="chevron-down" Width="14" Height="14" RenderTransform="rotate(90deg)" Foreground="{DynamicResource CinedexMuted}" />
+      </Button>
+    </Border>
+
+    <Border Grid.Column="3" Margin="{StaticResource Edges0_4_4_4}" Classes="card" ClipToBounds="True" IsVisible="{Binding !DetailCollapsed}">
       <Panel>
       <Panel IsVisible="{Binding IsTitlesView}">
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="{StaticResource Space3}" IsVisible="{Binding ShowDetailHint}" Margin="{StaticResource Inset6}">

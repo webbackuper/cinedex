@@ -212,6 +212,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.22
+- **Replier la fiche de droite** : elle peut maintenant se replier contre le bord droit, en une bande étroite, pour parcourir les affiches sur presque toute la largeur. Trois façons de le faire : le bouton de la sous-barre (à droite des vues liste et affiches), la touche **F9**, ou tirer la poignée vers la droite au-delà d'un seuil. Le bouton de la bande, un double-clic sur la poignée ou F9 la rouvrent à sa largeur précédente. L'état est mémorisé avec le catalogue.
+
 ### 0.4.21
 - **Fusionner les films en double** (Réglages > Maintenance) : chaque groupe de doublons devient une seule fiche qui garde tous les fichiers vidéo, une version d'encodage par partie. Le compte rendu indique combien de fichiers ont exactement les mêmes caractéristiques MediaInfo qu'un autre du même film, donc lesquels sont de simples copies plutôt qu'une autre version. Aucun fichier du disque n'est touché, et la base est sauvegardée avant.
 

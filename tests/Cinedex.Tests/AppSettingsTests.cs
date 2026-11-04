@@ -175,6 +175,36 @@ public sealed class AppSettingsTests : IDisposable
     }
 
     [Fact]
+    public void Collapsing_the_detail_panel_is_remembered_with_its_width()
+    {
+        MainWindowViewModel Open()
+        {
+            var titles = new TitleRepository(_db);
+            var files = new MediaFileRepository(_db);
+            var import = new LibraryImportService(titles, files, new ImageStore(_db, Path.Combine(_temp.Path, "img")), null,
+                () => new MediaProbe("absent", "absent"), NullLogger<LibraryImportService>.Instance);
+            var vm = new MainWindowViewModel(titles, new AppPaths(_temp.Path, isPortable: false), new NoDialogs(), media: new MediaContext(files, import, _store));
+            vm.Load();
+            return vm;
+        }
+
+        var first = Open();
+        Assert.False(first.DetailCollapsed);
+        first.DetailWidth = 520;
+        first.ToggleDetailCommand.Execute(null);
+        Assert.True(first.DetailCollapsed);
+
+        // Repliée au prochain démarrage, et sa largeur est gardée pour la réouverture.
+        var reopened = Open();
+        Assert.True(reopened.DetailCollapsed);
+        Assert.Equal(520, reopened.DetailWidth);
+        reopened.ToggleDetailCommand.Execute(null);
+        Assert.False(reopened.DetailCollapsed);
+        Assert.Equal(520, reopened.DetailWidth);
+        Assert.False(Open().DetailCollapsed);
+    }
+
+    [Fact]
     public void Detail_panel_width_is_remembered_and_kept_in_bounds()
     {
         MainWindowViewModel Open()

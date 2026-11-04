@@ -490,7 +490,33 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public const double MaxDetailWidth = 760;
 
+    /// <summary>Largeur de la fiche repliée : une bande étroite qui ne garde que le bouton pour la rouvrir.</summary>
+    public const double CollapsedDetailWidth = 30;
+
+    /// <summary>En deçà, un glissement de la poignée replie la fiche au lieu de la rétrécir.</summary>
+    public const double CollapseThreshold = 200;
+
     private const string DetailWidthKey = "ui.detailWidth";
+
+    private const string DetailCollapsedKey = "ui.detailCollapsed";
+
+    /// <summary>
+    /// Fiche repliée contre le bord droit : la zone centrale occupe presque toute la largeur, pour parcourir les
+    /// affiches. Le bouton de la bande, la poignée ou F9 la rouvrent à sa largeur précédente.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DetailToggleTip))]
+    public partial bool DetailCollapsed { get; set; }
+
+    public string DetailToggleTip => DetailCollapsed
+        ? Tr.T("Afficher la fiche du titre (F9)")
+        : Tr.T("Replier la fiche pour élargir les affiches (F9)");
+
+    partial void OnDetailCollapsedChanged(bool value) =>
+        _media?.Settings.Set(DetailCollapsedKey, value ? "true" : "false");
+
+    [RelayCommand]
+    private void ToggleDetail() => DetailCollapsed = !DetailCollapsed;
 
     partial void OnDetailWidthChanged(double value) =>
         _media?.Settings.Set(DetailWidthKey, value.ToString("0", CultureInfo.InvariantCulture));
@@ -827,6 +853,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _loaded = true;
         IsGridView = _media?.Settings.Get(GridViewKey) == "true";
         DetailWidth = ClampDetailWidth(_media?.Settings.Get(DetailWidthKey));
+        DetailCollapsed = _media?.Settings.Get(DetailCollapsedKey) == "true";
         Refresh();
     }
 

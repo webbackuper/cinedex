@@ -77,7 +77,7 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
                 ApplyDetailWidth(vm.DetailWidth);
                 vm.PropertyChanged += (_, e) =>
                 {
-                    if (e.PropertyName == nameof(MainWindowViewModel.DetailWidth))
+                    if (e.PropertyName is nameof(MainWindowViewModel.DetailWidth) or nameof(MainWindowViewModel.DetailCollapsed))
                     {
                         ApplyDetailWidth(vm.DetailWidth);
                     }
@@ -132,7 +132,10 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
 
     private void ApplyDetailWidth(double width)
     {
-        DetailColumn.Width = new GridLength(width);
+        var collapsed = (DataContext as MainWindowViewModel)?.DetailCollapsed == true;
+        // Repliée, la colonne descend à la bande : la poignée doit donc pouvoir aller jusque-là.
+        DetailColumn.MinWidth = MainWindowViewModel.CollapsedDetailWidth;
+        DetailColumn.Width = new GridLength(collapsed ? MainWindowViewModel.CollapsedDetailWidth : width);
         LimitDetailWidth();
     }
 
@@ -143,20 +146,46 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
         DetailColumn.MaxWidth = room > 0 ? Math.Clamp(room, MainWindowViewModel.MinDetailWidth, MainWindowViewModel.MaxDetailWidth) : MainWindowViewModel.MaxDetailWidth;
     }
 
+    /// <summary>
+    /// Fin du glissement : tirée vers la droite au-delà du seuil, la fiche se replie contre le bord ; sinon elle
+    /// garde sa nouvelle largeur, jamais en dessous de sa taille lisible.
+    /// </summary>
     private void OnDetailSplitterDragCompleted(object? sender, Avalonia.Input.VectorEventArgs e)
     {
-        if (DataContext is MainWindowViewModel vm)
+        if (DataContext is not MainWindowViewModel vm)
         {
-            vm.DetailWidth = Math.Round(DetailColumn.ActualWidth);
+            return;
         }
+
+        var width = Math.Round(DetailColumn.ActualWidth);
+        if (width < MainWindowViewModel.CollapseThreshold)
+        {
+            vm.DetailCollapsed = true;
+            ApplyDetailWidth(vm.DetailWidth);
+            return;
+        }
+
+        vm.DetailCollapsed = false;
+        vm.DetailWidth = Math.Max(width, MainWindowViewModel.MinDetailWidth);
+        ApplyDetailWidth(vm.DetailWidth);
     }
 
+    /// <summary>Double-clic sur la poignée : la fiche repliée se rouvre, sinon elle revient à sa largeur par défaut.</summary>
     private void OnDetailSplitterDoubleTapped(object? sender, TappedEventArgs e)
     {
-        if (DataContext is MainWindowViewModel vm)
+        if (DataContext is not MainWindowViewModel vm)
         {
-            vm.DetailWidth = MainWindowViewModel.DefaultDetailWidth;
+            return;
         }
+
+        if (vm.DetailCollapsed)
+        {
+            vm.DetailCollapsed = false;
+            return;
+        }
+
+        vm.DetailWidth = MainWindowViewModel.DefaultDetailWidth;
+        ApplyDetailWidth(vm.DetailWidth);
     }
 
     /// <summary>Lance le diaporama des affiches si la fenêtre est active et inactive depuis la durée réglée.</summary>

@@ -6,6 +6,7 @@ using Avalonia.Headless;
 using Avalonia.Input;
 using Avalonia.VisualTree;
 using Cinedex.App.Controls;
+using Cinedex.App.ViewModels;
 using Cinedex.Core.Titles;
 
 namespace Cinedex.UiTests;
@@ -94,6 +95,36 @@ public sealed class MainWindowUiTests(UiSession ui)
         badges[0].Command!.Execute(badges[0].CommandParameter);
         UiCatalog.Pump(100);
         Assert.Equal(2, vm.SelectedTitles.Count);
+    });
+
+    [Fact]
+    public Task The_detail_panel_folds_against_the_right_edge_and_comes_back() => ui.Run(() =>
+    {
+        using var catalog = new UiCatalog(30);
+        var vm = catalog.ViewModel;
+        vm.IsGridView = true;
+        UiCatalog.Pump(200);
+        var grid = catalog.Find<Grid>(g => g.Name == "MainGrid");
+        var detail = grid.ColumnDefinitions[^1];
+        var posters = catalog.Find<ScrollViewer>(s => s.Name == "PosterScroll");
+        var wide = posters.Bounds.Width;
+        Assert.True(detail.ActualWidth >= MainWindowViewModel.MinDetailWidth);
+
+        // Repliée : la fiche laisse presque toute la largeur aux affiches.
+        vm.ToggleDetailCommand.Execute(null);
+        UiCatalog.Pump(300);
+        Assert.Equal(MainWindowViewModel.CollapsedDetailWidth, detail.ActualWidth);
+        Assert.True(posters.Bounds.Width > wide + 200, $"affiches {posters.Bounds.Width} contre {wide}");
+        UiCatalog.Shot(catalog.Window, "fiche-repliee");
+
+        // Le bouton de la bande la rouvre à sa largeur précédente.
+        var reopen = catalog.All<Button>().First(b => b.Command == vm.ToggleDetailCommand && b.IsEffectivelyVisible);
+        reopen.Command!.Execute(null);
+        UiCatalog.Pump(300);
+        Assert.False(vm.DetailCollapsed);
+        Assert.Equal(vm.DetailWidth, detail.ActualWidth);
+        Assert.Equal(wide, posters.Bounds.Width);
+        UiCatalog.Shot(catalog.Window, "fiche-ouverte");
     });
 
     [Fact]

@@ -211,6 +211,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.19
+- **Re-scanning the same folder no longer re-checks the files already imported**: a file already attached to a title shows up marked "already in the catalog" and unchecked, so "Import the selection" only takes the new ones. This holds even when the disk is recognized under another name, the case where the old detection let the file through.
+
 ### 0.4.18
 - **"Films without info" goes by content**: the view (and the button in Settings > Metadata) lists the titles that have neither a synopsis nor a genre. The download date was no use: a .nfo read at scan time sets it too, without bringing anything descriptive, and those films stayed invisible.
 

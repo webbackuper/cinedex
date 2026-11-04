@@ -58,6 +58,45 @@ public sealed class FileSelectionTests
         Assert.Equal(2, vm.Done);
     }
 
+    [Fact]
+    public async Task Rescanning_a_folder_leaves_the_files_already_imported_unchecked()
+    {
+        using var temp = new TempDirectory();
+        var db = new CatalogDatabase(Path.Combine(temp.Path, "cinedex.db"));
+        db.Initialize(temp.Path);
+        var titles = new TitleRepository(db);
+        var folder = Directory.CreateDirectory(Path.Combine(temp.Path, "Films")).FullName;
+        File.WriteAllBytes(Path.Combine(folder, "Heat (1995).mkv"), new byte[10]);
+
+        LibraryImportService Service(string label) => new(
+            titles,
+            new MediaFileRepository(db) { VolumeProvider = () => new Volumes([(temp.Path, label)]) },
+            new ImageStore(db, Path.Combine(temp.Path, "img")), null,
+            () => new MediaProbe("absent", "absent"), NullLogger<LibraryImportService>.Instance);
+
+        // Fichiers de test minuscules : pas de taille minimale.
+        var scan = new ScanSettings { MinimumMegabytes = 0 };
+
+        var first = new ImportFolderViewModel(Service("FILMS-A"), scan) { Folder = folder, ReadProperties = false };
+        await first.ScanCommand.ExecuteAsync(null);
+        Assert.True(Assert.Single(first.Candidates).IsSelected);
+        await first.ImportCommand.ExecuteAsync(null);
+        Assert.Equal(["Heat"], titles.ListAll().Select(t => t.Title));
+
+        // Le disque est monté sous un autre nom : l'analyse reproposera le fichier…
+        var again = new ImportFolderViewModel(Service("FILMS-B"), scan) { Folder = folder, ReadProperties = false };
+        await again.ScanCommand.ExecuteAsync(null);
+        var row = Assert.Single(again.Candidates);
+
+        // … mais décoché et annoncé comme tel, donc un import n'ajoute pas de doublon.
+        Assert.True(row.IsKnown);
+        Assert.False(row.IsSelected);
+        Assert.Equal("déjà au catalogue", row.Hint);
+        Assert.Contains("déjà au catalogue", again.Message, StringComparison.Ordinal);
+        await again.ImportCommand.ExecuteAsync(null);
+        Assert.Equal(["Heat"], titles.ListAll().Select(t => t.Title));
+    }
+
     private static string Touch(TempDirectory temp, string folder, string name, int bytes)
     {
         var dir = Directory.CreateDirectory(Path.Combine(temp.Path, folder)).FullName;

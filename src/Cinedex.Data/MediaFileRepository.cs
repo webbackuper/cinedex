@@ -185,6 +185,26 @@ public sealed class MediaFileRepository(CatalogDatabase database)
             comparer);
     }
 
+    /// <summary>
+    /// Chemins de tous les fichiers rattachés à un titre, tels qu'enregistrés et tels que résolus sur les disques
+    /// branchés. Sert à reconnaître un fichier déjà au catalogue lors d'une nouvelle analyse, là où
+    /// <see cref="KnownPaths"/> l'écarte faute de retrouver le disque exact où il avait été trouvé.
+    /// </summary>
+    public HashSet<string> AttachedPaths()
+    {
+        using var connection = database.Open();
+        var comparer = OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+        var volumes = VolumeProvider();
+        var paths = new HashSet<string>(comparer);
+        foreach (var file in All(connection))
+        {
+            paths.Add(file.FullPath);
+            paths.Add(volumes.Resolve(file.FullPath, file.VolumeLabel));
+        }
+
+        return paths;
+    }
+
     /// <summary>Rattache un fichier à l'exemplaire principal d'un titre ; renvoie l'identifiant du fichier.</summary>
     public long Attach(long titleId, string fullPath, long? sizeBytes, int part = 1)
     {

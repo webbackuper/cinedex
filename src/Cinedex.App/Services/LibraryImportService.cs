@@ -42,6 +42,9 @@ public sealed class LibraryImportService(
 {
     public void RememberFolder(string folder) => files.AddScanRoot(folder, "movies");
 
+    /// <summary>Chemins des fichiers déjà rattachés à un titre, pour ne pas les proposer à nouveau à l'import.</summary>
+    public HashSet<string> AttachedPaths() => files.AttachedPaths();
+
     /// <summary>Relit avec MediaInfo les propriétés techniques des fichiers des titres donnés ; renvoie le nombre de fichiers lus.</summary>
     public async Task<(int Read, string Tool)> RefreshTechnicalAsync(IReadOnlyList<long> titleIds, IProgress<string>? progress, CancellationToken cancellationToken)
     {

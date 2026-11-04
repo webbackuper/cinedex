@@ -211,6 +211,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.19
+- **Réanalyser le même dossier ne recoche plus les fichiers déjà importés** : un fichier déjà rattaché à un titre apparaît marqué « déjà au catalogue » et décoché, donc « Importer la sélection » ne reprend que les nouveaux. Cela vaut même quand le disque est reconnu sous un autre nom, cas où l'ancienne détection laissait passer le fichier.
+
 ### 0.4.18
 - **« Films sans infos » repose sur le contenu** : la vue (et le bouton de Réglages > Métadonnées) liste les titres qui n'ont ni synopsis ni genre. La date de rapatriement ne servait pas : un .nfo lu au scan la pose aussi, sans rien apporter de descriptif, et ces films restaient invisibles.
 

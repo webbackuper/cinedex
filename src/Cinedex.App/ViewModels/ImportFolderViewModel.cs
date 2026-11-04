@@ -7,16 +7,21 @@ using Cinedex.Core.Localization;
 
 namespace Cinedex.App.ViewModels;
 
-public sealed partial class CandidateRow(ScanCandidate candidate) : ObservableObject
+/// <param name="isKnown">Le fichier est déjà rattaché à un titre : proposé, mais décoché.</param>
+public sealed partial class CandidateRow(ScanCandidate candidate, bool isKnown = false) : ObservableObject
 {
     public ScanCandidate Candidate { get; } = candidate;
+
+    /// <summary>Déjà au catalogue : une nouvelle analyse du même dossier ne le recoche pas.</summary>
+    public bool IsKnown { get; } = isKnown;
 
     public string Title => Candidate.BestTitle;
 
     public string Year => Candidate.BestYear?.ToString(System.Globalization.CultureInfo.CurrentCulture) ?? "?";
 
     public string Hint =>
-        Candidate.Parsed.IsEpisode ? "épisode (géré avec les séries)"
+        IsKnown ? "déjà au catalogue"
+        : Candidate.Parsed.IsEpisode ? "épisode (géré avec les séries)"
         : Candidate.Nfo?.TmdbId is not null ? ".nfo : TMDb"
         : Candidate.ImdbId is not null ? "identifiant IMDb"
         : string.Empty;
@@ -24,7 +29,7 @@ public sealed partial class CandidateRow(ScanCandidate candidate) : ObservableOb
     public string Path => Candidate.FullPath;
 
     [ObservableProperty]
-    public partial bool IsSelected { get; set; } = !candidate.Parsed.IsEpisode;
+    public partial bool IsSelected { get; set; } = !isKnown && !candidate.Parsed.IsEpisode;
 }
 
 /// <summary>Ajout depuis le disque : choix du dossier, analyse, sélection, import avec progression.</summary>
@@ -100,11 +105,12 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, S
         await RunAsync(async token =>
         {
             var known = new HashSet<string>(Candidates.Select(c => c.Path), StringComparer.OrdinalIgnoreCase);
+            var attached = import.AttachedPaths();
             var found = await import.FromPathsAsync(paths, CurrentScanOptions, token);
             var added = 0;
             foreach (var candidate in found.Where(c => known.Add(c.FullPath)))
             {
-                Candidates.Add(new CandidateRow(candidate));
+                Candidates.Add(new CandidateRow(candidate, attached.Contains(candidate.FullPath)));
                 added++;
             }
 
@@ -130,14 +136,21 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, S
         {
             Message = "Analyse du dossier...";
             var found = await import.ScanAsync(Folder, CurrentScanOptions, token);
+            var attached = import.AttachedPaths();
             foreach (var candidate in found)
             {
-                Candidates.Add(new CandidateRow(candidate));
+                Candidates.Add(new CandidateRow(candidate, attached.Contains(candidate.FullPath)));
             }
 
-            Message = found.Count == 0
-                ? "Aucun nouveau fichier vidéo (les fichiers déjà au catalogue sont ignorés)."
-                : Tr.F("{0} nouveau(x) fichier(s). Décochez ceux à ignorer, puis importez.", found.Count);
+            var fresh = Candidates.Count(c => !c.IsKnown);
+            var again = Candidates.Count - fresh;
+            Message = (fresh, again) switch
+            {
+                (0, 0) => "Aucun nouveau fichier vidéo (les fichiers déjà au catalogue sont ignorés).",
+                (0, _) => Tr.F("Aucun nouveau fichier : les {0} fichier(s) retrouvé(s) sont déjà au catalogue, et restent décochés.", again),
+                (_, 0) => Tr.F("{0} nouveau(x) fichier(s). Décochez ceux à ignorer, puis importez.", fresh),
+                _ => Tr.F("{0} nouveau(x) fichier(s) coché(s) ; {1} déjà au catalogue, laissé(s) décoché(s). Puis importez.", fresh, again),
+            };
         });
     }
 

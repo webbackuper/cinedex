@@ -71,4 +71,25 @@ public sealed class VolumeTests
         Assert.Contains(path, files.KnownPaths());
         Assert.Equal("FILMS-A", Assert.Single(files.FilesOf(id)).VolumeLabel);
     }
+
+    [Fact]
+    public void A_file_stays_recognized_even_when_its_disk_is_no_longer_the_one_recorded()
+    {
+        using var temp = new TempDirectory();
+        var db = new CatalogDatabase(Path.Combine(temp.Path, "cinedex.db"));
+        db.Initialize(temp.Path);
+        var titles = new TitleRepository(db);
+        var path = Path.Combine(temp.Path, "Films", "heat.mkv");
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllBytes(path, new byte[10]);
+        var id = titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));
+        new MediaFileRepository(db) { VolumeProvider = () => new Volumes([(temp.Path, "FILMS-A")]) }.Attach(id, path, 10);
+
+        // Un autre disque est monté là : le fichier n'est plus « connu » (ce pourrait être un homonyme)…
+        var elsewhere = new MediaFileRepository(db) { VolumeProvider = () => new Volumes([(temp.Path, "FILMS-B")]) };
+        Assert.DoesNotContain(path, elsewhere.KnownPaths());
+
+        // … mais il reste rattaché à un titre : une nouvelle analyse ne le recochera pas.
+        Assert.Contains(path, elsewhere.AttachedPaths());
+    }
 }

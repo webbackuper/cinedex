@@ -155,6 +155,7 @@ The **Settings > Maintenance** tab shows the location, size and contents of the 
 - **Remove unused actors**: people who no longer appear in any credits (the number is shown on the button).
 - **Merge duplicate actors and directors**: records with the same name (ignoring accents and capitals) are grouped; two namesakes with different TMDb or IMDb records stay separate.
 - **Find duplicate films**: same IMDb ID, or same title and same year. Nothing is deleted; double-clicking a title shows it in the list.
+- **Merge duplicate films**: gathers each group into a single entry, which keeps every video file (one encoding version per part). The report tells real versions from copies of the same encoding, from MediaInfo.
 - **Renumber the films in the current sort order**: copies (No. column) are numbered from 1 to n in the sort order of the main list (for example Title ↑ or Date added ↓).
 - **Delete empty collections, tags and groups** and **Clean up unused images** (posters, backdrops and photos nothing uses any more).
 - **Check database integrity** and **Compact and optimize the database**.
@@ -211,6 +212,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.21
+- **Merge duplicate films** (Settings > Maintenance): each group of duplicates becomes a single entry that keeps every video file, one encoding version per part. The report says how many files have exactly the same MediaInfo characteristics as another of the same film, so which ones are mere copies rather than another version. No file on the disk is touched, and the database is backed up first.
+
 ### 0.4.20
 - **The same film in several files no longer creates a double**: on import, a file whose title and year match a film already in the catalog is attached to it as an extra file, instead of creating a second entry. Explicit parts (CD1, CD2…) keep their number, and a remake from another year stays a separate entry.
 

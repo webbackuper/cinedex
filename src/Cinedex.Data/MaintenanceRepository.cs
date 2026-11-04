@@ -17,6 +17,12 @@ public sealed record DuplicateGroup(string Reason, IReadOnlyList<DuplicateTitle>
 /// <summary>Bilan d'un nettoyage d'images : lignes retirées de la base, fichiers effacés du disque.</summary>
 public sealed record ImageCleanup(int Rows, int Files, long Bytes);
 
+/// <summary>
+/// Bilan d'une fusion de films en double : fiches retirées, fichiers regroupés, et parmi eux ceux dont MediaInfo
+/// donne exactement les mêmes caractéristiques (même encodage, donc redondants plutôt qu'une autre version).
+/// </summary>
+public sealed record TitleMerge(int Merged, int Files, int SameEncoding);
+
 /// <summary>Bilan d'une purge du catalogue : ce qu'il contenait, et les fichiers d'images effacés.</summary>
 public sealed record CatalogPurge(int Titles, int Copies, int People, int ImageFiles, long ImageBytes);
 
@@ -149,6 +155,83 @@ public sealed class MaintenanceRepository(CatalogDatabase database)
             transaction: transaction);
         transaction.Commit();
         return removed;
+    }
+
+    /// <summary>
+    /// Fusionne les films en double (mêmes groupes que <see cref="FindDuplicateTitles"/>) : une fiche est gardée,
+    /// les exemplaires et fichiers des autres lui sont rattachés, et les fiches vidées sont supprimées. Aucun fichier
+    /// du disque n'est touché : le film garde toutes ses versions, numérotées à la suite.
+    /// </summary>
+    public TitleMerge MergeDuplicateTitles()
+    {
+        var groups = FindDuplicateTitles();
+        if (groups.Count == 0)
+        {
+            return new TitleMerge(0, 0, 0);
+        }
+
+        using var connection = database.Open();
+        using var transaction = connection.BeginTransaction();
+        int merged = 0, gathered = 0;
+        foreach (var group in groups)
+        {
+            // On garde la fiche la mieux remplie : liée à TMDb, puis la plus fournie en fichiers, puis la plus ancienne.
+            var keep = group.Titles
+                .OrderByDescending(t => t.TmdbId is not null)
+                .ThenByDescending(t => t.Files)
+                .ThenBy(t => t.Id)
+                .First();
+            var others = group.Titles.Where(t => t.Id != keep.Id).Select(t => t.Id).ToList();
+            if (others.Count == 0)
+            {
+                continue;
+            }
+
+            // Les exemplaires des doublons passent à la fiche gardée, avec leurs fichiers, prêts et pistes.
+            gathered += connection.Execute("UPDATE copy SET title_id = @keep WHERE title_id IN @others;", new { keep = keep.Id, others }, transaction);
+            connection.Execute(
+                """
+                UPDATE title SET
+                    tmdb_id = coalesce(tmdb_id, (SELECT max(tmdb_id) FROM title WHERE id IN @others)),
+                    imdb_id = coalesce(imdb_id, (SELECT max(imdb_id) FROM title WHERE id IN @others)),
+                    overview = coalesce(nullif(overview, ''), (SELECT max(overview) FROM title WHERE id IN @others)),
+                    year = coalesce(year, (SELECT max(year) FROM title WHERE id IN @others))
+                WHERE id = @keep;
+                """,
+                new { keep = keep.Id, others },
+                transaction);
+            connection.Execute("DELETE FROM title WHERE id IN @others;", new { others }, transaction);
+            merged += others.Count;
+        }
+
+        // Les fichiers du film se suivent : une version par numéro, dans l'ordre où ils ont été rattachés.
+        foreach (var titleId in connection.Query<long>(
+                     "SELECT DISTINCT c.title_id FROM copy c JOIN media_file m ON m.copy_id = c.id;", transaction: transaction).ToList())
+        {
+            var part = 0;
+            foreach (var id in connection.Query<long>(
+                         "SELECT m.id FROM media_file m JOIN copy c ON c.id = m.copy_id WHERE c.title_id = @titleId ORDER BY m.part_number, m.id;",
+                         new { titleId },
+                         transaction).ToList())
+            {
+                connection.Execute("UPDATE media_file SET part_number = @part WHERE id = @id;", new { id, part = ++part }, transaction);
+            }
+        }
+
+        // Même encodage : MediaInfo renvoie exactement les mêmes caractéristiques pour deux fichiers d'un même film.
+        var sameEncoding = connection.ExecuteScalar<int>(
+            """
+            SELECT coalesce(sum(n - 1), 0) FROM (
+                SELECT count(*) AS n FROM media_file m JOIN copy c ON c.id = m.copy_id
+                WHERE m.video_codec IS NOT NULL
+                GROUP BY c.title_id, m.video_codec, m.width, m.height, m.duration_seconds, m.bit_depth,
+                         coalesce(m.hdr_formats, ''), coalesce(m.container, ''), coalesce(m.size_bytes, -1)
+                HAVING count(*) > 1);
+            """,
+            transaction: transaction);
+
+        transaction.Commit();
+        return new TitleMerge(merged, gathered, sameEncoding);
     }
 
     /// <summary>

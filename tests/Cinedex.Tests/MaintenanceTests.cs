@@ -237,4 +237,44 @@ public sealed class MaintenanceTests : IDisposable
         Assert.Single(Directory.GetFiles(backups, "*avant-acteurs-inutilises.db"));
         Assert.Equal(0, vm.UnusedPeople);
     }
+
+    [Fact]
+    public void Duplicate_films_merge_into_one_entry_that_keeps_every_encoding()
+    {
+        var images = Path.Combine(_temp.Path, "images");
+        var files = new MediaFileRepository(_db);
+        MediaFileProperties Encoding(string codec, int width, int height, int seconds) =>
+            new("mkv", codec, width, height, 24, 8, "16:9", [], seconds, [], []);
+
+        // Le même film trois fois : deux encodages différents, et une copie du premier encodage.
+        var hd = _titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));
+        var uhd = _titles.Add(new NewTitle(TitleKind.Movie, "heat", 1995));
+        var copy = _titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));
+        files.SaveProperties(files.Attach(hd, Path.Combine(_temp.Path, "Heat.1080p.mkv"), 700), Encoding("h264", 1920, 1080, 10_000));
+        files.SaveProperties(files.Attach(uhd, Path.Combine(_temp.Path, "Heat.2160p.mkv"), 900), Encoding("hevc", 3840, 2160, 10_000));
+        files.SaveProperties(files.Attach(copy, Path.Combine(_temp.Path, "sauvegarde", "Heat.1080p.mkv"), 700), Encoding("h264", 1920, 1080, 10_000));
+
+        // Un remake d'une autre année n'est pas un doublon.
+        var remake = _titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1986));
+        files.Attach(remake, Path.Combine(_temp.Path, "Heat.1986.mkv"), 500);
+
+        var result = _maintenance.MergeDuplicateTitles();
+
+        Assert.Equal(2, result.Merged);
+        Assert.Equal(2, result.Files);
+        Assert.Equal(1, result.SameEncoding);   // les deux fichiers 1080p sont le même encodage
+        Assert.Equal([1986, 1995], _titles.ListAll().Select(t => t.Year).Order());
+
+        // Une seule fiche de 1995, qui garde ses trois fichiers, numérotés à la suite.
+        var heat = _titles.ListAll().Single(t => t.Year == 1995);
+        Assert.Equal([1, 2, 3], files.FilesOf(heat.Id).Select(f => f.Part).Order());
+        Assert.Equal(["h264", "h264", "hevc"], files.TechnicalDetails(heat.Id).Select(d => d.VideoCodec!).Order(StringComparer.Ordinal));
+        Assert.Single(files.FilesOf(remake));
+        Assert.Empty(_maintenance.CheckIntegrity());
+
+        // Plus rien à fusionner, et la liste des doublons est vide.
+        Assert.Equal(0, _maintenance.MergeDuplicateTitles().Merged);
+        Assert.Empty(_maintenance.FindDuplicateTitles());
+    }
+
 }

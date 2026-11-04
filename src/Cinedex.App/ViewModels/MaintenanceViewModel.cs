@@ -77,7 +77,8 @@ public sealed partial class MaintenanceViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(RemoveUnusedPeopleCommand), nameof(MergePeopleCommand), nameof(FindDuplicatesCommand), nameof(RenumberCommand),
-        nameof(RemoveEmptyLabelsCommand), nameof(RemoveUnusedImagesCommand), nameof(CheckIntegrityCommand), nameof(OptimizeCommand), nameof(BackupCommand), nameof(RenameCommand), nameof(PurgeCatalogCommand))]
+        nameof(RemoveEmptyLabelsCommand), nameof(RemoveUnusedImagesCommand), nameof(CheckIntegrityCommand), nameof(OptimizeCommand), nameof(BackupCommand), nameof(RenameCommand), nameof(PurgeCatalogCommand),
+        nameof(MergeDuplicateTitlesCommand))]
     public partial bool IsBusy { get; private set; }
 
     public string UnusedPeopleLabel => Tr.F("Retirer les acteurs inutilisés ({0})", UnusedPeople);
@@ -167,6 +168,26 @@ public sealed partial class MaintenanceViewModel : ObservableObject
             };
         });
     }
+
+    /// <summary>
+    /// Regroupe les films en double en une seule fiche, qui garde tous leurs fichiers : chaque version d'encodage
+    /// devient une partie du même film. Le compte rendu signale les fichiers de caractéristiques identiques.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanRun))]
+    private Task MergeDuplicateTitlesAsync() => ModifyAsync(
+        Tr.T("Fusionner les films en double"),
+        Tr.T("Regrouper chaque groupe de doublons en une seule fiche, qui gardera tous leurs fichiers vidéo ? Aucun fichier du disque n'est touché."),
+        "fusion-doublons",
+        () =>
+        {
+            var result = _repository.MergeDuplicateTitles();
+            ActivityJournal.Current.Write($"Maintenance : {result.Merged} fiche(s) en double fusionnée(s), {result.Files} exemplaire(s) regroupé(s)");
+            Duplicates.Clear();
+            return result.Merged == 0
+                ? Tr.T("Aucun film en double à fusionner.")
+                : Tr.F("{0} fiche(s) en double fusionnée(s), {1} exemplaire(s) regroupé(s). {2} fichier(s) ont les mêmes caractéristiques MediaInfo qu'un autre du même film : ce sont des copies du même encodage, les autres sont bien des versions différentes.",
+                    result.Merged, result.Files, result.SameEncoding);
+        });
 
     /// <summary>Ferme les réglages et affiche le titre choisi dans la liste des doublons.</summary>
     public void ShowDuplicate(DuplicateRow row)

@@ -155,6 +155,7 @@ L'onglet **Réglages > Maintenance** affiche l'emplacement, la taille et le cont
 - **Retirer les acteurs inutilisés** : personnes qui ne figurent plus dans aucun générique (le nombre est indiqué sur le bouton).
 - **Fusionner les doublons d'acteurs et de réalisateurs** : les fiches au nom identique (accents et majuscules ignorés) sont regroupées ; deux homonymes aux fiches TMDb ou IMDb différentes restent distincts.
 - **Trouver les films en double** : même identifiant IMDb, ou même titre et même année. Rien n'est supprimé ; un double-clic sur un titre l'affiche dans la liste.
+- **Fusionner les films en double** : regroupe chaque groupe en une seule fiche, qui garde tous les fichiers vidéo (une version d'encodage par partie). Le compte rendu distingue les vraies versions des copies d'un même encodage, d'après MediaInfo.
 - **Renuméroter les films selon le tri actuel** : les exemplaires (colonne N°) sont numérotés de 1 à n dans l'ordre de tri de la liste principale (par exemple Titre ↑ ou Date d'ajout ↓).
 - **Supprimer les collections, tags et groupes vides** et **Nettoyer les images inutilisées** (affiches, fonds et photos que plus rien n'utilise).
 - **Vérifier l'intégrité de la base** et **Compacter et optimiser la base**.
@@ -211,6 +212,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.21
+- **Fusionner les films en double** (Réglages > Maintenance) : chaque groupe de doublons devient une seule fiche qui garde tous les fichiers vidéo, une version d'encodage par partie. Le compte rendu indique combien de fichiers ont exactement les mêmes caractéristiques MediaInfo qu'un autre du même film, donc lesquels sont de simples copies plutôt qu'une autre version. Aucun fichier du disque n'est touché, et la base est sauvegardée avant.
+
 ### 0.4.20
 - **Un même film en plusieurs fichiers ne crée plus de doublon** : à l'import, un fichier dont le titre et l'année correspondent à un film déjà au catalogue lui est rattaché comme fichier supplémentaire, au lieu de créer une seconde fiche. Les parties explicites (CD1, CD2…) gardent leur numéro, et un remake d'une autre année reste une fiche à part.
 

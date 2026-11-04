@@ -622,7 +622,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        var page = new PersonViewModel(people, member.PersonId, member.Role == "director" ? "director" : null);
+        var page = new PersonViewModel(people, member.PersonId, member.Role == "director" ? "director" : null, _media?.Export);
         if (await _dialogs.ShowPersonAsync(page) && page.ChosenTitleId is { } titleId)
         {
             GoToTitle(titleId);
@@ -690,7 +690,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        var page = new PersonViewModel(browser.Service, person.Id, browser.Role);
+        var page = new PersonViewModel(browser.Service, person.Id, browser.Role, _media?.Export);
         PersonPage = page;
         try
         {
@@ -724,7 +724,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        var page = new PersonViewModel(browser.Service, person.Id, browser.Role);
+        var page = new PersonViewModel(browser.Service, person.Id, browser.Role, _media?.Export);
         if (await _dialogs.ShowPersonAsync(page) && page.ChosenTitleId is { } titleId)
         {
             PeopleBrowser = null;

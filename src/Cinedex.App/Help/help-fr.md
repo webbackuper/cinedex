@@ -212,6 +212,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.24
+- **Exporter la filmographie d'une personne** : la fiche d'un acteur ou d'un réalisateur a un bouton « Exporter la filmographie » qui enregistre la liste affichée en Excel (.xlsx), CSV ou TSV. Comme la filmographie ne montre que les titres du catalogue, l'export ne porte que sur les films possédés. Les colonnes sont celles de l'export du catalogue.
+
 ### 0.4.23
 - **Vider la fiche** : un bouton de la fiche de droite, entre « Modifier » et « Lier ou mettre à jour depuis TMDb », efface tout ce qui vient d'une source extérieure (descriptif, identifiants, notes des sites, genres, distribution, affiche). Le titre, vos propres saisies et les fichiers vidéo avec leurs infos MediaInfo sont gardés ; la fiche rejoint « Films sans infos » et se recharge depuis TMDb.
 - **Affiche et numéro TMDb modifiables** : dans l'éditeur, l'affiche se change par une image du disque ou se retire, et le numéro TMDb se saisit à la main — vidé, la fiche se détache de TMDb ; changé, elle suit une autre fiche à la prochaine mise à jour.

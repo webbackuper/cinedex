@@ -42,9 +42,20 @@
         <TextBlock Text="{Binding Heading}" FontSize="{StaticResource FontSection}" FontWeight="SemiBold" />
         <TextBlock Text="{Binding Count}" Classes="muted" FontSize="{StaticResource FontSmall}" />
       </StackPanel>
-      <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="{StaticResource Above3}">
-        <Button Classes="tool" Content="Fermer" IsCancel="True" Click="OnClose" />
-      </StackPanel>
+      <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" Margin="{StaticResource Above3}">
+        <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
+          <Button Classes="tool" Click="OnExportFilmography" IsVisible="{Binding CanExport}"
+                  ToolTip.Tip="Enregistrer cette filmographie (uniquement les titres du catalogue) en Excel, CSV ou TSV">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
+              <controls:Icon Kind="export" Width="16" Height="16" />
+              <TextBlock Text="Exporter la filmographie…" />
+            </StackPanel>
+          </Button>
+          <TextBlock Text="{Binding ExportMessage}" Classes="muted" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                     IsVisible="{Binding ExportMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+        <Button Grid.Column="1" Classes="tool" Content="Fermer" IsCancel="True" Click="OnClose" />
+      </Grid>
       <ListBox ItemsSource="{Binding Titles}" DoubleTapped="OnTitleChosen" Tapped="OnTitleChosen">
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="people:PersonCredit">

@@ -212,6 +212,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.24
+- **Export a person's filmography**: an actor's or director's page has an “Export the filmography” button that saves the list shown as Excel (.xlsx), CSV or TSV. Since the filmography only shows the titles in the catalog, the export covers only the films owned. The columns are those of the catalog export.
+
 ### 0.4.23
 - **Empty the entry**: a button in the right panel, between “Edit” and “Link or update from TMDb”, erases everything that came from an outside source (description, ids, sites' ratings, genres, cast, poster). The title, your own entries and the video files with their MediaInfo stay; the entry joins “Films without info” and can be filled again from TMDb.
 - **Poster and TMDb number editable**: in the editor, the poster can be replaced by an image from the disk or removed, and the TMDb number can be typed in — cleared, the entry detaches from TMDb; changed, it follows another entry at the next update.

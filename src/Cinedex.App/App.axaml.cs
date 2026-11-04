@@ -349,7 +349,8 @@ public sealed class App : Application
             sp.GetRequiredService<SeriesRepository>(),
             sp.GetRequiredService<PeopleService>(),
             sp.GetRequiredService<ApiGate>(),
-            sp.GetRequiredService<BackupService>()));
+            sp.GetRequiredService<BackupService>(),
+            sp.GetRequiredService<ExportRepository>()));
         return services.BuildServiceProvider();
     }
 }

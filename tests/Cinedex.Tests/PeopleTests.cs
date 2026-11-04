@@ -5,6 +5,7 @@ using Cinedex.App.ViewModels;
 using Cinedex.Core.Metadata;
 using Cinedex.Core.Titles;
 using Cinedex.Data;
+using Dapper;
 using Cinedex.Metadata.Tmdb;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -276,6 +277,48 @@ public sealed class PeopleTests : IDisposable
 
         // La fiche vidée rejoint « Films sans infos » et peut être rechargée depuis TMDb.
         Assert.Contains(id, titles.WithoutMetadataIds());
+    }
+
+
+    [Fact]
+    public void A_person_page_exports_the_filmography_it_shows()
+    {
+        var service = new PeopleService(_people, new TmdbClient(new HttpClient(new Handler(_ => new HttpResponseMessage(HttpStatusCode.NotFound))), _ => ValueTask.FromResult<string?>(null)),
+            new ImageStore(_db, Path.Combine(_temp.Path, "img")), NullLogger<PeopleService>.Instance);
+
+        // Sans de quoi écrire, le bouton reste caché.
+        Assert.False(new PersonViewModel(service, PersonId("Al Pacino")).CanExport);
+
+        var page = new PersonViewModel(service, PersonId("Al Pacino"), null, new ExportRepository(_db));
+        Assert.True(page.CanExport);
+        Assert.Equal("Filmographie de Al Pacino", page.ExportFileName);
+        Assert.Equal([_insider, _heat], page.Titles.Select(t => t.TitleId));
+
+        var csv = Path.Combine(_temp.Path, "filmo.csv");
+        Assert.Equal(2, page.ExportTo(csv, ExportFormat.Csv));
+
+        // Le fichier contient l'en-tête et les deux films du catalogue, pas les autres rôles de l'acteur.
+        var lines = File.ReadAllLines(csv);
+        Assert.Equal(3, lines.Length);
+        Assert.Contains("Titre", lines[0], StringComparison.Ordinal);
+        Assert.Contains("The Insider", lines[1], StringComparison.Ordinal);
+        Assert.Contains("Heat", lines[2], StringComparison.Ordinal);
+
+        // Un classeur Excel s'écrit aussi, et c'est bien une archive zip.
+        var xlsx = Path.Combine(_temp.Path, "filmo.xlsx");
+        Assert.Equal(2, page.ExportTo(xlsx, ExportFormat.Xlsx));
+        Assert.Equal([0x50, 0x4B], File.ReadAllBytes(xlsx)[..2]);
+
+        // Le réalisateur n'a que ses films réalisés.
+        var mann = new PersonViewModel(service, PersonId("Michael Mann"), "director", new ExportRepository(_db));
+        var directed = Path.Combine(_temp.Path, "mann.csv");
+        Assert.Equal(2, mann.ExportTo(directed, ExportFormat.Csv));
+    }
+
+    private long PersonId(string name)
+    {
+        using var connection = _db.Open();
+        return connection.ExecuteScalar<long>("SELECT id FROM person WHERE name = @name;", new { name });
     }
 
 }

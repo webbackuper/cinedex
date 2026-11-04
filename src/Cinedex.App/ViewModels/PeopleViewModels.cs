@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using Cinedex.App.Services;
 using Cinedex.Core.People;
+using Cinedex.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Cinedex.Core.Localization;
@@ -15,13 +16,42 @@ public sealed partial class PersonViewModel : ObservableObject
     private readonly string? _role;
 
     /// <param name="role">« director » : fiche d'un réalisateur, avec ses films réalisés seulement.</param>
-    public PersonViewModel(PeopleService people, long personId, string? role = null)
+    private readonly ExportRepository? _export;
+
+    /// <param name="export">Permet d'exporter la filmographie ; absent, le bouton d'export reste caché.</param>
+    public PersonViewModel(PeopleService people, long personId, string? role = null, ExportRepository? export = null)
     {
         _people = people;
         _personId = personId;
         _role = role;
+        _export = export;
         Person = people.Repository.Get(personId) is { } p ? people.Resolve(p) : null;
         LoadFilmography();
+    }
+
+    /// <summary>Les titres de la filmographie sont ceux du catalogue : l'export ne porte que sur ce qui est possédé.</summary>
+    public bool CanExport => _export is not null && Titles.Count > 0;
+
+    /// <summary>Compte rendu du dernier export, affiché à côté du bouton.</summary>
+    [ObservableProperty]
+    public partial string? ExportMessage { get; set; }
+
+    /// <summary>Nom de fichier proposé : « Filmographie de Al Pacino ».</summary>
+    public string ExportFileName => Tr.F("Filmographie de {0}", Name);
+
+    /// <summary>
+    /// Écrit la filmographie affichée dans un classeur ou un fichier texte, avec les colonnes par défaut de
+    /// l'export du catalogue. Renvoie le nombre de titres écrits.
+    /// </summary>
+    public int ExportTo(string path, ExportFormat format)
+    {
+        if (_export is null)
+        {
+            return 0;
+        }
+
+        var columns = ExportRepository.Columns.Where(c => c.IsDefault).ToList();
+        return _export.Export(path, format, columns, Titles.Select(t => t.TitleId).ToList());
     }
 
     public ObservableCollection<PersonCredit> Titles { get; } = [];
@@ -100,6 +130,7 @@ public sealed partial class PersonViewModel : ObservableObject
         }
 
         OnPropertyChanged(nameof(Count));
+        OnPropertyChanged(nameof(CanExport));
     }
 }
 

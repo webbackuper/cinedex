@@ -3,7 +3,7 @@ using Cinedex.Data;
 namespace Cinedex.App.Services;
 
 /// <summary>Dépendances des fonctions liées aux fichiers vidéo (scan, lecture, vérification).</summary>
-public sealed record MediaContext(MediaFileRepository Files, LibraryImportService Import, SettingsStore Settings, NfoService? Nfo = null, RatingsService? Ratings = null, SeriesRepository? Series = null, PeopleService? People = null, ApiGate? Gate = null, BackupService? Backup = null)
+public sealed record MediaContext(MediaFileRepository Files, LibraryImportService Import, SettingsStore Settings, NfoService? Nfo = null, RatingsService? Ratings = null, SeriesRepository? Series = null, PeopleService? People = null, ApiGate? Gate = null, BackupService? Backup = null, ExportRepository? Export = null)
 {
     public const string FfprobeKey = "media.ffprobe";
     public const string MediaInfoKey = "media.mediainfo";

@@ -32,7 +32,8 @@ public sealed record TitleSummary(
 
     public string? Certification { get; init; }
 
-    public string? Location { get; init; }
+    /// <summary>Nom du ou des disques qui portent les fichiers du titre (MediaID).</summary>
+    public string? MediaId { get; init; }
 
     public string? CollectionName { get; init; }
 

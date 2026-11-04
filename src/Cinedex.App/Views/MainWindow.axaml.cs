@@ -363,14 +363,11 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
     public Task<bool> ShowCollectionsAsync(CollectionsViewModel collections) =>
         new CollectionsWindow { DataContext = collections }.ShowDialog<bool>(this);
 
-    /// <summary>Clic sur un filtre de la bibliothèque : les affiches reviennent, même si le filtre était déjà choisi.</summary>
-    private void OnLibraryTapped(object? sender, TappedEventArgs e)
-    {
-        if (DataContext is MainWindowViewModel { IsPeopleView: true } vm)
-        {
-            vm.ShowTitlesCommand.Execute(null);
-        }
-    }
+    /// <summary>
+    /// Clic sur un filtre de la bibliothèque : la liste des titres revient, même si le filtre était déjà choisi,
+    /// qu'on vienne de la galerie des personnes ou d'un disque.
+    /// </summary>
+    private void OnLibraryTapped(object? sender, TappedEventArgs e) => (DataContext as MainWindowViewModel)?.LeaveSideViews();
 
     /// <summary>Double-clic sur une personne de la galerie : sa fiche complète, comme avant.</summary>
     private void OnPersonDoubleTapped(object? sender, TappedEventArgs e)

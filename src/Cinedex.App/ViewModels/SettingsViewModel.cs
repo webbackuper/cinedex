@@ -382,7 +382,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         ListColumn.OriginalTitle => Tr.T("Titre original"),
         ListColumn.Studio => Tr.T("Studio"),
         ListColumn.Certification => Tr.T("Classification"),
-        ListColumn.Location => Tr.T("Emplacement"),
+        ListColumn.MediaId => Tr.T("MediaID (disque)"),
         ListColumn.Collection => Tr.T("Collection"),
         _ => Tr.T("Ajouté le"),
     };

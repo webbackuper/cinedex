@@ -178,17 +178,20 @@ public sealed class AppSettingsTests : IDisposable
             OriginalTitle = "Heat",
             Studio = "Warner Bros.",
             Certification = "12",
-            Copy = (titles.Get(id)!.Copy ?? new CopyInfo()) with { Location = "Étagère B" },
         });
+
+        // Le MediaID vient du disque qui porte le fichier.
+        var files = new MediaFileRepository(_db) { VolumeProvider = () => new Volumes([(_temp.Path, "FILMS-A")]) };
+        files.Attach(id, Path.Combine(_temp.Path, "Heat.mkv"), 10);
         var row = titles.ListAll().Single();
-        Assert.Equal(("Warner Bros.", "12", "Étagère B"), (row.Studio, row.Certification, row.Location));
+        Assert.Equal(("Warner Bros.", "12", "FILMS-A"), (row.Studio, row.Certification, row.MediaId));
         Assert.Equal(DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), row.AddedOn);
 
         // Les nouvelles colonnes sont masquées par défaut, et proposées dans les réglages.
         var hidden = new ListColumns();
         Assert.DoesNotContain("Warner Bros.", hidden.Subtitle(row), StringComparison.Ordinal);
         var toggles = new SettingsViewModel(new NoVault(), _store, _temp.Path).ColumnToggles;
-        foreach (var column in new[] { ListColumn.Studio, ListColumn.Certification, ListColumn.Location, ListColumn.Collection, ListColumn.OriginalTitle, ListColumn.AddedOn })
+        foreach (var column in new[] { ListColumn.Studio, ListColumn.Certification, ListColumn.MediaId, ListColumn.Collection, ListColumn.OriginalTitle, ListColumn.AddedOn })
         {
             Assert.Contains(toggles, t => t.Value == column);
         }
@@ -198,11 +201,61 @@ public sealed class AppSettingsTests : IDisposable
         var subtitle = shown.Subtitle(row);
         Assert.Contains("Warner Bros.", subtitle, StringComparison.Ordinal);
         Assert.Contains("12", subtitle, StringComparison.Ordinal);
-        Assert.Contains("Étagère B", subtitle, StringComparison.Ordinal);
-        Assert.True(subtitle.IndexOf("Warner Bros.", StringComparison.Ordinal) < subtitle.IndexOf("Étagère B", StringComparison.Ordinal));
+        Assert.Contains("FILMS-A", subtitle, StringComparison.Ordinal);
+        Assert.True(subtitle.IndexOf("Warner Bros.", StringComparison.Ordinal) < subtitle.IndexOf("FILMS-A", StringComparison.Ordinal));
 
         // Un titre original identique au titre n'encombre pas la ligne.
         Assert.DoesNotContain("Heat · Heat", subtitle, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void The_sidebar_lists_the_discs_and_shows_the_films_of_the_one_chosen()
+    {
+        var titles = new TitleRepository(_db);
+        var heat = titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));
+        var alien = titles.Add(new NewTitle(TitleKind.Movie, "Alien", 1979));
+        var ran = titles.Add(new NewTitle(TitleKind.Movie, "Ran", 1985));
+        var a = Directory.CreateDirectory(Path.Combine(_temp.Path, "A")).FullName;
+        var b = Directory.CreateDirectory(Path.Combine(_temp.Path, "B")).FullName;
+        var onA = new MediaFileRepository(_db) { VolumeProvider = () => new Volumes([(a, "FILMS-A")]) };
+        var onB = new MediaFileRepository(_db) { VolumeProvider = () => new Volumes([(b, "FILMS-B")]) };
+        onA.Attach(heat, Path.Combine(a, "Heat.mkv"), 10);
+        onA.Attach(alien, Path.Combine(a, "Alien.mkv"), 10);
+        onB.Attach(ran, Path.Combine(b, "Ran.mkv"), 10);
+
+        // Les disques sont listés, les mieux garnis d'abord.
+        Assert.Equal([("FILMS-A", 2), ("FILMS-B", 1)], titles.MediaIds());
+
+        var files = new MediaFileRepository(_db);
+        var import = new LibraryImportService(titles, files, new ImageStore(_db, Path.Combine(_temp.Path, "img")), null,
+            () => new MediaProbe("absent", "absent"), NullLogger<LibraryImportService>.Instance);
+        var main = new MainWindowViewModel(titles, new AppPaths(_temp.Path, isPortable: false), new NoDialogs(), media: new MediaContext(files, import, _store));
+        main.Load();
+
+        Assert.True(main.HasMediaIds);
+        Assert.Equal(["FILMS-A", "FILMS-B"], main.MediaIds.Select(d => d.MediaId));
+        Assert.Equal("2 titres", main.MediaIds[0].CountLabel);
+        Assert.Equal("1 titre", main.MediaIds[1].CountLabel);
+
+        // Choisir un disque ne montre que ses films.
+        main.SelectedMediaId = main.MediaIds.Single(d => d.MediaId == "FILMS-B");
+        Assert.Equal(["Ran"], main.Titles.Select(t => t.Title));
+        Assert.Equal("FILMS-B", main.SelectedMediaIdName);
+
+        main.SelectedMediaId = main.MediaIds.Single(d => d.MediaId == "FILMS-A");
+        Assert.Equal(["Alien", "Heat"], main.Titles.Select(t => t.Title));
+
+        // Changer de vue sort du disque.
+        main.SelectedFilter = main.Filters.Single(f => f.Value == QuickFilter.Movies);
+        Assert.Null(main.SelectedMediaId);
+        Assert.Equal(3, main.Titles.Count);
+
+        // Et recliquer la vue déjà choisie en sort aussi : le filtre ne bouge pas, l'intention est de tout revoir.
+        main.SelectedMediaId = main.MediaIds[0];
+        Assert.Equal(2, main.Titles.Count);
+        main.LeaveSideViews();
+        Assert.Null(main.SelectedMediaId);
+        Assert.Equal(3, main.Titles.Count);
     }
 
     [Fact]

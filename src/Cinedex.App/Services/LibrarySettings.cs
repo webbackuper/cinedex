@@ -236,7 +236,7 @@ public enum ListColumn
     OriginalTitle,
     Studio,
     Certification,
-    Location,
+    MediaId,
     Collection,
     AddedOn,
 }
@@ -249,7 +249,7 @@ public sealed record ListColumns
     public static IReadOnlySet<ListColumn> DefaultHidden { get; } = new HashSet<ListColumn>
     {
         ListColumn.Genres, ListColumn.Imdb, ListColumn.OriginalTitle, ListColumn.Studio,
-        ListColumn.Certification, ListColumn.Location, ListColumn.Collection, ListColumn.AddedOn,
+        ListColumn.Certification, ListColumn.MediaId, ListColumn.Collection, ListColumn.AddedOn,
     };
 
     public IReadOnlySet<ListColumn> Hidden { get; init; } = DefaultHidden;
@@ -288,7 +288,7 @@ public sealed record ListColumns
             Shows(ListColumn.Studio) ? title.Studio : null,
             Shows(ListColumn.Certification) ? title.Certification : null,
             Shows(ListColumn.Collection) ? title.CollectionName : null,
-            Shows(ListColumn.Location) ? title.Location : null,
+            Shows(ListColumn.MediaId) ? title.MediaId : null,
             Shows(ListColumn.AddedOn) ? title.AddedOn : null,
         }.Where(p => !string.IsNullOrEmpty(p)));
     }

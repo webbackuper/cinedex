@@ -18,7 +18,9 @@ public sealed partial class TitleRepository(CatalogDatabase database)
                (SELECT l.borrower FROM loan l WHERE l.copy_id = c.id AND l.returned_at IS NULL) AS borrower,
                (SELECT i.rel_path FROM title_image ti JOIN image i ON i.id = ti.image_id WHERE ti.title_id = t.id AND ti.role = 'poster') AS poster_rel,
                t.imdb_rating, substr(t.overview, 1, 600) AS overview,
-               t.original_title, t.studio, t.certification, c.location, substr(t.added_at, 1, 10) AS added_on,
+               t.original_title, t.studio, t.certification, substr(t.added_at, 1, 10) AS added_on,
+               (SELECT group_concat(DISTINCT mf.volume_label) FROM media_file mf JOIN copy cm ON cm.id = mf.copy_id
+                WHERE cm.title_id = t.id AND mf.volume_label IS NOT NULL) AS media_id,
                (SELECT co.name FROM collection co WHERE co.id = t.collection_id) AS collection_name,
                (SELECT group_concat(g.label, ', ') FROM title_genre tg JOIN genre g ON g.id = tg.genre_id WHERE tg.title_id = t.id) AS genres
         FROM title t
@@ -36,6 +38,23 @@ public sealed partial class TitleRepository(CatalogDatabase database)
             ELSE 0
         END
         """;
+
+    /// <summary>
+    /// Disques du catalogue (MediaID) et nombre de titres sur chacun, les mieux garnis d'abord. Un titre dont les
+    /// fichiers sont répartis sur plusieurs disques compte pour chacun d'eux.
+    /// </summary>
+    public IReadOnlyList<(string MediaId, int Titles)> MediaIds()
+    {
+        using var connection = database.Open();
+        return connection.Query<(string Label, long Count)>(
+                """
+                SELECT mf.volume_label, count(DISTINCT c.title_id) FROM media_file mf JOIN copy c ON c.id = mf.copy_id
+                WHERE mf.volume_label IS NOT NULL AND trim(mf.volume_label) <> ''
+                GROUP BY mf.volume_label ORDER BY 2 DESC, mf.volume_label;
+                """)
+            .Select(r => (r.Label, (int)r.Count))
+            .ToList();
+    }
 
     /// <summary>
     /// Un titre « sans infos » : ni synopsis ni genre, ce que laisse une fiche jamais rapatriée. On juge le contenu
@@ -668,7 +687,7 @@ public sealed partial class TitleRepository(CatalogDatabase database)
         OriginalTitle = row.Original_Title,
         Studio = row.Studio,
         Certification = row.Certification,
-        Location = row.Location,
+        MediaId = row.Media_Id,
         CollectionName = row.Collection_Name,
         AddedOn = row.Added_On,
     };
@@ -705,7 +724,7 @@ public sealed partial class TitleRepository(CatalogDatabase database)
 
         public string? Certification { get; set; }
 
-        public string? Location { get; set; }
+        public string? Media_Id { get; set; }
 
         public string? Collection_Name { get; set; }
 

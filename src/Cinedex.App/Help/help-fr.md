@@ -212,6 +212,10 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.27
+- **Vue par MediaID** : le bandeau gauche a un sous-menu **MediaID** qui liste vos disques, avec le nombre de titres sur chacun. Un clic n'affiche que les films de ce disque ; une vue de la Bibliothèque en ressort.
+- **Colonne MediaID** : dans **Réglages > Liste des films**, la colonne « Emplacement » laisse la place au **MediaID**, c'est-à-dire le disque qui porte le fichier. Un titre réparti sur plusieurs disques les affiche tous.
+
 ### 0.4.26
 - **Plus de colonnes dans la vue liste** : titre original, studio, classification, collection, emplacement et date d'ajout s'ajoutent aux colonnes déjà proposées, à cocher dans **Réglages > Liste des films**. Elles sont lues avec le reste de la ligne, sans ralentir la liste.
 - **Exporter la liste affichée** : le menu **•••** de la barre d'outils propose « Exporter la liste affichée… », qui ouvre l'export déjà réglé sur la liste en cours (recherche, filtre et tri actuels). Les colonnes et le format (Excel, CSV, TSV) s'y choisissent.

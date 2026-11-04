@@ -20,6 +20,12 @@ public sealed record Choice<T>(T Value, string Label)
 }
 
 /// <summary>Entrée de la barre latérale (type non générique, utilisable dans les modèles XAML).</summary>
+/// <summary>Un disque du catalogue dans le bandeau gauche : son MediaID et le nombre de titres qu'il porte.</summary>
+public sealed record MediaIdItem(string MediaId, int Titles)
+{
+    public string CountLabel => Titles == 1 ? Tr.T("1 titre") : Tr.F("{0} titres", Titles);
+}
+
 public sealed record FilterItem(QuickFilter Value, string Label)
 {
     public override string ToString() => Label;
@@ -424,6 +430,43 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void ToggleDefinitions() => IsDefinitionExpanded = !IsDefinitionExpanded;
 
+    /// <summary>Disques du catalogue (MediaID) listés dans le bandeau gauche, les mieux garnis d'abord.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasMediaIds))]
+    public partial IReadOnlyList<MediaIdItem> MediaIds { get; private set; } = [];
+
+    public bool HasMediaIds => MediaIds.Count > 0;
+
+    [ObservableProperty]
+    public partial bool IsMediaIdExpanded { get; set; }
+
+    [RelayCommand]
+    private void ToggleMediaIds() => IsMediaIdExpanded = !IsMediaIdExpanded;
+
+    /// <summary>Disque choisi : la liste ne montre que ses titres. Le reprendre, ou un filtre, revient à tout.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedMediaIdName))]
+    public partial MediaIdItem? SelectedMediaId { get; set; }
+
+    public string? SelectedMediaIdName => SelectedMediaId?.MediaId;
+
+    partial void OnSelectedMediaIdChanged(MediaIdItem? value)
+    {
+        // Un disque et une recherche multicritère ne se cumulent pas : le disque remplace les critères.
+        Rules = value is null ? null : new RuleSearch([new SearchRule("media_id", RuleOperator.Equals, value.MediaId)]);
+    }
+
+    private void LoadMediaIds()
+    {
+        var chosen = SelectedMediaId?.MediaId;
+        MediaIds = [.. _titles.MediaIds().Select(d => new MediaIdItem(d.MediaId, d.Titles))];
+        if (chosen is not null)
+        {
+            // La sélection suit le disque s'il est toujours là ; sinon elle est relâchée.
+            SelectedMediaId = MediaIds.FirstOrDefault(d => string.Equals(d.MediaId, chosen, StringComparison.Ordinal));
+        }
+    }
+
     public IReadOnlyList<Choice<SortField>> Sorts { get; } =
     [
         new(SortField.Title, "Titre"),
@@ -669,6 +712,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void ShowTitles() => PeopleBrowser = null;
 
+    /// <summary>
+    /// Clic sur une vue de la bibliothèque : on quitte la galerie des personnes et le disque choisi, même quand
+    /// la vue cliquée était déjà celle en cours (le filtre ne change pas, mais l'intention est de tout revoir).
+    /// </summary>
+    public void LeaveSideViews()
+    {
+        PeopleBrowser = null;
+        SelectedMediaId = null;
+    }
+
     partial void OnPeopleBrowserChanged(PeopleBrowserViewModel? value) => PersonPage = null;
 
     /// <summary>Personne choisie dans la galerie : ses informations remplacent la fiche du titre dans le bandeau droit.</summary>
@@ -854,6 +907,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         IsGridView = _media?.Settings.Get(GridViewKey) == "true";
         DetailWidth = ClampDetailWidth(_media?.Settings.Get(DetailWidthKey));
         DetailCollapsed = _media?.Settings.Get(DetailCollapsedKey) == "true";
+        LoadMediaIds();
         Refresh();
     }
 
@@ -888,6 +942,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     partial void OnSelectedFilterChanged(FilterItem value)
     {
+        if (SelectedMediaId is not null)
+        {
+            // Choisir une vue de la bibliothèque sort du disque, comme elle sort d'une recherche multicritère.
+            SelectedMediaId = null;
+        }
+
         OnPropertyChanged(nameof(SelectedMainFilter));
         OnPropertyChanged(nameof(SelectedDefinitionFilter));
         if (DefinitionFilters.Contains(value))

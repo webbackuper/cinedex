@@ -260,6 +260,29 @@
                 </DataTemplate>
               </ListBox.ItemTemplate>
             </ListBox>
+
+            <!-- Sous-menu MediaID : un disque par ligne, avec le nombre de titres qu'il porte. -->
+            <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Margin="{StaticResource Edges2_1_2_0}"
+                    Command="{Binding ToggleMediaIdsCommand}" IsVisible="{Binding HasMediaIds}" ToolTip.Tip="Voir les films disque par disque (MediaID)">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <controls:Icon Kind="harddisk" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" />
+                <TextBlock Grid.Column="1" Margin="{StaticResource Before3}" Text="MediaID" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
+                <controls:Icon Grid.Column="2" Kind="chevron-down" Width="14" Height="14" Foreground="{DynamicResource CinedexMuted}"
+                               RenderTransformOrigin="50%,50%" RenderTransform="{Binding IsMediaIdExpanded, Converter={x:Static views:ExpandArrowConverter.Instance}}" />
+              </Grid>
+            </Button>
+            <ListBox Classes="nav" Margin="{StaticResource Before6}" ItemsSource="{Binding MediaIds}" SelectedItem="{Binding SelectedMediaId}"
+                     IsVisible="{Binding IsMediaIdExpanded}" AutomationProperties.Name="Disques du catalogue">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:MediaIdItem">
+                  <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="{StaticResource Space3}">
+                    <controls:Icon Kind="harddisk" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" />
+                    <TextBlock Grid.Column="1" Text="{Binding MediaId}" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="2" Text="{Binding CountLabel}" Classes="muted" FontSize="{StaticResource FontSmall}" VerticalAlignment="Center" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
           </StackPanel>
         </ScrollViewer>
       </DockPanel>

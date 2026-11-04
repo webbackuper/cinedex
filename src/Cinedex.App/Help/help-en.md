@@ -212,6 +212,10 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.27
+- **View by MediaID**: the left sidebar has a **MediaID** submenu listing your discs, with the number of titles on each. A click shows only that disc's films; a Library view leaves it.
+- **MediaID column**: in **Settings > Film list**, the “Location” column gives way to the **MediaID**, that is the disc holding the file. A title spread over several discs shows them all.
+
 ### 0.4.26
 - **More columns in the list view**: original title, studio, age rating, collection, location and date added join the columns already offered, to be ticked in **Settings > Film list**. They are read with the rest of the row, without slowing the list down.
 - **Export the displayed list**: the toolbar's **•••** menu offers “Export the displayed list…”, which opens the export already set on the current list (current search, filter and sort). The columns and the format (Excel, CSV, TSV) are chosen there.

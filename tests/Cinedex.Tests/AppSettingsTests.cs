@@ -1,3 +1,4 @@
+using System.Globalization;
 using Cinedex.App.Security;
 using Cinedex.App.Services;
 using Cinedex.App.ViewModels;
@@ -165,6 +166,62 @@ public sealed class AppSettingsTests : IDisposable
 
         // Le réglage « Bandeau gauche » propose de masquer cette vue, comme les autres.
         Assert.Contains(new SettingsViewModel(new NoVault(), _store, _temp.Path).MainFilterToggles, t => t.Value == QuickFilter.NoMetadata);
+    }
+
+    [Fact]
+    public void The_list_view_shows_the_extra_columns_that_are_switched_on()
+    {
+        var titles = new TitleRepository(_db);
+        var id = titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));
+        titles.Update(titles.Get(id)! with
+        {
+            OriginalTitle = "Heat",
+            Studio = "Warner Bros.",
+            Certification = "12",
+            Copy = (titles.Get(id)!.Copy ?? new CopyInfo()) with { Location = "Étagère B" },
+        });
+        var row = titles.ListAll().Single();
+        Assert.Equal(("Warner Bros.", "12", "Étagère B"), (row.Studio, row.Certification, row.Location));
+        Assert.Equal(DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), row.AddedOn);
+
+        // Les nouvelles colonnes sont masquées par défaut, et proposées dans les réglages.
+        var hidden = new ListColumns();
+        Assert.DoesNotContain("Warner Bros.", hidden.Subtitle(row), StringComparison.Ordinal);
+        var toggles = new SettingsViewModel(new NoVault(), _store, _temp.Path).ColumnToggles;
+        foreach (var column in new[] { ListColumn.Studio, ListColumn.Certification, ListColumn.Location, ListColumn.Collection, ListColumn.OriginalTitle, ListColumn.AddedOn })
+        {
+            Assert.Contains(toggles, t => t.Value == column);
+        }
+
+        // Cochées, elles s'ajoutent à la ligne, dans l'ordre des colonnes.
+        var shown = new ListColumns { Hidden = new HashSet<ListColumn>() };
+        var subtitle = shown.Subtitle(row);
+        Assert.Contains("Warner Bros.", subtitle, StringComparison.Ordinal);
+        Assert.Contains("12", subtitle, StringComparison.Ordinal);
+        Assert.Contains("Étagère B", subtitle, StringComparison.Ordinal);
+        Assert.True(subtitle.IndexOf("Warner Bros.", StringComparison.Ordinal) < subtitle.IndexOf("Étagère B", StringComparison.Ordinal));
+
+        // Un titre original identique au titre n'encombre pas la ligne.
+        Assert.DoesNotContain("Heat · Heat", subtitle, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void The_settings_can_open_straight_on_the_export_tab()
+    {
+        var plain = new SettingsViewModel(new NoVault(), _store, _temp.Path);
+        Assert.False(plain.StartOnExport);
+        Assert.False(plain.HasExport);
+
+        var withExport = new SettingsViewModel(new NoVault(), _store, _temp.Path)
+        {
+            Export = new ExportViewModel(new ExportRepository(_db), _store),
+            StartOnExport = true,
+        };
+        Assert.True(withExport.HasExport);
+        Assert.True(withExport.StartOnExport);
+
+        // L'export part sur la liste affichée, pas sur tout le catalogue.
+        Assert.False(withExport.Export!.SelectedScope.Value);
     }
 
     [Fact]

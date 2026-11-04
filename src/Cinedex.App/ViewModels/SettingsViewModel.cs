@@ -212,6 +212,9 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     public bool HasExport => Export is not null;
 
+    /// <summary>Ouvrir les réglages directement sur l'onglet Export (« Exporter la liste affichée »).</summary>
+    public bool StartOnExport { get; set; }
+
     /// <summary>Onglet Sauvegardes (absent hors catalogue).</summary>
     public BackupsViewModel? Backups { get; init; }
 
@@ -375,7 +378,13 @@ public sealed partial class SettingsViewModel : ObservableObject
         ListColumn.Loan => Tr.T("Prêt (emprunteur)"),
         ListColumn.Favorite => Tr.T("Favori"),
         ListColumn.Seen => Tr.T("Vu"),
-        _ => Tr.T("Numéro"),
+        ListColumn.Number => Tr.T("Numéro"),
+        ListColumn.OriginalTitle => Tr.T("Titre original"),
+        ListColumn.Studio => Tr.T("Studio"),
+        ListColumn.Certification => Tr.T("Classification"),
+        ListColumn.Location => Tr.T("Emplacement"),
+        ListColumn.Collection => Tr.T("Collection"),
+        _ => Tr.T("Ajouté le"),
     };
 
     /// <summary>Collections (sagas TMDb) : lien du bandeau gauche, fiche et décors téléchargés après chaque import.</summary>

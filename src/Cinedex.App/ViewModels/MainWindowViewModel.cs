@@ -1291,12 +1291,19 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private bool CanUseMetadata() => _metadata is not null && !IsBusy;
 
+    /// <summary>Exporte la liste telle qu'elle est affichée : ouvre les réglages sur l'onglet Export.</summary>
     [RelayCommand]
-    private async Task OpenSettingsAsync()
+    private Task ExportListAsync() => ShowSettingsAsync(startOnExport: true);
+
+    [RelayCommand]
+    private Task OpenSettingsAsync() => ShowSettingsAsync(startOnExport: false);
+
+    private async Task ShowSettingsAsync(bool startOnExport)
     {
         if (_settings is not null)
         {
             var settings = _settings();
+            settings.StartOnExport = startOnExport;
             var maintenance = settings.Maintenance;
             if (maintenance is not null)
             {

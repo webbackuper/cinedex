@@ -436,7 +436,7 @@
       </TabItem>
 
       <!-- Export de la liste des films -->
-      <TabItem Header="Export" IsVisible="{Binding HasExport}">
+      <TabItem x:Name="ExportTab" Header="Export" IsVisible="{Binding HasExport}">
         <ScrollViewer DataContext="{Binding Export}" x:DataType="vm:ExportViewModel">
           <StackPanel Spacing="{StaticResource Space3}" Margin="{StaticResource Edges3_0_4_0}">
             <TextBlock Classes="h" Text="Exporter la liste des films" Margin="0" />

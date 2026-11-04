@@ -16,6 +16,10 @@ public sealed partial class SettingsWindow : Window
         if (DataContext is SettingsViewModel vm)
         {
             vm.CloseRequested += (_, _) => Close(false);
+            if (vm is { StartOnExport: true, HasExport: true })
+            {
+                Tabs.SelectedItem = ExportTab;
+            }
         }
 
         if (DataContext is SettingsViewModel { Maintenance: { } maintenance })

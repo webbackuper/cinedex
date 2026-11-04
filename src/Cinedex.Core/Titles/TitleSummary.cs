@@ -25,6 +25,20 @@ public sealed record TitleSummary(
     /// <summary>Chemin absolu de l'affiche, renseigné par l'interface à partir du dossier d'images du catalogue.</summary>
     public string? PosterPath { get; init; }
 
+    /// <summary>Colonnes facultatives de la vue liste, lues avec le reste de la ligne (aucune requête de plus).</summary>
+    public string? OriginalTitle { get; init; }
+
+    public string? Studio { get; init; }
+
+    public string? Certification { get; init; }
+
+    public string? Location { get; init; }
+
+    public string? CollectionName { get; init; }
+
+    /// <summary>Date d'ajout au catalogue, au format AAAA-MM-JJ.</summary>
+    public string? AddedOn { get; init; }
+
     /// <summary>Libellés des genres, séparés par des virgules (infobulle de la liste).</summary>
     public string? Genres { get; init; }
 

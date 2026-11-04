@@ -18,6 +18,8 @@ public sealed partial class TitleRepository(CatalogDatabase database)
                (SELECT l.borrower FROM loan l WHERE l.copy_id = c.id AND l.returned_at IS NULL) AS borrower,
                (SELECT i.rel_path FROM title_image ti JOIN image i ON i.id = ti.image_id WHERE ti.title_id = t.id AND ti.role = 'poster') AS poster_rel,
                t.imdb_rating, substr(t.overview, 1, 600) AS overview,
+               t.original_title, t.studio, t.certification, c.location, substr(t.added_at, 1, 10) AS added_on,
+               (SELECT co.name FROM collection co WHERE co.id = t.collection_id) AS collection_name,
                (SELECT group_concat(g.label, ', ') FROM title_genre tg JOIN genre g ON g.id = tg.genre_id WHERE tg.title_id = t.id) AS genres
         FROM title t
         LEFT JOIN copy c ON c.id = (SELECT min(c2.id) FROM copy c2 WHERE c2.title_id = t.id)
@@ -663,6 +665,12 @@ public sealed partial class TitleRepository(CatalogDatabase database)
         Genres = row.Genres,
         ImdbRating = row.Imdb_Rating,
         Overview = row.Overview,
+        OriginalTitle = row.Original_Title,
+        Studio = row.Studio,
+        Certification = row.Certification,
+        Location = row.Location,
+        CollectionName = row.Collection_Name,
+        AddedOn = row.Added_On,
     };
 
     // Dapper associe les colonnes aux propriétés sans tenir compte de la casse.
@@ -690,6 +698,18 @@ public sealed partial class TitleRepository(CatalogDatabase database)
         public long? Number { get; set; }
 
         public string? Medium { get; set; }
+
+        public string? Original_Title { get; set; }
+
+        public string? Studio { get; set; }
+
+        public string? Certification { get; set; }
+
+        public string? Location { get; set; }
+
+        public string? Collection_Name { get; set; }
+
+        public string? Added_On { get; set; }
 
         public string? Borrower { get; set; }
 

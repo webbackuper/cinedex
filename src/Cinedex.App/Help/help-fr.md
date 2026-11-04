@@ -212,6 +212,10 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.26
+- **Plus de colonnes dans la vue liste** : titre original, studio, classification, collection, emplacement et date d'ajout s'ajoutent aux colonnes déjà proposées, à cocher dans **Réglages > Liste des films**. Elles sont lues avec le reste de la ligne, sans ralentir la liste.
+- **Exporter la liste affichée** : le menu **•••** de la barre d'outils propose « Exporter la liste affichée… », qui ouvre l'export déjà réglé sur la liste en cours (recherche, filtre et tri actuels). Les colonnes et le format (Excel, CSV, TSV) s'y choisissent.
+
 ### 0.4.25
 - **Recherche plus fluide sur les gros catalogues** : la frappe ne bloque plus l'interface. La recherche est faite hors du fil d'affichage et une frappe plus récente annule la précédente ; surtout, la liste ne vérifie plus l'existence de chaque affiche sur le disque, ce qui coûtait des milliers d'accès à chaque lettre. Sur un catalogue de 12 000 titres, préparer une recherche passe de 1 484 à 202 ms, et aucune lettre ne retient plus l'affichage.
 

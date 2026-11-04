@@ -233,6 +233,12 @@ public enum ListColumn
     Favorite,
     Seen,
     Number,
+    OriginalTitle,
+    Studio,
+    Certification,
+    Location,
+    Collection,
+    AddedOn,
 }
 
 /// <summary>Colonnes affichées dans la vue liste ; propre à chaque catalogue. Genres et note IMDb sont masqués par défaut.</summary>
@@ -240,7 +246,11 @@ public sealed record ListColumns
 {
     public const string HiddenKey = "ui.hiddenColumns";
 
-    public static IReadOnlySet<ListColumn> DefaultHidden { get; } = new HashSet<ListColumn> { ListColumn.Genres, ListColumn.Imdb };
+    public static IReadOnlySet<ListColumn> DefaultHidden { get; } = new HashSet<ListColumn>
+    {
+        ListColumn.Genres, ListColumn.Imdb, ListColumn.OriginalTitle, ListColumn.Studio,
+        ListColumn.Certification, ListColumn.Location, ListColumn.Collection, ListColumn.AddedOn,
+    };
 
     public IReadOnlySet<ListColumn> Hidden { get; init; } = DefaultHidden;
 
@@ -260,7 +270,10 @@ public sealed record ListColumns
 
     public bool Number => Shows(ListColumn.Number);
 
-    /// <summary>Ligne secondaire d'un titre : année, série, support, durée et genres, selon les colonnes choisies.</summary>
+    /// <summary>
+    /// Ligne secondaire d'un titre : chaque colonne cochée dans les réglages y ajoute sa valeur, dans l'ordre
+    /// de la liste des colonnes.
+    /// </summary>
     public string Subtitle(Cinedex.Core.Titles.TitleSummary title)
     {
         ArgumentNullException.ThrowIfNull(title);
@@ -268,9 +281,15 @@ public sealed record ListColumns
         {
             Shows(ListColumn.Year) ? title.Year?.ToString(System.Globalization.CultureInfo.CurrentCulture) : null,
             Shows(ListColumn.Kind) && title.Kind == Cinedex.Core.Titles.TitleKind.Series ? Cinedex.Core.Localization.Tr.T("Série") : null,
+            Shows(ListColumn.OriginalTitle) && !string.Equals(title.OriginalTitle, title.Title, StringComparison.Ordinal) ? title.OriginalTitle : null,
             Shows(ListColumn.Medium) ? title.Medium : null,
             Shows(ListColumn.Runtime) ? Cinedex.Core.Titles.TitleText.FormatRuntime(title.RuntimeMinutes) : null,
             Shows(ListColumn.Genres) && title.HasGenres ? title.GenresText : null,
+            Shows(ListColumn.Studio) ? title.Studio : null,
+            Shows(ListColumn.Certification) ? title.Certification : null,
+            Shows(ListColumn.Collection) ? title.CollectionName : null,
+            Shows(ListColumn.Location) ? title.Location : null,
+            Shows(ListColumn.AddedOn) ? title.AddedOn : null,
         }.Where(p => !string.IsNullOrEmpty(p)));
     }
 

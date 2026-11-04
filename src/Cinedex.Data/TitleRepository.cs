@@ -50,6 +50,31 @@ public sealed partial class TitleRepository(CatalogDatabase database)
         return connection.Query<long>($"SELECT t.id FROM title t WHERE {WithoutMetadata} ORDER BY t.sort_title, t.id;").ToList();
     }
 
+    /// <summary>
+    /// Clé de rapprochement d'un titre : genre, titre normalisé (sans accents, casse ni ponctuation) et année.
+    /// Même règle que la recherche de doublons de la maintenance.
+    /// </summary>
+    public readonly record struct TitleKey(TitleKind Kind, string Title, int? Year);
+
+    /// <summary>
+    /// Clés de tous les titres du catalogue, lues en une fois : l'import s'en sert pour rattacher un second fichier
+    /// au film déjà présent au lieu d'en créer un double.
+    /// </summary>
+    public IReadOnlyList<(long Id, TitleKey Key)> TitleKeys()
+    {
+        using var connection = database.Open();
+        return connection.Query<(long Id, string Title, long? Year, string Kind)>("SELECT id, title, year, kind FROM title;")
+            .Select(r => (r.Id, new TitleKey(
+                r.Kind == "series" ? TitleKind.Series : TitleKind.Movie,
+                MaintenanceRepository.NormalizeTitle(r.Title),
+                (int?)r.Year)))
+            .ToList();
+    }
+
+    /// <summary>Clé de rapprochement d'un titre et d'une année bruts (nom de fichier, .nfo).</summary>
+    public static TitleKey KeyOf(TitleKind kind, string title, int? year) =>
+        new(kind, MaintenanceRepository.NormalizeTitle(title), year);
+
     public long Add(NewTitle title)
     {
         ArgumentNullException.ThrowIfNull(title);

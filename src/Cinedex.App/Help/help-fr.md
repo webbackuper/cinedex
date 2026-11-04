@@ -211,6 +211,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.20
+- **Un même film en plusieurs fichiers ne crée plus de doublon** : à l'import, un fichier dont le titre et l'année correspondent à un film déjà au catalogue lui est rattaché comme fichier supplémentaire, au lieu de créer une seconde fiche. Les parties explicites (CD1, CD2…) gardent leur numéro, et un remake d'une autre année reste une fiche à part.
+
 ### 0.4.19
 - **Réanalyser le même dossier ne recoche plus les fichiers déjà importés** : un fichier déjà rattaché à un titre apparaît marqué « déjà au catalogue » et décoché, donc « Importer la sélection » ne reprend que les nouveaux. Cela vaut même quand le disque est reconnu sous un autre nom, cas où l'ancienne détection laissait passer le fichier.
 

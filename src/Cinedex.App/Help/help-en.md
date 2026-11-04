@@ -211,6 +211,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.20
+- **The same film in several files no longer creates a double**: on import, a file whose title and year match a film already in the catalog is attached to it as an extra file, instead of creating a second entry. Explicit parts (CD1, CD2…) keep their number, and a remake from another year stays a separate entry.
+
 ### 0.4.19
 - **Re-scanning the same folder no longer re-checks the files already imported**: a file already attached to a title shows up marked "already in the catalog" and unchecked, so "Import the selection" only takes the new ones. This holds even when the disk is recognized under another name, the case where the old detection let the file through.
 

@@ -287,6 +287,7 @@
  "Fiches TMDb : {0} / {1} — {2}": "TMDb の情報：{0} / {1} — {2}",
  "Fichier": "ファイル",
  "Fichier IMDb indisponible : {0}": "IMDb ファイルを利用できません：{0}",
+ "Fichier ajouté à « {0} », déjà au catalogue : {1}": "カタログにある「{0}」にファイルを追加しました：{1}",
  "Fichier disponible": "ファイルあり",
  "Fichier et infos techniques": "ファイルと技術情報",
  "Fichier introuvable : branchez le disque « {0} ».": "ファイルが見つかりません：ドライブ「{0}」を接続してください。",

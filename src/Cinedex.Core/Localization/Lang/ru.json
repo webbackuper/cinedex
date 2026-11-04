@@ -287,6 +287,7 @@
  "Fiches TMDb : {0} / {1} — {2}": "Карточки TMDb: {0} / {1} — {2}",
  "Fichier": "Файл",
  "Fichier IMDb indisponible : {0}": "Файл IMDb недоступен: {0}",
+ "Fichier ajouté à « {0} », déjà au catalogue : {1}": "Файл добавлен к «{0}», уже в каталоге: {1}",
  "Fichier disponible": "Файл доступен",
  "Fichier et infos techniques": "Файл и технические данные",
  "Fichier introuvable : branchez le disque « {0} ».": "Файл не найден: подключите диск «{0}».",

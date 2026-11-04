@@ -45,6 +45,13 @@ public sealed class LibraryImportService(
     /// <summary>Chemins des fichiers déjà rattachés à un titre, pour ne pas les proposer à nouveau à l'import.</summary>
     public HashSet<string> AttachedPaths() => files.AttachedPaths();
 
+    /// <summary>Numéro de la prochaine partie d'un titre : le fichier s'ajoute aux siens au lieu de les écraser.</summary>
+    private int NextPart(long titleId)
+    {
+        var existing = files.FilesOf(titleId);
+        return existing.Count == 0 ? 1 : existing.Max(f => f.Part) + 1;
+    }
+
     /// <summary>Relit avec MediaInfo les propriétés techniques des fichiers des titres donnés ; renvoie le nombre de fichiers lus.</summary>
     public async Task<(int Read, string Tool)> RefreshTechnicalAsync(IReadOnlyList<long> titleIds, IProgress<string>? progress, CancellationToken cancellationToken)
     {
@@ -159,6 +166,10 @@ public sealed class LibraryImportService(
         var messages = new List<string>();
         gate?.Reset();
         var useTmdb = options.UseTmdb && metadataService is not null;
+        // Films déjà au catalogue, par titre et année : un second fichier du même film s'y rattache.
+        var existingFilms = titles.TitleKeys()
+            .GroupBy(t => t.Key)
+            .ToDictionary(g => g.Key, g => g.Min(t => t.Id));
         var probe = options.ReadTechnicalProperties ? probeFactory() : null;
         if (probe is { IsAvailable: false })
         {
@@ -199,9 +210,17 @@ public sealed class LibraryImportService(
                     titleId = existing;
                     linked++;
                 }
+                else if (existingFilms.TryGetValue(TitleRepository.KeyOf(TitleKind.Movie, candidate.BestTitle, candidate.BestYear), out var sameFilm))
+                {
+                    // Même film déjà au catalogue sous un autre fichier : on lui rattache celui-ci, sans doublon.
+                    titleId = sameFilm;
+                    linked++;
+                    messages.Add(Tr.F("Fichier ajouté à « {0} », déjà au catalogue : {1}", candidate.BestTitle, Path.GetFileName(candidate.FullPath)));
+                }
                 else
                 {
                     titleId = titles.Add(new NewTitle(TitleKind.Movie, candidate.BestTitle, candidate.BestYear));
+                    existingFilms[TitleRepository.KeyOf(TitleKind.Movie, candidate.BestTitle, candidate.BestYear)] = titleId;
                     manual++;
                     if (identification is { NeedsReview: true } && metadataService?.Reviews is { } reviews)
                     {
@@ -218,7 +237,8 @@ public sealed class LibraryImportService(
                     }
                 }
 
-                var fileId = files.Attach(titleId, candidate.FullPath, candidate.SizeBytes, candidate.Parsed.Part ?? 1);
+                // Partie explicite dans le nom (CD1, part2…) ; sinon le fichier s'ajoute après ceux du film.
+                var fileId = files.Attach(titleId, candidate.FullPath, candidate.SizeBytes, candidate.Parsed.Part ?? NextPart(titleId));
                 if (options.UseLocalCover && candidate.LocalCoverPath is { } cover && !images.HasImage(titleId, "poster"))
                 {
                     TryAttachCover(titleId, cover);

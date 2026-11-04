@@ -287,6 +287,7 @@
  "Fiches TMDb : {0} / {1} — {2}": "TMDb विवरण: {0} / {1} — {2}",
  "Fichier": "फ़ाइल",
  "Fichier IMDb indisponible : {0}": "IMDb फ़ाइल उपलब्ध नहीं: {0}",
+ "Fichier ajouté à « {0} », déjà au catalogue : {1}": "फ़ाइल «{0}» में जोड़ी गई, जो पहले से कैटलॉग में है: {1}",
  "Fichier disponible": "फ़ाइल उपलब्ध",
  "Fichier et infos techniques": "फ़ाइल और तकनीकी जानकारी",
  "Fichier introuvable : branchez le disque « {0} ».": "फ़ाइल नहीं मिली: ड्राइव «{0}» लगाएँ।",

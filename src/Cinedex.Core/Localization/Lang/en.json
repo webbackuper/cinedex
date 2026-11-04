@@ -280,6 +280,7 @@
  "Fiches TMDb : {0} / {1} — {2}": "TMDb records: {0} / {1} — {2}",
  "Fichier": "File",
  "Fichier IMDb indisponible : {0}": "IMDb file unavailable: {0}",
+ "Fichier ajouté à « {0} », déjà au catalogue : {1}": "File added to “{0}”, already in the catalog: {1}",
  "Fichier disponible": "File available",
  "Fichier et infos techniques": "File and technical info",
  "Fichier introuvable : branchez le disque « {0} ».": "File not found: plug in the “{0}” drive.",

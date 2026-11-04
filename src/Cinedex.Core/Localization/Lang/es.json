@@ -286,6 +286,7 @@
  "Fiches TMDb : {0} / {1} — {2}": "Fichas de TMDb: {0} / {1} — {2}",
  "Fichier": "Archivo",
  "Fichier IMDb indisponible : {0}": "Archivo de IMDb no disponible: {0}",
+ "Fichier ajouté à « {0} », déjà au catalogue : {1}": "Archivo añadido a «{0}», ya en el catálogo: {1}",
  "Fichier disponible": "Archivo disponible",
  "Fichier et infos techniques": "Archivo e información técnica",
  "Fichier introuvable : branchez le disque « {0} ».": "Archivo no encontrado: conecte el disco «{0}».",

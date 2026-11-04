@@ -127,12 +127,18 @@ public sealed class ImageStore(CatalogDatabase database, string imagesDirectory)
             new { collectionId, role });
     }
 
-    /// <summary>Résout un chemin relatif en refusant toute sortie du dossier des images.</summary>
-    public string? ResolveInside(string relative)
+    /// <summary>Résout un chemin relatif en refusant toute sortie du dossier des images, et vérifie qu'il existe.</summary>
+    public string? ResolveInside(string relative) => PathInside(relative) is { } full && File.Exists(full) ? full : null;
+
+    /// <summary>
+    /// Même résolution, sans toucher au disque : pour les listes, où un accès par ligne coûterait des milliers
+    /// de vérifications à chaque frappe. L'affichage d'une image vérifie de toute façon qu'elle est là.
+    /// </summary>
+    public string? PathInside(string relative)
     {
         var full = Path.GetFullPath(Path.Combine(ImagesDirectory, relative));
         var root = ImagesDirectory.EndsWith(Path.DirectorySeparatorChar) ? ImagesDirectory : ImagesDirectory + Path.DirectorySeparatorChar;
-        return full.StartsWith(root, StringComparison.Ordinal) && File.Exists(full) ? full : null;
+        return full.StartsWith(root, StringComparison.Ordinal) ? full : null;
     }
 
     internal static string? DetectExtension(ReadOnlySpan<byte> data)

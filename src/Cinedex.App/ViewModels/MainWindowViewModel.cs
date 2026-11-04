@@ -875,10 +875,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
         if (_searchTimer is null)
         {
             _searchTimer = new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
-            _searchTimer.Tick += (_, _) =>
+            _searchTimer.Tick += async (_, _) =>
             {
                 _searchTimer.Stop();
-                Refresh();
+                await SearchAsync();
             };
         }
 
@@ -1678,10 +1678,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         ReviewCount = _metadata?.Reviews?.Count() ?? 0;
         UpdateSeriesTracking();
+        Apply(_titles.Query(CurrentQuery).Select(Prepare).ToList(), selectIds ?? (selectId is { } one ? [one] : []));
+    }
 
-        var keep = selectIds ?? (selectId is { } one ? [one] : []);
+    /// <summary>Installe les lignes trouvées : sélection conservée, compte rendu, état de la liste vide.</summary>
+    private void Apply(IReadOnlyList<TitleSummary> rows, IReadOnlyList<long> keep)
+    {
         _refreshing = true;
-        Titles.ReplaceAll(_titles.Query(CurrentQuery).Select(Prepare));
+        Titles.ReplaceAll(rows);
 
         SelectedTitles.Clear();
         foreach (var title in Titles.Where(t => keep.Contains(t.Id)))
@@ -1697,12 +1701,44 @@ public sealed partial class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(IsEmpty));
     }
 
+    /// <summary>
+    /// Recherche de la liste principale, cherchée hors du fil de l'interface : la frappe n'attend jamais la base,
+    /// même sur un gros catalogue. Une frappe plus récente annule le résultat d'une recherche dépassée.
+    /// </summary>
+    private int _searchGeneration;
+
+    private async Task SearchAsync()
+    {
+        if (!_loaded)
+        {
+            return;
+        }
+
+        var generation = ++_searchGeneration;
+        var query = CurrentQuery;
+        List<TitleSummary> rows;
+        try
+        {
+            rows = await Task.Run(() => _titles.Query(query).Select(Prepare).ToList());
+        }
+        catch (Microsoft.Data.Sqlite.SqliteException ex)
+        {
+            Status = ex.Message;
+            return;
+        }
+
+        if (generation == _searchGeneration)
+        {
+            Apply(rows, SelectedIds);
+        }
+    }
+
     internal static (string Title, int? Year) ParseTitleAndYear(string input) => TitleText.SplitYear(input);
 
     /// <summary>Ligne prête à afficher : chemin absolu de l'affiche, ligne secondaire selon les colonnes choisies.</summary>
     private TitleSummary Prepare(TitleSummary title) => title with
     {
-        PosterPath = title.PosterRelativePath is { } poster && _images is not null ? _images.ResolveInside(poster) : null,
+        PosterPath = title.PosterRelativePath is { } poster && _images is not null ? _images.PathInside(poster) : null,
         CustomSubtitle = Columns.Subtitle(title),
     };
 

@@ -85,4 +85,30 @@ public sealed class PerformanceTests : IClassFixture<PerformanceTests.BigCatalog
         Assert.True(statistics < 3000, $"statistiques {statistics} ms");
         Assert.True(duplicates < 3000, $"doublons {duplicates} ms");
     }
+
+    /// <summary>
+    /// Recherche à la frappe : la liste est reconstruite à chaque pause de saisie. Le coût mesuré ici est celui
+    /// du chemin complet (requête puis préparation des lignes), celui que subit l'interface.
+    /// </summary>
+    [Theory]
+    [InlineData("r")]
+    [InlineData("re")]
+    [InlineData("ret")]
+    [InlineData("retour")]
+    public void Typing_a_search_stays_responsive(string text)
+    {
+        var titles = new TitleRepository(_catalog.Database);
+        var images = new ImageStore(_catalog.Database, Path.Combine(Path.GetTempPath(), "cinedex-bench-images"));
+        IReadOnlyList<TitleSummary> rows = [];
+
+        var elapsed = Time(() => rows =
+        [
+            .. titles.Query(new TitleQuery(text, QuickFilter.All, SortField.Title))
+                .Select(t => t with { PosterPath = t.PosterRelativePath is { } p ? images.PathInside(p) : null }),
+        ]);
+
+        Report($"Frappe « {text} » : {rows.Count} titres préparés en {elapsed} ms");
+        Assert.True(elapsed < 400, $"{elapsed} ms pour « {text} » ({rows.Count} titres)");
+    }
+
 }

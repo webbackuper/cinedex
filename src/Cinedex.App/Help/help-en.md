@@ -212,6 +212,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.25
+- **Smoother search on big catalogs**: typing no longer blocks the interface. The search runs off the display thread and a newer keystroke cancels the previous one; above all, the list no longer checks on disk that each poster exists, which cost thousands of accesses per letter. On a 12,000-title catalog, preparing a search goes from 1,484 to 202 ms, and no keystroke holds up the display any more.
+
 ### 0.4.24
 - **Export a person's filmography**: an actor's or director's page has an “Export the filmography” button that saves the list shown as Excel (.xlsx), CSV or TSV. Since the filmography only shows the titles in the catalog, the export covers only the films owned. The columns are those of the catalog export.
 

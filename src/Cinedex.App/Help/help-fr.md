@@ -212,6 +212,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.25
+- **Recherche plus fluide sur les gros catalogues** : la frappe ne bloque plus l'interface. La recherche est faite hors du fil d'affichage et une frappe plus récente annule la précédente ; surtout, la liste ne vérifie plus l'existence de chaque affiche sur le disque, ce qui coûtait des milliers d'accès à chaque lettre. Sur un catalogue de 12 000 titres, préparer une recherche passe de 1 484 à 202 ms, et aucune lettre ne retient plus l'affichage.
+
 ### 0.4.24
 - **Exporter la filmographie d'une personne** : la fiche d'un acteur ou d'un réalisateur a un bouton « Exporter la filmographie » qui enregistre la liste affichée en Excel (.xlsx), CSV ou TSV. Comme la filmographie ne montre que les titres du catalogue, l'export ne porte que sur les films possédés. Les colonnes sont celles de l'export du catalogue.
 

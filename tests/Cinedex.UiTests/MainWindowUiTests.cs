@@ -203,6 +203,38 @@ public sealed class MainWindowUiTests(UiSession ui)
         Assert.Equal(2_000, catalog.ViewModel.Titles.Count);
     });
 
+    /// <summary>
+    /// Sur un gros catalogue, la frappe ne doit pas attendre la base : chaque lettre est rendue tout de suite,
+    /// la liste suit après la pause de saisie.
+    /// </summary>
+    [Fact]
+    public Task Typing_stays_responsive_on_a_big_catalogue() => ui.RunAsync(async () =>
+    {
+        using var catalog = new UiCatalog(8_000);
+        var box = catalog.Find<TextBox>(t => t.Name == "SearchBox");
+        catalog.Window.KeyPressQwerty(PhysicalKey.F, RawInputModifiers.Control);
+        UiCatalog.Pump();
+
+        // Chaque lettre doit revenir à l'écran sans attendre la recherche.
+        var slowest = 0L;
+        foreach (var letter in "retour")
+        {
+            var watch = Stopwatch.StartNew();
+            catalog.Window.KeyTextInput(letter.ToString());
+            UiCatalog.Pump();
+            slowest = Math.Max(slowest, watch.ElapsedMilliseconds);
+        }
+
+        UiCatalog.Report($"Frappe sur 8 000 titres : lettre la plus lente {slowest} ms");
+        Assert.True(slowest < 150, $"une lettre a bloqué l'interface {slowest} ms");
+
+        // La liste arrive après la pause de saisie.
+        await UiCatalog.Wait(1_500);
+        Assert.Equal("retour", catalog.ViewModel.SearchText);
+        Assert.NotEmpty(catalog.ViewModel.Titles);
+        Assert.True(catalog.ViewModel.Titles.Count < 8_000, $"{catalog.ViewModel.Titles.Count} titres");
+    });
+
     [Fact]
     public Task Posters_are_selected_with_the_mouse_and_the_keyboard() => ui.Run(() =>
     {

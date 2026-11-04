@@ -95,10 +95,17 @@ jobs:
       - name: Programmes d'installation et mises à jour
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           tag="${GITHUB_REF_NAME}"
           for pair in win:win-x64 linux:linux-x64 osx:osx-arm64; do
             channel="${pair%%:*}"; rid="${pair##*:}"
+            # Velopack refuse de fusionner avec ses propres fichiers deja presents sur la version
+            # (« merging release files on GitHub is not supported ») : une relance apres un echec en
+            # cours de route restait donc bloquee. On retire d'abord ce que cette passe va reecrire.
+            for file in "artifacts/Cinedex-$rid/releases"/*; do
+              gh release delete-asset "$tag" "$(basename "$file")" --yes 2>/dev/null || true
+            done
             vpk upload github --repoUrl "https://github.com/${GITHUB_REPOSITORY}" --token "$GITHUB_TOKEN" \
               --outputDir "artifacts/Cinedex-$rid/releases" --channel "$channel" --tag "$tag" \
               --releaseName "Cinedex ${tag#v}" --merge --publish

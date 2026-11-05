@@ -36,7 +36,8 @@ public sealed record TitleEditorExtras(
     LoanEditorViewModel? Loans = null,
     MediaFileRepository? Files = null,
     Func<string, Task<string?>>? SetPoster = null,
-    Func<Task>? RemovePoster = null);
+    Func<Task>? RemovePoster = null,
+    Func<long, Task<TitleDetail?>>? UpdateFromTmdb = null);
 
 /// <summary>Un fichier du titre dans l'onglet Fichier : chemin complet et MediaID (nom du disque) modifiable.</summary>
 public sealed partial class FileVolumeRow(MediaFileEntry file) : ObservableObject
@@ -57,7 +58,7 @@ public sealed partial class FileVolumeRow(MediaFileEntry file) : ObservableObjec
 /// </summary>
 public sealed partial class TitleEditorViewModel : ObservableObject
 {
-    private readonly TitleDetail _original;
+    private TitleDetail _original;
 
     public TitleEditorViewModel(
         TitleDetail original,
@@ -72,6 +73,7 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         _original = original;
         extras ??= new TitleEditorExtras();
         _refreshMedia = extras.RefreshMedia;
+        _updateFromTmdb = extras.UpdateFromTmdb;
         _addFile = extras.AddFile;
         _people = extras.People;
         Loans = extras.Loans;
@@ -85,14 +87,25 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         CrewText = extras.CrewText ?? string.Empty;
         MediaText = extras.MediaText ?? "Aucun fichier vidéo rattaché à ce titre.";
         Collections = [new(null, "(aucune)"), .. (collections ?? []).Select(c => new Choice<long?>(c.Id, c.Name))];
-        SelectedCollection = Collections.FirstOrDefault(c => c.Value == original.CollectionId) ?? Collections[0];
-        TagsText = string.Join(", ", original.Tags);
-        GroupsText = string.Join(", ", original.Groups);
         Kinds = [new(TitleKind.Movie, "Film"), new(TitleKind.Series, "Série")];
         Media = WithNone(media);
         Cases = WithNone(cases);
         Versions = WithNone(versions);
-        Genres = new ObservableCollection<GenreChoice>(genres.Select(g => new GenreChoice(g, original.GenreCodes.Contains(g.Code))));
+        Genres = new ObservableCollection<GenreChoice>(genres.Select(g => new GenreChoice(g, false)));
+
+        LoadFields(original);
+    }
+
+    /// <summary>Remplit les champs depuis une fiche : à l'ouverture, puis après une mise à jour depuis TMDb.</summary>
+    private void LoadFields(TitleDetail original)
+    {
+        SelectedCollection = Collections.FirstOrDefault(c => c.Value == original.CollectionId) ?? Collections[0];
+        TagsText = string.Join(", ", original.Tags);
+        GroupsText = string.Join(", ", original.Groups);
+        foreach (var genre in Genres)
+        {
+            genre.IsSelected = original.GenreCodes.Contains(genre.Genre.Code);
+        }
 
         SelectedKind = Kinds.First(k => k.Value == original.Kind);
         Title = original.Title;
@@ -136,6 +149,8 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         Price = copy?.Price?.ToString("0.00", CultureInfo.CurrentCulture) ?? string.Empty;
         Is3D = copy?.Is3D ?? false;
     }
+
+    private readonly Func<long, Task<TitleDetail?>>? _updateFromTmdb;
 
     private readonly Func<Task<string?>>? _refreshMedia;
 
@@ -305,6 +320,58 @@ public sealed partial class TitleEditorViewModel : ObservableObject
     partial void OnRuntimeChanged(string value) => OnPropertyChanged(nameof(RuntimeText));
 
     [ObservableProperty] public partial bool IsRefreshingMedia { get; set; }
+
+    /// <summary>Compte rendu de la dernière mise à jour depuis TMDb, affiché près du numéro.</summary>
+    [ObservableProperty] public partial string? TmdbMessage { get; set; }
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(UpdateFromTmdbCommand))]
+    public partial bool IsUpdatingFromTmdb { get; set; }
+
+    /// <summary>La mise à jour suit le numéro TMDb affiché : le changer puis l'appliquer rattache la fiche.</summary>
+    private bool CanUpdateFromTmdb() =>
+        _updateFromTmdb is not null && !IsUpdatingFromTmdb
+        && long.TryParse(TmdbId?.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) && id > 0;
+
+    partial void OnTmdbIdChanged(string value) => UpdateFromTmdbCommand.NotifyCanExecuteChanged();
+
+    /// <summary>
+    /// Rapatrie la fiche TMDb du numéro affiché et relit le formulaire : le descriptif, les genres, la
+    /// distribution et l'affiche reviennent de TMDb. Les saisies non enregistrées sont remplacées.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanUpdateFromTmdb))]
+    private async Task UpdateFromTmdbAsync()
+    {
+        if (_updateFromTmdb is null || !long.TryParse(TmdbId.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var sourceId))
+        {
+            return;
+        }
+
+        IsUpdatingFromTmdb = true;
+        TmdbMessage = Tr.T("Mise à jour depuis TMDb…");
+        try
+        {
+            if (await _updateFromTmdb(sourceId) is { } refreshed)
+            {
+                _original = refreshed;
+                LoadFields(refreshed);
+                OnPropertyChanged(nameof(SourceText));
+                TmdbMessage = Tr.T("Fiche mise à jour depuis TMDb.");
+            }
+            else
+            {
+                TmdbMessage = Tr.T("Titre verrouillé : la fiche n'a pas été modifiée.");
+            }
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or KeyNotFoundException or InvalidOperationException)
+        {
+            TmdbMessage = ex.Message;
+        }
+        finally
+        {
+            IsUpdatingFromTmdb = false;
+        }
+    }
 
     [RelayCommand]
     private async Task RefreshMediaAsync()

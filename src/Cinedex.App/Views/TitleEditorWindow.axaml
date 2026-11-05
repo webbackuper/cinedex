@@ -69,7 +69,18 @@
                 <TextBlock Text="Numéro TMDb" VerticalAlignment="Center" />
                 <TextBox Width="110" Text="{Binding TmdbId}" PlaceholderText="949"
                          ToolTip.Tip="Numéro de la fiche TMDb : videz-le pour détacher le titre, changez-le pour le rattacher à une autre fiche. La prochaine mise à jour suivra ce numéro." />
-                <TextBlock Text="{Binding SourceText}" VerticalAlignment="Center" Opacity="0.7" />
+                <Button Classes="tool" Command="{Binding UpdateFromTmdbCommand}"
+                        ToolTip.Tip="Rapatrie cette fiche depuis TMDb : descriptif, genres, distribution et affiche. Les saisies non enregistrées sont remplacées.">
+                  <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
+                    <controls:Icon Kind="cloud" Width="16" Height="16" />
+                    <TextBlock Text="Mettre à jour" />
+                  </StackPanel>
+                </Button>
+                <TextBlock Text="{Binding SourceText}" VerticalAlignment="Center" Opacity="0.7"
+                           IsVisible="{Binding TmdbMessage, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+                <TextBlock Text="{Binding TmdbMessage}" VerticalAlignment="Center" FontWeight="SemiBold"
+                           Foreground="{DynamicResource CinedexAccent}" TextTrimming="CharacterEllipsis"
+                           IsVisible="{Binding TmdbMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
               </StackPanel>
               <TextBlock Classes="label" Grid.Row="13" Text="Lien web" />
               <TextBox Grid.Row="13" Grid.Column="1" Text="{Binding WebLink}" PlaceholderText="https://" />

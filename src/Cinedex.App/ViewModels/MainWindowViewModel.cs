@@ -1094,6 +1094,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
             {
                 _images.Remove(current.Id, "poster");
                 return Task.CompletedTask;
+            },
+            _metadata is null ? null : async sourceId =>
+            {
+                // La fiche suit le numéro affiché dans l'éditeur : le changer puis mettre à jour la rattache.
+                var applied = await _metadata.UpdateAsync(current.Id, current.Kind, sourceId, ImportOptions.Default);
+                Journal(applied
+                    ? $"Fiche mise à jour depuis TMDb : {current.Title} (TMDb {sourceId})"
+                    : $"Titre verrouillé, non modifié : {current.Title}");
+                return applied ? _titles.Get(current.Id) : null;
             });
         var editor = new TitleEditorViewModel(
             current, _titles.Genres(), _titles.RefItems("medium"), _titles.RefItems("case"), _titles.RefItems("version"), _titles.Collections(), extras);

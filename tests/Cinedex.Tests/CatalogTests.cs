@@ -134,4 +134,74 @@ public sealed class CatalogTests
         Assert.Null(images.PathFor(id, "poster"));
     }
 
+
+    [Fact]
+    public async Task The_editor_updates_the_card_from_tmdb_and_reloads_its_fields()
+    {
+        using var temp = new TempDirectory();
+        var db = new CatalogDatabase(Path.Combine(temp.Path, "cinedex.db"));
+        db.Initialize(temp.Path);
+        var titles = new TitleRepository(db);
+        var id = titles.Add(new NewTitle(TitleKind.Movie, "heat", null));
+        var genres = titles.Genres();
+
+        // La mise à jour applique la fiche du numéro affiché, puis l'éditeur relit le formulaire.
+        long? asked = null;
+        var editor = new TitleEditorViewModel(titles.Get(id)!, genres, [], [], [], null, new TitleEditorExtras(
+            UpdateFromTmdb: source =>
+            {
+                asked = source;
+                var current = titles.Get(id)!;
+                titles.Update(current with
+                {
+                    Title = "Heat",
+                    Year = 1995,
+                    Overview = "Un braqueur et un flic.",
+                    TmdbId = source,
+                    GenreCodes = [genres[0].Code],
+                });
+                return Task.FromResult<TitleDetail?>(titles.Get(id));
+            }));
+
+        // Sans numéro, il n'y a rien à rapatrier.
+        Assert.Equal(string.Empty, editor.TmdbId);
+        Assert.False(editor.UpdateFromTmdbCommand.CanExecute(null));
+
+        editor.TmdbId = "949";
+        Assert.True(editor.UpdateFromTmdbCommand.CanExecute(null));
+        await editor.UpdateFromTmdbCommand.ExecuteAsync(null);
+
+        Assert.Equal(949, asked);
+        Assert.Equal("Heat", editor.Title);
+        Assert.Equal("1995", editor.Year);
+        Assert.Equal("Un braqueur et un flic.", editor.Overview);
+        Assert.Contains(editor.Genres, g => g.Genre.Code == genres[0].Code && g.IsSelected);
+        Assert.Contains("TMDb", editor.TmdbMessage!, StringComparison.Ordinal);
+
+        // L'enregistrement repart de la fiche rapatriée, sans perdre ce qui vient d'arriver.
+        Assert.True(editor.TryBuild(out var saved));
+        Assert.Equal(("Heat", 1995, 949L), (saved!.Title, saved.Year, saved.TmdbId));
+        Assert.Equal([genres[0].Code], saved.GenreCodes);
+    }
+
+    [Fact]
+    public async Task The_editor_says_when_a_locked_title_was_left_alone()
+    {
+        using var temp = new TempDirectory();
+        var db = new CatalogDatabase(Path.Combine(temp.Path, "cinedex.db"));
+        db.Initialize(temp.Path);
+        var titles = new TitleRepository(db);
+        var id = titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));
+
+        var editor = new TitleEditorViewModel(titles.Get(id)!, titles.Genres(), [], [], [], null, new TitleEditorExtras(
+            UpdateFromTmdb: _ => Task.FromResult<TitleDetail?>(null)))
+        {
+            TmdbId = "949",
+        };
+
+        await editor.UpdateFromTmdbCommand.ExecuteAsync(null);
+        Assert.Contains("verrouill", editor.TmdbMessage!, StringComparison.Ordinal);
+        Assert.Equal("Heat", editor.Title);
+    }
+
 }

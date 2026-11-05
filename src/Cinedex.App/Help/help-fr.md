@@ -212,6 +212,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.33
+- **Mettre à jour une fiche depuis la fiche elle-même** : dans l'éditeur, un bouton **Mettre à jour** à côté du numéro TMDb rapatrie la fiche et recharge le formulaire — descriptif, genres, distribution, affiche. Il suit le numéro affiché : en saisir un autre puis mettre à jour rattache le titre à une autre fiche sans quitter l'éditeur. Les saisies non enregistrées sont remplacées par ce qui arrive de TMDb, et un titre verrouillé n'est pas modifié.
+
 ### 0.4.32
 - **Les doublons suivent les identifiants** : deux entrées sont un doublon quand elles partagent leur **fiche TMDb ou leur identifiant IMDb**. Deux films qui portent le même titre et la même année mais dont les identifiants diffèrent ne sont plus rapprochés : ce sont des films distincts. Les liens se propagent, donc trois entrées liées deux à deux forment un seul groupe.
 - Le titre et l'année ne servent plus que pour les entrées **sans aucun identifiant**, où rien ne peut les contredire : deux fichiers scannés et jamais identifiés continuent de se retrouver.

@@ -212,6 +212,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.33
+- **Update a card from the card itself**: in the editor, an **Update** button next to the TMDb number fetches the record and reloads the form — description, genres, cast, poster. It follows the number shown: typing another one and updating attaches the title to a different record without leaving the editor. Unsaved entries are replaced by what comes from TMDb, and a locked title is left unchanged.
+
 ### 0.4.32
 - **Duplicates follow the identifiers**: two entries are a duplicate when they share their **TMDb record or their IMDb id**. Two films with the same title and year but different identifiers are no longer paired: they are distinct films. Links propagate, so three entries linked two by two form a single group.
 - Title and year are now used only for entries **without any identifier**, where nothing can contradict them: two scanned files never identified still find each other.

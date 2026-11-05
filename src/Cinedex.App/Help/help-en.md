@@ -212,6 +212,10 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.29
+- **One file, one entry on import**: a video file of a film already in the catalog, at another location, now gets its **own entry** instead of being attached to the first one. Cinedex catalogs files: it is **“Merge duplicate films”** (Settings > Maintenance) that then gathers those entries into a single film with several sources. The second entry takes the TMDb record (overview, genres, poster, IMDb id) without the TMDb number, which belongs to the first one only; so both show up among the duplicates.
+- **Parts named in the file** (CD1, CD2, part2…) still join the film they continue, in order, whatever the order the folder was walked in.
+
 ### 0.4.28
 - **More readable MediaID view**: the left sidebar no longer shows the number of titles next to each disc, which was truncating long names. The discs are still ordered from the fullest to the emptiest.
 

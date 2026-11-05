@@ -1,7 +1,10 @@
+using System.Net;
+using System.Text;
 using Cinedex.App.Services;
 using Cinedex.Core.Titles;
 using Cinedex.Data;
 using Cinedex.Media;
+using Cinedex.Metadata.Tmdb;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Cinedex.Tests;
@@ -50,7 +53,7 @@ public sealed class LibraryImportTests
     }
 
     [Fact]
-    public async Task A_second_video_file_of_the_same_film_joins_it_instead_of_creating_a_double()
+    public async Task A_second_video_file_of_the_same_film_gets_its_own_entry()
     {
         using var temp = new TempDirectory();
         var db = new CatalogDatabase(Path.Combine(temp.Path, "cinedex.db"));
@@ -72,20 +75,84 @@ public sealed class LibraryImportTests
         var candidates = await service.ScanAsync(library, options, TestContext.Current.CancellationToken);
         var result = await service.ImportAsync(candidates, new LibraryImportOptions { UseTmdb = false }, null, TestContext.Current.CancellationToken);
 
-        // Un seul « Heat » de 1995, avec ses deux fichiers ; le remake de 1986 reste à part.
-        Assert.Equal(["Heat", "Heat", "Ran"], titles.ListAll().Select(t => t.Title).Order(StringComparer.Ordinal));
-        Assert.Equal([1985, 1986, 1995], titles.ListAll().Select(t => t.Year).Order());
-        var heat = titles.ListAll().Single(t => t is { Title: "Heat", Year: 1995 });
-        Assert.Equal([1, 2], files.FilesOf(heat.Id).Select(f => f.Part).Order());
+        // Cinedex catalogue des fichiers : les deux versions de « Heat » (1995) ont chacune leur entrée.
+        Assert.Equal(["Heat", "Heat", "Heat", "Ran"], titles.ListAll().Select(t => t.Title).Order(StringComparer.Ordinal));
+        var heat95 = titles.ListAll().Where(t => t is { Title: "Heat", Year: 1995 }).ToList();
+        Assert.Equal(2, heat95.Count);
+        Assert.All(heat95, t => Assert.Single(files.FilesOf(t.Id)));
 
-        // Les parties explicites gardent leur numéro.
+        // Elles se retrouvent dans les doublons, prêtes à être regroupées en un film à plusieurs sources.
+        var maintenance = new MaintenanceRepository(db);
+        var group = Assert.Single(maintenance.FindDuplicateTitles());
+        Assert.Equal([.. heat95.Select(t => t.Id).Order()], [.. group.Titles.Select(t => t.Id).Order()]);
+        maintenance.MergeDuplicateTitles();
+        var merged = titles.ListAll().Single(t => t is { Title: "Heat", Year: 1995 });
+        Assert.Equal([1, 2], files.FilesOf(merged.Id).Select(f => f.Part).Order());
+
+        // Le remake d'une autre année n'a jamais été confondu, et les parties explicites restent une seule entrée.
+        Assert.Equal([1985, 1986, 1995], titles.ListAll().Select(t => t.Year).Order());
         var ran = titles.ListAll().Single(t => t.Title == "Ran");
         Assert.Equal([1, 2], files.FilesOf(ran.Id).Select(f => f.Part).Order());
-        Assert.Equal(3, result.Added + result.WithoutMetadata);
+        Assert.Equal(4, result.Added + result.WithoutMetadata);
 
         // Réimporter le même dossier n'ajoute rien : les fichiers sont déjà connus.
         var again = await service.ScanAsync(library, options, TestContext.Current.CancellationToken);
         Assert.Empty(again);
+    }
+
+
+    [Fact]
+    public async Task Two_files_of_one_tmdb_film_give_two_entries_that_merge_into_one_film_with_two_sources()
+    {
+        using var temp = new TempDirectory();
+        var db = new CatalogDatabase(Path.Combine(temp.Path, "cinedex.db"));
+        db.Initialize(temp.Path);
+        var titles = new TitleRepository(db);
+        var files = new MediaFileRepository(db);
+        var images = new ImageStore(db, Path.Combine(temp.Path, "img"));
+        var tmdb = new TmdbClient(new HttpClient(new Handler(request => request.RequestUri!.AbsolutePath.Contains("/search/", StringComparison.Ordinal)
+            ? Json("""{"results":[{"id":949,"title":"Heat","release_date":"1995-12-15"}]}""")
+            : Json("""{"id":949,"title":"Heat","release_date":"1995-12-15","runtime":170,"imdb_id":"tt0113277","overview":"Un braqueur et un flic."}"""))),
+            _ => ValueTask.FromResult<string?>("token"));
+        var metadata = new MetadataService(tmdb, new MetadataRepository(db), images, NullLogger<MetadataService>.Instance);
+        var service = new LibraryImportService(titles, files, images, metadata, () => new MediaProbe("absent", "absent"), NullLogger<LibraryImportService>.Instance);
+
+        // Le même film, deux fichiers à des emplacements différents.
+        var library = Directory.CreateDirectory(Path.Combine(temp.Path, "Films")).FullName;
+        var hd = Directory.CreateDirectory(Path.Combine(library, "HD")).FullName;
+        var uhd = Directory.CreateDirectory(Path.Combine(library, "UHD")).FullName;
+        File.WriteAllBytes(Path.Combine(hd, "Heat (1995).mkv"), new byte[2048]);
+        File.WriteAllBytes(Path.Combine(uhd, "Heat (1995).mkv"), new byte[2048]);
+
+        var candidates = await service.ScanAsync(library, new ScanOptions { MinimumBytes = 1024 }, TestContext.Current.CancellationToken);
+        var result = await service.ImportAsync(candidates, new LibraryImportOptions(), null, TestContext.Current.CancellationToken);
+
+        // Deux entrées, une par fichier : la seconde reprend la fiche sans l'identifiant TMDb, qui n'est qu'à la première.
+        Assert.Equal(2, result.Added);
+        var both = titles.ListAll();
+        Assert.Equal(2, both.Count);
+        Assert.All(both, t => Assert.Equal("Heat", t.Title));
+        var detailed = both.Select(t => titles.Get(t.Id)!).ToList();
+        Assert.Equal([null, 949L], detailed.Select(t => t.TmdbId).OrderBy(t => t ?? 0));
+        Assert.All(detailed, t => Assert.Equal("tt0113277", t.ImdbId));
+        Assert.All(detailed, t => Assert.Equal("Un braqueur et un flic.", t.Overview));
+        Assert.All(both, t => Assert.Single(files.FilesOf(t.Id)));
+
+        // La fusion en fait un seul film à deux sources, la fiche liée à TMDb étant gardée.
+        var maintenance = new MaintenanceRepository(db);
+        Assert.Single(maintenance.FindDuplicateTitles());
+        Assert.Equal(1, maintenance.MergeDuplicateTitles().Merged);
+        var film = Assert.Single(titles.ListAll());
+        Assert.Equal(949, titles.Get(film.Id)!.TmdbId);
+        Assert.Equal([1, 2], files.FilesOf(film.Id).Select(f => f.Part).Order());
+    }
+
+    private static HttpResponseMessage Json(string body) => new(HttpStatusCode.OK) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
+
+    private sealed class Handler(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
+            Task.FromResult(respond(request));
     }
 
 }

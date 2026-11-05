@@ -212,6 +212,10 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.29
+- **Un fichier, une entrée à l'import** : un fichier vidéo d'un film déjà au catalogue, à un autre emplacement, reçoit désormais sa **propre entrée** au lieu d'être rattaché à la première. Cinedex catalogue des fichiers : c'est **« Fusionner les films en double »** (Réglages > Maintenance) qui regroupe ensuite ces entrées en un seul film à plusieurs sources. La seconde entrée reprend la fiche TMDb (synopsis, genres, affiche, identifiant IMDb) sans le numéro TMDb, qui n'appartient qu'à la première ; les deux se retrouvent donc dans les doublons.
+- Les **parties annoncées par le nom** (CD1, CD2, part2…) continuent de rejoindre le film qu'elles prolongent, dans l'ordre, quel que soit l'ordre de parcours du dossier.
+
 ### 0.4.28
 - **Vue MediaID plus lisible** : le bandeau gauche n'affiche plus le nombre de titres à côté de chaque disque, qui tronquait les noms longs. Les disques restent classés du mieux garni au moins garni.
 

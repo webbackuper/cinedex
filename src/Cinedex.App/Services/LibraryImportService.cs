@@ -159,8 +159,12 @@ public sealed class LibraryImportService(
         ArgumentNullException.ThrowIfNull(options);
 
         // D'abord les fichiers sans question à se poser (identifiant TMDb ou IMDb dans le .nfo ou le nom),
-        // puis les autres : les cas ambigus s'accumulent dans « À vérifier », proposés à la fin.
-        candidates = [.. candidates.OrderBy(c => c.Nfo?.TmdbId is not null || c.ImdbId is not null ? 0 : 1)];
+        // puis les autres : les cas ambigus s'accumulent dans « À vérifier », proposés à la fin. À l'intérieur,
+        // les parties annoncées par le nom (CD2, part3…) passent après le fichier qu'elles prolongent, sans quoi
+        // elles ne trouveraient pas leur film selon l'ordre où le dossier a été parcouru.
+        candidates = [.. candidates
+            .OrderBy(c => c.Nfo?.TmdbId is not null || c.ImdbId is not null ? 0 : 1)
+            .ThenBy(c => c.Parsed.Part ?? 0)];
         int added = 0, linked = 0, manual = 0, episodes = 0, failed = 0, fromNfo = 0, toReview = 0;
         var readNfo = nfo is not null && options.ReadNfo && nfo.Settings.ReadOnScan;
         var messages = new List<string>();
@@ -191,31 +195,34 @@ public sealed class LibraryImportService(
             {
                 long titleId;
                 var identification = useTmdb ? await IdentifyAsync(candidate, options, cancellationToken).ConfigureAwait(false) : null;
-                if (identification?.Match is { } choice)
+                // Une partie annoncée par le nom (CD1, CD2…) rejoint le film dont elle est la suite ; tout autre
+                // fichier a son entrée, même si le film est déjà au catalogue sous une autre source.
+                var partOf = candidate.Parsed.Part is not null
+                    && existingFilms.TryGetValue(TitleRepository.KeyOf(TitleKind.Movie, candidate.BestTitle, candidate.BestYear), out var sameFilm)
+                        ? sameFilm
+                        : (long?)null;
+                if (partOf is { } whole)
+                {
+                    titleId = whole;
+                    linked++;
+                }
+                else if (identification?.Match is { } choice)
                 {
                     var (id, created) = await metadataService!.ImportAsync(choice, ImportOptions.Default, cancellationToken).ConfigureAwait(false);
-                    titleId = id;
                     if (created)
                     {
+                        titleId = id;
                         added++;
                     }
                     else
                     {
-                        linked++;
+                        // Film déjà au catalogue : ce fichier reçoit sa propre entrée, à fusionner ensuite.
+                        titleId = await metadataService.ImportAnotherCopyAsync(choice, ImportOptions.Default, cancellationToken).ConfigureAwait(false);
+                        added++;
+                        messages.Add(Tr.F("Deuxième source de « {0} » : entrée créée, à regrouper par « Fusionner les films en double ».", candidate.BestTitle));
                     }
-                }
-                else if (readNfo && candidate.Nfo is { } known && nfo!.FindExisting(known) is { } existing)
-                {
-                    // Même film (identifiant TMDb du .nfo) déjà au catalogue : on y rattache ce fichier, sans doublon.
-                    titleId = existing;
-                    linked++;
-                }
-                else if (existingFilms.TryGetValue(TitleRepository.KeyOf(TitleKind.Movie, candidate.BestTitle, candidate.BestYear), out var sameFilm))
-                {
-                    // Même film déjà au catalogue sous un autre fichier : on lui rattache celui-ci, sans doublon.
-                    titleId = sameFilm;
-                    linked++;
-                    messages.Add(Tr.F("Fichier ajouté à « {0} », déjà au catalogue : {1}", candidate.BestTitle, Path.GetFileName(candidate.FullPath)));
+
+                    existingFilms[TitleRepository.KeyOf(TitleKind.Movie, candidate.BestTitle, candidate.BestYear)] = titleId;
                 }
                 else
                 {

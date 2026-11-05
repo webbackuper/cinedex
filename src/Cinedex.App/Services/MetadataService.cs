@@ -110,6 +110,23 @@ public sealed class MetadataService(
         return (id, true);
     }
 
+    /// <summary>
+    /// Crée une entrée de plus pour un film déjà au catalogue : même fiche TMDb, sans son identifiant, qui
+    /// n'appartient qu'à la première. Cinedex catalogue des fichiers vidéo : deux fichiers du même film ont
+    /// chacun leur entrée, que « Fusionner les films en double » regroupe ensuite en un film à plusieurs sources.
+    /// L'identifiant IMDb, lui, est repris : il rapproche les deux entrées dans la recherche de doublons.
+    /// </summary>
+    public async Task<long> ImportAnotherCopyAsync(MetadataSearchResult result, ImportOptions options, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        var record = await tmdb.GetDetailsAsync(result.Kind, result.SourceId, cancellationToken).ConfigureAwait(false);
+        var id = metadata.Create(record with { SourceId = 0 }, options with { MaxActors = MaxActors });
+        await DownloadImagesAsync(id, record, options, cancellationToken).ConfigureAwait(false);
+        await EnrichRatingsAsync(id, cancellationToken).ConfigureAwait(false);
+        nfo?.AfterMetadataUpdate(id);
+        return id;
+    }
+
     /// <summary>Lie un titre existant à une fiche TMDb (ou la rafraîchit) ; false si le titre est verrouillé.</summary>
     public async Task<bool> UpdateAsync(long titleId, TitleKind kind, long sourceId, ImportOptions options, CancellationToken cancellationToken = default)
     {

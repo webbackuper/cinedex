@@ -212,8 +212,13 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.30
+- **Several entries may point to the same film**: the database no longer requires a TMDb number to be unique, and Cinedex no longer refuses to create an entry that already exists. Your two sources are therefore two **full twins**, both linked to TMDb and refreshable, until you merge them — where the second one used to be left without a number, and so out of reach of “Update via TMDb”.
+- **Adding a duplicate by hand is allowed**: adding from TMDb a film already in the catalog creates a new entry instead of reopening the existing one. Series keep a single entry, since they gather their episodes.
+- This version **migrates the database schema** (a backup is made just before, in the backups folder).
+
 ### 0.4.29
-- **One file, one entry on import**: a video file of a film already in the catalog, at another location, now gets its **own entry** instead of being attached to the first one. Cinedex catalogs files: it is **“Merge duplicate films”** (Settings > Maintenance) that then gathers those entries into a single film with several sources. The second entry takes the TMDb record (overview, genres, poster, IMDb id) without the TMDb number, which belongs to the first one only; so both show up among the duplicates.
+- **One file, one entry on import**: a video file of a film already in the catalog, at another location, now gets its **own entry** instead of being attached to the first one. Cinedex catalogs files: it is **“Merge duplicate films”** (Settings > Maintenance) that then gathers those entries into a single film with several sources. The second entry takes the TMDb record (overview, genres, poster, ids); so both show up among the duplicates. (Since 0.4.30 it keeps the TMDb number as well.)
 - **Parts named in the file** (CD1, CD2, part2…) still join the film they continue, in order, whatever the order the folder was walked in.
 
 ### 0.4.28

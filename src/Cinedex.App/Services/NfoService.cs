@@ -49,20 +49,12 @@ public sealed class NfoService(
         ArgumentNullException.ThrowIfNull(nfo);
         var current = titles.Get(titleId) ?? throw new KeyNotFoundException(Tr.F("Titre {0} introuvable.", titleId));
         var record = ToRecord(nfo, current);
-        try
+        metadata.Apply(titleId, record, ImportOptions.Default with
         {
-            metadata.Apply(titleId, record, ImportOptions.Default with
-            {
-                UpdateTitle = nfo.Title is not null,
-                DownloadPoster = false,
-                DownloadBackdrop = false,
-            });
-        }
-        catch (DuplicateTitleException)
-        {
-            // Le film du .nfo est déjà au catalogue sous une autre entrée : on applique sans l'identifiant TMDb.
-            metadata.Apply(titleId, record with { SourceId = 0 }, ImportOptions.Default with { UpdateTitle = nfo.Title is not null });
-        }
+            UpdateTitle = nfo.Title is not null,
+            DownloadPoster = false,
+            DownloadBackdrop = false,
+        });
 
         var updated = titles.Get(titleId)!;
         var tags = nfo.Tags.Except(updated.Tags, StringComparer.OrdinalIgnoreCase).ToList();

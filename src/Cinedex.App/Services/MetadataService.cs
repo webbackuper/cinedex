@@ -88,14 +88,10 @@ public sealed class MetadataService(
     }
 
     /// <summary>Crée un titre depuis un résultat de recherche ; renvoie l'identifiant (existant si déjà présent).</summary>
-    public async Task<(long TitleId, bool Created)> ImportAsync(MetadataSearchResult result, ImportOptions options, CancellationToken cancellationToken = default)
+    public async Task<long> ImportAsync(MetadataSearchResult result, ImportOptions options, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(result);
-        if (metadata.FindBySource(result.Kind, result.SourceId) is { } existing)
-        {
-            return (existing, false);
-        }
-
+        // Un film déjà au catalogue n'empêche pas d'en créer une autre entrée : chaque source a la sienne.
         var record = await tmdb.GetDetailsAsync(result.Kind, result.SourceId, cancellationToken).ConfigureAwait(false);
         var id = metadata.Create(record, options with { MaxActors = MaxActors });
         await DownloadImagesAsync(id, record, options, cancellationToken).ConfigureAwait(false);
@@ -107,25 +103,11 @@ public sealed class MetadataService(
 
         await EnrichRatingsAsync(id, cancellationToken).ConfigureAwait(false);
         nfo?.AfterMetadataUpdate(id);
-        return (id, true);
-    }
-
-    /// <summary>
-    /// Crée une entrée de plus pour un film déjà au catalogue : même fiche TMDb, sans son identifiant, qui
-    /// n'appartient qu'à la première. Cinedex catalogue des fichiers vidéo : deux fichiers du même film ont
-    /// chacun leur entrée, que « Fusionner les films en double » regroupe ensuite en un film à plusieurs sources.
-    /// L'identifiant IMDb, lui, est repris : il rapproche les deux entrées dans la recherche de doublons.
-    /// </summary>
-    public async Task<long> ImportAnotherCopyAsync(MetadataSearchResult result, ImportOptions options, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(result);
-        var record = await tmdb.GetDetailsAsync(result.Kind, result.SourceId, cancellationToken).ConfigureAwait(false);
-        var id = metadata.Create(record with { SourceId = 0 }, options with { MaxActors = MaxActors });
-        await DownloadImagesAsync(id, record, options, cancellationToken).ConfigureAwait(false);
-        await EnrichRatingsAsync(id, cancellationToken).ConfigureAwait(false);
-        nfo?.AfterMetadataUpdate(id);
         return id;
     }
+
+    /// <summary>Entrée déjà liée à cette fiche TMDb, s'il y en a une ; la première si plusieurs la partagent.</summary>
+    public long? FindBySource(TitleKind kind, long sourceId) => metadata.FindBySource(kind, sourceId);
 
     /// <summary>Lie un titre existant à une fiche TMDb (ou la rafraîchit) ; false si le titre est verrouillé.</summary>
     public async Task<bool> UpdateAsync(long titleId, TitleKind kind, long sourceId, ImportOptions options, CancellationToken cancellationToken = default)
@@ -162,7 +144,7 @@ public sealed class MetadataService(
 
         // Titres déjà identifiés (TMDb ou IMDb connu) d'abord ; les rapprochements à vérifier viennent ensuite.
         targets = [.. targets.OrderBy(t => t.TmdbId is not null || t.ImdbId is not null ? 0 : 1)];
-        int updated = 0, skipped = 0, failed = 0, notFound = 0, duplicates = 0, toReview = 0;
+        int updated = 0, skipped = 0, failed = 0, notFound = 0, toReview = 0;
         var messages = new List<string>();
         for (var i = 0; i < targets.Count; i++)
         {
@@ -216,11 +198,6 @@ public sealed class MetadataService(
                     skipped++;
                 }
             }
-            catch (DuplicateTitleException)
-            {
-                duplicates++;
-                messages.Add(Tr.F("Déjà au catalogue sous une autre entrée : {0}", title.Title));
-            }
             catch (Exception ex) when (gate is not null && ex is TmdbRateLimitException or TmdbAuthenticationException)
             {
                 // Limite TMDb ou jeton refusé : l'utilisateur choisit de terminer sans TMDb ou d'interrompre.
@@ -235,7 +212,7 @@ public sealed class MetadataService(
             }
         }
 
-        return new BatchResult(updated, skipped, failed, notFound, duplicates, messages, toReview);
+        return new BatchResult(updated, skipped, failed, notFound, messages, toReview);
     }
 
     /// <summary>
@@ -290,4 +267,4 @@ public sealed class MetadataService(
     }
 }
 
-public sealed record BatchResult(int Updated, int Skipped, int Failed, int NotFound = 0, int Duplicates = 0, IReadOnlyList<string>? Messages = null, int ToReview = 0);
+public sealed record BatchResult(int Updated, int Skipped, int Failed, int NotFound = 0, IReadOnlyList<string>? Messages = null, int ToReview = 0);

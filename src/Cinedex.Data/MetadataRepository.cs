@@ -15,12 +15,8 @@ public sealed class MetadataRepository(CatalogDatabase database)
         ArgumentNullException.ThrowIfNull(record);
         using var connection = database.Open();
         using var transaction = connection.BeginTransaction();
-        var existing = FindBySource(connection, transaction, record.Kind, record.SourceId);
-        if (existing is not null)
-        {
-            throw new DuplicateTitleException(existing.Value);
-        }
-
+        // Rien n'interdit qu'une autre entrée porte déjà ce numéro TMDb : Cinedex catalogue des fichiers, et
+        // deux sources d'un même film ont chacune leur entrée, que la fusion des doublons regroupe ensuite.
         var id = connection.ExecuteScalar<long>(
             "INSERT INTO title (kind, title, sort_title) VALUES (@Kind, @Title, @SortTitle) RETURNING id;",
             new { Kind = record.Kind == TitleKind.Series ? "series" : "movie", record.Title, SortTitle = SortTitle.Compute(record.Title) },
@@ -46,13 +42,6 @@ public sealed class MetadataRepository(CatalogDatabase database)
         if (locked != 0)
         {
             return false;
-        }
-
-        // SourceId 0 : fiche locale (.nfo) sans identifiant TMDb, pas de risque de doublon.
-        var other = record.SourceId > 0 ? FindBySource(connection, transaction, record.Kind, record.SourceId) : null;
-        if (other is not null && other != titleId)
-        {
-            throw new DuplicateTitleException(other.Value);
         }
 
         ApplyCore(connection, transaction, titleId, record, options);
@@ -263,10 +252,4 @@ public sealed class MetadataRepository(CatalogDatabase database)
                 transaction);
         }
     }
-}
-
-public sealed class DuplicateTitleException(long existingTitleId)
-    : Exception("Ce titre est déjà dans le catalogue.")
-{
-    public long ExistingTitleId { get; } = existingTitleId;
 }

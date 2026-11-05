@@ -1,4 +1,6 @@
 using Cinedex.Core.Titles;
+using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Logging.Abstractions;
 using Cinedex.Data;
 using Dapper;
 
@@ -120,4 +122,68 @@ public sealed class CatalogDatabaseTests
         var copy = new CatalogDatabase(backup);
         Assert.Equal(1, new TitleRepository(copy).Count());
     }
+
+    [Fact]
+    public void Migrating_to_shared_tmdb_ids_keeps_everything_attached_to_the_titles()
+    {
+        using var temp = new TempDirectory();
+        var path = Path.Combine(temp.Path, "cinedex.db");
+        var migrator = new Migrator(NullLogger<CatalogDatabase>.Instance);
+
+        // Un catalogue tel qu'il était avant la migration : schéma v7, avec un film et tout ce qui s'y rattache.
+        using (var connection = new SqliteConnection(new SqliteConnectionStringBuilder
+        {
+            DataSource = path,
+            Mode = SqliteOpenMode.ReadWriteCreate,
+            ForeignKeys = true,
+        }.ToString()))
+        {
+            connection.Open();
+            migrator.Apply(connection, [.. Migrator.All.Where(m => m.Version <= 7)]);
+            Assert.Equal(7, Migrator.CurrentVersion(connection));
+
+            var id = connection.ExecuteScalar<long>(
+                "INSERT INTO title (kind, title, sort_title, year, tmdb_id) VALUES ('movie', 'Heat', 'heat', 1995, 949) RETURNING id;");
+            var copy = connection.ExecuteScalar<long>("INSERT INTO copy (title_id, number) VALUES (@id, 1) RETURNING id;", new { id });
+            connection.Execute("INSERT INTO media_file (copy_id, path, size_bytes) VALUES (@copy, 'D:/Heat.mkv', 700);", new { copy });
+            connection.Execute("INSERT INTO title_genre (title_id, genre_id) SELECT @id, id FROM genre LIMIT 1;", new { id });
+            var person = connection.ExecuteScalar<long>("INSERT INTO person (name) VALUES ('Al Pacino') RETURNING id;");
+            connection.Execute("INSERT INTO credit (title_id, person_id, role) VALUES (@id, @person, 'actor');", new { id, person });
+            connection.Execute("INSERT INTO viewing (title_id, viewed_at) VALUES (@id, '2026-01-02');", new { id });
+
+            // Avant la migration, deux entrées ne pouvaient pas partager un numéro TMDb.
+            Assert.Throws<SqliteException>(() => connection.Execute(
+                "INSERT INTO title (kind, title, sort_title, tmdb_id) VALUES ('movie', 'Heat', 'heat', 949);"));
+        }
+
+        // La migration reconstruit la table : rien de ce qui s'y rattachait ne doit disparaître.
+        var db = new CatalogDatabase(path);
+        db.Initialize(temp.Path);
+        using (var connection = db.Open())
+        {
+            Assert.Equal(Migrator.All[^1].Version, Migrator.CurrentVersion(connection));
+            Assert.Equal(1, connection.ExecuteScalar<int>("SELECT count(*) FROM title;"));
+            Assert.Equal(1, connection.ExecuteScalar<int>("SELECT count(*) FROM copy;"));
+            Assert.Equal(1, connection.ExecuteScalar<int>("SELECT count(*) FROM media_file;"));
+            Assert.Equal(1, connection.ExecuteScalar<int>("SELECT count(*) FROM title_genre;"));
+            Assert.Equal(1, connection.ExecuteScalar<int>("SELECT count(*) FROM credit;"));
+            Assert.Equal(1, connection.ExecuteScalar<int>("SELECT count(*) FROM viewing;"));
+            Assert.Equal(949, connection.ExecuteScalar<long>("SELECT tmdb_id FROM title;"));
+            Assert.Empty(connection.Query("PRAGMA foreign_key_check;"));
+
+            // Et deux entrées peuvent désormais désigner le même film.
+            connection.Execute("INSERT INTO title (kind, title, sort_title, tmdb_id) VALUES ('movie', 'Heat', 'heat', 949);");
+            Assert.Equal(2, connection.ExecuteScalar<int>("SELECT count(*) FROM title WHERE tmdb_id = 949;"));
+
+            // L'index plein texte suit la table reconstruite, déclencheurs compris.
+            Assert.Equal(2, connection.ExecuteScalar<int>("SELECT count(*) FROM title_fts WHERE title_fts MATCH 'heat';"));
+        }
+
+        // Les clés étrangères sont bien rétablies après les migrations.
+        using (var connection = db.Open())
+        {
+            Assert.Equal(1L, connection.ExecuteScalar<long>("PRAGMA foreign_keys;"));
+        }
+    }
+
 }

@@ -118,10 +118,6 @@ public sealed partial class MatchReviewViewModel : ObservableObject
             Done(item, Tr.F("« {0} » lié à « {1} »{2}.", item.Header, result.Title, (result.Year is { } y ? $" ({y})" : string.Empty)));
             ActivityJournal.Current.Write($"À vérifier : « {item.Header} » lié à TMDb {result.SourceId} ({result.Title})");
         }
-        catch (DuplicateTitleException ex)
-        {
-            Message = ex.Message;
-        }
         catch (Exception ex) when (ex is TmdbAuthenticationException or TmdbUnavailableException or HttpRequestException or TaskCanceledException or KeyNotFoundException)
         {
             Message = "TMDb : " + ex.Message;

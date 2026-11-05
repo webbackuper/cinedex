@@ -39,8 +39,9 @@ public sealed class UpdateViaTmdbTests
         var targets = new[] { heat, heatCopy, unknown, locked }.Select(id => titles.Get(id)!).ToList();
         var result = await service.UpdateTitlesAsync(targets, ImportOptions.Default, null, TestContext.Current.CancellationToken);
 
+        // Les deux entrées qui désignent le même film sont mises à jour chacune de son côté.
         Assert.Equal(4, titles.Count());
-        Assert.Equal((1, 1, 1, 1), (result.Updated, result.Duplicates, result.NotFound, result.Skipped));
+        Assert.Equal((2, 1, 1), (result.Updated, result.NotFound, result.Skipped));
 
         var updated = titles.Get(heat)!;
         Assert.Equal("Heat", updated.Title);
@@ -48,7 +49,7 @@ public sealed class UpdateViaTmdbTests
         Assert.Equal(170, updated.RuntimeMinutes);
         Assert.Equal("tt0113277", updated.ImdbId);
         Assert.Single(files.FilesOf(heat));
-        Assert.Null(titles.Get(heatCopy)!.TmdbId);
+        Assert.Equal(949, titles.Get(heatCopy)!.TmdbId);
 
         // Un second passage rafraîchit la même entrée, toujours sans en créer.
         var again = await service.UpdateTitlesAsync([titles.Get(heat)!], ImportOptions.Default, null, TestContext.Current.CancellationToken);

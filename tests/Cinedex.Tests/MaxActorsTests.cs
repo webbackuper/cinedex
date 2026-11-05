@@ -38,7 +38,7 @@ public sealed class MaxActorsTests
 
         var tmdb = new TmdbClient(new HttpClient(new Handler()), _ => ValueTask.FromResult<string?>("token"));
         var service = new MetadataService(tmdb, new MetadataRepository(db), new ImageStore(db, Path.Combine(temp.Path, "img")), NullLogger<MetadataService>.Instance, settings: settings);
-        var (id, _) = await service.ImportAsync(new MetadataSearchResult(TitleKind.Movie, 949, "Heat", null, 1995, null, null, null), ImportOptions.Default, TestContext.Current.CancellationToken);
+        var id = await service.ImportAsync(new MetadataSearchResult(TitleKind.Movie, 949, "Heat", null, 1995, null, null, null), ImportOptions.Default, TestContext.Current.CancellationToken);
 
         using var connection = db.Open();
         Assert.Equal(2, connection.ExecuteScalar<int>("SELECT count(*) FROM credit WHERE title_id = @id AND role = 'actor';", new { id }));

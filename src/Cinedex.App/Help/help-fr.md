@@ -212,8 +212,13 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.30
+- **Plusieurs entrées peuvent désigner le même film** : la base n'impose plus qu'un numéro TMDb soit unique, et Cinedex ne refuse plus de créer une fiche déjà présente. Vos deux sources sont donc deux **jumelles complètes**, toutes deux liées à TMDb et actualisables, jusqu'à ce que vous les fusionniez — là où la seconde restait auparavant sans numéro, donc hors de portée de « Mettre à jour via TMDb ».
+- **Ajouter un doublon à la main est permis** : ajouter depuis TMDb un film déjà au catalogue crée une nouvelle entrée au lieu de rouvrir l'existante. Les séries gardent une seule entrée, puisqu'elles rassemblent leurs épisodes.
+- Cette version **migre le schéma de la base** (une sauvegarde est faite juste avant, dans le dossier des sauvegardes).
+
 ### 0.4.29
-- **Un fichier, une entrée à l'import** : un fichier vidéo d'un film déjà au catalogue, à un autre emplacement, reçoit désormais sa **propre entrée** au lieu d'être rattaché à la première. Cinedex catalogue des fichiers : c'est **« Fusionner les films en double »** (Réglages > Maintenance) qui regroupe ensuite ces entrées en un seul film à plusieurs sources. La seconde entrée reprend la fiche TMDb (synopsis, genres, affiche, identifiant IMDb) sans le numéro TMDb, qui n'appartient qu'à la première ; les deux se retrouvent donc dans les doublons.
+- **Un fichier, une entrée à l'import** : un fichier vidéo d'un film déjà au catalogue, à un autre emplacement, reçoit désormais sa **propre entrée** au lieu d'être rattaché à la première. Cinedex catalogue des fichiers : c'est **« Fusionner les films en double »** (Réglages > Maintenance) qui regroupe ensuite ces entrées en un seul film à plusieurs sources. La seconde entrée reprend la fiche TMDb (synopsis, genres, affiche, identifiants) ; les deux se retrouvent donc dans les doublons. (Depuis la 0.4.30, elle garde aussi le numéro TMDb.)
 - Les **parties annoncées par le nom** (CD1, CD2, part2…) continuent de rejoindre le film qu'elles prolongent, dans l'ordre, quel que soit l'ordre de parcours du dossier.
 
 ### 0.4.28

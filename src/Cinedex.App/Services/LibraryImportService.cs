@@ -208,20 +208,10 @@ public sealed class LibraryImportService(
                 }
                 else if (identification?.Match is { } choice)
                 {
-                    var (id, created) = await metadataService!.ImportAsync(choice, ImportOptions.Default, cancellationToken).ConfigureAwait(false);
-                    if (created)
-                    {
-                        titleId = id;
-                        added++;
-                    }
-                    else
-                    {
-                        // Film déjà au catalogue : ce fichier reçoit sa propre entrée, à fusionner ensuite.
-                        titleId = await metadataService.ImportAnotherCopyAsync(choice, ImportOptions.Default, cancellationToken).ConfigureAwait(false);
-                        added++;
-                        messages.Add(Tr.F("Deuxième source de « {0} » : entrée créée, à regrouper par « Fusionner les films en double ».", candidate.BestTitle));
-                    }
-
+                    // Chaque fichier a son entrée, même si le film est déjà au catalogue sous une autre source :
+                    // « Fusionner les films en double » les regroupe ensuite en un film à plusieurs sources.
+                    titleId = await metadataService!.ImportAsync(choice, ImportOptions.Default, cancellationToken).ConfigureAwait(false);
+                    added++;
                     existingFilms[TitleRepository.KeyOf(TitleKind.Movie, candidate.BestTitle, candidate.BestYear)] = titleId;
                 }
                 else
@@ -330,7 +320,10 @@ public sealed class LibraryImportService(
                 .FirstOrDefault(r => r.Kind == TitleKind.Series);
             if (match is not null)
             {
-                return (await metadataService.ImportAsync(match, ImportOptions.Default, cancellationToken).ConfigureAwait(false)).TitleId;
+                // Une série rassemble ses épisodes : elle garde une seule entrée par fiche TMDb, au contraire
+                // des films, dont chaque fichier a la sienne.
+                return metadataService.FindBySource(TitleKind.Series, match.SourceId)
+                    ?? await metadataService.ImportAsync(match, ImportOptions.Default, cancellationToken).ConfigureAwait(false);
             }
         }
 

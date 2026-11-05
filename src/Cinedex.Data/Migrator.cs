@@ -37,15 +37,28 @@ internal sealed class Migrator(ILogger logger)
     public IReadOnlyList<int> Apply(SqliteConnection connection, IReadOnlyList<Migration> migrations)
     {
         var applied = new List<int>();
-        foreach (var migration in migrations)
+
+        // SQLite ne sait pas retirer une contrainte : une migration qui le demande reconstruit la table, donc
+        // la supprime et la remplace. Sous clés étrangères actives, ce DROP effacerait en cascade tout ce qui
+        // s'y rattache (exemplaires, fichiers, genres, distribution). Elles sont donc relâchées le temps des
+        // migrations, comme le prescrit SQLite ; le pragma est sans effet dans une transaction, d'où sa place ici.
+        connection.Execute("PRAGMA foreign_keys = OFF;");
+        try
         {
-            using var transaction = connection.BeginTransaction();
-            connection.Execute(migration.Sql, transaction: transaction);
-            // PRAGMA n'accepte pas de paramètre ; la valeur vient d'un entier parsé, pas d'une saisie.
-            connection.Execute(Tr.F("PRAGMA user_version = {0};", migration.Version.ToString(CultureInfo.InvariantCulture)), transaction: transaction);
-            transaction.Commit();
-            logger.LogInformation("Migration {Version} ({Name}) appliquée", migration.Version, migration.Name);
-            applied.Add(migration.Version);
+            foreach (var migration in migrations)
+            {
+                using var transaction = connection.BeginTransaction();
+                connection.Execute(migration.Sql, transaction: transaction);
+                // PRAGMA n'accepte pas de paramètre ; la valeur vient d'un entier parsé, pas d'une saisie.
+                connection.Execute(Tr.F("PRAGMA user_version = {0};", migration.Version.ToString(CultureInfo.InvariantCulture)), transaction: transaction);
+                transaction.Commit();
+                logger.LogInformation("Migration {Version} ({Name}) appliquée", migration.Version, migration.Name);
+                applied.Add(migration.Version);
+            }
+        }
+        finally
+        {
+            connection.Execute("PRAGMA foreign_keys = ON;");
         }
 
         return applied;

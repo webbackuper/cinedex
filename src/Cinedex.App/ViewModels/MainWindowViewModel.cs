@@ -1245,11 +1245,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         await RunMetadataAsync(async () =>
         {
-            var (id, created) = await _metadata!.ImportAsync(choice, ImportOptions.Default);
+            var id = await _metadata!.ImportAsync(choice, ImportOptions.Default);
             NewTitleText = string.Empty;
             Refresh(selectId: id);
-            Status = created ? Tr.F("« {0} » ajouté depuis TMDb", choice.Title) : Tr.F("« {0} » est déjà dans le catalogue", choice.Title);
-            Journal(created ? $"Ajouté depuis TMDb : {choice.Title} (TMDb {choice.SourceId})" : $"Déjà au catalogue : {choice.Title}");
+            Status = Tr.F("« {0} » ajouté depuis TMDb", choice.Title);
+            Journal($"Ajouté depuis TMDb : {choice.Title} (TMDb {choice.SourceId})");
         });
     }
 
@@ -1335,8 +1335,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
             var progress = TrackedProgress(targets.Count);
             var result = await _metadata!.UpdateTitlesAsync(targets, ImportOptions.Default, progress, CancellationToken.None);
             Refresh(selectIds: ids);
-            Status = Tr.F("{0} mis à jour, {1} à vérifier, {2} non trouvé(s), {3} doublon(s) évité(s), {4} ignoré(s), {5} échec(s)", result.Updated, result.ToReview, result.NotFound, result.Duplicates, result.Skipped, result.Failed);
-            Journal($"Mise à jour via TMDb de {targets.Count} titre(s) : {result.Updated} mis à jour, {result.ToReview} à vérifier, {result.NotFound} non trouvé(s), {result.Duplicates} doublon(s) évité(s), {result.Skipped} ignoré(s), {result.Failed} échec(s)");
+            Status = Tr.F("{0} mis à jour, {1} à vérifier, {2} non trouvé(s), {3} ignoré(s), {4} échec(s)", result.Updated, result.ToReview, result.NotFound, result.Skipped, result.Failed);
+            Journal($"Mise à jour via TMDb de {targets.Count} titre(s) : {result.Updated} mis à jour, {result.ToReview} à vérifier, {result.NotFound} non trouvé(s), {result.Skipped} ignoré(s), {result.Failed} échec(s)");
             if (result.ToReview > 0)
             {
                 // Les titres sans ambiguïté sont à jour ; il ne reste que les choix à faire.
@@ -1441,7 +1441,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             Status = ex.Message;
             await OpenSettingsAsync();
         }
-        catch (Exception ex) when (ex is TmdbUnavailableException or KeyNotFoundException or DuplicateTitleException or HttpRequestException or TaskCanceledException)
+        catch (Exception ex) when (ex is TmdbUnavailableException or KeyNotFoundException or HttpRequestException or TaskCanceledException)
         {
             Status = ex.Message;
         }

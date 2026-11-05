@@ -127,13 +127,13 @@ public sealed class LibraryImportTests
         var candidates = await service.ScanAsync(library, new ScanOptions { MinimumBytes = 1024 }, TestContext.Current.CancellationToken);
         var result = await service.ImportAsync(candidates, new LibraryImportOptions(), null, TestContext.Current.CancellationToken);
 
-        // Deux entrées, une par fichier : la seconde reprend la fiche sans l'identifiant TMDb, qui n'est qu'à la première.
+        // Deux entrées, une par fichier, toutes deux liées à la même fiche TMDb : chacune reste actualisable.
         Assert.Equal(2, result.Added);
         var both = titles.ListAll();
         Assert.Equal(2, both.Count);
         Assert.All(both, t => Assert.Equal("Heat", t.Title));
         var detailed = both.Select(t => titles.Get(t.Id)!).ToList();
-        Assert.Equal([null, 949L], detailed.Select(t => t.TmdbId).OrderBy(t => t ?? 0));
+        Assert.All(detailed, t => Assert.Equal(949, t.TmdbId));
         Assert.All(detailed, t => Assert.Equal("tt0113277", t.ImdbId));
         Assert.All(detailed, t => Assert.Equal("Un braqueur et un flic.", t.Overview));
         Assert.All(both, t => Assert.Single(files.FilesOf(t.Id)));

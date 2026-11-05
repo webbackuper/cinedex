@@ -172,7 +172,10 @@ public sealed class TmdbTests
             Assert.Equal(1, connection.ExecuteScalar<int>("SELECT count(*) FROM credit WHERE role = 'director';"));
         }
 
-        Assert.Throws<DuplicateTitleException>(() => metadata.Create(record, ImportOptions.Default));
+        // Le même film peut recevoir une seconde entrée : Cinedex catalogue des sources, pas des films.
+        var twin = metadata.Create(record, ImportOptions.Default);
+        Assert.NotEqual(id, twin);
+        Assert.Equal(949, titles.Get(twin)!.TmdbId);
 
         titles.Update(detail with { IsLocked = true, Title = "Mon titre" });
         Assert.False(metadata.Apply(id, record, ImportOptions.Default));

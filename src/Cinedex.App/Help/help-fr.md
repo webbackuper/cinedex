@@ -212,6 +212,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.31
+- **MediaID par ordre alphabétique** : le bandeau gauche classe les disques par leur nom, sans tenir compte de la casse, au lieu du nombre de titres de chacun.
+
 ### 0.4.30
 - **Plusieurs entrées peuvent désigner le même film** : la base n'impose plus qu'un numéro TMDb soit unique, et Cinedex ne refuse plus de créer une fiche déjà présente. Vos deux sources sont donc deux **jumelles complètes**, toutes deux liées à TMDb et actualisables, jusqu'à ce que vous les fusionniez — là où la seconde restait auparavant sans numéro, donc hors de portée de « Mettre à jour via TMDb ».
 - **Ajouter un doublon à la main est permis** : ajouter depuis TMDb un film déjà au catalogue crée une nouvelle entrée au lieu de rouvrir l'existante. Les séries gardent une seule entrée, puisqu'elles rassemblent leurs épisodes.
@@ -222,10 +225,10 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Les **parties annoncées par le nom** (CD1, CD2, part2…) continuent de rejoindre le film qu'elles prolongent, dans l'ordre, quel que soit l'ordre de parcours du dossier.
 
 ### 0.4.28
-- **Vue MediaID plus lisible** : le bandeau gauche n'affiche plus le nombre de titres à côté de chaque disque, qui tronquait les noms longs. Les disques restent classés du mieux garni au moins garni.
+- **Vue MediaID plus lisible** : le bandeau gauche n'affiche plus le nombre de titres à côté de chaque disque, qui tronquait les noms longs.
 
 ### 0.4.27
-- **Vue par MediaID** : le bandeau gauche a un sous-menu **MediaID** qui liste vos disques, avec le nombre de titres sur chacun. Un clic n'affiche que les films de ce disque ; une vue de la Bibliothèque en ressort.
+- **Vue par MediaID** : le bandeau gauche a un sous-menu **MediaID** qui liste vos disques. Un clic n'affiche que les films de ce disque ; une vue de la Bibliothèque en ressort.
 - **Colonne MediaID** : dans **Réglages > Liste des films**, la colonne « Emplacement » laisse la place au **MediaID**, c'est-à-dire le disque qui porte le fichier. Un titre réparti sur plusieurs disques les affiche tous.
 
 ### 0.4.26

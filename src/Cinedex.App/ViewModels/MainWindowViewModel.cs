@@ -20,12 +20,6 @@ public sealed record Choice<T>(T Value, string Label)
 }
 
 /// <summary>Entrée de la barre latérale (type non générique, utilisable dans les modèles XAML).</summary>
-/// <summary>
-/// Un disque du catalogue dans le bandeau gauche. Le nombre de titres sert à classer les disques, pas à
-/// s'afficher : le bandeau est étroit et le nom du disque a besoin de toute sa largeur.
-/// </summary>
-public sealed record MediaIdItem(string MediaId, int Titles);
-
 public sealed record FilterItem(QuickFilter Value, string Label)
 {
     public override string ToString() => Label;
@@ -433,7 +427,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// <summary>Disques du catalogue (MediaID) listés dans le bandeau gauche, les mieux garnis d'abord.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasMediaIds))]
-    public partial IReadOnlyList<MediaIdItem> MediaIds { get; private set; } = [];
+    public partial IReadOnlyList<string> MediaIds { get; private set; } = [];
 
     public bool HasMediaIds => MediaIds.Count > 0;
 
@@ -445,25 +439,22 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     /// <summary>Disque choisi : la liste ne montre que ses titres. Le reprendre, ou un filtre, revient à tout.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(SelectedMediaIdName))]
-    public partial MediaIdItem? SelectedMediaId { get; set; }
+    public partial string? SelectedMediaId { get; set; }
 
-    public string? SelectedMediaIdName => SelectedMediaId?.MediaId;
-
-    partial void OnSelectedMediaIdChanged(MediaIdItem? value)
+    partial void OnSelectedMediaIdChanged(string? value)
     {
         // Un disque et une recherche multicritère ne se cumulent pas : le disque remplace les critères.
-        Rules = value is null ? null : new RuleSearch([new SearchRule("media_id", RuleOperator.Equals, value.MediaId)]);
+        Rules = value is null ? null : new RuleSearch([new SearchRule("media_id", RuleOperator.Equals, value)]);
     }
 
     private void LoadMediaIds()
     {
-        var chosen = SelectedMediaId?.MediaId;
-        MediaIds = [.. _titles.MediaIds().Select(d => new MediaIdItem(d.MediaId, d.Titles))];
+        var chosen = SelectedMediaId;
+        MediaIds = _titles.MediaIds();
         if (chosen is not null)
         {
             // La sélection suit le disque s'il est toujours là ; sinon elle est relâchée.
-            SelectedMediaId = MediaIds.FirstOrDefault(d => string.Equals(d.MediaId, chosen, StringComparison.Ordinal));
+            SelectedMediaId = MediaIds.FirstOrDefault(d => string.Equals(d, chosen, StringComparison.Ordinal));
         }
     }
 

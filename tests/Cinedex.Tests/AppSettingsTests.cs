@@ -219,12 +219,15 @@ public sealed class AppSettingsTests : IDisposable
         var b = Directory.CreateDirectory(Path.Combine(_temp.Path, "B")).FullName;
         var onA = new MediaFileRepository(_db) { VolumeProvider = () => new Volumes([(a, "FILMS-A")]) };
         var onB = new MediaFileRepository(_db) { VolumeProvider = () => new Volumes([(b, "FILMS-B")]) };
+        var c = Directory.CreateDirectory(Path.Combine(_temp.Path, "C")).FullName;
+        var onC = new MediaFileRepository(_db) { VolumeProvider = () => new Volumes([(c, "archives")]) };
         onA.Attach(heat, Path.Combine(a, "Heat.mkv"), 10);
         onA.Attach(alien, Path.Combine(a, "Alien.mkv"), 10);
         onB.Attach(ran, Path.Combine(b, "Ran.mkv"), 10);
+        onC.Attach(ran, Path.Combine(c, "Ran (copie).mkv"), 10);
 
-        // Les disques sont listés, les mieux garnis d'abord.
-        Assert.Equal([("FILMS-A", 2), ("FILMS-B", 1)], titles.MediaIds());
+        // Ordre alphabétique, sans égard au nombre de titres ni à la casse : « archives » précède « FILMS-A ».
+        Assert.Equal(["archives", "FILMS-A", "FILMS-B"], titles.MediaIds());
 
         var files = new MediaFileRepository(_db);
         var import = new LibraryImportService(titles, files, new ImageStore(_db, Path.Combine(_temp.Path, "img")), null,
@@ -233,16 +236,13 @@ public sealed class AppSettingsTests : IDisposable
         main.Load();
 
         Assert.True(main.HasMediaIds);
-        // Classés par nombre de titres, mais le bandeau n'affiche que le nom du disque.
-        Assert.Equal(["FILMS-A", "FILMS-B"], main.MediaIds.Select(d => d.MediaId));
-        Assert.Equal([2, 1], main.MediaIds.Select(d => d.Titles));
+        Assert.Equal(["archives", "FILMS-A", "FILMS-B"], main.MediaIds);
 
         // Choisir un disque ne montre que ses films.
-        main.SelectedMediaId = main.MediaIds.Single(d => d.MediaId == "FILMS-B");
+        main.SelectedMediaId = "FILMS-B";
         Assert.Equal(["Ran"], main.Titles.Select(t => t.Title));
-        Assert.Equal("FILMS-B", main.SelectedMediaIdName);
 
-        main.SelectedMediaId = main.MediaIds.Single(d => d.MediaId == "FILMS-A");
+        main.SelectedMediaId = "FILMS-A";
         Assert.Equal(["Alien", "Heat"], main.Titles.Select(t => t.Title));
 
         // Changer de vue sort du disque.
@@ -251,7 +251,7 @@ public sealed class AppSettingsTests : IDisposable
         Assert.Equal(3, main.Titles.Count);
 
         // Et recliquer la vue déjà choisie en sort aussi : le filtre ne bouge pas, l'intention est de tout revoir.
-        main.SelectedMediaId = main.MediaIds[0];
+        main.SelectedMediaId = "FILMS-A";
         Assert.Equal(2, main.Titles.Count);
         main.LeaveSideViews();
         Assert.Null(main.SelectedMediaId);

@@ -274,10 +274,10 @@
             <ListBox Classes="nav" Margin="{StaticResource Before6}" ItemsSource="{Binding MediaIds}" SelectedItem="{Binding SelectedMediaId}"
                      IsVisible="{Binding IsMediaIdExpanded}" AutomationProperties.Name="Disques du catalogue">
               <ListBox.ItemTemplate>
-                <DataTemplate x:DataType="vm:MediaIdItem">
+                <DataTemplate x:DataType="x:String">
                   <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
                     <controls:Icon Kind="harddisk" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" />
-                    <TextBlock Text="{Binding MediaId}" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding}" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                   </StackPanel>
                 </DataTemplate>
               </ListBox.ItemTemplate>

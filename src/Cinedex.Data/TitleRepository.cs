@@ -39,20 +39,16 @@ public sealed partial class TitleRepository(CatalogDatabase database)
         END
         """;
 
-    /// <summary>
-    /// Disques du catalogue (MediaID) et nombre de titres sur chacun, les mieux garnis d'abord. Un titre dont les
-    /// fichiers sont répartis sur plusieurs disques compte pour chacun d'eux.
-    /// </summary>
-    public IReadOnlyList<(string MediaId, int Titles)> MediaIds()
+    /// <summary>Disques du catalogue (MediaID), par ordre alphabétique, tels que le bandeau gauche les liste.</summary>
+    public IReadOnlyList<string> MediaIds()
     {
         using var connection = database.Open();
-        return connection.Query<(string Label, long Count)>(
+        return connection.Query<string>(
                 """
-                SELECT mf.volume_label, count(DISTINCT c.title_id) FROM media_file mf JOIN copy c ON c.id = mf.copy_id
+                SELECT DISTINCT mf.volume_label FROM media_file mf
                 WHERE mf.volume_label IS NOT NULL AND trim(mf.volume_label) <> ''
-                GROUP BY mf.volume_label ORDER BY 2 DESC, mf.volume_label;
+                ORDER BY mf.volume_label COLLATE NOCASE;
                 """)
-            .Select(r => (r.Label, (int)r.Count))
             .ToList();
     }
 

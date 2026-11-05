@@ -475,7 +475,7 @@
  "Mystère": "ミステリー",
  "Métadonnées": "メタデータ",
  "Même identifiant IMDb, ou même titre et même année ; rien n'est supprimé": "IMDb ID が同じ、またはタイトルと年が同じ作品。何も削除されません",
- "Même titre et même année": "同じタイトル・同じ年",
+ "Même titre et même année, sans identifiant": "タイトルと年が同じ、識別子なし",
  "Nettoyage": "クリーンアップ",
  "Nettoyer les images inutilisées": "未使用の画像を整理",
  "Nettoyer les images inutilisées…": "未使用の画像を整理…",

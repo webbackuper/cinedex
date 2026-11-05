@@ -476,7 +476,7 @@
  "Mystère": "غموض",
  "Métadonnées": "البيانات الوصفية",
  "Même identifiant IMDb, ou même titre et même année ; rien n'est supprimé": "معرّف IMDb نفسه، أو العنوان والسنة نفسيهما؛ لا يُحذف شيء",
- "Même titre et même année": "العنوان والسنة نفسيهما",
+ "Même titre et même année, sans identifiant": "العنوان والسنة نفسهما، بلا معرّف",
  "Nettoyage": "التنظيف",
  "Nettoyer les images inutilisées": "تنظيف الصور غير المستخدمة",
  "Nettoyer les images inutilisées…": "تنظيف الصور غير المستخدمة…",

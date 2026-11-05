@@ -68,8 +68,11 @@ public sealed class MaintenanceRepository(CatalogDatabase database)
     }
 
     /// <summary>
-    /// Doublons possibles : même identifiant IMDb, ou même titre (sans accents, casse ni ponctuation) et même genre
-    /// de titre, avec la même année ou une année inconnue. Rien n'est supprimé : la liste sert à vérifier.
+    /// Doublons : deux entrées qui désignent la même œuvre, c'est-à-dire qui partagent leur fiche TMDb ou leur
+    /// identifiant IMDb. Les liens se propagent : A et B par TMDb, B et C par IMDb, les trois ne font qu'un groupe.
+    /// Deux entrées dont les identifiants diffèrent ne sont jamais rapprochées, même à titre et année identiques :
+    /// ce sont des films distincts. Le titre et l'année ne servent que pour celles qui n'ont aucun identifiant,
+    /// où rien ne peut les contredire. Rien n'est supprimé : la liste sert à vérifier.
     /// </summary>
     public IReadOnlyList<DuplicateGroup> FindDuplicateTitles()
     {
@@ -84,24 +87,64 @@ public sealed class MaintenanceRepository(CatalogDatabase database)
         DuplicateTitle Row((long Id, string Title, long? Year, string Kind, long? TmdbId, string? ImdbId, long Files) r) =>
             new(r.Id, r.Title, (int?)r.Year, r.Kind, r.TmdbId, (int)r.Files);
 
-        var groups = new List<DuplicateGroup>();
-        var grouped = new HashSet<long>();
-        foreach (var same in rows.Where(r => r.ImdbId is not null).GroupBy(r => (r.Kind, r.ImdbId)).Where(g => g.Count() > 1))
+        // Chaque entrée commence seule ; partager un identifiant les réunit, de proche en proche.
+        var leader = rows.ToDictionary(r => r.Id, r => r.Id);
+        long Leader(long id)
         {
-            groups.Add(new DuplicateGroup($"IMDb {same.Key.ImdbId}", [.. same.Select(Row)]));
-            grouped.UnionWith(same.Select(r => r.Id));
+            while (leader[id] != id)
+            {
+                leader[id] = leader[leader[id]];
+                id = leader[id];
+            }
+
+            return id;
         }
 
-        foreach (var same in rows.Where(r => !grouped.Contains(r.Id)).GroupBy(r => (r.Kind, Key: NormalizeTitle(r.Title))).Where(g => g.Count() > 1))
+        void Join(IEnumerable<long> ids)
         {
-            // Même titre : on sépare les années connues différentes (remakes) ; une année inconnue rejoint chaque groupe.
-            var known = same.Where(r => r.Year is not null).GroupBy(r => r.Year).ToList();
-            var unknown = same.Where(r => r.Year is null).ToList();
-            var sets = known.Count == 0 ? [unknown] : known.Select(g => g.Concat(unknown).ToList()).ToList();
-            foreach (var set in sets.Where(s => s.Count > 1))
+            long? first = null;
+            foreach (var id in ids)
             {
-                groups.Add(new DuplicateGroup(Cinedex.Core.Localization.Tr.T("Même titre et même année"), [.. set.Select(Row)]));
+                if (first is not { } head)
+                {
+                    first = id;
+                    continue;
+                }
+
+                var (a, b) = (Leader(head), Leader(id));
+                if (a != b)
+                {
+                    leader[a] = b;
+                }
             }
+        }
+
+        foreach (var same in rows.Where(r => r.TmdbId is not null).GroupBy(r => (r.Kind, r.TmdbId)))
+        {
+            Join(same.Select(r => r.Id));
+        }
+
+        foreach (var same in rows.Where(r => r.ImdbId is not null).GroupBy(r => (r.Kind, r.ImdbId)))
+        {
+            Join(same.Select(r => r.Id));
+        }
+
+        // Sans aucun identifiant, il ne reste que le titre et l'année pour rapprocher deux entrées scannées.
+        foreach (var same in rows.Where(r => r is { TmdbId: null, ImdbId: null })
+                     .GroupBy(r => (r.Kind, Key: NormalizeTitle(r.Title), r.Year)))
+        {
+            Join(same.Select(r => r.Id));
+        }
+
+        var groups = new List<DuplicateGroup>();
+        foreach (var set in rows.GroupBy(r => Leader(r.Id)).Where(g => g.Count() > 1))
+        {
+            var tmdb = set.Select(r => r.TmdbId).OfType<long>().FirstOrDefault();
+            var imdb = set.Select(r => r.ImdbId).OfType<string>().FirstOrDefault();
+            var reason = tmdb != 0 ? $"TMDb {tmdb}"
+                : imdb is not null ? $"IMDb {imdb}"
+                : Cinedex.Core.Localization.Tr.T("Même titre et même année, sans identifiant");
+            groups.Add(new DuplicateGroup(reason, [.. set.Select(Row)]));
         }
 
         return groups;

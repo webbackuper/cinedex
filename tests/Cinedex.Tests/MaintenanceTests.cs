@@ -277,4 +277,50 @@ public sealed class MaintenanceTests : IDisposable
         Assert.Empty(_maintenance.FindDuplicateTitles());
     }
 
+
+    [Fact]
+    public void Duplicates_follow_the_identifiers_not_the_title()
+    {
+        long Add(string title, int year, long? tmdb, string? imdb)
+        {
+            var id = _titles.Add(new NewTitle(TitleKind.Movie, title, year));
+            using var connection = _db.Open();
+            connection.Execute("UPDATE title SET tmdb_id = @tmdb, imdb_id = @imdb WHERE id = @id;", new { id, tmdb, imdb });
+            return id;
+        }
+
+        // Deux films distincts qui portent le même titre et la même année : leurs identifiants le disent.
+        Add("Heat", 1995, 949, "tt0113277");
+        Add("Heat", 1995, 11423, "tt0112911");
+        Assert.Empty(_maintenance.FindDuplicateTitles());
+
+        // Deux entrées de la même fiche TMDb : c'est un doublon, quels que soient leurs fichiers.
+        var first = Add("Heat", 1995, 42, "tt0000042");
+        var second = Add("Heat", 1995, 42, null);
+        var group = Assert.Single(_maintenance.FindDuplicateTitles());
+        Assert.Equal("TMDb 42", group.Reason);
+        Assert.Equal([first, second], group.Titles.Select(t => t.Id).Order());
+
+        // Le lien se propage : la troisième rejoint par son identifiant IMDb, pas par son titre.
+        var third = Add("Autre montage", 1995, null, "tt0000042");
+        var wider = Assert.Single(_maintenance.FindDuplicateTitles());
+        Assert.Equal([first, second, third], wider.Titles.Select(t => t.Id).Order());
+
+        // Un titre sans aucun identifiant ne rejoint personne par son seul nom.
+        Add("Heat", 1995, null, null);
+        Assert.Single(_maintenance.FindDuplicateTitles());
+    }
+
+    [Fact]
+    public void Scanned_titles_without_any_identifier_still_pair_up_by_title_and_year()
+    {
+        _titles.Add(new NewTitle(TitleKind.Movie, "Ran", 1985));
+        _titles.Add(new NewTitle(TitleKind.Movie, "ran", 1985));
+        _titles.Add(new NewTitle(TitleKind.Movie, "Ran", 2000));
+
+        var group = Assert.Single(_maintenance.FindDuplicateTitles());
+        Assert.Equal(2, group.Titles.Count);
+        Assert.Contains("identifiant", group.Reason, StringComparison.Ordinal);
+    }
+
 }

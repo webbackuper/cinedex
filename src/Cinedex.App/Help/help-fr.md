@@ -154,7 +154,7 @@ L'onglet **Réglages > Maintenance** affiche l'emplacement, la taille et le cont
 - **Purger le catalogue** : efface tout le contenu du catalogue ouvert (titres, exemplaires, fichiers, personnes, collections, prêts, séries, images). Ses réglages, listes de référence, champs personnalisés, filtres enregistrés et dossiers à analyser restent. Deux confirmations sont demandées ; la base est sauvegardée juste avant (dossier des sauvegardes), mais pas les images.
 - **Retirer les acteurs inutilisés** : personnes qui ne figurent plus dans aucun générique (le nombre est indiqué sur le bouton).
 - **Fusionner les doublons d'acteurs et de réalisateurs** : les fiches au nom identique (accents et majuscules ignorés) sont regroupées ; deux homonymes aux fiches TMDb ou IMDb différentes restent distincts.
-- **Trouver les films en double** : même identifiant IMDb, ou même titre et même année. Rien n'est supprimé ; un double-clic sur un titre l'affiche dans la liste.
+- **Trouver les films en double** : même fiche TMDb ou même identifiant IMDb ; à défaut d'identifiant, même titre et même année. Rien n'est supprimé ; un double-clic sur un titre l'affiche dans la liste.
 - **Fusionner les films en double** : regroupe chaque groupe en une seule fiche, qui garde tous les fichiers vidéo (une version d'encodage par partie). Le compte rendu distingue les vraies versions des copies d'un même encodage, d'après MediaInfo.
 - **Renuméroter les films selon le tri actuel** : les exemplaires (colonne N°) sont numérotés de 1 à n dans l'ordre de tri de la liste principale (par exemple Titre ↑ ou Date d'ajout ↓).
 - **Supprimer les collections, tags et groupes vides** et **Nettoyer les images inutilisées** (affiches, fonds et photos que plus rien n'utilise).
@@ -212,6 +212,10 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.4.32
+- **Les doublons suivent les identifiants** : deux entrées sont un doublon quand elles partagent leur **fiche TMDb ou leur identifiant IMDb**. Deux films qui portent le même titre et la même année mais dont les identifiants diffèrent ne sont plus rapprochés : ce sont des films distincts. Les liens se propagent, donc trois entrées liées deux à deux forment un seul groupe.
+- Le titre et l'année ne servent plus que pour les entrées **sans aucun identifiant**, où rien ne peut les contredire : deux fichiers scannés et jamais identifiés continuent de se retrouver.
+
 ### 0.4.31
 - **MediaID par ordre alphabétique** : le bandeau gauche classe les disques par leur nom, sans tenir compte de la casse, au lieu du nombre de titres de chacun.
 

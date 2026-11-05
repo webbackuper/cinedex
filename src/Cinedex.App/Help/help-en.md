@@ -154,7 +154,7 @@ The **Settings > Maintenance** tab shows the location, size and contents of the 
 - **Purge the catalog**: deletes all the content of the open catalog (titles, copies, files, people, collections, loans, series, images). Its settings, reference lists, custom fields, saved filters and scan folders are kept. Two confirmations are asked; the database is backed up just before (backups folder), but images are not.
 - **Remove unused actors**: people who no longer appear in any credits (the number is shown on the button).
 - **Merge duplicate actors and directors**: records with the same name (ignoring accents and capitals) are grouped; two namesakes with different TMDb or IMDb records stay separate.
-- **Find duplicate films**: same IMDb ID, or same title and same year. Nothing is deleted; double-clicking a title shows it in the list.
+- **Find duplicate films**: same TMDb record or same IMDb ID; failing any identifier, same title and same year. Nothing is deleted; double-clicking a title shows it in the list.
 - **Merge duplicate films**: gathers each group into a single entry, which keeps every video file (one encoding version per part). The report tells real versions from copies of the same encoding, from MediaInfo.
 - **Renumber the films in the current sort order**: copies (No. column) are numbered from 1 to n in the sort order of the main list (for example Title ↑ or Date added ↓).
 - **Delete empty collections, tags and groups** and **Clean up unused images** (posters, backdrops and photos nothing uses any more).
@@ -212,6 +212,10 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.32
+- **Duplicates follow the identifiers**: two entries are a duplicate when they share their **TMDb record or their IMDb id**. Two films with the same title and year but different identifiers are no longer paired: they are distinct films. Links propagate, so three entries linked two by two form a single group.
+- Title and year are now used only for entries **without any identifier**, where nothing can contradict them: two scanned files never identified still find each other.
+
 ### 0.4.31
 - **MediaIDs in alphabetical order**: the left sidebar sorts the discs by name, ignoring case, instead of by how many titles each holds.
 

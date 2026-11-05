@@ -275,11 +275,10 @@
                      IsVisible="{Binding IsMediaIdExpanded}" AutomationProperties.Name="Disques du catalogue">
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:MediaIdItem">
-                  <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="{StaticResource Space3}">
+                  <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
                     <controls:Icon Kind="harddisk" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" />
-                    <TextBlock Grid.Column="1" Text="{Binding MediaId}" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                    <TextBlock Grid.Column="2" Text="{Binding CountLabel}" Classes="muted" FontSize="{StaticResource FontSmall}" VerticalAlignment="Center" />
-                  </Grid>
+                    <TextBlock Text="{Binding MediaId}" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
                 </DataTemplate>
               </ListBox.ItemTemplate>
             </ListBox>

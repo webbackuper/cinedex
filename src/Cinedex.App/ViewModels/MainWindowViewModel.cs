@@ -20,11 +20,11 @@ public sealed record Choice<T>(T Value, string Label)
 }
 
 /// <summary>Entrée de la barre latérale (type non générique, utilisable dans les modèles XAML).</summary>
-/// <summary>Un disque du catalogue dans le bandeau gauche : son MediaID et le nombre de titres qu'il porte.</summary>
-public sealed record MediaIdItem(string MediaId, int Titles)
-{
-    public string CountLabel => Titles == 1 ? Tr.T("1 titre") : Tr.F("{0} titres", Titles);
-}
+/// <summary>
+/// Un disque du catalogue dans le bandeau gauche. Le nombre de titres sert à classer les disques, pas à
+/// s'afficher : le bandeau est étroit et le nom du disque a besoin de toute sa largeur.
+/// </summary>
+public sealed record MediaIdItem(string MediaId, int Titles);
 
 public sealed record FilterItem(QuickFilter Value, string Label)
 {

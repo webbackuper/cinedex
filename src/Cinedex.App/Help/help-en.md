@@ -212,6 +212,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.4.28
+- **More readable MediaID view**: the left sidebar no longer shows the number of titles next to each disc, which was truncating long names. The discs are still ordered from the fullest to the emptiest.
+
 ### 0.4.27
 - **View by MediaID**: the left sidebar has a **MediaID** submenu listing your discs, with the number of titles on each. A click shows only that disc's films; a Library view leaves it.
 - **MediaID column**: in **Settings > Film list**, the “Location” column gives way to the **MediaID**, that is the disc holding the file. A title spread over several discs shows them all.

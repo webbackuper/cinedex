@@ -233,9 +233,9 @@ public sealed class AppSettingsTests : IDisposable
         main.Load();
 
         Assert.True(main.HasMediaIds);
+        // Classés par nombre de titres, mais le bandeau n'affiche que le nom du disque.
         Assert.Equal(["FILMS-A", "FILMS-B"], main.MediaIds.Select(d => d.MediaId));
-        Assert.Equal("2 titres", main.MediaIds[0].CountLabel);
-        Assert.Equal("1 titre", main.MediaIds[1].CountLabel);
+        Assert.Equal([2, 1], main.MediaIds.Select(d => d.Titles));
 
         // Choisir un disque ne montre que ses films.
         main.SelectedMediaId = main.MediaIds.Single(d => d.MediaId == "FILMS-B");

@@ -41,6 +41,9 @@ public sealed record CatalogStatistics
     /// <summary>Titres liés à TMDb dont la bande-annonce manque.</summary>
     public int WithoutTrailer { get; init; }
 
+    /// <summary>Titres liés à TMDb dont aucun mot-clé n'a été rapatrié.</summary>
+    public int WithoutKeywords { get; init; }
+
     public int ToReview { get; init; }
 
     public IReadOnlyList<StatCount> Genres { get; init; } = [];
@@ -78,6 +81,8 @@ public sealed class StatisticsRepository(CatalogDatabase database)
             LinkedToTmdb = Count("SELECT count(*) FROM title WHERE tmdb_id IS NOT NULL;"),
             WithoutMetadata = Count($"SELECT count(*) FROM title t WHERE {TitleRepository.WithoutMetadata};"),
             WithoutTrailer = Count("SELECT count(*) FROM title WHERE tmdb_id IS NOT NULL AND coalesce(trailer_url, '') = '' AND is_locked = 0;"),
+            WithoutKeywords = Count(
+                "SELECT count(*) FROM title t WHERE t.tmdb_id IS NOT NULL AND t.is_locked = 0 AND NOT EXISTS (SELECT 1 FROM title_keyword tk WHERE tk.title_id = t.id);"),
             ToReview = Count("SELECT count(*) FROM match_review;"),
             Genres = Distribution(connection,
                 """

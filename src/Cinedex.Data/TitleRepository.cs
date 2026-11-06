@@ -79,6 +79,22 @@ public sealed partial class TitleRepository(CatalogDatabase database)
     }
 
     /// <summary>
+    /// Titres rattachés à TMDb sans aucun mot-clé. Les mots-clés n'étaient pas gardés avant la 0.6 : une mise
+    /// à jour TMDb les rapatrie, et c'est ce que rattrape cette liste.
+    /// </summary>
+    public IReadOnlyList<long> WithoutKeywordIds()
+    {
+        using var connection = database.Open();
+        return connection.Query<long>(
+            """
+            SELECT t.id FROM title t
+            WHERE t.tmdb_id IS NOT NULL AND t.is_locked = 0
+              AND NOT EXISTS (SELECT 1 FROM title_keyword tk WHERE tk.title_id = t.id)
+            ORDER BY t.sort_title, t.id;
+            """).ToList();
+    }
+
+    /// <summary>
     /// Clé de rapprochement d'un titre : genre, titre normalisé (sans accents, casse ni ponctuation) et année.
     /// Même règle que la recherche de doublons de la maintenance.
     /// </summary>

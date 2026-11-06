@@ -36,6 +36,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly Func<SettingsViewModel>? _settings;
     private readonly MediaContext? _media;
     private readonly CatalogsViewModel? _catalogs;
+    private readonly RecommendationRepository? _recommendations;
+    private readonly SuggestionRepository? _suggestions;
     private bool _refreshing;
     private bool _loaded;
 
@@ -47,8 +49,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ImageStore? images = null,
         Func<SettingsViewModel>? settings = null,
         MediaContext? media = null,
-        CatalogsViewModel? catalogs = null)
+        CatalogsViewModel? catalogs = null,
+        RecommendationRepository? recommendations = null,
+        SuggestionRepository? suggestions = null)
     {
+        _recommendations = recommendations;
+        _suggestions = suggestions;
         _titles = titles;
         _paths = paths;
         _dialogs = dialogs;
@@ -653,6 +659,134 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     public partial string? TechnicalSummary { get; set; }
 
+    /// <summary>
+    /// « Vous aimerez aussi » : titres du catalogue proches de la fiche affichée, chacun avec la raison du
+    /// rapprochement. Calculé sur la base, donc instantané et hors ligne ; vide quand rien ne ressort.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSimilar))]
+    public partial IReadOnlyList<SimilarTitle> Similar { get; private set; } = [];
+
+    public bool HasSimilar => Similar.Count > 0;
+
+    private void LoadSimilar()
+    {
+        if (_recommendations is null || Detail is null)
+        {
+            Similar = [];
+            return;
+        }
+
+        var found = _recommendations.For(Detail.Id);
+        if (found.Count == 0)
+        {
+            Similar = [];
+            return;
+        }
+
+        // Les fiches viennent de la requête ordinaire (affiche, année, notes) ; l'ordre reste celui des scores.
+        var rows = _titles.Query(new TitleQuery(Ids: found.Select(r => r.TitleId).ToList())).Select(Prepare).ToDictionary(t => t.Id);
+        Similar = found.Where(r => rows.ContainsKey(r.TitleId))
+            .Select(r => new SimilarTitle(rows[r.TitleId], r.Reason))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Suggestions de TMDb pour la fiche affichée. Elles portent surtout sur des films que vous n'avez pas :
+    /// elles complètent « Vous aimerez aussi » plutôt que de le remplacer. Récupérées à la demande, puis
+    /// gardées en base : ouvrir une fiche ne coûte jamais d'appel réseau.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasTmdbSuggestions))]
+    public partial IReadOnlyList<TmdbSuggestion> TmdbSuggestions { get; private set; } = [];
+
+    public bool HasTmdbSuggestions => TmdbSuggestions.Count > 0;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(FetchSuggestionsCommand))]
+    public partial bool SuggestionsFetched { get; private set; }
+
+    private void LoadSuggestions()
+    {
+        if (_suggestions is null || Detail is null)
+        {
+            TmdbSuggestions = [];
+            SuggestionsFetched = false;
+            return;
+        }
+
+        TmdbSuggestions = _suggestions.For(Detail.Id);
+        SuggestionsFetched = _suggestions.WasFetched(Detail.Id);
+        FetchSuggestionsCommand.NotifyCanExecuteChanged();
+    }
+
+    private bool CanFetchSuggestions() =>
+        _suggestions is not null && _metadata is not null && !IsBusy && !SuggestionsFetched && Detail?.TmdbId is not null;
+
+    /// <summary>Demande à TMDb ses suggestions pour la fiche affichée, une seule fois par titre.</summary>
+    [RelayCommand(CanExecute = nameof(CanFetchSuggestions))]
+    private async Task FetchSuggestionsAsync()
+    {
+        if (Detail is not { TmdbId: { } sourceId } detail || _suggestions is null)
+        {
+            return;
+        }
+
+        await RunMetadataAsync(async () =>
+        {
+            var found = await _metadata!.RecommendationsAsync(detail.Kind, sourceId, CancellationToken.None);
+            _suggestions.Save(detail.Id, found);
+            LoadSuggestions();
+            Status = found.Count == 0
+                ? Tr.T("TMDb ne propose rien pour ce titre.")
+                : Tr.F("{0} suggestion(s) de TMDb.", found.Count);
+        });
+    }
+
+    /// <summary>Ouvre une suggestion déjà au catalogue, ou ajoute l'autre à la liste de souhaits.</summary>
+    [RelayCommand]
+    private async Task OpenSuggestionAsync(TmdbSuggestion? suggestion)
+    {
+        if (suggestion is null)
+        {
+            return;
+        }
+
+        if (suggestion.OwnedTitleId is { } owned)
+        {
+            GoToTitle(owned);
+            return;
+        }
+
+        if (_metadata is null || !await _dialogs.ConfirmAsync(
+                "Ajouter à la liste de souhaits",
+                Tr.F("Ajouter « {0} » à votre liste de souhaits ? Sa fiche est rapatriée de TMDb, et il est marqué non possédé.", suggestion.Name)))
+        {
+            return;
+        }
+
+        await RunMetadataAsync(async () =>
+        {
+            var result = new MetadataSearchResult(suggestion.Kind, suggestion.TmdbId, suggestion.Name, null, suggestion.Year, null, suggestion.PosterPath, suggestion.Rating);
+            var id = await _metadata.ImportAsync(result, ImportOptions.Default);
+            _titles.SetOwned([id], false);
+            LoadSuggestions();
+            Refresh(selectId: id);
+            Status = Tr.F("« {0} » ajouté à la liste de souhaits.", suggestion.Name);
+            Journal($"Ajouté à la liste de souhaits depuis les suggestions TMDb : {suggestion.Name} (TMDb {suggestion.TmdbId})");
+        });
+    }
+
+    /// <summary>Ouvre la fiche d'un titre proposé par « Vous aimerez aussi ».</summary>
+    [RelayCommand]
+    private void OpenSimilar(SimilarTitle? similar)
+    {
+        if (similar is not null)
+        {
+            GoToTitle(similar.Title.Id);
+        }
+    }
+
     /// <summary>Distribution (acteurs, avec photo et personnage) du titre affiché.</summary>
     public ObservableCollection<CastMember> Cast { get; } = [];
 
@@ -1094,6 +1228,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         DetailFiles = Detail is null || _media is null ? [] : _media.Files.FilesOf(Detail.Id);
         TechnicalSummary = Detail is null ? null : MediaTextOf(Detail.Id);
         DetailGenres = Detail is null ? [] : _titles.GenreLabels(Detail.Id).Select(Tr.T).ToList();
+        LoadSimilar();
+        LoadSuggestions();
         LoadCredits();
         LinkToTmdbCommand.NotifyCanExecuteChanged();
         OpenSeriesCommand.NotifyCanExecuteChanged();
@@ -1416,24 +1552,26 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Rapatrie les bandes-annonces manquantes (bouton de Réglages &gt; Métadonnées). C'est une mise à jour TMDb
-    /// ordinaire, restreinte aux fiches qui n'ont pas encore de bande-annonce : rien de neuf à appeler.
+    /// Passe de rattrapage (boutons de Réglages &gt; Métadonnées) : une mise à jour TMDb ordinaire restreinte
+    /// aux fiches auxquelles il manque quelque chose. Rien de neuf à appeler, le détail complet suffit.
     /// </summary>
-    public async Task UpdateMissingTrailersAsync()
+    public async Task UpdateMissingAsync(Func<IReadOnlyList<long>> missing, Func<int, string> scope, string nothingToDo)
     {
+        ArgumentNullException.ThrowIfNull(missing);
+        ArgumentNullException.ThrowIfNull(scope);
         if (_metadata is null || IsBusy)
         {
             return;
         }
 
-        var ids = _titles.WithoutTrailerIds();
+        var ids = missing();
         if (ids.Count == 0)
         {
-            Status = Tr.T("Toutes les fiches liées à TMDb ont leur bande-annonce.");
+            Status = nothingToDo;
             return;
         }
 
-        await UpdateViaTmdbAsync(ids, Tr.F("les {0} titre(s) sans bande-annonce", ids.Count));
+        await UpdateViaTmdbAsync(ids, scope(ids.Count));
     }
 
     private async Task UpdateViaTmdbAsync(IReadOnlyList<long> ids, string scope)
@@ -1532,14 +1670,26 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 GoToTitle(titleId);
             }
 
-            if (settings.PendingUpdateUnlinked)
+            // Boutons de l'onglet Métadonnées : la fenêtre vient de se fermer, la passe démarre ici.
+            switch (settings.Pending)
             {
-                // Bouton de l'onglet Métadonnées : la fenêtre vient de se fermer, la mise à jour démarre ici.
-                await UpdateUnlinkedFromTmdbAsync();
-            }
-            else if (settings.PendingUpdateTrailers)
-            {
-                await UpdateMissingTrailersAsync();
+                case BulkUpdate.Unlinked:
+                    await UpdateUnlinkedFromTmdbAsync();
+                    break;
+                case BulkUpdate.Trailers:
+                    await UpdateMissingAsync(
+                        _titles.WithoutTrailerIds,
+                        n => Tr.F("les {0} titre(s) sans bande-annonce", n),
+                        Tr.T("Toutes les fiches liées à TMDb ont leur bande-annonce."));
+                    break;
+                case BulkUpdate.Keywords:
+                    await UpdateMissingAsync(
+                        _titles.WithoutKeywordIds,
+                        n => Tr.F("les {0} titre(s) sans mot-clé", n),
+                        Tr.T("Toutes les fiches liées à TMDb ont leurs mots-clés."));
+                    break;
+                default:
+                    break;
             }
         }
     }

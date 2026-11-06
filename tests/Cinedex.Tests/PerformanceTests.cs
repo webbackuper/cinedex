@@ -76,6 +76,22 @@ public sealed class PerformanceTests : IClassFixture<PerformanceTests.BigCatalog
         Assert.True(elapsed < budgetMs, $"{elapsed} ms (budget {budgetMs} ms)");
     }
 
+    /// <summary>
+    /// « Vous aimerez aussi » se calcule à chaque ouverture de fiche, donc sur le chemin du clic : il doit
+    /// rester imperceptible. C'est la mesure qui décide s'il faut un jour une table de similarité calculée
+    /// à l'avance ; tant qu'elle passe largement, la requête directe suffit.
+    /// </summary>
+    [Fact]
+    public void Recommendations_stay_fast_enough_to_run_on_every_card()
+    {
+        var recommendations = new RecommendationRepository(_catalog.Database);
+        IReadOnlyList<Recommendation> found = [];
+        var elapsed = Time(() => found = recommendations.For(Titles / 2));
+
+        Report($"Vous aimerez aussi : {found.Count} suggestion(s) en {elapsed} ms");
+        Assert.True(elapsed < 500, $"recommandations {elapsed} ms");
+    }
+
     [Fact]
     public void Statistics_and_duplicates_stay_fast()
     {

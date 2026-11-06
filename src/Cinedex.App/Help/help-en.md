@@ -56,6 +56,8 @@ If an API reaches its limit during an import, Cinedex offers to finish without i
 ## A film's details
 A click on a title shows its details in the right panel, whose width you set by dragging the handle between it and the list; a double-click (or Alt+E) opens the full, editable entry with its tabs:
 - **Details**: titles, year, runtime, summary, countries, studio, IMDb ID, trailer.
+- **You will also like**: below the cast, Cinedex suggests films from **your** catalog that are close to the one shown, with the reason for each (same saga, same director, shared keywords or genres). Everything is computed from the database, so it is offline and instant; only films you own are suggested.
+- **TMDb suggestions**: a button asks TMDb what viewers of this film also liked. One call per title, the result is kept. Suggestions already in the catalog are ticked and open with a click; the others are added to your wishlist.
 - The **trailer** button in the right panel opens the video in your browser. TMDb fetches it with the rest of the record; **Settings > Metadata** offers to fill in the missing ones in one pass.
 - **Ratings**: your rating and the TMDb, IMDb, Rotten Tomatoes and Metacritic ratings.
 - **Cast**: actors with their photo and role; a click opens the actor's page. The crew (directing, screenplay, music) follows.
@@ -214,6 +216,11 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.6.0
+- **"You will also like"**: the details panel suggests close films from your own catalog, the closest first, each with the reason for the match. It is computed from the database (genres, keywords, director, lead actors, saga, period), so it is offline and instant. A single shared genre is not enough to be suggested: it takes two genres, or a genre and a keyword, or the same director.
+- **TMDb keywords**: they now have their own place in the database, apart from your tags. **Settings > Metadata** offers to fetch them in one pass for the records that have none, which makes the matches markedly finer.
+- **TMDb suggestions**: on request, the details panel shows what TMDb proposes around this film. The ones you own are ticked, the others are added to the wishlist with a click.
+
 ### 0.5.0
 - **Trailers**: a button in the right panel opens the trailer in your browser. It was already fetched from TMDb with the rest of the record, but nothing played it. Only known video platforms are opened. **Settings > Metadata** adds "Fill in the missing trailers", which goes back over the records already linked to TMDb that have none.
 - **Browsing the catalog**: the left sidebar gains four expandable submenus, **Genres**, **Decades**, **Countries** and **Languages**, built like MediaID. They list only what the catalog holds, countries and languages are named rather than coded, and decades run from the most recent to the oldest.

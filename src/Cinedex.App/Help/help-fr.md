@@ -56,6 +56,8 @@ Si une API atteint sa limite pendant un import, Cinedex vous propose de terminer
 ## La fiche d'un film
 Un clic sur un titre affiche sa fiche dans le panneau de droite, dont la largeur se règle en glissant la poignée qui le sépare de la liste ; un double-clic (ou Alt+E) ouvre la fiche complète, modifiable, avec ses onglets :
 - **Fiche** : titres, année, durée, résumé, pays, studio, identifiant IMDb, bande-annonce.
+- **Vous aimerez aussi** : sous la distribution, Cinedex propose des films de **votre** catalogue proches de celui affiché, avec la raison du rapprochement (même saga, même réalisateur, mots-clés ou genres communs). Tout est calculé sur la base, donc hors ligne et immédiat ; seuls les films que vous possédez sont proposés.
+- **Suggestions TMDb** : un bouton demande à TMDb ce que les spectateurs de ce film ont aussi aimé. Un seul appel par titre, le résultat est gardé. Les suggestions déjà au catalogue sont cochées et s'ouvrent d'un clic ; les autres s'ajoutent à votre liste de souhaits.
 - Le bouton **bande-annonce** du panneau de droite ouvre la vidéo dans votre navigateur. TMDb la rapatrie avec le reste de la fiche ; **Réglages > Métadonnées** propose de compléter d'un coup celles qui manquent.
 - **Notes** : votre note et les notes TMDb, IMDb, Rotten Tomatoes, Metacritic.
 - **Distribution** : acteurs avec leur photo et leur rôle ; un clic ouvre la fiche de l'acteur. L'équipe (réalisation, scénario, musique) suit.
@@ -214,6 +216,11 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.6.0
+- **« Vous aimerez aussi »** : la fiche propose des films proches tirés de votre propre catalogue, les plus proches d'abord, chacun avec la raison du rapprochement. Le calcul se fait sur la base (genres, mots-clés, réalisateur, acteurs principaux, saga, époque), donc hors ligne et instantané. Un seul genre partagé ne suffit pas à être proposé : il faut deux genres, ou un genre et un mot-clé, ou le même réalisateur.
+- **Mots-clés TMDb** : ils ont désormais leur propre place en base, séparée de vos tags. **Réglages > Métadonnées** propose de les récupérer d'un coup pour les fiches qui n'en ont pas, ce qui rend les rapprochements nettement plus fins.
+- **Suggestions TMDb** : sur demande, la fiche affiche ce que TMDb propose autour de ce film. Celles que vous possédez sont cochées, les autres s'ajoutent à la liste de souhaits d'un clic.
+
 ### 0.5.0
 - **Bandes-annonces** : un bouton du panneau de droite ouvre la bande-annonce dans le navigateur. Elle était déjà rapatriée de TMDb avec le reste de la fiche, mais rien ne la lisait. Seules les plateformes vidéo connues sont ouvertes. **Réglages > Métadonnées** ajoute « Compléter les bandes-annonces manquantes », qui repasse sur les fiches déjà liées à TMDb qui n'en ont pas.
 - **Parcourir le catalogue** : le bandeau gauche gagne quatre sous-menus dépliables, **Genres**, **Décennies**, **Pays** et **Langues**, sur le modèle de MediaID. Ils ne listent que ce que le catalogue porte, les pays et les langues sont nommés et non codés, et les décennies vont de la plus récente à la plus ancienne.

@@ -324,6 +324,8 @@
                       ToolTip.Tip="Cherche sur TMDb (par titre et année) la fiche des médias qui n'ont ni synopsis ni genre, et la télécharge. Les réglages se ferment et la mise à jour démarre, avec sa barre de progression." />
               <Button Classes="tool" Content="{Binding UpdateTrailersLabel}" Command="{Binding UpdateTrailersCommand}"
                       ToolTip.Tip="Repasse sur les fiches déjà liées à TMDb qui n'ont pas de bande-annonce, et récupère la leur. Les réglages se ferment et la mise à jour démarre." />
+              <Button Classes="tool" Content="{Binding UpdateKeywordsLabel}" Command="{Binding UpdateKeywordsCommand}"
+                      ToolTip.Tip="Les mots-clés TMDb (« braquage », « vengeance »…) servent à rapprocher les films dans « Vous aimerez aussi ». Cette passe les récupère pour les fiches qui n'en ont pas encore." />
             </WrapPanel>
 
             <TextBlock Classes="h" Text="Notes IMDb, Rotten Tomatoes, Metacritic" />

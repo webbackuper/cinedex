@@ -27,6 +27,10 @@ public sealed class MetadataService(
     /// <summary>Liste « À vérifier » des rapprochements ambigus (absente hors catalogue, par exemple en test).</summary>
     public MatchReviewRepository? Reviews => reviews;
 
+    /// <summary>Suggestions de TMDb pour un titre ; un seul appel, le résultat est gardé en base par l'appelant.</summary>
+    public Task<IReadOnlyList<MetadataSearchResult>> RecommendationsAsync(TitleKind kind, long sourceId, CancellationToken cancellationToken = default) =>
+        tmdb.GetRecommendationsAsync(kind, sourceId, cancellationToken);
+
     /// <summary>Petite affiche d'un candidat TMDb, pour le choisir à l'œil.</summary>
     public Task<byte[]> DownloadThumbnailAsync(string posterPath, CancellationToken cancellationToken = default) =>
         tmdb.DownloadImageAsync(posterPath, "w154", cancellationToken);

@@ -199,13 +199,29 @@ public sealed class MetadataRepository(CatalogDatabase database)
             connection.Execute("UPDATE title SET collection_id = @collectionId WHERE id = @titleId;", new { collectionId, titleId }, transaction);
         }
 
+        // Les mots-clés vont toujours dans leur propre table : ils servent à rapprocher les films. Les verser
+        // en plus dans les tags reste une option, car les tags sont le classement personnel de l'utilisateur.
+        var keywords = r.Keywords.Where(k => !string.IsNullOrWhiteSpace(k)).Select(k => k.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).Take(30).ToList();
+        if (keywords.Count > 0)
+        {
+            connection.Execute("DELETE FROM title_keyword WHERE title_id = @titleId;", new { titleId }, transaction);
+            foreach (var keyword in keywords)
+            {
+                var keywordId = connection.ExecuteScalar<long>(
+                    "INSERT INTO keyword (name) VALUES (@keyword) ON CONFLICT (name) DO UPDATE SET name = keyword.name RETURNING id;",
+                    new { keyword },
+                    transaction);
+                connection.Execute("INSERT OR IGNORE INTO title_keyword (title_id, keyword_id) VALUES (@titleId, @keywordId);", new { titleId, keywordId }, transaction);
+            }
+        }
+
         if (options.ImportKeywordsAsTags)
         {
-            foreach (var keyword in r.Keywords.Where(k => !string.IsNullOrWhiteSpace(k)).Take(30))
+            foreach (var keyword in keywords)
             {
                 var tagId = connection.ExecuteScalar<long>(
                     "INSERT INTO tag (name) VALUES (@keyword) ON CONFLICT (name) DO UPDATE SET name = tag.name RETURNING id;",
-                    new { keyword = keyword.Trim() },
+                    new { keyword },
                     transaction);
                 connection.Execute("INSERT OR IGNORE INTO title_tag (title_id, tag_id) VALUES (@titleId, @tagId);", new { titleId, tagId }, transaction);
             }

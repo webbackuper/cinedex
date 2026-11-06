@@ -9,6 +9,18 @@ using Cinedex.Core.Localization;
 
 namespace Cinedex.App.ViewModels;
 
+/// <summary>
+/// Passe de rattrapage lancée depuis l'onglet Métadonnées. Toutes sont une mise à jour TMDb ordinaire,
+/// restreinte aux titres auxquels il manque quelque chose : la fenêtre se ferme, puis la passe démarre.
+/// </summary>
+public enum BulkUpdate
+{
+    None,
+    Unlinked,
+    Trailers,
+    Keywords,
+}
+
 /// <summary>Un chiffre clé de l'onglet Statistiques : valeur mise en forme et libellé.</summary>
 public sealed record StatCard(string Value, string Label);
 
@@ -408,6 +420,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     public string UpdateUnlinkedLabel => Tr.F("Mettre à jour via TMDb les {0} titre(s) sans infos", UnlinkedToTmdb);
 
+
     /// <summary>Titres liés à TMDb dont la bande-annonce manque.</summary>
     public int WithoutTrailer => Statistics?.WithoutTrailer ?? 0;
 
@@ -415,18 +428,23 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     public bool CanUpdateTrailers => WithoutTrailer > 0;
 
-    /// <summary>La récupération des bandes-annonces démarre à la fermeture des réglages.</summary>
-    public bool PendingUpdateTrailers { get; private set; }
-
     [CommunityToolkit.Mvvm.Input.RelayCommand(CanExecute = nameof(CanUpdateTrailers))]
-    private void UpdateTrailers()
-    {
-        PendingUpdateTrailers = true;
-        CloseRequested?.Invoke(this, EventArgs.Empty);
-    }
+    private void UpdateTrailers() => Start(BulkUpdate.Trailers);
 
-    /// <summary>La mise à jour TMDb des titres non liés démarre à la fermeture des réglages.</summary>
-    public bool PendingUpdateUnlinked { get; private set; }
+    /// <summary>Titres liés à TMDb dont aucun mot-clé n'a été rapatrié.</summary>
+    public int WithoutKeywords => Statistics?.WithoutKeywords ?? 0;
+
+    public string UpdateKeywordsLabel => Tr.F("Récupérer les mots-clés des {0} titre(s) qui n'en ont pas", WithoutKeywords);
+
+    public bool CanUpdateKeywords => WithoutKeywords > 0;
+
+    [CommunityToolkit.Mvvm.Input.RelayCommand(CanExecute = nameof(CanUpdateKeywords))]
+    private void UpdateKeywords() => Start(BulkUpdate.Keywords);
+
+    /// <summary>Passe de rattrapage demandée depuis l'onglet Métadonnées, lancée à la fermeture des réglages.</summary>
+    public BulkUpdate Pending { get; private set; }
+
+    public bool PendingUpdateUnlinked => Pending == BulkUpdate.Unlinked;
 
     /// <summary>La fenêtre des réglages doit se fermer (mise à jour TMDb à lancer).</summary>
     public event EventHandler? CloseRequested;
@@ -434,9 +452,11 @@ public sealed partial class SettingsViewModel : ObservableObject
     public bool CanUpdateUnlinked => UnlinkedToTmdb > 0;
 
     [CommunityToolkit.Mvvm.Input.RelayCommand(CanExecute = nameof(CanUpdateUnlinked))]
-    private void UpdateUnlinked()
+    private void UpdateUnlinked() => Start(BulkUpdate.Unlinked);
+
+    private void Start(BulkUpdate what)
     {
-        PendingUpdateUnlinked = true;
+        Pending = what;
         CloseRequested?.Invoke(this, EventArgs.Empty);
     }
 

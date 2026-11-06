@@ -6,6 +6,7 @@
         xmlns:controls="using:Cinedex.App.Controls"
         xmlns:people="using:Cinedex.Core.People"
         xmlns:services="using:Cinedex.App.Services"
+        xmlns:data="using:Cinedex.Data"
         x:Class="Cinedex.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Cinedex"
@@ -877,6 +878,61 @@
               </StackPanel>
               <TextBlock Text="{Binding CrewText}" Classes="muted" TextWrapping="Wrap" FontSize="{StaticResource FontSmall}" LineHeight="19"
                          IsVisible="{Binding CrewText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+              <!-- Vous aimerez aussi : films proches du catalogue, avec la raison du rapprochement -->
+              <StackPanel Spacing="{StaticResource Space2}" IsVisible="{Binding HasSimilar}">
+                <TextBlock Text="Vous aimerez aussi" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
+                <ItemsControl ItemsSource="{Binding Similar}" AutomationProperties.Name="Vous aimerez aussi">
+                  <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SimilarTitle">
+                      <Button Classes="tool" Width="104" Padding="{StaticResource Inset1x2}" Margin="{StaticResource Trail1}" VerticalContentAlignment="Top"
+                              Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenSimilarCommand}" CommandParameter="{Binding}"
+                              ToolTip.Tip="{Binding Reason}">
+                        <StackPanel Spacing="{StaticResource Space1}" HorizontalAlignment="Center">
+                          <Border Width="76" Height="112" CornerRadius="{StaticResource RadiusChip}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}" HorizontalAlignment="Center">
+                            <Panel>
+                              <controls:Icon Kind="film" Width="22" Height="22" Foreground="{DynamicResource CinedexMuted}" />
+                              <controls:AsyncImage Path="{Binding Title.PosterPath}" DecodeWidth="152" Stretch="UniformToFill" />
+                            </Panel>
+                          </Border>
+                          <TextBlock Text="{Binding Title.Title}" FontSize="{StaticResource FontSmall}" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding Reason}" FontSize="{StaticResource FontSmall}" Classes="muted" TextAlignment="Center" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+
+              <!-- Suggestions TMDb : surtout des films absents du catalogue, ajoutables à la liste de souhaits -->
+              <StackPanel Spacing="{StaticResource Space2}">
+                <Button Classes="tool" HorizontalAlignment="Left" Command="{Binding FetchSuggestionsCommand}"
+                        ToolTip.Tip="Demande à TMDb ce que les spectateurs de ce film ont aussi aimé. Un seul appel par titre : le résultat est gardé.">
+                  <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
+                    <controls:Icon Kind="cloud" Width="16" Height="16" />
+                    <TextBlock Text="Suggestions TMDb" />
+                  </StackPanel>
+                </Button>
+                <StackPanel Spacing="{StaticResource Space1}" IsVisible="{Binding HasTmdbSuggestions}">
+                  <ItemsControl ItemsSource="{Binding TmdbSuggestions}" AutomationProperties.Name="Suggestions TMDb">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="data:TmdbSuggestion">
+                        <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="{StaticResource Inset1x2}"
+                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenSuggestionCommand}" CommandParameter="{Binding}">
+                          <Grid ColumnDefinitions="Auto,*,Auto">
+                            <controls:Icon Kind="check" Width="14" Height="14" IsVisible="{Binding IsOwned}" Foreground="{DynamicResource CinedexAccent}" VerticalAlignment="Center" />
+                            <controls:Icon Kind="add" Width="14" Height="14" IsVisible="{Binding !IsOwned}" Foreground="{DynamicResource CinedexMuted}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Margin="{StaticResource Before2}" Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="2" Text="{Binding Year}" Classes="muted" FontSize="{StaticResource FontSmall}" VerticalAlignment="Center" />
+                          </Grid>
+                        </Button>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <TextBlock Classes="hint" Text="Coché : déjà au catalogue. Sinon, un clic l'ajoute à votre liste de souhaits." TextWrapping="Wrap" />
+                </StackPanel>
+              </StackPanel>
 
               <!-- Exemplaire et vidéo -->
               <Border Background="{DynamicResource CinedexSurfaceAlt}" CornerRadius="{StaticResource RadiusCard}" Padding="{StaticResource Inset4x3}">

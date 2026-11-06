@@ -150,6 +150,20 @@ public sealed partial class TmdbClient
             .ToList();
     }
 
+    /// <summary>
+    /// Suggestions de TMDb pour un titre (« les spectateurs ont aussi aimé »). Appelé à la demande, jamais à
+    /// l'ouverture d'une fiche : le résultat est ensuite gardé en base, un appel par titre suffit.
+    /// </summary>
+    public async Task<IReadOnlyList<MetadataSearchResult>> GetRecommendationsAsync(TitleKind kind, long id, CancellationToken cancellationToken = default)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id);
+        var path = kind == TitleKind.Movie ? "movie" : "tv";
+        var idText = id.ToString(CultureInfo.InvariantCulture);
+        var page = await GetAsync<TmdbPage<TmdbSearchItem>>(
+            $"{path}/{idText}/recommendations?language={Lang}", cancellationToken).ConfigureAwait(false);
+        return (page.Results ?? []).Select(r => ToResult(r, kind)).ToList();
+    }
+
     public async Task<MetadataRecord> GetDetailsAsync(TitleKind kind, long id, CancellationToken cancellationToken = default)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id);

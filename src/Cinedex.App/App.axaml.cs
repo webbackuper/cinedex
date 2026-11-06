@@ -237,7 +237,9 @@ public sealed class App : Application
                 Backups = new BackupsViewModel(services.GetRequiredService<BackupService>()),
             },
             services.GetRequiredService<MediaContext>(),
-            catalogs);
+            catalogs,
+            services.GetRequiredService<RecommendationRepository>(),
+            services.GetRequiredService<SuggestionRepository>());
         main.Updates = _updates;
         main.Load();
         _ = main.CheckForUpdatesAtStartupAsync();
@@ -313,6 +315,8 @@ public sealed class App : Application
         services.AddSingleton<MatchReviewRepository>();
         services.AddSingleton<StatisticsRepository>();
         services.AddSingleton<MaintenanceRepository>();
+        services.AddSingleton<RecommendationRepository>();
+        services.AddSingleton<SuggestionRepository>();
         services.AddSingleton<ExportRepository>();
         services.AddSingleton(sp => new BackupService(
             sp.GetRequiredService<MaintenanceRepository>(),

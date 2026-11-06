@@ -219,6 +219,10 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.8.2
+- **Un fichier n'est plus perdu quand TMDb ne répond pas pour lui.** Fiche retirée, numéro périmé, erreur du service : le film entrait auparavant dans la colonne « échecs » et n'était pas ajouté du tout. Il est maintenant ajouté **sans fiche**, avec son fichier, et compté dans « sans fiche TMDb ». Le compte rendu nomme le fichier et dit pourquoi. **Mettre à jour via TMDb** permet de réessayer plus tard.
+- Le **compte rendu de l'import** se sélectionne et se copie (Ctrl+C), défile quand il est long, et ne cache plus les fichiers signalés au-delà des cinq premiers.
+
 ### 0.8.1
 - **Listes personnelles ordonnées** : vos listes gardent l'ordre que vous leur donnez. Ouvrir une liste la trie par cet ordre, deux boutons montent ou descendent la sélection (plusieurs titres à la fois gardent leur disposition), et un titre ajouté se range à la fin. Les listes qui existaient déjà partent de l'ordre qu'elles avaient à l'écran, donc rien ne bouge tant que vous ne réordonnez pas.
 

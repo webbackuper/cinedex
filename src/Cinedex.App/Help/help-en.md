@@ -219,6 +219,10 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.8.2
+- **A file is no longer lost when TMDb has nothing for it.** Record withdrawn, stale id, service error: the film used to land in the "failures" column and was not added at all. It is now added **without a record**, with its file, and counted under "without a TMDb record". The report names the file and says why. **Update from TMDb** lets you try again later.
+- The **import report** can be selected and copied (Ctrl+C), scrolls when long, and no longer hides the reported files beyond the first five.
+
 ### 0.8.1
 - **Ordered personal lists**: your lists keep the order you give them. Opening a list sorts it by that order, two buttons move the selection up or down (several titles at once keep their arrangement), and a title added goes to the end. Lists that already existed start from the order they had on screen, so nothing moves until you reorder.
 

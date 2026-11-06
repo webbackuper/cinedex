@@ -911,6 +911,7 @@
  "{0} (lecture)": "{0} (تشغيل)",
  "{0} / {1} films": "{0} / {1} أفلام",
  "{0} : TMDb écarté ({1}), à relancer avec « Mettre à jour via TMDb ».": "{0}: تم تجاوز TMDb ({1})، أعد تشغيل «التحديث من TMDb» لاحقًا.",
+ "{0} : ajouté sans fiche TMDb ({1})": "{0}: أُضيف بلا بطاقة TMDb ({1})",
  "{0} : du {1:d} au {2:d} ({3} j)": "{0}: من {1:d} إلى {2:d} ({3} يوم)",
  "{0} : du {1:d} à aujourd'hui, pas encore rendu": "{0}: من {1:d} حتى اليوم، لم يُعَد بعد",
  "{0} : nombre attendu entre {1} et {2}.": "{0}: يُتوقع رقم بين {1} و{2}.",

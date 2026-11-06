@@ -197,7 +197,13 @@ public sealed partial class ImportFolderViewModel(LibraryImportService import, S
                 summary += Tr.F(", {0} échec(s)", result.Failed);
             }
 
-            Message = string.Join("\n", [summary + ".", .. result.Messages.Take(5)]);
+            // Les fichiers signalés sont ceux à reprendre à la main : en cacher en silence serait pire que
+            // d'allonger le compte rendu, qui se sélectionne et se copie.
+            const int shown = 20;
+            string[] rest = result.Messages.Count > shown
+                ? [Tr.F("… et {0} autre(s)", result.Messages.Count - shown)]
+                : [];
+            Message = string.Join("\n", [summary + ".", .. result.Messages.Take(shown), .. rest]);
             LastResult = (selected.Count, result);
         });
     }

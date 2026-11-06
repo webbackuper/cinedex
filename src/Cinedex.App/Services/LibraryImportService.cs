@@ -194,23 +194,52 @@ public sealed class LibraryImportService(
             try
             {
                 long titleId;
-                var identification = useTmdb ? await IdentifyAsync(candidate, options, cancellationToken).ConfigureAwait(false) : null;
+                // TMDb peut rester muet sur un fichier précis : fiche retirée, numéro périmé, réponse en erreur.
+                // Le fichier entre alors au catalogue sans fiche, comme s'il n'avait pas été reconnu : perdre le
+                // fichier serait bien pire que perdre sa fiche, et « Mettre à jour via TMDb » reste possible.
+                Identification? identification = null;
+                string? tmdbSilent = null;
+                if (useTmdb)
+                {
+                    try
+                    {
+                        identification = await IdentifyAsync(candidate, options, cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (Exception ex) when (TmdbMissedThisTitle(ex))
+                    {
+                        tmdbSilent = ex.Message;
+                    }
+                }
+
                 // Une partie annoncée par le nom (CD1, CD2…) rejoint le film dont elle est la suite ; tout autre
                 // fichier a son entrée, même si le film est déjà au catalogue sous une autre source.
                 var partOf = candidate.Parsed.Part is not null
                     && existingFilms.TryGetValue(TitleRepository.KeyOf(TitleKind.Movie, candidate.BestTitle, candidate.BestYear), out var sameFilm)
                         ? sameFilm
                         : (long?)null;
+                long? imported = null;
+                if (partOf is null && identification?.Match is { } choice)
+                {
+                    try
+                    {
+                        // Chaque fichier a son entrée, même si le film est déjà au catalogue sous une autre source :
+                        // « Fusionner les films en double » les regroupe ensuite en un film à plusieurs sources.
+                        imported = await metadataService!.ImportAsync(choice, ImportOptions.Default, cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (Exception ex) when (TmdbMissedThisTitle(ex))
+                    {
+                        tmdbSilent = ex.Message;
+                    }
+                }
+
                 if (partOf is { } whole)
                 {
                     titleId = whole;
                     linked++;
                 }
-                else if (identification?.Match is { } choice)
+                else if (imported is { } withMetadata)
                 {
-                    // Chaque fichier a son entrée, même si le film est déjà au catalogue sous une autre source :
-                    // « Fusionner les films en double » les regroupe ensuite en un film à plusieurs sources.
-                    titleId = await metadataService!.ImportAsync(choice, ImportOptions.Default, cancellationToken).ConfigureAwait(false);
+                    titleId = withMetadata;
                     added++;
                     existingFilms[TitleRepository.KeyOf(TitleKind.Movie, candidate.BestTitle, candidate.BestYear)] = titleId;
                 }
@@ -219,6 +248,11 @@ public sealed class LibraryImportService(
                     titleId = titles.Add(new NewTitle(TitleKind.Movie, candidate.BestTitle, candidate.BestYear));
                     existingFilms[TitleRepository.KeyOf(TitleKind.Movie, candidate.BestTitle, candidate.BestYear)] = titleId;
                     manual++;
+                    if (tmdbSilent is not null)
+                    {
+                        messages.Add(Tr.F("{0} : ajouté sans fiche TMDb ({1})", Path.GetFileName(candidate.FullPath), tmdbSilent));
+                    }
+
                     if (identification is { NeedsReview: true } && metadataService?.Reviews is { } reviews)
                     {
                         // Plusieurs fiches TMDb possibles : le titre est créé, le choix attend dans « À vérifier ».
@@ -336,6 +370,13 @@ public sealed class LibraryImportService(
     /// Identification : identifiant TMDb ou IMDb du .nfo ou du nom de fichier en priorité, sinon recherche
     /// titre + année. Un résultat n'est retenu que si l'année concorde (à un an près) quand elle est connue.
     /// </summary>
+    /// <summary>
+    /// Vrai quand l'échec ne concerne que ce titre-là : fiche absente, réponse en erreur, réseau. Le jeton
+    /// refusé et la limite d'appels concernent tout l'import et doivent remonter : eux demandent un choix.
+    /// </summary>
+    private static bool TmdbMissedThisTitle(Exception ex) =>
+        ex is KeyNotFoundException or HttpRequestException or (TmdbUnavailableException and not TmdbRateLimitException);
+
     internal async Task<Identification> IdentifyAsync(ScanCandidate candidate, LibraryImportOptions options, CancellationToken cancellationToken)
     {
         var query = candidate.BestYear is { } y ? $"{candidate.BestTitle} ({y})" : candidate.BestTitle;

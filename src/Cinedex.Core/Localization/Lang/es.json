@@ -904,6 +904,7 @@
  "{0} (lecture)": "{0} (reproducción)",
  "{0} / {1} films": "{0} / {1} películas",
  "{0} : TMDb écarté ({1}), à relancer avec « Mettre à jour via TMDb ».": "{0}: TMDb descartado ({1}), vuelva a ejecutar «Actualizar desde TMDb».",
+ "{0} : ajouté sans fiche TMDb ({1})": "{0}: añadido sin ficha de TMDb ({1})",
  "{0} : du {1:d} au {2:d} ({3} j)": "{0}: del {1:d} al {2:d} ({3} d)",
  "{0} : du {1:d} à aujourd'hui, pas encore rendu": "{0}: del {1:d} hasta hoy, aún no devuelto",
  "{0} : nombre attendu entre {1} et {2}.": "{0}: se espera un número entre {1} y {2}.",

@@ -147,6 +147,61 @@ public sealed class LibraryImportTests
         Assert.Equal([1, 2], files.FilesOf(film.Id).Select(f => f.Part).Order());
     }
 
+    /// <summary>
+    /// Un film que TMDb ne sait pas rendre (fiche retirée, numéro périmé, erreur) ne doit pas faire perdre le
+    /// fichier : il entre au catalogue sans fiche, et le compte rendu dit lequel et pourquoi.
+    /// </summary>
+    [Fact]
+    public async Task A_film_tmdb_cannot_serve_is_still_imported_without_a_record()
+    {
+        using var temp = new TempDirectory();
+        var db = new CatalogDatabase(Path.Combine(temp.Path, "cinedex.db"));
+        db.Initialize(temp.Path);
+        var titles = new TitleRepository(db);
+        var files = new MediaFileRepository(db);
+        var images = new ImageStore(db, Path.Combine(temp.Path, "img"));
+
+        // TMDb trouve les deux films à la recherche, mais répond 404 sur la fiche du second.
+        var tmdb = new TmdbClient(new HttpClient(new Handler(request =>
+            {
+                var path = request.RequestUri!.AbsolutePath;
+                if (path.Contains("/search/", StringComparison.Ordinal))
+                {
+                    return request.RequestUri.Query.Contains("Heat", StringComparison.OrdinalIgnoreCase)
+                        ? Json("""{"results":[{"id":949,"title":"Heat","release_date":"1995-12-15"}]}""")
+                        : Json("""{"results":[{"id":6660,"title":"Meurtres à Collioure","release_date":"2015-01-01"}]}""");
+                }
+
+                return path.Contains("/6660", StringComparison.Ordinal)
+                    ? new HttpResponseMessage(HttpStatusCode.NotFound)
+                    : Json("""{"id":949,"title":"Heat","release_date":"1995-12-15","runtime":170,"overview":"Un braqueur et un flic."}""");
+            })),
+            _ => ValueTask.FromResult<string?>("token"));
+        var metadata = new MetadataService(tmdb, new MetadataRepository(db), images, NullLogger<MetadataService>.Instance);
+        var service = new LibraryImportService(titles, files, images, metadata, () => new MediaProbe("absent", "absent"), NullLogger<LibraryImportService>.Instance);
+
+        var library = Directory.CreateDirectory(Path.Combine(temp.Path, "Films")).FullName;
+        File.WriteAllBytes(Path.Combine(library, "Heat (1995).mkv"), new byte[2048]);
+        File.WriteAllBytes(Path.Combine(library, "Meurtres A Collioure (2015).mp4"), new byte[2048]);
+
+        var candidates = await service.ScanAsync(library, new ScanOptions { MinimumBytes = 1024 }, TestContext.Current.CancellationToken);
+        var result = await service.ImportAsync(candidates, new LibraryImportOptions(), null, TestContext.Current.CancellationToken);
+
+        // Aucun échec : un fichier entre toujours, avec ou sans fiche.
+        Assert.Equal(0, result.Failed);
+        Assert.Equal(1, result.Added);
+        Assert.Equal(1, result.WithoutMetadata);
+        Assert.Equal(2, titles.ListAll().Count);
+
+        var orphan = titles.ListAll().Select(t => titles.Get(t.Id)!).Single(t => t.TmdbId is null);
+        Assert.Contains("Collioure", orphan.Title, StringComparison.OrdinalIgnoreCase);
+        Assert.Single(files.FilesOf(orphan.Id));
+
+        // Le compte rendu nomme le fichier et dit pourquoi, pour qu'on puisse le reprendre à la main.
+        Assert.Contains(result.Messages, m =>
+            m.Contains("Meurtres", StringComparison.OrdinalIgnoreCase) && m.Contains("sans fiche TMDb", StringComparison.Ordinal));
+    }
+
     private static HttpResponseMessage Json(string body) => new(HttpStatusCode.OK) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
 
     private sealed class Handler(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler

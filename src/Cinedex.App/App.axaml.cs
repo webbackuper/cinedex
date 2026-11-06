@@ -238,8 +238,11 @@ public sealed class App : Application
             },
             services.GetRequiredService<MediaContext>(),
             catalogs,
-            services.GetRequiredService<RecommendationRepository>(),
-            services.GetRequiredService<SuggestionRepository>());
+            new CatalogExtras(
+                services.GetRequiredService<RecommendationRepository>(),
+                services.GetRequiredService<SuggestionRepository>(),
+                services.GetRequiredService<HomeRepository>(),
+                services.GetRequiredService<StatisticsRepository>()));
         main.Updates = _updates;
         main.Load();
         _ = main.CheckForUpdatesAtStartupAsync();
@@ -317,6 +320,7 @@ public sealed class App : Application
         services.AddSingleton<MaintenanceRepository>();
         services.AddSingleton<RecommendationRepository>();
         services.AddSingleton<SuggestionRepository>();
+        services.AddSingleton<HomeRepository>();
         services.AddSingleton<ExportRepository>();
         services.AddSingleton(sp => new BackupService(
             sp.GetRequiredService<MaintenanceRepository>(),

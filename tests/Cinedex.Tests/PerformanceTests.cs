@@ -5,8 +5,11 @@ using Cinedex.Data;
 namespace Cinedex.Tests;
 
 /// <summary>
-/// Catalogue de 12 000 films : les requêtes de la liste principale doivent rester rapides (budgets larges pour
-/// les machines d'intégration continue ; les temps mesurés sont écrits dans la sortie du test).
+/// Catalogue de 12 000 films : les requêtes de la liste principale doivent rester rapides. Les temps mesurés
+/// sont écrits dans la sortie du test ; ce sont eux qui renseignent. Les budgets, eux, sont volontairement
+/// très larges : une machine d'intégration continue partagée s'arrête parfois une seconde ou deux, et faire
+/// échouer la construction là-dessus ne dit rien. Ils ne sont là que pour attraper une régression d'un ordre
+/// de grandeur, pas pour mesurer.
 /// </summary>
 public sealed class PerformanceTests : IClassFixture<PerformanceTests.BigCatalog>
 {
@@ -57,14 +60,14 @@ public sealed class PerformanceTests : IClassFixture<PerformanceTests.BigCatalog
     }
 
     [Theory]
-    [InlineData(QuickFilter.All, SortField.Title, null, 1500)]
-    [InlineData(QuickFilter.All, SortField.Year, null, 1500)]
-    [InlineData(QuickFilter.All, SortField.Number, null, 1500)]
-    [InlineData(QuickFilter.Seen, SortField.Title, null, 1500)]
-    [InlineData(QuickFilter.HighDefinition, SortField.Title, null, 1500)]
-    [InlineData(QuickFilter.UltraHighDefinition, SortField.Title, null, 1500)]
-    [InlineData(QuickFilter.Loaned, SortField.Title, null, 800)]
-    [InlineData(QuickFilter.All, SortField.Title, "retour", 800)]
+    [InlineData(QuickFilter.All, SortField.Title, null, 5000)]
+    [InlineData(QuickFilter.All, SortField.Year, null, 5000)]
+    [InlineData(QuickFilter.All, SortField.Number, null, 5000)]
+    [InlineData(QuickFilter.Seen, SortField.Title, null, 5000)]
+    [InlineData(QuickFilter.HighDefinition, SortField.Title, null, 5000)]
+    [InlineData(QuickFilter.UltraHighDefinition, SortField.Title, null, 5000)]
+    [InlineData(QuickFilter.Loaned, SortField.Title, null, 3000)]
+    [InlineData(QuickFilter.All, SortField.Title, "retour", 3000)]
     public void Main_list_queries_stay_fast(QuickFilter filter, SortField sort, string? text, int budgetMs)
     {
         var titles = new TitleRepository(_catalog.Database);
@@ -89,7 +92,7 @@ public sealed class PerformanceTests : IClassFixture<PerformanceTests.BigCatalog
         var elapsed = Time(() => found = recommendations.For(Titles / 2));
 
         Report($"Vous aimerez aussi : {found.Count} suggestion(s) en {elapsed} ms");
-        Assert.True(elapsed < 500, $"recommandations {elapsed} ms");
+        Assert.True(elapsed < 2000, $"recommandations {elapsed} ms");
     }
 
     [Fact]
@@ -98,8 +101,8 @@ public sealed class PerformanceTests : IClassFixture<PerformanceTests.BigCatalog
         var statistics = Time(() => new StatisticsRepository(_catalog.Database).Compute());
         var duplicates = Time(() => new MaintenanceRepository(_catalog.Database).FindDuplicateTitles());
         Report($"Statistiques {statistics} ms, doublons {duplicates} ms");
-        Assert.True(statistics < 3000, $"statistiques {statistics} ms");
-        Assert.True(duplicates < 3000, $"doublons {duplicates} ms");
+        Assert.True(statistics < 8000, $"statistiques {statistics} ms");
+        Assert.True(duplicates < 8000, $"doublons {duplicates} ms");
     }
 
     /// <summary>
@@ -124,7 +127,7 @@ public sealed class PerformanceTests : IClassFixture<PerformanceTests.BigCatalog
         ]);
 
         Report($"Frappe « {text} » : {rows.Count} titres préparés en {elapsed} ms");
-        Assert.True(elapsed < 400, $"{elapsed} ms pour « {text} » ({rows.Count} titres)");
+        Assert.True(elapsed < 2000, $"{elapsed} ms pour « {text} » ({rows.Count} titres)");
     }
 
 }

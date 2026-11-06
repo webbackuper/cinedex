@@ -559,6 +559,58 @@ public sealed partial class TitleRepository(CatalogDatabase database)
         return connection.Query<string>("SELECT borrower FROM loan GROUP BY borrower COLLATE NOCASE ORDER BY max(id) DESC LIMIT 200;").ToList();
     }
 
+    /// <summary>
+    /// Ajoute un visionnage daté, sans effacer les précédents : revoir un film est un événement de plus.
+    /// C'est ce qui distingue l'historique du simple drapeau « vu », que pose <see cref="SetSeen"/>.
+    /// </summary>
+    public long AddViewing(long titleId, DateTimeOffset? when, ViewingSource source = ViewingSource.Manual)
+    {
+        using var connection = database.Open();
+        return connection.ExecuteScalar<long>(
+            "INSERT INTO viewing (title_id, viewed_at, source) VALUES (@titleId, @When, @Source) RETURNING id;",
+            new { titleId, When = when is null ? null : FormatTimestamp(when.Value), Source = SourceCode(source) });
+    }
+
+    /// <summary>Visionnages d'un titre, le plus récent d'abord ; ceux sans date viennent en dernier.</summary>
+    public IReadOnlyList<Viewing> Viewings(long titleId)
+    {
+        using var connection = database.Open();
+        return connection.Query<ViewingRow>(
+                """
+                SELECT id, viewed_at, source FROM viewing
+                WHERE title_id = @titleId ORDER BY viewed_at IS NULL, viewed_at DESC, id DESC;
+                """,
+                new { titleId })
+            .Select(r => new Viewing(
+                r.Id,
+                r.Viewed_At is null ? null : ParseTimestamp(r.Viewed_At),
+                r.Source switch { "playback" => ViewingSource.Playback, "import" => ViewingSource.Import, _ => ViewingSource.Manual }))
+            .ToList();
+    }
+
+    /// <summary>Efface un visionnage de l'historique (saisie erronée, lecture interrompue).</summary>
+    public void DeleteViewing(long viewingId)
+    {
+        using var connection = database.Open();
+        connection.Execute("DELETE FROM viewing WHERE id = @viewingId;", new { viewingId });
+    }
+
+    private static string SourceCode(ViewingSource source) => source switch
+    {
+        ViewingSource.Playback => "playback",
+        ViewingSource.Import => "import",
+        _ => "manual",
+    };
+
+    private sealed class ViewingRow
+    {
+        public long Id { get; set; }
+
+        public string? Viewed_At { get; set; }
+
+        public string Source { get; set; } = "manual";
+    }
+
     /// <summary>Efface une ligne de l'historique des prêts (saisie erronée).</summary>
     public void DeleteLoan(long loanId)
     {

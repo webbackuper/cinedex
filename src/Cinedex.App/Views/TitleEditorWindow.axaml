@@ -326,6 +326,30 @@
             <CheckBox Content="Vu" IsChecked="{Binding IsSeen}" />
             <TextBlock Text="{Binding SeenText}" VerticalAlignment="Center" Opacity="0.7" />
           </StackPanel>
+          <!-- Historique de visionnage : enregistré aussitôt, comme le prêt. -->
+          <Border Padding="{StaticResource Inset4x3}" CornerRadius="{StaticResource RadiusCard}" Background="{DynamicResource CinedexSurfaceAlt}"
+                  IsVisible="{Binding $parent[Window].((vm:TitleEditorViewModel)DataContext).HasViewings}" DataContext="{Binding Viewings}" x:DataType="vm:ViewingsViewModel">
+            <StackPanel Spacing="{StaticResource Space3}">
+              <TextBlock Text="Historique de visionnage" FontWeight="SemiBold" FontSize="{StaticResource FontBody}" />
+              <TextBlock Text="{Binding CountText}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexAccent}" />
+              <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
+                <CalendarDatePicker SelectedDate="{Binding Date}" Width="150" />
+                <Button Classes="outline" Content="Ajouter ce visionnage" Command="{Binding AddCommand}" />
+              </StackPanel>
+              <TextBlock Text="Aucun visionnage enregistré pour ce titre." Opacity="0.7" IsVisible="{Binding !HasHistory}" />
+              <ItemsControl ItemsSource="{Binding History}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ViewingLine">
+                    <Grid ColumnDefinitions="*,Auto" Margin="{StaticResource Block1}">
+                      <TextBlock Text="{Binding Text}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                      <Button Grid.Column="1" Classes="tool" Content="Effacer" Padding="{StaticResource Inset2x1}" ToolTip.Tip="Effacer ce visionnage (saisie erronée)"
+                              Command="{Binding $parent[ItemsControl].((vm:ViewingsViewModel)DataContext).DeleteCommand}" CommandParameter="{Binding}" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
           <CheckBox Content="Possédé (décoché : liste de souhaits)" IsChecked="{Binding IsOwned}" />
           <CheckBox Content="Favori" IsChecked="{Binding IsFavorite}" />
           <CheckBox Content="Liste courte" IsChecked="{Binding IsShortlisted}" />

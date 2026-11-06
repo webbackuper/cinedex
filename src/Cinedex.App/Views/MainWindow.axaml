@@ -226,6 +226,15 @@
 
         <ScrollViewer>
           <StackPanel>
+            <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Margin="{StaticResource Edges2_1_2_0}"
+                    Command="{Binding ShowHomeCommand}" IsVisible="{Binding CanShowHome}" Classes.current="{Binding IsHomeView}"
+                    ToolTip.Tip="Que regarder ce soir : films disponibles jamais vus, sagas commencées, derniers ajouts">
+              <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
+                <controls:Icon Kind="star" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" />
+                <TextBlock Text="Accueil" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+
             <TextBlock Classes="section" Text="Bibliothèque" />
             <ListBox Classes="nav" ItemsSource="{Binding Filters}" SelectedItem="{Binding SelectedMainFilter}" Tapped="OnLibraryTapped" Classes.away="{Binding IsPeopleView}">
               <ListBox.ItemTemplate>
@@ -314,6 +323,46 @@
         </ScrollViewer>
       </DockPanel>
     </Border>
+
+    <!-- ======================= Page d'accueil ======================= -->
+    <ScrollViewer Grid.Column="1" Margin="{StaticResource Edges6_4_1_0}" IsVisible="{Binding IsHomeView}">
+      <StackPanel DataContext="{Binding Home}" x:DataType="vm:HomeViewModel" Spacing="{StaticResource Space4}" Margin="{StaticResource Below4}">
+        <TextBlock Text="{Binding Summary}" Classes="muted" IsVisible="{Binding Summary, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        <ItemsControl ItemsSource="{Binding Bands}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:HomeBand">
+              <StackPanel Spacing="{StaticResource Space2}" Margin="{StaticResource Below4}">
+                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="{StaticResource FontTitle}" Foreground="{DynamicResource CinedexInk}" />
+                <TextBlock Text="{Binding Hint}" Classes="muted" FontSize="{StaticResource FontSmall}" />
+                <ItemsControl ItemsSource="{Binding Titles}">
+                  <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="titles:TitleSummary">
+                      <Button Classes="tool" Width="150" Padding="{StaticResource Inset1x2}" Margin="{StaticResource Trail2}" VerticalContentAlignment="Top"
+                              Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenFromHomeCommand}" CommandParameter="{Binding}"
+                              ToolTip.Tip="{Binding Title}">
+                        <StackPanel Spacing="{StaticResource Space1}" HorizontalAlignment="Center">
+                          <Border Width="128" Height="190" CornerRadius="{StaticResource RadiusChip}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
+                            <Panel>
+                              <controls:Icon Kind="film" Width="28" Height="28" Foreground="{DynamicResource CinedexMuted}" />
+                              <controls:AsyncImage Path="{Binding PosterPath}" DecodeWidth="256" Stretch="UniformToFill" />
+                            </Panel>
+                          </Border>
+                          <TextBlock Text="{Binding Title}" FontSize="{StaticResource FontSmall}" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding Year}" FontSize="{StaticResource FontSmall}" Classes="muted" TextAlignment="Center" />
+                        </StackPanel>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <TextBlock Text="Rien à proposer pour l'instant : importez des films, ou marquez-en quelques-uns comme vus."
+                   Classes="muted" TextWrapping="Wrap" IsVisible="{Binding !HasBands}" />
+      </StackPanel>
+    </ScrollViewer>
 
     <!-- ======================= Zone centrale ======================= -->
     <DockPanel Grid.Column="1" Margin="{StaticResource Edges6_4_1_0}" IsVisible="{Binding IsTitlesView}">

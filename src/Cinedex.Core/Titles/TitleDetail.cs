@@ -117,6 +117,17 @@ public sealed record CopyInfo
 
 public sealed record Loan(long Id, string Borrower, DateTimeOffset LoanedAt, DateTimeOffset? ReturnedAt);
 
+/// <summary>D'où vient un visionnage : saisi à la main, déclenché par une lecture, ou lu à l'import.</summary>
+public enum ViewingSource
+{
+    Manual,
+    Playback,
+    Import,
+}
+
+/// <summary>Un visionnage daté. La date est absente quand on sait que le film a été vu, mais pas quand.</summary>
+public sealed record Viewing(long Id, DateTimeOffset? ViewedAt, ViewingSource Source);
+
 public sealed record Genre(string Code, string Label);
 
 public sealed record RefItem(string Kind, string Code, string Label);

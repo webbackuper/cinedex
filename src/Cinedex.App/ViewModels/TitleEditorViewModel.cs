@@ -37,7 +37,8 @@ public sealed record TitleEditorExtras(
     MediaFileRepository? Files = null,
     Func<string, Task<string?>>? SetPoster = null,
     Func<Task>? RemovePoster = null,
-    Func<long, Task<TitleDetail?>>? UpdateFromTmdb = null);
+    Func<long, Task<TitleDetail?>>? UpdateFromTmdb = null,
+    ViewingsViewModel? Viewings = null);
 
 /// <summary>Un fichier du titre dans l'onglet Fichier : chemin complet et MediaID (nom du disque) modifiable.</summary>
 public sealed partial class FileVolumeRow(MediaFileEntry file) : ObservableObject
@@ -77,6 +78,7 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         _addFile = extras.AddFile;
         _people = extras.People;
         Loans = extras.Loans;
+        Viewings = extras.Viewings;
         _files = extras.Files;
         ReloadFiles();
         PosterPath = extras.PosterPath;
@@ -310,6 +312,11 @@ public sealed partial class TitleEditorViewModel : ObservableObject
     public LoanEditorViewModel? Loans { get; }
 
     public bool HasLoans => Loans is not null;
+
+    /// <summary>Historique de visionnage dans l'onglet Statut (absent si la fiche est ouverte sans catalogue).</summary>
+    public ViewingsViewModel? Viewings { get; }
+
+    public bool HasViewings => Viewings is not null;
 
     /// <summary>Durée saisie en minutes, affichée aussi en heures : « 112 » donne « soit 1 h 52 ».</summary>
     public string RuntimeText =>

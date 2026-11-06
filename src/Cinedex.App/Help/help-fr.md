@@ -63,7 +63,7 @@ Un clic sur un titre affiche sa fiche dans le panneau de droite, dont la largeur
 - **Distribution** : acteurs avec leur photo et leur rôle ; un clic ouvre la fiche de l'acteur. L'équipe (réalisation, scénario, musique) suit.
 - **Fichier** : emplacement complet, MediaID, taille, durée, conteneur, codecs vidéo et audio, langues, sous-titres. **Relire les infos techniques** relance MediaInfo. **Ajouter une partie** rattache un CD2, part2… au même film.
 - **Exemplaire** : support, boîtier, version, emplacement, prix, et la gestion complète du **prêt** (prêter, rendre, historique).
-- **Genres**, **Classement** (collection, tags, groupes) et **Statut** (vu, favori, possédé, verrouillé, contenu adulte, commentaires).
+- **Genres**, **Classement** (collection, tags, groupes) et **Statut** (vu, favori, possédé, verrouillé, contenu adulte, commentaires), avec l'**historique de visionnage** : chaque fois que vous avez vu le film, à sa date.
 
 Les durées s'affichent en heures et minutes.
 
@@ -104,6 +104,7 @@ Exemple : Genre est Comédie, puis Note IMDb > 7, puis Année ≥ 2000.
 **Infobulles** : activez « Infobulle au survol d'un film » dans **Réglages > Général** pour afficher, en survolant un film de la liste ou des affiches, son titre, ses genres, sa note IMDb et le début de son synopsis. Elles sont désactivées par défaut.
 
 ## Le bandeau gauche
+- **Accueil** : la page qui répond à « qu'est-ce que je regarde ce soir ». Elle propose des films jamais vus, bien notés et dont le fichier est lisible tout de suite (le disque est branché), les sagas dont vous avez vu un épisode mais pas le suivant, les derniers ajouts, et des films possédés depuis plus de six mois et jamais vus. Le tirage ne change qu'une fois par jour.
 - **Bibliothèque** : vues rapides (vus, favoris, liste courte, prêtés, fichiers vidéo…).
 - **Définition** : sous-menu Définition standard, Haute définition, Ultra HD (4K), 3D.
 - **Parcourir** : sous-menus **Genres**, **Décennies**, **Pays** et **Langues**. Chacun ne liste que ce que le catalogue porte vraiment, donc un clic ne tombe jamais sur une vue vide. Un seul sous-menu agit à la fois : choisir un genre relâche le pays, et revenir sur une vue de la bibliothèque relâche tout.
@@ -216,6 +217,10 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.7.0
+- **Page d'accueil** : une entrée **Accueil** en haut du bandeau gauche ouvre quatre bandes d'affiches — **À voir ce soir** (jamais vus, bien notés, et le disque est branché), **Reprendre une saga**, **Derniers ajouts** et **Oubliés**. Le tirage tient la journée puis change : une page figée ne fait rien redécouvrir, une page qui bouge sans cesse devient désagréable. Une bande qui n'a rien à montrer ne s'affiche pas.
+- **Historique de visionnage** : l'onglet **Statut** de la fiche garde chaque visionnage avec sa date. Revoir un film ajoute un événement au lieu de remplacer le premier, et chaque lecture depuis Cinedex laisse sa trace. Une ligne erronée s'efface, une séance passée s'ajoute à sa date.
+
 ### 0.6.1
 - **« Vous aimerez aussi »** : la fiche propose des films proches tirés de votre propre catalogue, les plus proches d'abord, chacun avec la raison du rapprochement. Le calcul se fait sur la base (genres, mots-clés, réalisateur, acteurs principaux, saga, époque), donc hors ligne et instantané. Un seul genre partagé ne suffit pas à être proposé : il faut deux genres, ou un genre et un mot-clé, ou le même réalisateur.
 - **Mots-clés TMDb** : ils ont désormais leur propre place en base, séparée de vos tags. **Réglages > Métadonnées** propose de les récupérer d'un coup pour les fiches qui n'en ont pas, ce qui rend les rapprochements nettement plus fins.

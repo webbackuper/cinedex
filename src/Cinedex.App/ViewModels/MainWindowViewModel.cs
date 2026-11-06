@@ -36,8 +36,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly Func<SettingsViewModel>? _settings;
     private readonly MediaContext? _media;
     private readonly CatalogsViewModel? _catalogs;
-    private readonly RecommendationRepository? _recommendations;
-    private readonly SuggestionRepository? _suggestions;
+    private readonly CatalogExtras _extras;
     private bool _refreshing;
     private bool _loaded;
 
@@ -50,11 +49,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
         Func<SettingsViewModel>? settings = null,
         MediaContext? media = null,
         CatalogsViewModel? catalogs = null,
-        RecommendationRepository? recommendations = null,
-        SuggestionRepository? suggestions = null)
+        CatalogExtras? extras = null)
     {
-        _recommendations = recommendations;
-        _suggestions = suggestions;
+        _extras = extras ?? new CatalogExtras();
         _titles = titles;
         _paths = paths;
         _dialogs = dialogs;
@@ -671,13 +668,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private void LoadSimilar()
     {
-        if (_recommendations is null || Detail is null)
+        if (_extras.Recommendations is null || Detail is null)
         {
             Similar = [];
             return;
         }
 
-        var found = _recommendations.For(Detail.Id);
+        var found = _extras.Recommendations.For(Detail.Id);
         if (found.Count == 0)
         {
             Similar = [];
@@ -708,26 +705,26 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private void LoadSuggestions()
     {
-        if (_suggestions is null || Detail is null)
+        if (_extras.Suggestions is null || Detail is null)
         {
             TmdbSuggestions = [];
             SuggestionsFetched = false;
             return;
         }
 
-        TmdbSuggestions = _suggestions.For(Detail.Id);
-        SuggestionsFetched = _suggestions.WasFetched(Detail.Id);
+        TmdbSuggestions = _extras.Suggestions.For(Detail.Id);
+        SuggestionsFetched = _extras.Suggestions.WasFetched(Detail.Id);
         FetchSuggestionsCommand.NotifyCanExecuteChanged();
     }
 
     private bool CanFetchSuggestions() =>
-        _suggestions is not null && _metadata is not null && !IsBusy && !SuggestionsFetched && Detail?.TmdbId is not null;
+        _extras.Suggestions is not null && _metadata is not null && !IsBusy && !SuggestionsFetched && Detail?.TmdbId is not null;
 
     /// <summary>Demande à TMDb ses suggestions pour la fiche affichée, une seule fois par titre.</summary>
     [RelayCommand(CanExecute = nameof(CanFetchSuggestions))]
     private async Task FetchSuggestionsAsync()
     {
-        if (Detail is not { TmdbId: { } sourceId } detail || _suggestions is null)
+        if (Detail is not { TmdbId: { } sourceId } detail || _extras.Suggestions is not { } store)
         {
             return;
         }
@@ -735,7 +732,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         await RunMetadataAsync(async () =>
         {
             var found = await _metadata!.RecommendationsAsync(detail.Kind, sourceId, CancellationToken.None);
-            _suggestions.Save(detail.Id, found);
+            store.Save(detail.Id, found);
             LoadSuggestions();
             Status = found.Count == 0
                 ? Tr.T("TMDb ne propose rien pour ce titre.")
@@ -887,7 +884,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public bool IsPeopleView => PeopleBrowser is not null;
 
-    public bool IsTitlesView => PeopleBrowser is null;
+    public bool IsTitlesView => PeopleBrowser is null && Home is null;
 
     public bool IsActorsView => PeopleBrowser is { IsDirectors: false };
 
@@ -918,18 +915,72 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private void ShowTitles() => PeopleBrowser = null;
 
     /// <summary>
+    /// Page d'accueil : à voir ce soir, sagas commencées, derniers ajouts, oubliés. Elle occupe le panneau
+    /// central comme la galerie des personnes, et toute vue de la bibliothèque la referme.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsHomeView), nameof(IsTitlesView))]
+    public partial HomeViewModel? Home { get; private set; }
+
+    public bool IsHomeView => Home is not null;
+
+    public bool CanShowHome => _extras.Home is not null;
+
+    [RelayCommand]
+    private void ShowHome()
+    {
+        if (_extras.Home is not { } home)
+        {
+            return;
+        }
+
+        PeopleBrowser = null;
+        var page = new HomeViewModel();
+        // Les disques montés viennent du dépôt des fichiers : « lisible maintenant » dépend de ce qui est branché.
+        var mounted = (_media?.Files.VolumeProvider ?? Volumes.Current)().Labels;
+        page.Load(home, Ordered, mounted, _extras.Statistics?.Compute());
+        Home = page;
+    }
+
+    /// <summary>Fiches de ces identifiants, dans l'ordre demandé : la requête de liste ne le garde pas.</summary>
+    private IReadOnlyList<TitleSummary> Ordered(IReadOnlyList<long> ids)
+    {
+        var rows = _titles.Query(new TitleQuery(Ids: ids)).Select(Prepare).ToDictionary(t => t.Id);
+        return ids.Where(rows.ContainsKey).Select(id => rows[id]).ToList();
+    }
+
+    /// <summary>Ouvre la fiche d'un film cliqué sur la page d'accueil.</summary>
+    [RelayCommand]
+    private void OpenFromHome(TitleSummary? title)
+    {
+        if (title is not null)
+        {
+            Home = null;
+            GoToTitle(title.Id);
+        }
+    }
+
+    /// <summary>
     /// Clic sur une vue de la bibliothèque : on quitte la galerie des personnes et le disque choisi, même quand
     /// la vue cliquée était déjà celle en cours (le filtre ne change pas, mais l'intention est de tout revoir).
     /// </summary>
     public void LeaveSideViews()
     {
+        Home = null;
         PeopleBrowser = null;
         SelectedMediaId = null;
         ClearFacets();
         Rules = null;
     }
 
-    partial void OnPeopleBrowserChanged(PeopleBrowserViewModel? value) => PersonPage = null;
+    partial void OnPeopleBrowserChanged(PeopleBrowserViewModel? value)
+    {
+        PersonPage = null;
+        if (value is not null)
+        {
+            Home = null;
+        }
+    }
 
     /// <summary>Personne choisie dans la galerie : ses informations remplacent la fiche du titre dans le bandeau droit.</summary>
     [ObservableProperty]
@@ -1167,6 +1218,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         ClearFacets();
+        Home = null;
 
         OnPropertyChanged(nameof(SelectedMainFilter));
         OnPropertyChanged(nameof(SelectedDefinitionFilter));
@@ -1334,7 +1386,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
                     ? $"Fiche mise à jour depuis TMDb : {current.Title} (TMDb {sourceId})"
                     : $"Titre verrouillé, non modifié : {current.Title}");
                 return applied ? _titles.Get(current.Id) : null;
-            });
+            },
+            new ViewingsViewModel(_titles, current.Id));
         var editor = new TitleEditorViewModel(
             current, _titles.Genres(), _titles.RefItems("medium"), _titles.RefItems("case"), _titles.RefItems("version"), _titles.Collections(), extras);
         // La fenêtre d'édition valide elle-même (TryBuild) avant de se fermer sur « Enregistrer ».
@@ -1773,7 +1826,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
             Journal($"Lecture : {file.FullPath}");
             if (_media.Settings.Get(MediaContext.MarkSeenOnPlayKey) != "false")
             {
-                _titles.SetSeen([file.TitleId], true, DateTimeOffset.Now);
+                // Chaque lecture laisse sa trace datée : c'est ce qui fait l'historique, et « revu trois fois ».
+                _titles.AddViewing(file.TitleId, DateTimeOffset.Now, ViewingSource.Playback);
                 Refresh(selectId: file.TitleId);
             }
         }

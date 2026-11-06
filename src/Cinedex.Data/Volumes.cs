@@ -41,6 +41,9 @@ public sealed class Volumes
         return new Volumes(list);
     }
 
+    /// <summary>Noms des disques actuellement montés (les disques sans nom ne comptent pas).</summary>
+    public IReadOnlyList<string> Labels => _volumes.Select(v => v.Label).OfType<string>().Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
     /// <summary>Nom du disque qui contient ce chemin, ou null (disque sans nom, inconnu ou système de fichiers racine).</summary>
     public string? LabelOf(string fullPath) => Find(fullPath)?.Label;
 

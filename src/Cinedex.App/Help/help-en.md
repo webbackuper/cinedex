@@ -63,7 +63,7 @@ A click on a title shows its details in the right panel, whose width you set by 
 - **Cast**: actors with their photo and role; a click opens the actor's page. The crew (directing, screenplay, music) follows.
 - **File**: full location, MediaID, size, runtime, container, video and audio codecs, languages, subtitles. **Reread technical info** runs MediaInfo again. **Add a part** attaches a CD2, part2… to the same film.
 - **Copy**: medium, case, version, location, price, and full **loan** management (lend, return, history).
-- **Genres**, **Organization** (collection, tags, groups) and **Status** (watched, favorite, owned, locked, adult content, comments).
+- **Genres**, **Organization** (collection, tags, groups) and **Status** (watched, favorite, owned, locked, adult content, comments), with the **viewing history**: every time you watched the film, at its date.
 
 Runtimes are shown in hours and minutes.
 
@@ -104,6 +104,7 @@ Example: Genre is Comedy, then IMDb rating > 7, then Year ≥ 2000.
 **Tooltips**: turn on "Tooltip when hovering over a film" in **Settings > General** to show, when hovering over a film in the list or the posters, its title, genres, IMDb rating and the beginning of its synopsis. They are off by default.
 
 ## The left sidebar
+- **Home**: the page that answers "what do I watch tonight". It offers films never watched, well rated and playable right now (the disk is plugged in), sagas whose first film you watched but not the next one, the latest additions, and films owned for more than six months and never watched. The draw changes once a day.
 - **Library**: quick views (watched, favorites, shortlist, lent, video files…).
 - **Definition**: submenu Standard definition, High definition, Ultra HD (4K), 3D.
 - **Browse**: submenus **Genres**, **Decades**, **Countries** and **Languages**. Each lists only what the catalog actually holds, so a click never lands on an empty view. One submenu acts at a time: choosing a genre releases the country, and going back to a library view releases everything.
@@ -216,6 +217,10 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.7.0
+- **Home page**: a **Home** entry at the top of the left sidebar opens four bands of posters — **To watch tonight** (never watched, well rated, and the disk is plugged in), **Resume a saga**, **Just added** and **Forgotten**. The draw holds for the day then changes: a frozen page makes nothing rediscoverable, a page that keeps moving becomes tiresome. A band with nothing to show is not displayed.
+- **Viewing history**: the **Status** tab of the details keeps every viewing with its date. Watching a film again adds an event instead of replacing the first one, and every playback from Cinedex leaves its trace. A wrong line can be erased, a past screening added at its date.
+
 ### 0.6.1
 - **"You will also like"**: the details panel suggests close films from your own catalog, the closest first, each with the reason for the match. It is computed from the database (genres, keywords, director, lead actors, saga, period), so it is offline and instant. A single shared genre is not enough to be suggested: it takes two genres, or a genre and a keyword, or the same director.
 - **TMDb keywords**: they now have their own place in the database, apart from your tags. **Settings > Metadata** offers to fetch them in one pass for the records that have none, which makes the matches markedly finer.

@@ -200,7 +200,12 @@ public sealed partial class TitleRepository(CatalogDatabase database)
             sql.Append(" WHERE ").AppendJoin(" AND ", where);
         }
 
-        sql.Append(" ORDER BY ").Append(OrderBy(query.Sort, query.Descending)).Append(';');
+        if (query.GroupOrder is { } groupOrder && query.Sort == SortField.ListOrder)
+        {
+            parameters.Add("GroupOrder", groupOrder);
+        }
+
+        sql.Append(" ORDER BY ").Append(OrderBy(query.Sort, query.Descending, query.GroupOrder is not null)).Append(';');
 
         using var connection = database.Open();
         return connection.Query<Row>(sql.ToString(), parameters).Select(ToSummary).ToList();
@@ -685,7 +690,7 @@ public sealed partial class TitleRepository(CatalogDatabase database)
     };
 
     // Colonnes de tri issues d'une liste fermée : aucune saisie n'arrive dans le SQL.
-    private static string OrderBy(SortField sort, bool descending)
+    private static string OrderBy(SortField sort, bool descending, bool hasGroupOrder = false)
     {
         var direction = descending ? "DESC" : "ASC";
         var column = sort switch
@@ -696,6 +701,10 @@ public sealed partial class TitleRepository(CatalogDatabase database)
             SortField.AddedAt => "t.added_at",
             SortField.UserRating => "t.user_rating",
             SortField.Runtime => "t.runtime_minutes",
+            // Hors d'une liste personnelle, « ordre de la liste » n'a pas de sens : on retombe sur le titre.
+            SortField.ListOrder => hasGroupOrder
+                ? "(SELECT tg.position FROM title_group tg JOIN user_group ug ON ug.id = tg.group_id WHERE tg.title_id = t.id AND ug.name = @GroupOrder COLLATE NOCASE)"
+                : null,
             _ => throw new ArgumentOutOfRangeException(nameof(sort), sort, null),
         };
         return column is null

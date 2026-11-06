@@ -108,7 +108,7 @@ Exemple : Genre est Comédie, puis Note IMDb > 7, puis Année ≥ 2000.
 - **Bibliothèque** : vues rapides (vus, favoris, liste courte, prêtés, fichiers vidéo…).
 - **Définition** : sous-menu Définition standard, Haute définition, Ultra HD (4K), 3D.
 - **Listes** : les listes de référence (le Top 250 IMDb, et les vôtres). Choisir une liste montre les films du catalogue qui en font partie, et un bandeau dit combien il en manque, avec de quoi les ajouter d'un coup à la liste de souhaits.
-- **Mes listes** : vos groupes personnels (« Soirée famille », « À revoir »), saisis dans l'onglet Classement de la fiche ou par modification groupée.
+- **Mes listes** : vos groupes personnels (« Soirée famille », « À revoir »), saisis dans l'onglet Classement de la fiche ou par modification groupée. Ils sont **ordonnés** : ouvrir une liste la montre dans votre ordre, et deux boutons de la barre d'outils montent ou descendent la sélection. Un titre ajouté se range à la fin. Choisir un autre tri (titre, année…) l'emporte le temps qu'on le garde.
 - **Parcourir** : sous-menus **Genres**, **Décennies**, **Pays** et **Langues**. Chacun ne liste que ce que le catalogue porte vraiment, donc un clic ne tombe jamais sur une vue vide. Un seul sous-menu agit à la fois : choisir un genre relâche le pays, et revenir sur une vue de la bibliothèque relâche tout.
 - En haut, la **Bibliothèque** : Tous les titres, Vus, Pas encore vus, Favoris, Liste courte, Films seulement, Séries seulement, Prêtés, Fichiers vidéo, **Films sans infos** (titres jamais mis à jour depuis TMDb) et le sous-menu Définition.
 - En bas : **À vérifier**, **Recherche multicritère**, **Acteurs**, **Réalisateurs**, **Suivi des séries**, **Collections**, **Apparence**, **Réglages** et **Aide**.
@@ -219,6 +219,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.8.1
+- **Listes personnelles ordonnées** : vos listes gardent l'ordre que vous leur donnez. Ouvrir une liste la trie par cet ordre, deux boutons montent ou descendent la sélection (plusieurs titres à la fois gardent leur disposition), et un titre ajouté se range à la fin. Les listes qui existaient déjà partent de l'ordre qu'elles avaient à l'écran, donc rien ne bouge tant que vous ne réordonnez pas.
+
 ### 0.8.0
 - **Top 250 IMDb** : **Réglages > Métadonnées > Construire le Top 250 IMDb (estimé)** recalcule le classement depuis les fichiers publics d'IMDb, avec la formule officielle (moyenne bayésienne, 25 000 votes minimum). Le premier calcul télécharge environ 200 Mo. La liste est étiquetée **estimé** parce qu'elle l'est : IMDb ne publie pas son classement, seulement sa formule, et applique en plus des pondérations qu'il garde pour lui. Le résultat ressemble beaucoup à la vraie liste sans lui être identique.
 - **Ce que la liste dit de votre catalogue** : le sous-menu **Listes** du bandeau gauche montre les films de la liste que vous possédez, et affiche « 187 sur 250 au catalogue, 63 manquant(s) ». Un bouton rapatrie la fiche TMDb de chaque manquant, le marque non possédé et l'étiquette au nom de la liste : vous les retrouvez dans **Liste de souhaits**, et le tag dit d'où ils viennent.

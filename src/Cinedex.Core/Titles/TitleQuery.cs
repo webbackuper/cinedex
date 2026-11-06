@@ -31,6 +31,9 @@ public enum SortField
     AddedAt,
     UserRating,
     Runtime,
+
+    /// <summary>Ordre donné à la main dans une liste personnelle ; sans liste, revient au tri par titre.</summary>
+    ListOrder,
 }
 
 public enum GenreMatch
@@ -89,7 +92,8 @@ public sealed record TitleQuery(
     bool HideAdult = false,
     SearchCriteria? Criteria = null,
     RuleSearch? Rules = null,
-    IReadOnlyCollection<long>? Ids = null)
+    IReadOnlyCollection<long>? Ids = null,
+    string? GroupOrder = null)
 {
     public static TitleQuery Default { get; } = new();
 }

@@ -404,6 +404,15 @@
       <!-- Barre d'outils -->
       <DockPanel DockPanel.Dock="Top" Margin="{StaticResource Below3}">
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="{StaticResource Space2}" Margin="{StaticResource Before3}">
+          <!-- Ordre d'une liste personnelle : visible seulement quand une liste est ouverte. -->
+          <Button Classes="tool" Command="{Binding MoveUpCommand}" IsVisible="{Binding HasPersonalList}" ToolTip.Tip="Monter dans la liste">
+            <controls:Icon Kind="chevron-down" RenderTransformOrigin="50%,50%">
+              <controls:Icon.RenderTransform><RotateTransform Angle="180" /></controls:Icon.RenderTransform>
+            </controls:Icon>
+          </Button>
+          <Button Classes="tool" Command="{Binding MoveDownCommand}" IsVisible="{Binding HasPersonalList}" ToolTip.Tip="Descendre dans la liste">
+            <controls:Icon Kind="chevron-down" />
+          </Button>
           <Button Classes="tool" Command="{Binding PickRandomCommand}" ToolTip.Tip="Un titre non vu au hasard (Ctrl+R)">
             <controls:Icon Kind="random" />
           </Button>

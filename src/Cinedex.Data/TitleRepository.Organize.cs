@@ -255,6 +255,81 @@ public sealed partial class TitleRepository
         }
     }
 
+    /// <summary>Titres d'une liste personnelle, dans l'ordre que l'utilisateur leur a donné.</summary>
+    public IReadOnlyList<long> GroupOrder(string group)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(group);
+        using var connection = database.Open();
+        return connection.Query<long>(
+                """
+                SELECT tg.title_id FROM title_group tg JOIN user_group ug ON ug.id = tg.group_id
+                WHERE ug.name = @group COLLATE NOCASE ORDER BY tg.position, tg.title_id;
+                """,
+                new { group })
+            .ToList();
+    }
+
+    /// <summary>
+    /// Déplace des titres d'un cran dans une liste personnelle (-1 vers le haut, +1 vers le bas). Un titre
+    /// bloqué par un bord, ou par un voisin lui aussi déplacé, ne bouge pas : une sélection garde sa forme.
+    /// </summary>
+    public void MoveInGroup(string group, IReadOnlyCollection<long> ids, int delta)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(group);
+        ArgumentNullException.ThrowIfNull(ids);
+        if (ids.Count == 0 || delta == 0)
+        {
+            return;
+        }
+
+        var order = GroupOrder(group).ToList();
+        var moving = order.Select((id, index) => (id, index)).Where(x => ids.Contains(x.id)).ToList();
+        if (moving.Count == 0 || moving.Count == order.Count)
+        {
+            return;
+        }
+
+        // Vers le haut on part du premier, vers le bas du dernier : sinon un déplacé écraserait le suivant.
+        foreach (var (id, _) in delta < 0 ? moving : Enumerable.Reverse(moving))
+        {
+            var index = order.IndexOf(id);
+            var target = index + delta;
+            if (target < 0 || target >= order.Count || ids.Contains(order[target]))
+            {
+                continue;
+            }
+
+            (order[index], order[target]) = (order[target], order[index]);
+        }
+
+        SetGroupOrder(group, order);
+    }
+
+    /// <summary>Écrit l'ordre d'une liste personnelle ; les titres absents de la liste sont ignorés.</summary>
+    public void SetGroupOrder(string group, IReadOnlyList<long> orderedIds)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(group);
+        ArgumentNullException.ThrowIfNull(orderedIds);
+        using var connection = database.Open();
+        using var transaction = connection.BeginTransaction();
+        var groupId = connection.ExecuteScalar<long?>("SELECT id FROM user_group WHERE name = @group COLLATE NOCASE;", new { group }, transaction);
+        if (groupId is not { } id)
+        {
+            return;
+        }
+
+        var position = 0;
+        foreach (var titleId in orderedIds)
+        {
+            connection.Execute(
+                "UPDATE title_group SET position = @position WHERE group_id = @id AND title_id = @titleId;",
+                new { id, titleId, position = position++ },
+                transaction);
+        }
+
+        transaction.Commit();
+    }
+
     private static void ReplaceLabels(SqliteConnection connection, SqliteTransaction transaction, Label label, long titleId, IReadOnlyList<string> names)
     {
         connection.Execute($"DELETE FROM {label.Link} WHERE title_id = @titleId;", new { titleId }, transaction);
@@ -270,6 +345,19 @@ public sealed partial class TitleRepository
                 $"INSERT INTO {label.Table} (name) VALUES (@name) ON CONFLICT (name) DO UPDATE SET name = {label.Table}.name RETURNING id;",
                 new { name },
                 transaction);
+            if (label == Label.Group)
+            {
+                // Une liste est ordonnée : un titre qui y entre se range à la fin, pas à la place zéro.
+                connection.Execute(
+                    """
+                    INSERT OR IGNORE INTO title_group (title_id, group_id, position)
+                    VALUES (@titleId, @labelId, coalesce((SELECT max(position) + 1 FROM title_group WHERE group_id = @labelId), 0));
+                    """,
+                    new { titleId, labelId },
+                    transaction);
+                continue;
+            }
+
             connection.Execute(
                 $"INSERT OR IGNORE INTO {label.Link} (title_id, {label.Column}) VALUES (@titleId, @labelId);",
                 new { titleId, labelId },

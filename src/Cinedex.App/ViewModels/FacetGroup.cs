@@ -5,8 +5,11 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace Cinedex.App.ViewModels;
 
-/// <summary>Une entrée d'un sous-menu de parcours : son libellé, et la recherche qu'un clic applique.</summary>
-public sealed record FacetItem(string Label, RuleSearch Search)
+/// <summary>
+/// Une entrée d'un sous-menu de parcours : son libellé, et la recherche qu'un clic applique. Une liste
+/// personnelle porte en plus son nom de groupe : elle est ordonnée, les autres entrées ne le sont pas.
+/// </summary>
+public sealed record FacetItem(string Label, RuleSearch Search, string? GroupName = null)
 {
     public override string ToString() => Label;
 }

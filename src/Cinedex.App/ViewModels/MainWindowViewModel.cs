@@ -484,7 +484,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         // Les groupes sont les listes personnelles : ils existaient, mais seule la recherche multicritère
         // y menait. Les mettre ici est ce qui manquait pour qu'ils servent.
         Add("Mes listes", "bookmark", _titles.Groups()
-            .Select(g => new FacetItem(g.Name, new RuleSearch([new SearchRule("group", RuleOperator.Equals, g.Name)])))
+            .Select(g => new FacetItem(g.Name, new RuleSearch([new SearchRule("group", RuleOperator.Equals, g.Name)]), g.Name))
             .OrderBy(i => i.Label, StringComparer.CurrentCultureIgnoreCase)
             .ToList());
 
@@ -525,12 +525,52 @@ public sealed partial class MainWindowViewModel : ObservableObject
         // Le disque pose sa propre recherche : il faut le relâcher avant, sinon il efface celle du sous-menu.
         SelectedMediaId = null;
         PeopleBrowser = null;
+        Home = null;
+        SelectedReferenceList = null;
+
+        // Une liste personnelle s'ouvre dans l'ordre que l'utilisateur lui a donné ; il reste libre de trier
+        // autrement ensuite, le choix du tri l'emporte alors.
+        SelectedListName = group.SelectedItem?.GroupName;
+        if (SelectedListName is not null && SelectedSort.Value != SortField.ListOrder)
+        {
+            SelectedSort = Sorts.First(s => s.Value == SortField.ListOrder);
+        }
+
         Rules = group.SelectedItem?.Search;
+    }
+
+    /// <summary>Liste personnelle ouverte, s'il y en a une : c'est elle qui donne l'ordre et qu'on réordonne.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPersonalList))]
+    [NotifyCanExecuteChangedFor(nameof(MoveUpCommand), nameof(MoveDownCommand))]
+    public partial string? SelectedListName { get; private set; }
+
+    public bool HasPersonalList => SelectedListName is not null;
+
+    private bool CanMove() => SelectedListName is not null && SelectedTitles.Count > 0 && SelectedSort.Value == SortField.ListOrder;
+
+    [RelayCommand(CanExecute = nameof(CanMove))]
+    private void MoveUp() => Move(-1);
+
+    [RelayCommand(CanExecute = nameof(CanMove))]
+    private void MoveDown() => Move(1);
+
+    private void Move(int delta)
+    {
+        if (SelectedListName is not { } list)
+        {
+            return;
+        }
+
+        var ids = SelectedIds;
+        _titles.MoveInGroup(list, ids, delta);
+        Refresh(selectIds: ids);
     }
 
     /// <summary>Relâche les sous-menus de parcours quand une autre vue prend la main.</summary>
     private void ClearFacets()
     {
+        SelectedListName = null;
         foreach (var group in Facets)
         {
             group.Clear();
@@ -668,6 +708,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         new(SortField.AddedAt, "Date d'ajout"),
         new(SortField.UserRating, "Note personnelle"),
         new(SortField.Runtime, "Durée"),
+        new(SortField.ListOrder, "Ordre de la liste"),
     ];
 
     [ObservableProperty]
@@ -1275,7 +1316,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     partial void OnRulesChanged(RuleSearch? value) => Refresh();
 
-    private TitleQuery CurrentQuery => new(SearchText, SelectedFilter.Value, SelectedSort.Value, SortDescending, _display.HideAdult, Rules: Rules);
+    private TitleQuery CurrentQuery => new(SearchText, SelectedFilter.Value, SelectedSort.Value, SortDescending, _display.HideAdult, Rules: Rules, GroupOrder: SelectedListName);
 
     private IReadOnlyList<long> SelectedIds => SelectedTitles.Select(t => t.Id).ToList();
 
@@ -1352,7 +1393,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
         Refresh();
     }
 
-    partial void OnSelectedSortChanged(Choice<SortField> value) => Refresh();
+    partial void OnSelectedSortChanged(Choice<SortField> value)
+    {
+        MoveUpCommand.NotifyCanExecuteChanged();
+        MoveDownCommand.NotifyCanExecuteChanged();
+        Refresh();
+    }
 
     partial void OnSortDescendingChanged(bool value) => Refresh();
 
@@ -1413,6 +1459,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         DeleteCommand.NotifyCanExecuteChanged();
         ToggleSeenCommand.NotifyCanExecuteChanged();
         ToggleFavoriteCommand.NotifyCanExecuteChanged();
+        MoveUpCommand.NotifyCanExecuteChanged();
+        MoveDownCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand(CanExecute = nameof(CanAdd))]

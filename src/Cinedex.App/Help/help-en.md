@@ -56,6 +56,7 @@ If an API reaches its limit during an import, Cinedex offers to finish without i
 ## A film's details
 A click on a title shows its details in the right panel, whose width you set by dragging the handle between it and the list; a double-click (or Alt+E) opens the full, editable entry with its tabs:
 - **Details**: titles, year, runtime, summary, countries, studio, IMDb ID, trailer.
+- The **trailer** button in the right panel opens the video in your browser. TMDb fetches it with the rest of the record; **Settings > Metadata** offers to fill in the missing ones in one pass.
 - **Ratings**: your rating and the TMDb, IMDb, Rotten Tomatoes and Metacritic ratings.
 - **Cast**: actors with their photo and role; a click opens the actor's page. The crew (directing, screenplay, music) follows.
 - **File**: full location, MediaID, size, runtime, container, video and audio codecs, languages, subtitles. **Reread technical info** runs MediaInfo again. **Add a part** attaches a CD2, part2… to the same film.
@@ -103,6 +104,7 @@ Example: Genre is Comedy, then IMDb rating > 7, then Year ≥ 2000.
 ## The left sidebar
 - **Library**: quick views (watched, favorites, shortlist, lent, video files…).
 - **Definition**: submenu Standard definition, High definition, Ultra HD (4K), 3D.
+- **Browse**: submenus **Genres**, **Decades**, **Countries** and **Languages**. Each lists only what the catalog actually holds, so a click never lands on an empty view. One submenu acts at a time: choosing a genre releases the country, and going back to a library view releases everything.
 - At the top, the **Library**: All titles, Watched, Not watched yet, Favorites, Shortlist, Movies only, Series only, Lent, Video files, **Films without info** (titles never updated from TMDb) and the Definition submenu.
 - At the bottom: **To review**, **Advanced search**, **Actors**, **Directors**, **Series tracker**, **Collections**, **Appearance**, **Settings** and **Help**.
 
@@ -212,6 +214,10 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.5.0
+- **Trailers**: a button in the right panel opens the trailer in your browser. It was already fetched from TMDb with the rest of the record, but nothing played it. Only known video platforms are opened. **Settings > Metadata** adds "Fill in the missing trailers", which goes back over the records already linked to TMDb that have none.
+- **Browsing the catalog**: the left sidebar gains four expandable submenus, **Genres**, **Decades**, **Countries** and **Languages**, built like MediaID. They list only what the catalog holds, countries and languages are named rather than coded, and decades run from the most recent to the oldest.
+
 ### 0.4.33
 - **Update a card from the card itself**: in the editor, an **Update** button next to the TMDb number fetches the record and reloads the form — description, genres, cast, poster. It follows the number shown: typing another one and updating attaches the title to a different record without leaving the editor. Unsaved entries are replaced by what comes from TMDb, and a locked title is left unchanged.
 

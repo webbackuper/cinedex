@@ -56,6 +56,7 @@ Si une API atteint sa limite pendant un import, Cinedex vous propose de terminer
 ## La fiche d'un film
 Un clic sur un titre affiche sa fiche dans le panneau de droite, dont la largeur se règle en glissant la poignée qui le sépare de la liste ; un double-clic (ou Alt+E) ouvre la fiche complète, modifiable, avec ses onglets :
 - **Fiche** : titres, année, durée, résumé, pays, studio, identifiant IMDb, bande-annonce.
+- Le bouton **bande-annonce** du panneau de droite ouvre la vidéo dans votre navigateur. TMDb la rapatrie avec le reste de la fiche ; **Réglages > Métadonnées** propose de compléter d'un coup celles qui manquent.
 - **Notes** : votre note et les notes TMDb, IMDb, Rotten Tomatoes, Metacritic.
 - **Distribution** : acteurs avec leur photo et leur rôle ; un clic ouvre la fiche de l'acteur. L'équipe (réalisation, scénario, musique) suit.
 - **Fichier** : emplacement complet, MediaID, taille, durée, conteneur, codecs vidéo et audio, langues, sous-titres. **Relire les infos techniques** relance MediaInfo. **Ajouter une partie** rattache un CD2, part2… au même film.
@@ -103,6 +104,7 @@ Exemple : Genre est Comédie, puis Note IMDb > 7, puis Année ≥ 2000.
 ## Le bandeau gauche
 - **Bibliothèque** : vues rapides (vus, favoris, liste courte, prêtés, fichiers vidéo…).
 - **Définition** : sous-menu Définition standard, Haute définition, Ultra HD (4K), 3D.
+- **Parcourir** : sous-menus **Genres**, **Décennies**, **Pays** et **Langues**. Chacun ne liste que ce que le catalogue porte vraiment, donc un clic ne tombe jamais sur une vue vide. Un seul sous-menu agit à la fois : choisir un genre relâche le pays, et revenir sur une vue de la bibliothèque relâche tout.
 - En haut, la **Bibliothèque** : Tous les titres, Vus, Pas encore vus, Favoris, Liste courte, Films seulement, Séries seulement, Prêtés, Fichiers vidéo, **Films sans infos** (titres jamais mis à jour depuis TMDb) et le sous-menu Définition.
 - En bas : **À vérifier**, **Recherche multicritère**, **Acteurs**, **Réalisateurs**, **Suivi des séries**, **Collections**, **Apparence**, **Réglages** et **Aide**.
 
@@ -212,6 +214,10 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.5.0
+- **Bandes-annonces** : un bouton du panneau de droite ouvre la bande-annonce dans le navigateur. Elle était déjà rapatriée de TMDb avec le reste de la fiche, mais rien ne la lisait. Seules les plateformes vidéo connues sont ouvertes. **Réglages > Métadonnées** ajoute « Compléter les bandes-annonces manquantes », qui repasse sur les fiches déjà liées à TMDb qui n'en ont pas.
+- **Parcourir le catalogue** : le bandeau gauche gagne quatre sous-menus dépliables, **Genres**, **Décennies**, **Pays** et **Langues**, sur le modèle de MediaID. Ils ne listent que ce que le catalogue porte, les pays et les langues sont nommés et non codés, et les décennies vont de la plus récente à la plus ancienne.
+
 ### 0.4.33
 - **Mettre à jour une fiche depuis la fiche elle-même** : dans l'éditeur, un bouton **Mettre à jour** à côté du numéro TMDb rapatrie la fiche et recharge le formulaire — descriptif, genres, distribution, affiche. Il suit le numéro affiché : en saisir un autre puis mettre à jour rattache le titre à une autre fiche sans quitter l'éditeur. Les saisies non enregistrées sont remplacées par ce qui arrive de TMDb, et un titre verrouillé n'est pas modifié.
 

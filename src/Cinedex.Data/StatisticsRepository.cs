@@ -38,6 +38,9 @@ public sealed record CatalogStatistics
     /// <summary>Titres sans synopsis ni genre : ceux dont la fiche reste à compléter.</summary>
     public int WithoutMetadata { get; init; }
 
+    /// <summary>Titres liés à TMDb dont la bande-annonce manque.</summary>
+    public int WithoutTrailer { get; init; }
+
     public int ToReview { get; init; }
 
     public IReadOnlyList<StatCount> Genres { get; init; } = [];
@@ -74,6 +77,7 @@ public sealed class StatisticsRepository(CatalogDatabase database)
             FilmMinutes = connection.ExecuteScalar<long?>("SELECT sum(runtime_minutes) FROM title WHERE kind = 'movie';") ?? 0,
             LinkedToTmdb = Count("SELECT count(*) FROM title WHERE tmdb_id IS NOT NULL;"),
             WithoutMetadata = Count($"SELECT count(*) FROM title t WHERE {TitleRepository.WithoutMetadata};"),
+            WithoutTrailer = Count("SELECT count(*) FROM title WHERE tmdb_id IS NOT NULL AND coalesce(trailer_url, '') = '' AND is_locked = 0;"),
             ToReview = Count("SELECT count(*) FROM match_review;"),
             Genres = Distribution(connection,
                 """

@@ -36,4 +36,41 @@ public static class TitleText
         < 3600 => Tr.F("{0} min {1:00} s", seconds / 60, seconds % 60),
         _ => Tr.F("{0} h {1:00} min {2:00} s", seconds / 3600, seconds % 3600 / 60, seconds % 60),
     };
+
+    /// <summary>
+    /// Nom d'un pays depuis son code ISO 3166-1 (« FR » donne « France »), dans la langue de l'interface.
+    /// Le code lui-même est rendu quand il n'est pas reconnu : une donnée TMDb inattendue reste lisible.
+    /// </summary>
+    public static string CountryName(string code)
+    {
+        ArgumentNullException.ThrowIfNull(code);
+        try
+        {
+            return new RegionInfo(code.Trim()).DisplayName;
+        }
+        catch (ArgumentException)
+        {
+            return code.Trim();
+        }
+    }
+
+    /// <summary>Nom d'une langue depuis son code ISO 639-1 (« fr » donne « français »), ou le code si inconnu.</summary>
+    public static string LanguageName(string code)
+    {
+        ArgumentNullException.ThrowIfNull(code);
+        var trimmed = code.Trim();
+        try
+        {
+            var culture = new CultureInfo(trimmed);
+            return culture.Name.Length == 0 ? trimmed : culture.DisplayName;
+        }
+        catch (CultureNotFoundException)
+        {
+            return trimmed;
+        }
+    }
+
+    /// <summary>Libellé d'une décennie : 1980 donne « 1980 – 1989 ».</summary>
+    public static string DecadeLabel(int decade) =>
+        string.Create(CultureInfo.CurrentCulture, $"{decade} – {decade + 9}");
 }

@@ -282,6 +282,33 @@
                 </DataTemplate>
               </ListBox.ItemTemplate>
             </ListBox>
+
+            <!-- Sous-menus de parcours : genres, décennies, pays, langues. Même comportement que MediaID. -->
+            <ItemsControl ItemsSource="{Binding Facets}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:FacetGroup">
+                  <StackPanel>
+                    <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Margin="{StaticResource Edges2_1_2_0}"
+                            Command="{Binding ToggleCommand}">
+                      <Grid ColumnDefinitions="Auto,*,Auto">
+                        <controls:Icon Kind="{Binding Icon}" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" />
+                        <TextBlock Grid.Column="1" Margin="{StaticResource Before3}" Text="{Binding Label}" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
+                        <controls:Icon Grid.Column="2" Kind="chevron-down" Width="14" Height="14" Foreground="{DynamicResource CinedexMuted}"
+                                       RenderTransformOrigin="50%,50%" RenderTransform="{Binding IsExpanded, Converter={x:Static views:ExpandArrowConverter.Instance}}" />
+                      </Grid>
+                    </Button>
+                    <ListBox Classes="nav" Margin="{StaticResource Before6}" ItemsSource="{Binding Items}" SelectedItem="{Binding SelectedItem}"
+                             IsVisible="{Binding IsExpanded}" AutomationProperties.Name="{Binding ListName}">
+                      <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:FacetItem">
+                          <TextBlock Text="{Binding Label}" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </DataTemplate>
+                      </ListBox.ItemTemplate>
+                    </ListBox>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
           </StackPanel>
         </ScrollViewer>
       </DockPanel>
@@ -700,6 +727,9 @@
                     <controls:Icon Kind="tv" Width="18" Height="18" />
                     <TextBlock Text="Épisodes" />
                   </StackPanel>
+                </Button>
+                <Button Classes="tool" Margin="{StaticResource Edges0_0_1_2}" Command="{Binding PlayTrailerCommand}" ToolTip.Tip="Voir la bande-annonce dans le navigateur">
+                  <controls:Icon Kind="trailer" />
                 </Button>
                 <Button Classes="tool" Margin="{StaticResource Edges0_0_1_2}" Command="{Binding ToggleSeenCommand}" ToolTip.Tip="Vu / pas vu (Ctrl+S)">
                   <controls:Icon Kind="eye" />

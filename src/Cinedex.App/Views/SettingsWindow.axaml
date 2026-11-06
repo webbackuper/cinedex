@@ -322,6 +322,8 @@
             <WrapPanel Margin="{StaticResource Above2}">
               <Button Classes="tool" Content="{Binding UpdateUnlinkedLabel}" Command="{Binding UpdateUnlinkedCommand}"
                       ToolTip.Tip="Cherche sur TMDb (par titre et année) la fiche des médias qui n'ont ni synopsis ni genre, et la télécharge. Les réglages se ferment et la mise à jour démarre, avec sa barre de progression." />
+              <Button Classes="tool" Content="{Binding UpdateTrailersLabel}" Command="{Binding UpdateTrailersCommand}"
+                      ToolTip.Tip="Repasse sur les fiches déjà liées à TMDb qui n'ont pas de bande-annonce, et récupère la leur. Les réglages se ferment et la mise à jour démarre." />
             </WrapPanel>
 
             <TextBlock Classes="h" Text="Notes IMDb, Rotten Tomatoes, Metacritic" />

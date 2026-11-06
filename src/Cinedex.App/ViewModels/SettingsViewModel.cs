@@ -408,6 +408,23 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     public string UpdateUnlinkedLabel => Tr.F("Mettre à jour via TMDb les {0} titre(s) sans infos", UnlinkedToTmdb);
 
+    /// <summary>Titres liés à TMDb dont la bande-annonce manque.</summary>
+    public int WithoutTrailer => Statistics?.WithoutTrailer ?? 0;
+
+    public string UpdateTrailersLabel => Tr.F("Compléter les {0} bande(s)-annonce(s) manquante(s)", WithoutTrailer);
+
+    public bool CanUpdateTrailers => WithoutTrailer > 0;
+
+    /// <summary>La récupération des bandes-annonces démarre à la fermeture des réglages.</summary>
+    public bool PendingUpdateTrailers { get; private set; }
+
+    [CommunityToolkit.Mvvm.Input.RelayCommand(CanExecute = nameof(CanUpdateTrailers))]
+    private void UpdateTrailers()
+    {
+        PendingUpdateTrailers = true;
+        CloseRequested?.Invoke(this, EventArgs.Empty);
+    }
+
     /// <summary>La mise à jour TMDb des titres non liés démarre à la fermeture des réglages.</summary>
     public bool PendingUpdateUnlinked { get; private set; }
 

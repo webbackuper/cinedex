@@ -5,6 +5,7 @@ using Cinedex.App.ViewModels;
 using Cinedex.Core.Localization;
 using Cinedex.Core.People;
 using Cinedex.Data;
+using Cinedex.App.Services;
 
 namespace Cinedex.App.Views;
 

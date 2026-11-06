@@ -443,8 +443,88 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     partial void OnSelectedMediaIdChanged(string? value)
     {
+        if (value is not null)
+        {
+            ClearFacets();
+        }
+
         // Un disque et une recherche multicritère ne se cumulent pas : le disque remplace les critères.
         Rules = value is null ? null : new RuleSearch([new SearchRule("media_id", RuleOperator.Equals, value)]);
+    }
+
+    /// <summary>
+    /// Sous-menus de parcours du bandeau gauche. Ils se comportent tous pareil, d'où un seul mécanisme :
+    /// une liste d'entrées, chacune portant la recherche qu'elle applique.
+    /// </summary>
+    public ObservableCollection<FacetGroup> Facets { get; } = [];
+
+    private void LoadFacets()
+    {
+        var chosen = Facets.Select(f => f.SelectedItem?.Label).ToList();
+        Facets.Clear();
+
+        var genres = _titles.UsedGenres()
+            .Select(g => new FacetItem(Tr.T(g.Label), new RuleSearch([new SearchRule("genre", RuleOperator.Equals, g.Code)])))
+            .OrderBy(i => i.Label, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+        Add("Genres", "tag", genres);
+
+        Add("Décennies", "clock", _titles.Decades()
+            .Select(d => new FacetItem(
+                TitleText.DecadeLabel(d),
+                new RuleSearch([
+                    new SearchRule("year", RuleOperator.GreaterOrEqual, d.ToString(CultureInfo.InvariantCulture)),
+                    new SearchRule("year", RuleOperator.LessOrEqual, (d + 9).ToString(CultureInfo.InvariantCulture)),
+                ])))
+            .ToList());
+
+        Add("Pays", "globe", Named(_titles.CountryCodes(), TitleText.CountryName, "countries"));
+        Add("Langues", "speech", Named(_titles.LanguageCodes(), TitleText.LanguageName, "languages"));
+
+        // La sélection d'avant survit au rechargement quand son entrée existe encore.
+        for (var i = 0; i < Facets.Count && i < chosen.Count; i++)
+        {
+            if (chosen[i] is { } label)
+            {
+                Facets[i].SelectedItem = Facets[i].Items.FirstOrDefault(x => string.Equals(x.Label, label, StringComparison.Ordinal));
+            }
+        }
+
+        void Add(string label, string icon, IReadOnlyList<FacetItem> items)
+        {
+            if (items.Count > 0)
+            {
+                Facets.Add(new FacetGroup(Tr.T(label), icon, items, OnFacetSelected));
+            }
+        }
+
+        static List<FacetItem> Named(IReadOnlyList<string> codes, Func<string, string> name, string field) =>
+            codes.Select(c => new FacetItem(name(c), new RuleSearch([new SearchRule(field, RuleOperator.Contains, c)])))
+                .OrderBy(i => i.Label, StringComparer.CurrentCultureIgnoreCase)
+                .ToList();
+    }
+
+    /// <summary>Une entrée de sous-menu cliquée : elle remplace toute autre vue latérale.</summary>
+    private void OnFacetSelected(FacetGroup group)
+    {
+        foreach (var other in Facets.Where(f => f != group))
+        {
+            other.Clear();
+        }
+
+        // Le disque pose sa propre recherche : il faut le relâcher avant, sinon il efface celle du sous-menu.
+        SelectedMediaId = null;
+        PeopleBrowser = null;
+        Rules = group.SelectedItem?.Search;
+    }
+
+    /// <summary>Relâche les sous-menus de parcours quand une autre vue prend la main.</summary>
+    private void ClearFacets()
+    {
+        foreach (var group in Facets)
+        {
+            group.Clear();
+        }
     }
 
     private void LoadMediaIds()
@@ -486,7 +566,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasDetail))]
-    [NotifyCanExecuteChangedFor(nameof(LendCommand), nameof(ReturnLoanCommand))]
+    [NotifyCanExecuteChangedFor(nameof(LendCommand), nameof(ReturnLoanCommand), nameof(PlayTrailerCommand))]
     public partial TitleDetail? Detail { get; set; }
 
     [ObservableProperty]
@@ -711,6 +791,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         PeopleBrowser = null;
         SelectedMediaId = null;
+        ClearFacets();
+        Rules = null;
     }
 
     partial void OnPeopleBrowserChanged(PeopleBrowserViewModel? value) => PersonPage = null;
@@ -898,8 +980,19 @@ public sealed partial class MainWindowViewModel : ObservableObject
         IsGridView = _media?.Settings.Get(GridViewKey) == "true";
         DetailWidth = ClampDetailWidth(_media?.Settings.Get(DetailWidthKey));
         DetailCollapsed = _media?.Settings.Get(DetailCollapsedKey) == "true";
-        LoadMediaIds();
+        ReloadSideLists();
         Refresh();
+    }
+
+    /// <summary>
+    /// Recharge les listes du bandeau gauche (disques et sous-menus de parcours). Volontairement hors de
+    /// <see cref="Refresh"/>, qui s'exécute à chaque changement de filtre ou de tri : ces listes ne bougent
+    /// qu'après un import, une mise à jour TMDb ou une opération de maintenance.
+    /// </summary>
+    private void ReloadSideLists()
+    {
+        LoadMediaIds();
+        LoadFacets();
     }
 
     private Avalonia.Threading.DispatcherTimer? _searchTimer;
@@ -938,6 +1031,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
             // Choisir une vue de la bibliothèque sort du disque, comme elle sort d'une recherche multicritère.
             SelectedMediaId = null;
         }
+
+        ClearFacets();
 
         OnPropertyChanged(nameof(SelectedMainFilter));
         OnPropertyChanged(nameof(SelectedDefinitionFilter));
@@ -1320,6 +1415,27 @@ public sealed partial class MainWindowViewModel : ObservableObject
         await UpdateViaTmdbAsync(ids, Tr.F("les {0} titre(s) sans synopsis ni genre", ids.Count));
     }
 
+    /// <summary>
+    /// Rapatrie les bandes-annonces manquantes (bouton de Réglages &gt; Métadonnées). C'est une mise à jour TMDb
+    /// ordinaire, restreinte aux fiches qui n'ont pas encore de bande-annonce : rien de neuf à appeler.
+    /// </summary>
+    public async Task UpdateMissingTrailersAsync()
+    {
+        if (_metadata is null || IsBusy)
+        {
+            return;
+        }
+
+        var ids = _titles.WithoutTrailerIds();
+        if (ids.Count == 0)
+        {
+            Status = Tr.T("Toutes les fiches liées à TMDb ont leur bande-annonce.");
+            return;
+        }
+
+        await UpdateViaTmdbAsync(ids, Tr.F("les {0} titre(s) sans bande-annonce", ids.Count));
+    }
+
     private async Task UpdateViaTmdbAsync(IReadOnlyList<long> ids, string scope)
     {
         if (ids.Count == 0 || !await _dialogs.ConfirmAsync(
@@ -1334,6 +1450,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             var targets = ids.Select(_titles.Get).OfType<TitleDetail>().ToList();
             var progress = TrackedProgress(targets.Count);
             var result = await _metadata!.UpdateTitlesAsync(targets, ImportOptions.Default, progress, CancellationToken.None);
+            ReloadSideLists();
             Refresh(selectIds: ids);
             Status = Tr.F("{0} mis à jour, {1} à vérifier, {2} non trouvé(s), {3} ignoré(s), {4} échec(s)", result.Updated, result.ToReview, result.NotFound, result.Skipped, result.Failed);
             Journal($"Mise à jour via TMDb de {targets.Count} titre(s) : {result.Updated} mis à jour, {result.ToReview} à vérifier, {result.NotFound} non trouvé(s), {result.Skipped} ignoré(s), {result.Failed} échec(s)");
@@ -1406,6 +1523,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
             if (saved || maintenance?.Changed == true)
             {
+                ReloadSideLists();
                 Refresh(selectIds: SelectedIds);
             }
 
@@ -1418,6 +1536,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
             {
                 // Bouton de l'onglet Métadonnées : la fenêtre vient de se fermer, la mise à jour démarre ici.
                 await UpdateUnlinkedFromTmdbAsync();
+            }
+            else if (settings.PendingUpdateTrailers)
+            {
+                await UpdateMissingTrailersAsync();
             }
         }
     }
@@ -1466,6 +1588,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
             {
                 Journal($"Import depuis le disque de {files} fichier(s) : {r.Added} ajouté(s) avec TMDb, {r.WithoutMetadata} sans fiche TMDb, {r.Linked} déjà présent(s), {r.ToReview} à vérifier, {r.Failed} échec(s)");
             }
+
+            ReloadSideLists();
             Refresh(selectIds: SelectedIds);
         }
 
@@ -1530,6 +1654,21 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     private bool HasFiles() => DetailFiles.Count > 0;
+
+    /// <summary>
+    /// Ouvre la bande-annonce dans le navigateur. TMDb la fournit (YouTube) et un fichier .nfo peut en porter
+    /// une autre ; seules les plateformes vidéo connues sont ouvertes.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(HasTrailer))]
+    private void PlayTrailer()
+    {
+        if (!WebLinks.OpenVideo(Detail?.TrailerUrl))
+        {
+            Status = Tr.T("Bande-annonce : l'adresse enregistrée n'est pas une plateforme vidéo connue.");
+        }
+    }
+
+    public bool HasTrailer() => !string.IsNullOrWhiteSpace(Detail?.TrailerUrl);
 
     /// <summary>Saisons et épisodes de la série sélectionnée.</summary>
     [RelayCommand(CanExecute = nameof(IsSeriesSelected))]
@@ -1729,7 +1868,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void Reload() => Refresh(selectIds: SelectedIds);
+    private void Reload()
+    {
+        ReloadSideLists();
+        Refresh(selectIds: SelectedIds);
+    }
 
     private bool HasSelection() => SelectedTitles.Count > 0;
 

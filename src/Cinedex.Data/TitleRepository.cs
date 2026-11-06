@@ -68,6 +68,17 @@ public sealed partial class TitleRepository(CatalogDatabase database)
     }
 
     /// <summary>
+    /// Titres rattachés à TMDb dont la bande-annonce manque. Une mise à jour TMDb la rapatrie : inutile de
+    /// repasser sur les fiches qui en ont déjà une, ni sur celles que TMDb ne connaît pas.
+    /// </summary>
+    public IReadOnlyList<long> WithoutTrailerIds()
+    {
+        using var connection = database.Open();
+        return connection.Query<long>(
+            "SELECT t.id FROM title t WHERE t.tmdb_id IS NOT NULL AND coalesce(t.trailer_url, '') = '' AND t.is_locked = 0 ORDER BY t.sort_title, t.id;").ToList();
+    }
+
+    /// <summary>
     /// Clé de rapprochement d'un titre : genre, titre normalisé (sans accents, casse ni ponctuation) et année.
     /// Même règle que la recherche de doublons de la maintenance.
     /// </summary>

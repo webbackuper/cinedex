@@ -67,17 +67,22 @@ public sealed class FacetTests : IDisposable
         Film("Heat", 1995, ["crime"], "US", "en");
         _vm.Load();
 
+        // Les noms suivent la langue de l'interface : l'attente se calcule, elle ne se code pas en dur.
+        var france = TitleText.CountryName("FR");
+        var french = TitleText.LanguageName("fr");
+        Assert.NotEqual("FR", france);
+        Assert.NotEqual("fr", french);
+
         var countries = _vm.Facets.Single(f => f.Label == "Pays");
         Assert.Equal(2, countries.Items.Count);
-        Assert.Contains(countries.Items, i => i.Label.Contains("France", StringComparison.CurrentCulture));
         Assert.DoesNotContain(countries.Items, i => i.Label == "FR");
 
-        countries.SelectedItem = countries.Items.First(i => i.Label.Contains("France", StringComparison.CurrentCulture));
+        countries.SelectedItem = countries.Items.Single(i => i.Label == france);
         Assert.Equal(["Amélie"], _vm.Titles.Select(t => t.Title));
 
         var languages = _vm.Facets.Single(f => f.Label == "Langues");
         Assert.Equal(2, languages.Items.Count);
-        languages.SelectedItem = languages.Items.First(i => i.Label.StartsWith("fran", StringComparison.CurrentCultureIgnoreCase));
+        languages.SelectedItem = languages.Items.Single(i => i.Label == french);
         Assert.Equal(["Amélie"], _vm.Titles.Select(t => t.Title));
 
         // Deux sous-menus ne se cumulent pas : le dernier choisi remplace l'autre.

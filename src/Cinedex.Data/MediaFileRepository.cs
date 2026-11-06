@@ -32,7 +32,9 @@ public sealed record MediaFileDetail(
         var culture = System.Globalization.CultureInfo.CurrentCulture;
         var lines = new List<string>
         {
-            (File.Part > 1 ? Tr.F("Partie {0} : ", File.Part) : Tr.T("Emplacement : ")) + File.FullPath + (File.IsMissing ? "  " + Tr.T("(introuvable)") : string.Empty),
+            // « Fichier » et non « partie » : le même numéro sert aux parties d'un film découpé (CD1, CD2) et
+            // aux versions réunies par une fusion de doublons, où « partie » serait faux.
+            (File.Part > 1 ? Tr.F("Fichier {0} : ", File.Part) : Tr.T("Emplacement : ")) + File.FullPath + (File.IsMissing ? "  " + Tr.T("(introuvable)") : string.Empty),
             "MediaID : " + (File.VolumeLabel ?? Tr.T("(disque sans nom)")),
         };
         if (File.SizeBytes is { } size)

@@ -30,7 +30,8 @@ public sealed class AddPartTests
         Assert.Equal(2, await service.AddPartAsync(id, cd2, cancellationToken: TestContext.Current.CancellationToken));
 
         Assert.Equal([1, 2], files.FilesOf(id).Select(f => f.Part).Order());
-        Assert.Contains("Partie 2 : " + cd2, string.Join('\n', files.TechnicalDetails(id).Select(f => f.Describe())), StringComparison.Ordinal);
+        // « Fichier 2 » et non « Partie 2 » : le même numéro sert aussi aux versions issues d'une fusion.
+        Assert.Contains("Fichier 2 : " + cd2, string.Join('\n', files.TechnicalDetails(id).Select(f => f.Describe())), StringComparison.Ordinal);
         await Assert.ThrowsAsync<InvalidOperationException>(() => service.AddPartAsync(id, cd2, cancellationToken: TestContext.Current.CancellationToken));
         await Assert.ThrowsAsync<InvalidOperationException>(() => service.AddPartAsync(id, notes, cancellationToken: TestContext.Current.CancellationToken));
     }

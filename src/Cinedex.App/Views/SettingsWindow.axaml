@@ -518,7 +518,7 @@
               <Button Classes="tool" Margin="{StaticResource Trail2}" Content="Trouver les films en double" Command="{Binding FindDuplicatesCommand}"
                       ToolTip.Tip="Même identifiant IMDb, ou même titre et même année ; rien n'est supprimé" />
               <Button Classes="tool" Margin="{StaticResource Trail2}" Content="Fusionner les films en double…" Command="{Binding MergeDuplicateTitlesCommand}"
-                      ToolTip.Tip="Regroupe chaque groupe de doublons en une seule fiche, qui garde tous leurs fichiers vidéo : une version d'encodage par partie. Aucun fichier du disque n'est touché." />
+                      ToolTip.Tip="Regroupe chaque groupe de doublons en une seule fiche, qui garde tous leurs fichiers vidéo : un même film en plusieurs versions, un fichier par version. Aucun fichier du disque n'est touché." />
               <Button Classes="tool" Margin="{StaticResource Trail2}" Content="{Binding RenumberLabel}" Command="{Binding RenumberCommand}"
                       ToolTip.Tip="Numérote les exemplaires (colonne N°) de 1 à n dans l'ordre de tri de la liste principale" />
             </WrapPanel>

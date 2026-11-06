@@ -52,19 +52,6 @@ jobs:
           vpk download github --repoUrl "https://github.com/${{ github.repository }}" --token $env:GITHUB_TOKEN --channel ${{ matrix.channel }} --outputDir releases
           if ($LASTEXITCODE -ne 0) { Write-Host "Pas de version précédente : paquet complet seulement." }
           exit 0
-      - name: Certificat de signature Windows (si configuré)
-        if: matrix.rid == 'win-x64'
-        shell: pwsh
-        env:
-          CERT_PFX: ${{ secrets.WINDOWS_CERT_PFX }}
-          CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
-        run: |
-          if ($env:CERT_PFX) {
-            [IO.File]::WriteAllBytes("$env:RUNNER_TEMP/cert.pfx", [Convert]::FromBase64String($env:CERT_PFX))
-            "CINEDEX_SIGN_PARAMS=/fd sha256 /tr http://timestamp.digicert.com /td sha256 /f $env:RUNNER_TEMP/cert.pfx /p $env:CERT_PASSWORD" >> $env:GITHUB_ENV
-          } else {
-            Write-Host "Aucun certificat (secret WINDOWS_CERT_PFX) : programme d'installation non signé."
-          }
       - name: Programme d'installation ${{ matrix.rid }}
         if: matrix.installer
         shell: pwsh
@@ -78,9 +65,48 @@ jobs:
             releases/
           if-no-files-found: ignore
 
-  publish:
+  # Signature Authenticode des paquets Windows par la SignPath Foundation (gratuite pour les projets
+  # libres). Ce travail reste inactif tant que la variable de dépôt SIGNPATH_ORGANIZATION_ID n'est pas
+  # renseignée : sans elle, la publication reprend les paquets non signés, exactement comme avant.
+  # Mise en service : voir CODE_SIGNING_POLICY.md et docs/signature-windows.md.
+  signature:
     needs: package
-    if: startsWith(github.ref, 'refs/tags/')
+    if: vars.SIGNPATH_ORGANIZATION_ID != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          name: Cinedex-win-x64
+          path: win-x64
+      - name: Dépôt de l'artefact à signer
+        id: upload
+        uses: actions/upload-artifact@v5
+        with:
+          name: Cinedex-win-x64-a-signer
+          path: win-x64
+      - name: Demande de signature
+        uses: signpath/github-action-submit-signing-request@v1.2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_ARTIFACT_SLUG }}
+          github-artifact-id: ${{ steps.upload.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signe
+      - name: L'artefact Windows signé remplace l'original
+        uses: actions/upload-artifact@v5
+        with:
+          name: Cinedex-win-x64
+          path: signe
+          overwrite: true
+
+  publish:
+    # La signature est volontairement sautée tant qu'elle n'est pas configurée ; sans « !cancelled() », une
+    # dépendance sautée ferait sauter la publication aussi. Un échec de la signature, lui, arrête tout.
+    needs: [package, signature]
+    if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/') && needs.package.result == 'success' && needs.signature.result != 'failure' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

@@ -170,8 +170,9 @@ public sealed partial class MaintenanceViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Regroupe les films en double en une seule fiche, qui garde tous leurs fichiers : chaque version d'encodage
-    /// devient une partie du même film. Le compte rendu signale les fichiers de caractéristiques identiques.
+    /// Regroupe les films en double en une seule fiche, qui garde tous leurs fichiers : un même film en
+    /// plusieurs versions, un fichier par version. Ce ne sont pas des parties d'un film découpé, même si la
+    /// base les numérote avec le même champ. Le compte rendu signale les fichiers de caractéristiques identiques.
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanRun))]
     private Task MergeDuplicateTitlesAsync() => ModifyAsync(

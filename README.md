@@ -28,6 +28,17 @@ dotnet run --project src/Cinedex.App
 - Mode portable : créer un fichier vide `portable.flag` à côté de l'exécutable ; les données vont alors dans `./data`.
 - Chaque catalogue est une base SQLite (`catalogs/<nom>/cinedex.db`) avec ses images. Une sauvegarde est faite automatiquement avant chaque migration de schéma.
 
+## Licence et signature
+
+Cinedex est publié sous licence [MIT](LICENSE).
+
+La signature Authenticode des paquets Windows par la
+[SignPath Foundation](https://signpath.org/) est préparée mais pas encore en service :
+la chaîne de publication est prête et la demande d'adhésion reste à déposer. Jusque-là,
+Windows affiche son avertissement SmartScreen, et chaque archive publiée porte son
+empreinte SHA-256. Voir [CODE_SIGNING_POLICY.md](CODE_SIGNING_POLICY.md) et
+[docs/signature-windows.md](docs/signature-windows.md).
+
 ## Sources de données
 
 Cinedex utilise l'API TMDb. This product uses the TMDB API but is not endorsed or certified by TMDB.

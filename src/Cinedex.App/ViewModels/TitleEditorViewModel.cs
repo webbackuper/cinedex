@@ -45,7 +45,12 @@ public sealed partial class FileVolumeRow(MediaFileEntry file) : ObservableObjec
 {
     public MediaFileEntry File { get; } = file;
 
-    public string Header => (File.Part > 1 ? Tr.F("Partie {0} : ", File.Part) : string.Empty) + File.FullPath;
+    /// <summary>
+    /// « Fichier 2 : chemin » pour les fichiers suivants. Volontairement « fichier » et non « partie » : le
+    /// même numéro sert aux parties d'un film découpé (CD1, CD2) et aux versions réunies par une fusion de
+    /// doublons, et « partie » serait faux dans le second cas, qui est le plus courant.
+    /// </summary>
+    public string Header => (File.Part > 1 ? Tr.F("Fichier {0} : ", File.Part) : string.Empty) + File.FullPath;
 
     [ObservableProperty]
     public partial string MediaId { get; set; } = file.VolumeLabel ?? string.Empty;

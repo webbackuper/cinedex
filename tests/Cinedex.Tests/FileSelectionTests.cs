@@ -97,6 +97,59 @@ public sealed class FileSelectionTests
         Assert.Equal(["Heat"], titles.ListAll().Select(t => t.Title));
     }
 
+    [Fact]
+    public async Task Rescanning_proposes_the_new_files_even_when_the_film_is_already_in_the_catalogue()
+    {
+        using var temp = new TempDirectory();
+        var db = new CatalogDatabase(Path.Combine(temp.Path, "cinedex.db"));
+        db.Initialize(temp.Path);
+        var titles = new TitleRepository(db);
+        var files = new MediaFileRepository(db);
+        var service = new LibraryImportService(titles, files, new ImageStore(db, Path.Combine(temp.Path, "img")), null,
+            () => new MediaProbe("absent", "absent"), NullLogger<LibraryImportService>.Instance);
+        var scan = new ScanSettings { MinimumMegabytes = 0 };
+        var folder = Directory.CreateDirectory(Path.Combine(temp.Path, "Films")).FullName;
+
+        ImportFolderViewModel Window() => new(service, scan) { Folder = folder, ReadProperties = false, UseTmdb = false };
+
+        // Premier passage : un seul fichier, importé.
+        File.WriteAllBytes(Path.Combine(folder, "Heat (1995).mkv"), new byte[10]);
+        var first = Window();
+        await first.ScanCommand.ExecuteAsync(null);
+        Assert.Equal(["Heat"], first.Candidates.Select(c => c.Title));
+        await first.ImportCommand.ExecuteAsync(null);
+        var heat = Assert.Single(titles.ListAll());
+        Assert.Single(files.FilesOf(heat.Id));
+
+        // Le même film arrive en seconde version, dans un sous-dossier.
+        var uhd = Directory.CreateDirectory(Path.Combine(folder, "4K")).FullName;
+        File.WriteAllBytes(Path.Combine(uhd, "Heat (1995) 2160p.mkv"), new byte[10]);
+
+        // Rescan : seul le nouveau fichier est proposé, et il est coché.
+        var again = Window();
+        await again.ScanCommand.ExecuteAsync(null);
+        var proposed = Assert.Single(again.Candidates);
+        Assert.Equal(Path.Combine(uhd, "Heat (1995) 2160p.mkv"), proposed.Path);
+        Assert.True(proposed.IsSelected, "le nouveau fichier doit être coché");
+        Assert.False(proposed.IsKnown);
+
+        // Import : une seconde entrée, malgré le film déjà présent, avec son propre fichier.
+        await again.ImportCommand.ExecuteAsync(null);
+        var both = titles.ListAll();
+        Assert.Equal(2, both.Count);
+        Assert.All(both, t => Assert.Equal("Heat", t.Title));
+        Assert.All(both, t => Assert.Single(files.FilesOf(t.Id)));
+        Assert.Equal(
+            new[] { Path.Combine(folder, "Heat (1995).mkv"), Path.Combine(uhd, "Heat (1995) 2160p.mkv") }.Order(StringComparer.OrdinalIgnoreCase),
+            both.SelectMany(t => files.FilesOf(t.Id)).Select(f => f.FullPath).Order(StringComparer.OrdinalIgnoreCase));
+
+        // Un troisième passage sans rien de neuf ne propose plus rien.
+        var third = Window();
+        await third.ScanCommand.ExecuteAsync(null);
+        Assert.Empty(third.Candidates);
+        Assert.Equal(2, titles.ListAll().Count);
+    }
+
     private static string Touch(TempDirectory temp, string folder, string name, int bytes)
     {
         var dir = Directory.CreateDirectory(Path.Combine(temp.Path, folder)).FullName;

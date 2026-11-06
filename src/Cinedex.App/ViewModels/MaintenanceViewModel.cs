@@ -73,12 +73,14 @@ public sealed partial class MaintenanceViewModel : ObservableObject
 
     [ObservableProperty] public partial int UnusedPeople { get; private set; }
 
-    [ObservableProperty] public partial DuplicateRow? SelectedDuplicate { get; set; }
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(MergeOneDuplicateCommand))]
+    public partial DuplicateRow? SelectedDuplicate { get; set; }
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(RemoveUnusedPeopleCommand), nameof(MergePeopleCommand), nameof(FindDuplicatesCommand), nameof(RenumberCommand),
         nameof(RemoveEmptyLabelsCommand), nameof(RemoveUnusedImagesCommand), nameof(CheckIntegrityCommand), nameof(OptimizeCommand), nameof(BackupCommand), nameof(RenameCommand), nameof(PurgeCatalogCommand),
-        nameof(MergeDuplicateTitlesCommand))]
+        nameof(MergeDuplicateTitlesCommand), nameof(MergeOneDuplicateCommand))]
     public partial bool IsBusy { get; private set; }
 
     public string UnusedPeopleLabel => Tr.F("Retirer les acteurs inutilisés ({0})", UnusedPeople);
@@ -189,6 +191,41 @@ public sealed partial class MaintenanceViewModel : ObservableObject
                 : Tr.F("{0} fiche(s) en double fusionnée(s), {1} exemplaire(s) regroupé(s). {2} fichier(s) ont les mêmes caractéristiques MediaInfo qu'un autre du même film : ce sont des copies du même encodage, les autres sont bien des versions différentes.",
                     result.Merged, result.Files, result.SameEncoding);
         });
+
+    private bool CanMergeOne() => !IsBusy && SelectedDuplicate is { TitleId: not null };
+
+    /// <summary>
+    /// Fusionne le seul groupe auquel appartient le titre sélectionné. Tous les rapprochements proposés ne se
+    /// valent pas : pouvoir trancher groupe par groupe évite d'avoir à tout accepter ou tout refuser.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanMergeOne))]
+    private async Task MergeOneDuplicateAsync()
+    {
+        if (SelectedDuplicate is not { TitleId: { } titleId } row)
+        {
+            return;
+        }
+
+        await ModifyAsync(
+            Tr.T("Fusionner ce groupe de doublons"),
+            Tr.F("Regrouper en une seule fiche le groupe de « {0} » ? Les autres groupes ne sont pas touchés, et aucun fichier du disque non plus.", row.Text),
+            "fusion-doublon",
+            () =>
+            {
+                var result = _repository.MergeDuplicateTitles(titleId);
+                ActivityJournal.Current.Write($"Maintenance : groupe de doublons fusionné, {result.Merged} fiche(s) retirée(s), {result.Files} exemplaire(s) regroupé(s)");
+                return result.Merged == 0
+                    ? Tr.T("Ce titre n'est plus en double.")
+                    : Tr.F("Groupe fusionné : {0} fiche(s) retirée(s), {1} exemplaire(s) regroupé(s), {2} fichier(s) de même encodage.",
+                        result.Merged, result.Files, result.SameEncoding);
+            });
+
+        // La liste porte encore le groupe disparu : elle est relue pour ne montrer que ce qui reste à trancher.
+        if (Changed)
+        {
+            await FindDuplicatesAsync();
+        }
+    }
 
     /// <summary>Ferme les réglages et affiche le titre choisi dans la liste des doublons.</summary>
     public void ShowDuplicate(DuplicateRow row)

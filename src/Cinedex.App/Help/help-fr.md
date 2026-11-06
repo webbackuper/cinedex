@@ -219,6 +219,10 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.8.4
+- **Fusionner un seul groupe de doublons** : choisissez un titre dans la liste, puis **Fusionner ce groupe…**. Les autres groupes ne sont pas touchés. Tous les rapprochements proposés ne se valent pas, et il fallait pouvoir trancher groupe par groupe au lieu de tout prendre ou tout refuser. La liste se relit aussitôt pour ne montrer que ce qui reste à décider.
+- L'infobulle de **Trouver les films en double** disait encore « même identifiant IMDb, ou même titre et même année » : la règle est le même numéro TMDb **ou** IMDb, le titre et l'année ne servant qu'à défaut d'identifiant.
+
 ### 0.8.3
 - **Fusion des doublons** : le texte parlait d'« une version d'encodage par partie ». Ce ne sont pas des parties d'un film découpé, ce sont des **versions** d'un même film, un fichier par version. L'infobulle, l'aide et la fiche le disent maintenant ainsi : un second fichier s'affiche « Fichier 2 » et non « Partie 2 ».
 - Cinedex est publié sous **licence MIT**, et la chaîne de publication est prête pour la signature des paquets Windows par la SignPath Foundation : l'avertissement SmartScreen disparaîtra une fois l'adhésion acceptée.
@@ -291,7 +295,7 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - **Replier la fiche de droite** : elle peut maintenant se replier contre le bord droit, en une bande étroite, pour parcourir les affiches sur presque toute la largeur. Trois façons de le faire : le bouton de la sous-barre (à droite des vues liste et affiches), la touche **F9**, ou tirer la poignée vers la droite au-delà d'un seuil. Le bouton de la bande, un double-clic sur la poignée ou F9 la rouvrent à sa largeur précédente. L'état est mémorisé avec le catalogue.
 
 ### 0.4.21
-- **Fusionner les films en double** (Réglages > Maintenance) : chaque groupe de doublons devient une seule fiche qui garde tous les fichiers vidéo, un même film en plusieurs versions, un fichier par version. Le compte rendu indique combien de fichiers ont exactement les mêmes caractéristiques MediaInfo qu'un autre du même film, donc lesquels sont de simples copies plutôt qu'une autre version. Aucun fichier du disque n'est touché, et la base est sauvegardée avant.
+- **Fusionner les films en double** (Réglages > Maintenance) : chaque groupe de doublons devient une seule fiche qui garde tous les fichiers vidéo, un même film en plusieurs versions, un fichier par version. **Fusionner ce groupe…** ne traite que le groupe du titre sélectionné dans la liste, et laisse les autres tels quels. Le compte rendu indique combien de fichiers ont exactement les mêmes caractéristiques MediaInfo qu'un autre du même film, donc lesquels sont de simples copies plutôt qu'une autre version. Aucun fichier du disque n'est touché, et la base est sauvegardée avant.
 
 ### 0.4.20
 - **Un même film en plusieurs fichiers ne crée plus de doublon** : à l'import, un fichier dont le titre et l'année correspondent à un film déjà au catalogue lui est rattaché comme fichier supplémentaire, au lieu de créer une seconde fiche. Les parties explicites (CD1, CD2…) gardent leur numéro, et un remake d'une autre année reste une fiche à part.

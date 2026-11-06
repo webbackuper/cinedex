@@ -238,6 +238,38 @@ public sealed class MaintenanceTests : IDisposable
         Assert.Equal(0, vm.UnusedPeople);
     }
 
+    /// <summary>
+    /// Tous les rapprochements proposés ne se valent pas : on doit pouvoir n'accepter qu'un groupe, et laisser
+    /// les autres tels quels plutôt que de tout prendre ou tout refuser.
+    /// </summary>
+    [Fact]
+    public void One_group_of_duplicates_can_be_merged_alone()
+    {
+        var files = new MediaFileRepository(_db);
+        var heat = _titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));
+        var heatBis = _titles.Add(new NewTitle(TitleKind.Movie, "heat", 1995));
+        var ran = _titles.Add(new NewTitle(TitleKind.Movie, "Ran", 1985));
+        var ranBis = _titles.Add(new NewTitle(TitleKind.Movie, "ran", 1985));
+        files.Attach(heat, Path.Combine(_temp.Path, "Heat.1080p.mkv"), 700);
+        files.Attach(heatBis, Path.Combine(_temp.Path, "Heat.2160p.mkv"), 900);
+        files.Attach(ran, Path.Combine(_temp.Path, "Ran.1080p.mkv"), 700);
+        files.Attach(ranBis, Path.Combine(_temp.Path, "Ran.2160p.mkv"), 900);
+        Assert.Equal(2, _maintenance.FindDuplicateTitles().Count);
+
+        var result = _maintenance.MergeDuplicateTitles(heatBis);
+
+        // Le groupe de Heat est fusionné et garde ses deux fichiers ; celui de Ran n'a pas bougé.
+        Assert.Equal(1, result.Merged);
+        var merged = _titles.ListAll().Single(t => t.Year == 1995);
+        Assert.Equal([1, 2], files.FilesOf(merged.Id).Select(f => f.Part).Order());
+        Assert.Equal(2, _titles.ListAll().Count(t => t.Year == 1985));
+        var left = Assert.Single(_maintenance.FindDuplicateTitles());
+        Assert.All(left.Titles, t => Assert.Contains("an", t.Title, StringComparison.OrdinalIgnoreCase));
+
+        // Un titre qui n'est plus en double ne fusionne rien, sans erreur.
+        Assert.Equal(0, _maintenance.MergeDuplicateTitles(merged.Id).Merged);
+    }
+
     [Fact]
     public void Duplicate_films_merge_into_one_entry_that_keeps_every_encoding()
     {

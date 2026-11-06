@@ -219,6 +219,10 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.8.4
+- **Merge a single group of duplicates**: pick a title in the list, then **Merge this group…**. The other groups are untouched. Not every proposed match is equally convincing, and it had to be possible to decide group by group instead of taking or refusing them all. The list is read again at once, to show only what is left to decide.
+- The tooltip of **Find duplicate films** still said "same IMDb id, or same title and same year": the rule is the same TMDb **or** IMDb number, title and year serving only when no identifier exists.
+
 ### 0.8.3
 - **Merging duplicates**: the text said "one encoding version per part". These are not parts of a split film, they are **versions** of one film, one file per version. The tooltip, the help and the details now say so: a second file shows as "File 2", not "Part 2".
 - Cinedex is released under the **MIT licence**, and the release pipeline is ready for the Windows packages to be signed by the SignPath Foundation: the SmartScreen warning will go once membership is granted.
@@ -291,7 +295,7 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - **Fold the right panel away**: it can now fold against the right edge, down to a narrow strip, to browse the posters across almost the full width. Three ways to do it: the button in the sub-bar (right of the list and poster views), the **F9** key, or dragging the handle to the right past a threshold. The strip's button, a double-click on the handle or F9 bring it back at its previous width. The state is remembered with the catalog.
 
 ### 0.4.21
-- **Merge duplicate films** (Settings > Maintenance): each group of duplicates becomes a single entry that keeps every video file, one film in several versions, one file per version. The report says how many files have exactly the same MediaInfo characteristics as another of the same film, so which ones are mere copies rather than another version. No file on the disk is touched, and the database is backed up first.
+- **Merge duplicate films** (Settings > Maintenance): each group of duplicates becomes a single entry that keeps every video file, one film in several versions, one file per version. **Merge this group…** handles only the group of the title selected in the list, and leaves the others as they are. The report says how many files have exactly the same MediaInfo characteristics as another of the same film, so which ones are mere copies rather than another version. No file on the disk is touched, and the database is backed up first.
 
 ### 0.4.20
 - **The same film in several files no longer creates a double**: on import, a file whose title and year match a film already in the catalog is attached to it as an extra file, instead of creating a second entry. Explicit parts (CD1, CD2…) keep their number, and a remake from another year stays a separate entry.

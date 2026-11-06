@@ -201,13 +201,24 @@ public sealed class MaintenanceRepository(CatalogDatabase database)
     }
 
     /// <summary>
-    /// Fusionne les films en double (mêmes groupes que <see cref="FindDuplicateTitles"/>) : une fiche est gardée,
-    /// les exemplaires et fichiers des autres lui sont rattachés, et les fiches vidées sont supprimées. Aucun fichier
-    /// du disque n'est touché : le film garde toutes ses versions, numérotées à la suite.
+    /// Fusionne tous les films en double (mêmes groupes que <see cref="FindDuplicateTitles"/>) : une fiche est
+    /// gardée, les exemplaires et fichiers des autres lui sont rattachés, et les fiches vidées sont supprimées.
+    /// Aucun fichier du disque n'est touché : le film garde toutes ses versions, numérotées à la suite.
     /// </summary>
-    public TitleMerge MergeDuplicateTitles()
+    public TitleMerge MergeDuplicateTitles() => Merge(FindDuplicateTitles());
+
+    /// <summary>
+    /// Fusionne le seul groupe de doublons auquel ce titre appartient, et laisse les autres tels quels : tous les
+    /// rapprochements proposés ne se valent pas, et l'utilisateur doit pouvoir trancher groupe par groupe.
+    /// </summary>
+    public TitleMerge MergeDuplicateTitles(long titleId)
     {
-        var groups = FindDuplicateTitles();
+        var group = FindDuplicateTitles().FirstOrDefault(g => g.Titles.Any(t => t.Id == titleId));
+        return group is null ? new TitleMerge(0, 0, 0) : Merge([group]);
+    }
+
+    private TitleMerge Merge(IReadOnlyList<DuplicateGroup> groups)
+    {
         if (groups.Count == 0)
         {
             return new TitleMerge(0, 0, 0);
@@ -216,6 +227,7 @@ public sealed class MaintenanceRepository(CatalogDatabase database)
         using var connection = database.Open();
         using var transaction = connection.BeginTransaction();
         int merged = 0, gathered = 0;
+        var kept = new List<long>();
         foreach (var group in groups)
         {
             // On garde la fiche la mieux remplie : liée à TMDb, puis la plus fournie en fichiers, puis la plus ancienne.
@@ -245,11 +257,12 @@ public sealed class MaintenanceRepository(CatalogDatabase database)
                 transaction);
             connection.Execute("DELETE FROM title WHERE id IN @others;", new { others }, transaction);
             merged += others.Count;
+            kept.Add(keep.Id);
         }
 
         // Les fichiers du film se suivent : une version par numéro, dans l'ordre où ils ont été rattachés.
-        foreach (var titleId in connection.Query<long>(
-                     "SELECT DISTINCT c.title_id FROM copy c JOIN media_file m ON m.copy_id = c.id;", transaction: transaction).ToList())
+        // Seuls les films fusionnés sont renumérotés : les autres n'ont pas bougé.
+        foreach (var titleId in kept)
         {
             var part = 0;
             foreach (var id in connection.Query<long>(
@@ -261,17 +274,19 @@ public sealed class MaintenanceRepository(CatalogDatabase database)
             }
         }
 
-        // Même encodage : MediaInfo renvoie exactement les mêmes caractéristiques pour deux fichiers d'un même film.
-        var sameEncoding = connection.ExecuteScalar<int>(
+        // Même encodage : MediaInfo renvoie exactement les mêmes caractéristiques pour deux fichiers d'un même
+        // film. Compté sur les seuls films fusionnés, qui sont ceux dont le compte rendu parle.
+        var sameEncoding = kept.Count == 0 ? 0 : connection.ExecuteScalar<int>(
             """
             SELECT coalesce(sum(n - 1), 0) FROM (
                 SELECT count(*) AS n FROM media_file m JOIN copy c ON c.id = m.copy_id
-                WHERE m.video_codec IS NOT NULL
+                WHERE m.video_codec IS NOT NULL AND c.title_id IN @kept
                 GROUP BY c.title_id, m.video_codec, m.width, m.height, m.duration_seconds, m.bit_depth,
                          coalesce(m.hdr_formats, ''), coalesce(m.container, ''), coalesce(m.size_bytes, -1)
                 HAVING count(*) > 1);
             """,
-            transaction: transaction);
+            new { kept },
+            transaction);
 
         transaction.Commit();
         return new TitleMerge(merged, gathered, sameEncoding);

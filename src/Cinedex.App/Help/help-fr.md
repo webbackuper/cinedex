@@ -216,12 +216,10 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
-### 0.6.0
+### 0.6.1
 - **« Vous aimerez aussi »** : la fiche propose des films proches tirés de votre propre catalogue, les plus proches d'abord, chacun avec la raison du rapprochement. Le calcul se fait sur la base (genres, mots-clés, réalisateur, acteurs principaux, saga, époque), donc hors ligne et instantané. Un seul genre partagé ne suffit pas à être proposé : il faut deux genres, ou un genre et un mot-clé, ou le même réalisateur.
 - **Mots-clés TMDb** : ils ont désormais leur propre place en base, séparée de vos tags. **Réglages > Métadonnées** propose de les récupérer d'un coup pour les fiches qui n'en ont pas, ce qui rend les rapprochements nettement plus fins.
 - **Suggestions TMDb** : sur demande, la fiche affiche ce que TMDb propose autour de ce film. Celles que vous possédez sont cochées, les autres s'ajoutent à la liste de souhaits d'un clic.
-
-### 0.5.0
 - **Bandes-annonces** : un bouton du panneau de droite ouvre la bande-annonce dans le navigateur. Elle était déjà rapatriée de TMDb avec le reste de la fiche, mais rien ne la lisait. Seules les plateformes vidéo connues sont ouvertes. **Réglages > Métadonnées** ajoute « Compléter les bandes-annonces manquantes », qui repasse sur les fiches déjà liées à TMDb qui n'en ont pas.
 - **Parcourir le catalogue** : le bandeau gauche gagne quatre sous-menus dépliables, **Genres**, **Décennies**, **Pays** et **Langues**, sur le modèle de MediaID. Ils ne listent que ce que le catalogue porte, les pays et les langues sont nommés et non codés, et les décennies vont de la plus récente à la plus ancienne.
 

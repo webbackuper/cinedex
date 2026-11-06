@@ -481,6 +481,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 ])))
             .ToList());
 
+        // Les groupes sont les listes personnelles : ils existaient, mais seule la recherche multicritère
+        // y menait. Les mettre ici est ce qui manquait pour qu'ils servent.
+        Add("Mes listes", "bookmark", _titles.Groups()
+            .Select(g => new FacetItem(g.Name, new RuleSearch([new SearchRule("group", RuleOperator.Equals, g.Name)])))
+            .OrderBy(i => i.Label, StringComparer.CurrentCultureIgnoreCase)
+            .ToList());
+
         Add("Pays", "globe", Named(_titles.CountryCodes(), TitleText.CountryName, "countries"));
         Add("Langues", "speech", Named(_titles.LanguageCodes(), TitleText.LanguageName, "languages"));
 
@@ -528,6 +535,118 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             group.Clear();
         }
+    }
+
+    /// <summary>Listes de référence (Top 250, palmarès, listes à vous), avec leur état face au catalogue.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasReferenceLists))]
+    public partial IReadOnlyList<ReferenceList> ReferenceLists { get; private set; } = [];
+
+    public bool HasReferenceLists => ReferenceLists.Count > 0;
+
+    [ObservableProperty]
+    public partial bool IsListExpanded { get; set; }
+
+    [RelayCommand]
+    private void ToggleLists() => IsListExpanded = !IsListExpanded;
+
+    /// <summary>Liste choisie : le panneau central montre les titres du catalogue qui en font partie.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelectedList), nameof(ListStatusText))]
+    [NotifyCanExecuteChangedFor(nameof(AddMissingToWishlistCommand))]
+    public partial ReferenceList? SelectedReferenceList { get; set; }
+
+    public bool HasSelectedList => SelectedReferenceList is not null;
+
+    /// <summary>Ce que la liste dit du catalogue : c'est elle le sujet, pas le classement lui-même.</summary>
+    public string ListStatusText => SelectedReferenceList is not { } list
+        ? string.Empty
+        : Tr.F("{0} sur {1} au catalogue, {2} manquant(s)", list.Owned, list.Total, list.Missing);
+
+    partial void OnSelectedReferenceListChanged(ReferenceList? value)
+    {
+        if (value is null)
+        {
+            return;
+        }
+
+        Home = null;
+        PeopleBrowser = null;
+        SelectedMediaId = null;
+        ClearFacets();
+        Rules = new RuleSearch([new SearchRule("list", RuleOperator.Equals, value.Name)]);
+    }
+
+    private bool CanAddMissing() => _extras.Lists is not null && _metadata is not null && !IsBusy && SelectedReferenceList is { Missing: > 0 };
+
+    /// <summary>
+    /// Ajoute à la liste de souhaits les films de la liste choisie qui manquent au catalogue, étiquetés à son
+    /// nom. Un appel TMDb par film : c'est long, et c'est pourquoi on le demande avant de le faire.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanAddMissing))]
+    private async Task AddMissingToWishlistAsync()
+    {
+        if (_extras.Lists is not { } service || SelectedReferenceList is not { } list)
+        {
+            return;
+        }
+
+        if (!await _dialogs.ConfirmAsync(
+                "Compléter la liste de souhaits",
+                Tr.F("Ajouter à votre liste de souhaits les {0} film(s) de « {1} » que vous n'avez pas ?\nChaque film demande sa fiche à TMDb : comptez une poignée de minutes. Ils seront marqués non possédés et étiquetés « {1} ».", list.Missing, list.Name)))
+        {
+            return;
+        }
+
+        await RunMetadataAsync(async () =>
+        {
+            var progress = TrackedProgress(list.Missing);
+            var (added, notFound) = await service.AddMissingToWishlistAsync(list, progress, CancellationToken.None);
+            LoadReferenceLists();
+            Refresh();
+            Status = Tr.F("{0} film(s) ajouté(s) à la liste de souhaits, {1} introuvable(s) sur TMDb", added, notFound);
+            Journal($"Liste « {list.Name} » : {added} film(s) ajoutés à la liste de souhaits, {notFound} introuvables sur TMDb");
+        });
+    }
+
+    /// <summary>Recalcule le Top 250 depuis les fichiers publics d'IMDb (bouton de Réglages &gt; Métadonnées).</summary>
+    public async Task BuildImdbTopAsync()
+    {
+        if (_extras.Lists is not { } service || IsBusy)
+        {
+            return;
+        }
+
+        IsBusy = true;
+        try
+        {
+            var list = await service.BuildImdbTopAsync(progress: new Progress<string>(m => Status = m));
+            LoadReferenceLists();
+            IsListExpanded = true;
+            SelectedReferenceList = ReferenceLists.FirstOrDefault(l => l.Id == list.Id);
+            Status = Tr.F("{0} : {1} films, {2} au catalogue", list.Name, list.Total, list.Owned);
+            Journal($"Liste « {list.Name} » recalculée : {list.Total} films, {list.Owned} au catalogue");
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidDataException or InvalidOperationException)
+        {
+            Status = Tr.F("Classement IMDb indisponible : {0}", ex.Message);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private void LoadReferenceLists()
+    {
+        if (_extras.Lists is not { } service)
+        {
+            return;
+        }
+
+        var chosen = SelectedReferenceList?.Id;
+        ReferenceLists = service.Lists.All();
+        SelectedReferenceList = chosen is { } id ? ReferenceLists.FirstOrDefault(l => l.Id == id) : null;
     }
 
     private void LoadMediaIds()
@@ -969,6 +1088,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         Home = null;
         PeopleBrowser = null;
         SelectedMediaId = null;
+        SelectedReferenceList = null;
         ClearFacets();
         Rules = null;
     }
@@ -1178,6 +1298,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         LoadMediaIds();
         LoadFacets();
+        LoadReferenceLists();
     }
 
     private Avalonia.Threading.DispatcherTimer? _searchTimer;
@@ -1219,6 +1340,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         ClearFacets();
         Home = null;
+        SelectedReferenceList = null;
 
         OnPropertyChanged(nameof(SelectedMainFilter));
         OnPropertyChanged(nameof(SelectedDefinitionFilter));
@@ -1734,6 +1856,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
                         _titles.WithoutTrailerIds,
                         n => Tr.F("les {0} titre(s) sans bande-annonce", n),
                         Tr.T("Toutes les fiches liées à TMDb ont leur bande-annonce."));
+                    break;
+                case BulkUpdate.ImdbTop:
+                    await BuildImdbTopAsync();
                     break;
                 case BulkUpdate.Keywords:
                     await UpdateMissingAsync(

@@ -324,6 +324,8 @@
                       ToolTip.Tip="Cherche sur TMDb (par titre et année) la fiche des médias qui n'ont ni synopsis ni genre, et la télécharge. Les réglages se ferment et la mise à jour démarre, avec sa barre de progression." />
               <Button Classes="tool" Content="{Binding UpdateTrailersLabel}" Command="{Binding UpdateTrailersCommand}"
                       ToolTip.Tip="Repasse sur les fiches déjà liées à TMDb qui n'ont pas de bande-annonce, et récupère la leur. Les réglages se ferment et la mise à jour démarre." />
+              <Button Classes="tool" Content="Construire le Top 250 IMDb (estimé)" Command="{Binding BuildImdbTopCommand}"
+                      ToolTip.Tip="Recalcule le classement depuis les fichiers publics d'IMDb, avec la formule officielle. Le premier calcul télécharge environ 200 Mo. La liste est une estimation : IMDb applique des pondérations qu'il ne publie pas." />
               <Button Classes="tool" Content="{Binding UpdateKeywordsLabel}" Command="{Binding UpdateKeywordsCommand}"
                       ToolTip.Tip="Les mots-clés TMDb (« braquage », « vengeance »…) servent à rapprocher les films dans « Vous aimerez aussi ». Cette passe les récupère pour les fiches qui n'en ont pas encore." />
             </WrapPanel>

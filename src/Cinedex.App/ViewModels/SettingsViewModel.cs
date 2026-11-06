@@ -10,8 +10,9 @@ using Cinedex.Core.Localization;
 namespace Cinedex.App.ViewModels;
 
 /// <summary>
-/// Passe de rattrapage lancée depuis l'onglet Métadonnées. Toutes sont une mise à jour TMDb ordinaire,
-/// restreinte aux titres auxquels il manque quelque chose : la fenêtre se ferme, puis la passe démarre.
+/// Travail de fond lancé depuis l'onglet Métadonnées : la fenêtre se ferme, puis il démarre dans la fenêtre
+/// principale, avec sa barre de progression. Les trois premiers sont une mise à jour TMDb ordinaire,
+/// restreinte aux titres auxquels il manque quelque chose.
 /// </summary>
 public enum BulkUpdate
 {
@@ -19,6 +20,7 @@ public enum BulkUpdate
     Unlinked,
     Trailers,
     Keywords,
+    ImdbTop,
 }
 
 /// <summary>Un chiffre clé de l'onglet Statistiques : valeur mise en forme et libellé.</summary>
@@ -440,6 +442,9 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     [CommunityToolkit.Mvvm.Input.RelayCommand(CanExecute = nameof(CanUpdateKeywords))]
     private void UpdateKeywords() => Start(BulkUpdate.Keywords);
+
+    [CommunityToolkit.Mvvm.Input.RelayCommand]
+    private void BuildImdbTop() => Start(BulkUpdate.ImdbTop);
 
     /// <summary>Passe de rattrapage demandée depuis l'onglet Métadonnées, lancée à la fermeture des réglages.</summary>
     public BulkUpdate Pending { get; private set; }

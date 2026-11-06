@@ -242,7 +242,8 @@ public sealed class App : Application
                 services.GetRequiredService<RecommendationRepository>(),
                 services.GetRequiredService<SuggestionRepository>(),
                 services.GetRequiredService<HomeRepository>(),
-                services.GetRequiredService<StatisticsRepository>()));
+                services.GetRequiredService<StatisticsRepository>(),
+                services.GetRequiredService<ReferenceListService>()));
         main.Updates = _updates;
         main.Load();
         _ = main.CheckForUpdatesAtStartupAsync();
@@ -321,6 +322,9 @@ public sealed class App : Application
         services.AddSingleton<RecommendationRepository>();
         services.AddSingleton<SuggestionRepository>();
         services.AddSingleton<HomeRepository>();
+        services.AddSingleton<ReferenceListRepository>();
+        services.AddSingleton(sp => new Cinedex.Metadata.Ratings.ImdbTopChart(sp.GetRequiredService<HttpClient>(), paths.CacheDirectory));
+        services.AddSingleton<ReferenceListService>();
         services.AddSingleton<ExportRepository>();
         services.AddSingleton(sp => new BackupService(
             sp.GetRequiredService<MaintenanceRepository>(),

@@ -64,6 +64,7 @@ public sealed partial class TitleRepository
         ["collection"] = new("co.name", "FROM collection co WHERE co.id = t.collection_id"),
         ["tag"] = new("tg2.name", "FROM title_tag tt JOIN tag tg2 ON tg2.id = tt.tag_id WHERE tt.title_id = t.id"),
         ["group"] = new("ug.name", "FROM title_group tgr JOIN user_group ug ON ug.id = tgr.group_id WHERE tgr.title_id = t.id"),
+        ["list"] = new("rl.name", $"FROM reference_entry re JOIN reference_list rl ON rl.id = re.list_id WHERE ({ReferenceListRepository.MatchClause})"),
 
         ["seen"] = new("EXISTS (SELECT 1 FROM viewing v WHERE v.title_id = t.id)"),
         ["views"] = new("(SELECT count(*) FROM viewing v WHERE v.title_id = t.id)"),

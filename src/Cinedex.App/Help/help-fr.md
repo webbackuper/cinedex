@@ -107,6 +107,8 @@ Exemple : Genre est Comédie, puis Note IMDb > 7, puis Année ≥ 2000.
 - **Accueil** : la page qui répond à « qu'est-ce que je regarde ce soir ». Elle propose des films jamais vus, bien notés et dont le fichier est lisible tout de suite (le disque est branché), les sagas dont vous avez vu un épisode mais pas le suivant, les derniers ajouts, et des films possédés depuis plus de six mois et jamais vus. Le tirage ne change qu'une fois par jour.
 - **Bibliothèque** : vues rapides (vus, favoris, liste courte, prêtés, fichiers vidéo…).
 - **Définition** : sous-menu Définition standard, Haute définition, Ultra HD (4K), 3D.
+- **Listes** : les listes de référence (le Top 250 IMDb, et les vôtres). Choisir une liste montre les films du catalogue qui en font partie, et un bandeau dit combien il en manque, avec de quoi les ajouter d'un coup à la liste de souhaits.
+- **Mes listes** : vos groupes personnels (« Soirée famille », « À revoir »), saisis dans l'onglet Classement de la fiche ou par modification groupée.
 - **Parcourir** : sous-menus **Genres**, **Décennies**, **Pays** et **Langues**. Chacun ne liste que ce que le catalogue porte vraiment, donc un clic ne tombe jamais sur une vue vide. Un seul sous-menu agit à la fois : choisir un genre relâche le pays, et revenir sur une vue de la bibliothèque relâche tout.
 - En haut, la **Bibliothèque** : Tous les titres, Vus, Pas encore vus, Favoris, Liste courte, Films seulement, Séries seulement, Prêtés, Fichiers vidéo, **Films sans infos** (titres jamais mis à jour depuis TMDb) et le sous-menu Définition.
 - En bas : **À vérifier**, **Recherche multicritère**, **Acteurs**, **Réalisateurs**, **Suivi des séries**, **Collections**, **Apparence**, **Réglages** et **Aide**.
@@ -217,6 +219,12 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.8.0
+- **Top 250 IMDb** : **Réglages > Métadonnées > Construire le Top 250 IMDb (estimé)** recalcule le classement depuis les fichiers publics d'IMDb, avec la formule officielle (moyenne bayésienne, 25 000 votes minimum). Le premier calcul télécharge environ 200 Mo. La liste est étiquetée **estimé** parce qu'elle l'est : IMDb ne publie pas son classement, seulement sa formule, et applique en plus des pondérations qu'il garde pour lui. Le résultat ressemble beaucoup à la vraie liste sans lui être identique.
+- **Ce que la liste dit de votre catalogue** : le sous-menu **Listes** du bandeau gauche montre les films de la liste que vous possédez, et affiche « 187 sur 250 au catalogue, 63 manquant(s) ». Un bouton rapatrie la fiche TMDb de chaque manquant, le marque non possédé et l'étiquette au nom de la liste : vous les retrouvez dans **Liste de souhaits**, et le tag dit d'où ils viennent.
+- **Mes listes** : vos groupes personnels sont désormais dans le bandeau gauche, au lieu de n'être accessibles que par la recherche multicritère.
+- Le champ **Liste de référence** entre dans la recherche multicritère, combinable avec tout le reste.
+
 ### 0.7.0
 - **Page d'accueil** : une entrée **Accueil** en haut du bandeau gauche ouvre quatre bandes d'affiches — **À voir ce soir** (jamais vus, bien notés, et le disque est branché), **Reprendre une saga**, **Derniers ajouts** et **Oubliés**. Le tirage tient la journée puis change : une page figée ne fait rien redécouvrir, une page qui bouge sans cesse devient désagréable. Une bande qui n'a rien à montrer ne s'affiche pas.
 - **Historique de visionnage** : l'onglet **Statut** de la fiche garde chaque visionnage avec sa date. Revoir un film ajoute un événement au lieu de remplacer le premier, et chaque lecture depuis Cinedex laisse sa trace. Une ligne erronée s'efface, une séance passée s'ajoute à sa date.

@@ -96,6 +96,7 @@ public static class SearchFields
         new("collection", "Collection", FieldKind.Text, "Classement"),
         new("tag", "Tag", FieldKind.Text, "Classement"),
         new("group", "Groupe", FieldKind.Text, "Classement"),
+        new("list", "Liste de référence", FieldKind.Text, "Classement"),
 
         new("seen", "Vu", FieldKind.Flag, "Statut"),
         new("views", "Nombre de visionnages", FieldKind.Number, "Statut"),

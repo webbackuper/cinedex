@@ -107,6 +107,8 @@ Example: Genre is Comedy, then IMDb rating > 7, then Year ≥ 2000.
 - **Home**: the page that answers "what do I watch tonight". It offers films never watched, well rated and playable right now (the disk is plugged in), sagas whose first film you watched but not the next one, the latest additions, and films owned for more than six months and never watched. The draw changes once a day.
 - **Library**: quick views (watched, favorites, shortlist, lent, video files…).
 - **Definition**: submenu Standard definition, High definition, Ultra HD (4K), 3D.
+- **Lists**: the reference lists (the IMDb Top 250, and your own). Choosing a list shows the catalog's films that belong to it, and a banner says how many are missing, with a way to add them all to the wishlist at once.
+- **My lists**: your personal groups ("Family night", "To rewatch"), entered in the Organization tab of the details or through a bulk edit.
 - **Browse**: submenus **Genres**, **Decades**, **Countries** and **Languages**. Each lists only what the catalog actually holds, so a click never lands on an empty view. One submenu acts at a time: choosing a genre releases the country, and going back to a library view releases everything.
 - At the top, the **Library**: All titles, Watched, Not watched yet, Favorites, Shortlist, Movies only, Series only, Lent, Video files, **Films without info** (titles never updated from TMDb) and the Definition submenu.
 - At the bottom: **To review**, **Advanced search**, **Actors**, **Directors**, **Series tracker**, **Collections**, **Appearance**, **Settings** and **Help**.
@@ -217,6 +219,12 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.8.0
+- **IMDb Top 250**: **Settings > Metadata > Build the IMDb Top 250 (estimated)** recomputes the chart from IMDb's public files, with the official formula (Bayesian average, 25,000 votes minimum). The first run downloads about 200 MB. The list is labelled **estimated** because it is: IMDb does not publish its chart, only its formula, and applies further weightings it keeps to itself. The result closely resembles the real list without being identical.
+- **What the list says about your catalog**: the **Lists** submenu in the left sidebar shows the films of the list you own, and displays "187 of 250 in the catalog, 63 missing". A button fetches the TMDb record of each missing one, marks it as not owned and tags it with the list's name: you find them in **Wishlist**, and the tag says where they came from.
+- **My lists**: your personal groups are now in the left sidebar, instead of being reachable only through the advanced search.
+- The **Reference list** field joins the advanced search, combinable with everything else.
+
 ### 0.7.0
 - **Home page**: a **Home** entry at the top of the left sidebar opens four bands of posters — **To watch tonight** (never watched, well rated, and the disk is plugged in), **Resume a saga**, **Just added** and **Forgotten**. The draw holds for the day then changes: a frozen page makes nothing rediscoverable, a page that keeps moving becomes tiresome. A band with nothing to show is not displayed.
 - **Viewing history**: the **Status** tab of the details keeps every viewing with its date. Watching a film again adds an event instead of replacing the first one, and every playback from Cinedex leaves its trace. A wrong line can be erased, a past screening added at its date.

@@ -11,4 +11,5 @@ public sealed record CatalogExtras(
     RecommendationRepository? Recommendations = null,
     SuggestionRepository? Suggestions = null,
     HomeRepository? Home = null,
-    StatisticsRepository? Statistics = null);
+    StatisticsRepository? Statistics = null,
+    ReferenceListService? Lists = null);

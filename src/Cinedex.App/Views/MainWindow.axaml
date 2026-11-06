@@ -293,6 +293,25 @@
               </ListBox.ItemTemplate>
             </ListBox>
 
+            <!-- Sous-menu Listes : Top 250 et listes de référence, avec ce que le catalogue en possède. -->
+            <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Margin="{StaticResource Edges2_1_2_0}"
+                    Command="{Binding ToggleListsCommand}" IsVisible="{Binding HasReferenceLists}" ToolTip.Tip="Listes de référence : ce que vous avez, et ce qui manque">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <controls:Icon Kind="bookmark" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" />
+                <TextBlock Grid.Column="1" Margin="{StaticResource Before3}" Text="Listes" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
+                <controls:Icon Grid.Column="2" Kind="chevron-down" Width="14" Height="14" Foreground="{DynamicResource CinedexMuted}"
+                               RenderTransformOrigin="50%,50%" RenderTransform="{Binding IsListExpanded, Converter={x:Static views:ExpandArrowConverter.Instance}}" />
+              </Grid>
+            </Button>
+            <ListBox Classes="nav" Margin="{StaticResource Before6}" ItemsSource="{Binding ReferenceLists}" SelectedItem="{Binding SelectedReferenceList}"
+                     IsVisible="{Binding IsListExpanded}" AutomationProperties.Name="Listes de référence">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="data:ReferenceList">
+                  <TextBlock Text="{Binding Name}" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+
             <!-- Sous-menus de parcours : genres, décennies, pays, langues. Même comportement que MediaID. -->
             <ItemsControl ItemsSource="{Binding Facets}">
               <ItemsControl.ItemTemplate>
@@ -366,6 +385,22 @@
 
     <!-- ======================= Zone centrale ======================= -->
     <DockPanel Grid.Column="1" Margin="{StaticResource Edges6_4_1_0}" IsVisible="{Binding IsTitlesView}">
+      <!-- Liste de référence choisie : ce qu'elle dit du catalogue, et de quoi combler les manques. -->
+      <Border DockPanel.Dock="Top" Margin="{StaticResource Below3}" Padding="{StaticResource Inset4x3}" CornerRadius="{StaticResource RadiusCard}"
+              Background="{DynamicResource CinedexSurfaceAlt}" IsVisible="{Binding HasSelectedList}">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Spacing="{StaticResource Space1}">
+            <TextBlock Text="{Binding SelectedReferenceList.Name}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
+            <TextBlock Text="{Binding ListStatusText}" Classes="muted" FontSize="{StaticResource FontSmall}" />
+            <TextBlock Text="{Binding SelectedReferenceList.Note}" Classes="muted" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" MaxWidth="620"
+                       IsVisible="{Binding SelectedReferenceList.Note, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          </StackPanel>
+          <Button Grid.Column="1" Classes="outline" VerticalAlignment="Center" Content="Ajouter les manquants à mes souhaits"
+                  Command="{Binding AddMissingToWishlistCommand}"
+                  ToolTip.Tip="Rapatrie la fiche TMDb de chaque film manquant, le marque non possédé et l'étiquette au nom de la liste." />
+        </Grid>
+      </Border>
+
       <!-- Barre d'outils -->
       <DockPanel DockPanel.Dock="Top" Margin="{StaticResource Below3}">
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="{StaticResource Space2}" Margin="{StaticResource Before3}">

@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using Cinedex.App.Services;
@@ -405,6 +406,18 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
         {
             vm.SelectInGrid(vm.Titles.IndexOf(title), toggle: false, extend: false);
         }
+    }
+
+    /// <summary>Presse-papiers de la fenêtre : absent sur certaines plates-formes, d'où le résultat renvoyé.</summary>
+    public async Task<bool> CopyTextAsync(string text)
+    {
+        if (Clipboard is not { } clipboard)
+        {
+            return false;
+        }
+
+        await clipboard.SetTextAsync(text);
+        return true;
     }
 
     private void OnPosterPressed(object? sender, PointerPressedEventArgs e)

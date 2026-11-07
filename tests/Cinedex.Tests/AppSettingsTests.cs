@@ -273,8 +273,12 @@ public sealed class AppSettingsTests : IDisposable
         Assert.True(withExport.HasExport);
         Assert.True(withExport.StartOnExport);
 
-        // L'export part sur la liste affichée, pas sur tout le catalogue.
-        Assert.False(withExport.Export!.SelectedScope.Value);
+        // L'export part sur la liste affichée, ni sur la sélection ni sur tout le catalogue.
+        Assert.Equal(ExportScope.Displayed, withExport.Export!.SelectedScope.Value);
+
+        // Depuis le menu contextuel, il part sur la sélection.
+        withExport.Export.StartOnSelection();
+        Assert.Equal(ExportScope.Selection, withExport.Export.SelectedScope.Value);
     }
 
     [Fact]
@@ -357,6 +361,8 @@ public sealed class AppSettingsTests : IDisposable
         public Task<bool> ConfirmAsync(string title, string message) => Task.FromResult(false);
 
         public Task InformAsync(string title, string message) => Task.CompletedTask;
+
+        public Task<bool> CopyTextAsync(string text) => Task.FromResult(false);
 
         public Task<Cinedex.Core.Metadata.MetadataSearchResult?> SearchMetadataAsync(MetadataSearchViewModel search) =>
             Task.FromResult<Cinedex.Core.Metadata.MetadataSearchResult?>(null);

@@ -235,6 +235,23 @@ public sealed class MediaFileRepository(CatalogDatabase database)
         return id;
     }
 
+    /// <summary>
+    /// Enregistre le nouveau chemin d'un fichier après son renommage sur le disque. Le découpage entre dossier
+    /// surveillé et chemin relatif est refait : le fichier a pu changer de dossier.
+    /// </summary>
+    public void SetPath(long mediaFileId, string fullPath)
+    {
+        var full = Normalize(fullPath);
+        using var connection = database.Open();
+        using var transaction = connection.BeginTransaction();
+        var (rootId, stored) = Split(connection, transaction, full);
+        connection.Execute(
+            "UPDATE media_file SET scan_root_id = @rootId, path = @stored, volume_label = @label WHERE id = @mediaFileId;",
+            new { mediaFileId, rootId, stored, label = VolumeProvider().LabelOf(full) },
+            transaction);
+        transaction.Commit();
+    }
+
     public IReadOnlyList<MediaFileEntry> FilesOf(long titleId)
     {
         using var connection = database.Open();

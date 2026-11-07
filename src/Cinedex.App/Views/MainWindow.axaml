@@ -409,6 +409,34 @@
                     ToolTip.Tip="Support, emplacement, collection, tags, groupes, possédé, vu : appliqué à toute la sélection.">
             <MenuItem.Icon><controls:Icon Kind="columns" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
+          <MenuItem Header="Marquer comme possédé" Command="{Binding SetOwnedCommand}" CommandParameter="{x:True}">
+            <MenuItem.Icon><controls:Icon Kind="check" Width="16" Height="16" /></MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="Remettre en liste de souhaits" Command="{Binding SetOwnedCommand}" CommandParameter="{x:False}">
+            <MenuItem.Icon><controls:Icon Kind="bookmark" Width="16" Height="16" /></MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="Ajouter à une liste" ItemsSource="{Binding ListNames}" IsVisible="{Binding HasLists}"
+                    ToolTip.Tip="Vos listes personnelles ; le titre se range à la fin de celle que vous choisissez.">
+            <MenuItem.Icon><controls:Icon Kind="tag" Width="16" Height="16" /></MenuItem.Icon>
+            <MenuItem.ItemContainerTheme>
+              <ControlTheme TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}" x:DataType="x:String">
+                <Setter Property="Header" Value="{Binding}" />
+                <Setter Property="Command" Value="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).AddToListCommand}" />
+                <Setter Property="CommandParameter" Value="{Binding}" />
+              </ControlTheme>
+            </MenuItem.ItemContainerTheme>
+          </MenuItem>
+          <MenuItem Header="Voir aussi" ItemsSource="{Binding SelectionPeople}" IsVisible="{Binding HasSelectionPeople}"
+                    ToolTip.Tip="Les autres films du réalisateur ou des acteurs principaux de ce film.">
+            <MenuItem.Icon><controls:Icon Kind="person" Width="16" Height="16" /></MenuItem.Icon>
+            <MenuItem.ItemContainerTheme>
+              <ControlTheme TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}" x:DataType="vm:FacetItem">
+                <Setter Property="Header" Value="{Binding Label}" />
+                <Setter Property="Command" Value="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ShowPeopleOfCommand}" />
+                <Setter Property="CommandParameter" Value="{Binding}" />
+              </ControlTheme>
+            </MenuItem.ItemContainerTheme>
+          </MenuItem>
           <Separator />
           <MenuItem Header="Mettre à jour via TMDb" Command="{Binding UpdateAllFromTmdbCommand}" InputGesture="Ctrl+Shift+U">
             <MenuItem.Icon><controls:Icon Kind="cloud" Width="16" Height="16" /></MenuItem.Icon>
@@ -423,6 +451,17 @@
           <MenuItem Header="Vider la fiche" Command="{Binding ClearDetailCommand}"
                     ToolTip.Tip="Efface le descriptif, les identifiants, les notes, les genres, la distribution et l'affiche. Le titre, vos saisies et les fichiers restent.">
             <MenuItem.Icon><controls:Icon Kind="eraser" Width="16" Height="16" /></MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="Copier les chemins des fichiers" Command="{Binding CopyPathsCommand}"
+                    ToolTip.Tip="Met dans le presse-papiers le chemin complet de chaque fichier vidéo de la sélection, un par ligne.">
+            <MenuItem.Icon><controls:Icon Kind="document" Width="16" Height="16" /></MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="Exporter la sélection…" Command="{Binding ExportSelectionCommand}">
+            <MenuItem.Icon><controls:Icon Kind="export" Width="16" Height="16" /></MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="Renommer les fichiers…" Command="{Binding RenameFilesCommand}"
+                    ToolTip.Tip="Renomme les fichiers vidéo sur le disque en « Titre (Année) », avec leur .nfo. Le détail est montré avant.">
+            <MenuItem.Icon><controls:Icon Kind="edit" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
           <Separator />
           <MenuItem Header="Fusionner les films sélectionnés…" Command="{Binding MergeSelectionCommand}"

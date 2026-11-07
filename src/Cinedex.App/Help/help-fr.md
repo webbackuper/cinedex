@@ -224,6 +224,15 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.11.0
+- **Six actions de plus au clic droit**, toutes sur la sélection entière :
+  - **Copier les chemins des fichiers** : le chemin complet de chaque fichier vidéo, un par ligne, dans le presse-papiers. De quoi reprendre la liste dans un script, un transfert ou un lecteur.
+  - **Marquer comme possédé** / **Remettre en liste de souhaits** : en un clic, sans passer par la modification en lot.
+  - **Ajouter à une liste** : un sous-menu de vos listes personnelles ; les titres se rangent à la fin de celle que vous choisissez.
+  - **Voir aussi** : les autres films du réalisateur ou des premiers rôles du film visé. Le menu les nomme, et un clic remplace la vue par cette recherche.
+  - **Exporter la sélection…** : ouvre l'export déjà réglé sur la sélection, au lieu de tout le catalogue ou de tout l'affichage.
+  - **Renommer les fichiers…** : renomme les fichiers vidéo **sur le disque** d'après leur fiche, au format `Titre (Année).mkv`. Plusieurs fichiers pour un même film sont numérotés. Le `.nfo` qui accompagne un fichier est renommé avec lui, sans quoi un lecteur comme Kodi perdrait la fiche. Le détail des renommages est montré avant, et ce qui est douteux est écarté avec sa raison — fichier introuvable, déjà au bon nom, nom déjà pris. C'est la seule action du menu qui touche au disque et elle ne se défait pas.
+
 ### 0.10.0
 - **Clic droit sur un film** (bureau) : un menu qui agit sur toute la sélection — fiche, lecture, dossier, vu, favori, modification en lot, mise à jour TMDb, mise à jour des .nfo, infos techniques, vider la fiche, **fusionner les films sélectionnés**, supprimer. Un clic droit hors sélection sélectionne le film visé ; sur un film déjà sélectionné, le lot est gardé.
 - **Fusionner une sélection** sans passer par la recherche de doublons : vous désignez les fiches, Cinedex les réunit. Il ne vérifie pas qu'il s'agit du même film et vous en avertit, la base étant sauvegardée avant.

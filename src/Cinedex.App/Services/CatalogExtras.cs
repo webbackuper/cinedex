@@ -13,4 +13,5 @@ public sealed record CatalogExtras(
     HomeRepository? Home = null,
     StatisticsRepository? Statistics = null,
     ReferenceListService? Lists = null,
-    MaintenanceRepository? Maintenance = null);
+    MaintenanceRepository? Maintenance = null,
+    FileRenameService? Renames = null);

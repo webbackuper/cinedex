@@ -21,6 +21,14 @@ public sealed partial class ExportColumnToggle(ExportColumn column, bool isCheck
 /// Onglet Export des réglages : liste des films en CSV, TSV ou Excel, colonnes au choix, liste affichée
 /// (filtre et tri actuels) ou catalogue entier. Les choix sont mémorisés pour le catalogue.
 /// </summary>
+/// <summary>Ce que l'export reprend : la sélection, la liste telle qu'elle est affichée, ou tout le catalogue.</summary>
+public enum ExportScope
+{
+    Selection,
+    Displayed,
+    All,
+}
+
 public sealed partial class ExportViewModel : ObservableObject
 {
     public const string ColumnsKey = "export.columns";
@@ -37,19 +45,24 @@ public sealed partial class ExportViewModel : ObservableObject
         Columns = [.. ExportRepository.Columns.Select(c => new ExportColumnToggle(c, saved?.Contains(c.Key) ?? c.IsDefault))];
         Formats = [new(ExportFormat.Csv, Tr.T("CSV (Excel, LibreOffice…)")), new(ExportFormat.Tsv, Tr.T("TSV (texte séparé par des tabulations)")), new(ExportFormat.Xlsx, Tr.T("Excel (.xlsx)"))];
         SelectedFormat = Formats.FirstOrDefault(f => f.Value.ToString() == settings.Get(FormatKey)) ?? Formats[2];
-        Scopes = [new(false, Tr.T("La liste affichée (recherche, filtre et tri actuels)")), new(true, Tr.T("Tout le catalogue (tri actuel)"))];
-        SelectedScope = Scopes[0];
+        Scopes =
+        [
+            new(ExportScope.Selection, Tr.T("La sélection")),
+            new(ExportScope.Displayed, Tr.T("La liste affichée (recherche, filtre et tri actuels)")),
+            new(ExportScope.All, Tr.T("Tout le catalogue (tri actuel)")),
+        ];
+        SelectedScope = Scopes[1];
     }
 
     public IReadOnlyList<ExportColumnToggle> Columns { get; }
 
     public IReadOnlyList<Choice<ExportFormat>> Formats { get; }
 
-    public IReadOnlyList<Choice<bool>> Scopes { get; }
+    public IReadOnlyList<Choice<ExportScope>> Scopes { get; }
 
     [ObservableProperty] public partial Choice<ExportFormat> SelectedFormat { get; set; }
 
-    [ObservableProperty] public partial Choice<bool> SelectedScope { get; set; }
+    [ObservableProperty] public partial Choice<ExportScope> SelectedScope { get; set; }
 
     [ObservableProperty] public partial string? Message { get; set; }
 
@@ -58,6 +71,12 @@ public sealed partial class ExportViewModel : ObservableObject
 
     /// <summary>Tous les titres du catalogue dans l'ordre de tri actuel ; fourni par la fenêtre principale.</summary>
     public Func<IReadOnlyList<long>>? AllIds { get; set; }
+
+    /// <summary>Titres sélectionnés dans la liste principale ; vide quand il n'y a pas de sélection.</summary>
+    public Func<IReadOnlyList<long>>? SelectedIds { get; set; }
+
+    /// <summary>Ouvre l'export sur la sélection : appelé quand on exporte depuis le menu contextuel.</summary>
+    public void StartOnSelection() => SelectedScope = Scopes.First(s => s.Value == ExportScope.Selection);
 
     public string Extension => SelectedFormat.Value switch
     {
@@ -88,7 +107,19 @@ public sealed partial class ExportViewModel : ObservableObject
 
         _settings.Set(ColumnsKey, string.Join(',', columns.Select(c => c.Key)));
         _settings.Set(FormatKey, SelectedFormat.Value.ToString());
-        var ids = (SelectedScope.Value ? AllIds : DisplayedIds)?.Invoke() ?? [];
+        var source = SelectedScope.Value switch
+        {
+            ExportScope.Selection => SelectedIds,
+            ExportScope.All => AllIds,
+            _ => DisplayedIds,
+        };
+        var ids = source?.Invoke() ?? [];
+        if (ids.Count == 0)
+        {
+            Message = Tr.T("Rien à exporter : la sélection est vide.");
+            return 0;
+        }
+
         var format = SelectedFormat.Value;
         try
         {

@@ -1363,6 +1363,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         LoadMediaIds();
         LoadFacets();
         LoadReferenceLists();
+        ListNames = _titles.Groups().Select(g => g.Name).ToList();
     }
 
     private Avalonia.Threading.DispatcherTimer? _searchTimer;
@@ -1473,6 +1474,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         DetailGenres = Detail is null ? [] : _titles.GenreLabels(Detail.Id).Select(Tr.T).ToList();
         LoadSimilar();
         LoadSuggestions();
+        LoadSelectionPeople();
         LoadCredits();
         LinkToTmdbCommand.NotifyCanExecuteChanged();
         OpenSeriesCommand.NotifyCanExecuteChanged();
@@ -1864,10 +1866,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private Task ExportListAsync() => ShowSettingsAsync(startOnExport: true);
 
+    /// <summary>Exporte la seule sélection : même fenêtre, mais la portée est déjà choisie.</summary>
+    [RelayCommand(CanExecute = nameof(HasSelection))]
+    private Task ExportSelectionAsync() => ShowSettingsAsync(startOnExport: true, exportSelection: true);
+
     [RelayCommand]
     private Task OpenSettingsAsync() => ShowSettingsAsync(startOnExport: false);
 
-    private async Task ShowSettingsAsync(bool startOnExport)
+    private async Task ShowSettingsAsync(bool startOnExport, bool exportSelection = false)
     {
         if (_settings is not null)
         {
@@ -1889,6 +1895,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 var sort = SelectedSort;
                 var descending = SortDescending;
                 export.DisplayedIds = () => Titles.Select(t => t.Id).ToList();
+                export.SelectedIds = () => SelectedIds;
+                if (exportSelection)
+                {
+                    export.StartOnSelection();
+                }
                 export.AllIds = () => _titles.Query(new TitleQuery(null, QuickFilter.All, sort.Value, descending)).Select(t => t.Id).ToList();
             }
 
@@ -2180,6 +2191,155 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var written = ids.Sum(id => nfo.WriteForTitle(id));
         Status = Tr.F("{0} fichier(s) .nfo créé(s) ou complété(s)", written);
         Journal($"{written} fichier(s) .nfo créé(s) ou complété(s)");
+    }
+
+    /// <summary>Copie les chemins des fichiers de la sélection : de quoi les reprendre dans un script ou un transfert.</summary>
+    [RelayCommand(CanExecute = nameof(HasSelection))]
+    private async Task CopyPathsAsync()
+    {
+        if (_media is not { } media)
+        {
+            return;
+        }
+
+        var paths = SelectedIds.SelectMany(id => media.Files.FilesOf(id)).Select(f => f.FullPath).ToList();
+        if (paths.Count == 0)
+        {
+            Status = Tr.T("Aucun fichier vidéo dans la sélection.");
+            return;
+        }
+
+        Status = await _dialogs.CopyTextAsync(string.Join(Environment.NewLine, paths))
+            ? Tr.F("{0} chemin(s) copié(s)", paths.Count)
+            : Tr.T("Presse-papiers indisponible.");
+    }
+
+    /// <summary>Marque la sélection comme possédée, ou la renvoie en liste de souhaits.</summary>
+    [RelayCommand(CanExecute = nameof(HasSelection))]
+    private void SetOwned(bool owned)
+    {
+        var ids = SelectedIds;
+        _titles.SetOwned(ids, owned);
+        Journal($"Marqué {(owned ? "possédé" : "liste de souhaits")} : {Names(SelectedTitles.ToList())}");
+        Status = owned
+            ? Tr.F("{0} titre(s) marqué(s) possédé(s)", ids.Count)
+            : Tr.F("{0} titre(s) remis en liste de souhaits", ids.Count);
+        RefreshTitles(ids);
+    }
+
+    /// <summary>Listes personnelles où verser la sélection ; le menu contextuel en fait un sous-menu.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasLists))]
+    public partial IReadOnlyList<string> ListNames { get; private set; } = [];
+
+    public bool HasLists => ListNames.Count > 0;
+
+    /// <summary>Ajoute la sélection à une liste personnelle existante, à la fin de celle-ci.</summary>
+    [RelayCommand(CanExecute = nameof(HasSelection))]
+    private void AddToList(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
+
+        var ids = SelectedIds;
+        _titles.ApplyBulk(ids, new BulkEdit { AddGroups = [name] });
+        ReloadSideLists();
+        Status = Tr.F("{0} titre(s) ajouté(s) à « {1} »", ids.Count, name);
+        Journal($"Ajouté à la liste « {name} » : {Names(SelectedTitles.ToList())}");
+    }
+
+    /// <summary>
+    /// Personnes du titre affiché, pour rebondir sur leurs autres films : réalisateurs d'abord, puis les
+    /// premiers rôles. Chaque entrée porte la recherche qu'un clic applique.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelectionPeople))]
+    public partial IReadOnlyList<FacetItem> SelectionPeople { get; private set; } = [];
+
+    public bool HasSelectionPeople => SelectionPeople.Count > 0;
+
+    private void LoadSelectionPeople()
+    {
+        if (Detail is null)
+        {
+            SelectionPeople = [];
+            return;
+        }
+
+        SelectionPeople =
+        [
+            .. Directors.Select(d => new FacetItem(
+                Tr.F("Films de {0}", d.Name), new RuleSearch([new SearchRule("director", RuleOperator.Equals, d.Name)]))),
+            .. Cast.Take(6).Select(a => new FacetItem(
+                Tr.F("Films avec {0}", a.Name), new RuleSearch([new SearchRule("actor", RuleOperator.Equals, a.Name)]))),
+        ];
+    }
+
+    /// <summary>Affiche les films d'une personne : la recherche remplace la vue en cours.</summary>
+    [RelayCommand]
+    private void ShowPeopleOf(FacetItem? person)
+    {
+        if (person is null)
+        {
+            return;
+        }
+
+        Home = null;
+        PeopleBrowser = null;
+        SelectedMediaId = null;
+        SelectedReferenceList = null;
+        ClearFacets();
+        Rules = person.Search;
+    }
+
+    private bool CanRenameFiles() => _extras.Renames is not null && SelectedTitles.Count > 0 && !IsBusy;
+
+    /// <summary>
+    /// Renomme les fichiers vidéo de la sélection d'après leur fiche. Le plan est montré avant d'être
+    /// appliqué : c'est la seule action du menu qui touche au disque, et elle ne se défait pas.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanRenameFiles))]
+    private async Task RenameFilesAsync()
+    {
+        if (_extras.Renames is not { } renames)
+        {
+            return;
+        }
+
+        var planned = renames.Plan(SelectedIds);
+        var doable = planned.Where(p => p.CanRename).ToList();
+        if (doable.Count == 0)
+        {
+            Status = planned.Count == 0
+                ? Tr.T("Aucun fichier vidéo dans la sélection.")
+                : Tr.F("Rien à renommer : {0}", string.Join(", ", planned.Select(p => p.Problem).Distinct()));
+            return;
+        }
+
+        var preview = string.Join("\n", doable.Take(8).Select(p => $"· {p.OldName}  →  {p.NewName}"));
+        var skipped = planned.Count - doable.Count;
+        if (!await _dialogs.ConfirmAsync(
+                "Renommer les fichiers",
+                Tr.F("Renommer {0} fichier(s) sur le disque d'après leur fiche ?\n\n{1}{2}\n\nLe .nfo qui accompagne un fichier est renommé avec lui. Cette action ne se défait pas.",
+                    doable.Count,
+                    preview + (doable.Count > 8 ? "\n· …" : string.Empty),
+                    skipped == 0 ? string.Empty : Tr.F("\n\n{0} fichier(s) laissé(s) de côté (déjà au bon nom, introuvable ou nom déjà pris).", skipped))))
+        {
+            return;
+        }
+
+        var done = renames.Apply(doable, out var problems);
+        Refresh(selectIds: SelectedIds);
+        Status = problems.Count == 0
+            ? Tr.F("{0} fichier(s) renommé(s)", done)
+            : Tr.F("{0} fichier(s) renommé(s), {1} échec(s)", done, problems.Count);
+        Journal($"Renommage de {done} fichier(s) d'après leur fiche, {problems.Count} échec(s)");
+        if (problems.Count > 0)
+        {
+            await _dialogs.InformAsync("Renommer les fichiers", string.Join('\n', problems.Take(20)));
+        }
     }
 
     private bool CanMergeSelection() => _extras.Maintenance is not null && SelectedTitles.Count > 1 && !IsBusy;

@@ -11,6 +11,9 @@ public interface IDialogs
 
     Task InformAsync(string title, string message);
 
+    /// <summary>Met un texte dans le presse-papiers ; renvoie faux si le système ne le permet pas.</summary>
+    Task<bool> CopyTextAsync(string text);
+
     Task<MetadataSearchResult?> SearchMetadataAsync(MetadataSearchViewModel search);
 
     Task<bool> EditSettingsAsync(SettingsViewModel settings);

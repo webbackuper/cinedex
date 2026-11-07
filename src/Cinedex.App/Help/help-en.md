@@ -224,6 +224,15 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.11.0
+- **Six more right-click actions**, all on the whole selection:
+  - **Copy the file paths**: the full path of each video file, one per line, in the clipboard. Enough to take the list into a script, a transfer or a player.
+  - **Mark as owned** / **Back to the wish list**: in one click, without going through the batch edit.
+  - **Add to a list**: a submenu of your personal lists; the titles go at the end of the one you choose.
+  - **See also**: the other films by the director or by the leading actors of the film aimed at. The menu names them, and a click replaces the view with that search.
+  - **Export the selection…**: opens the export already set on the selection, instead of the whole catalog or the whole display.
+  - **Rename the files…**: renames the video files **on disk** after their record, as `Title (Year).mkv`. Several files for one film are numbered. The `.nfo` accompanying a file is renamed with it, otherwise a player such as Kodi would lose the record. The list of renames is shown first, and anything doubtful is set aside with its reason — file not found, already correctly named, name already taken. This is the only action in the menu that touches the disk, and it cannot be undone.
+
 ### 0.10.0
 - **Right-click on a film** (desktop): a menu acting on the whole selection — details, play, folder, watched, favorite, batch edit, TMDb update, .nfo update, technical info, clear the record, **merge the selected films**, delete. A right-click outside the selection selects the film aimed at; on a film already selected, the batch is kept.
 - **Merge a selection** without going through the duplicate search: you name the records, Cinedex gathers them. It does not check that this is the same film and warns you, the database being backed up first.

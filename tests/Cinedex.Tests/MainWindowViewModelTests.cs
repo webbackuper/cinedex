@@ -214,6 +214,15 @@ public sealed class MainWindowViewModelTests : IDisposable
 
         public Task InformAsync(string title, string message) => Task.CompletedTask;
 
+        /// <summary>Dernier texte copié, pour vérifier ce que la commande met dans le presse-papiers.</summary>
+        public string? Copied { get; private set; }
+
+        public Task<bool> CopyTextAsync(string text)
+        {
+            Copied = text;
+            return Task.FromResult(true);
+        }
+
         public Task<Cinedex.Core.Metadata.MetadataSearchResult?> SearchMetadataAsync(MetadataSearchViewModel search) =>
             Task.FromResult<Cinedex.Core.Metadata.MetadataSearchResult?>(null);
 

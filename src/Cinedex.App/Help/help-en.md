@@ -224,6 +224,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.11.1
+- **Updating a record no longer reclassifies it.** A film without a TMDb number but with an IMDb number is found by that number, which TMDb can do; if it is a TV movie, its record comes from TMDb's television section, and the title then became a series in the catalog. The kind you gave a title is now kept by every update, including when you pick the record yourself from the list of matches to review.
+
 ### 0.11.0
 - **Six more right-click actions**, all on the whole selection:
   - **Copy the file paths**: the full path of each video file, one per line, in the clipboard. Enough to take the list into a script, a transfer or a player.

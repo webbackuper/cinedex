@@ -113,7 +113,9 @@ public sealed partial class MatchReviewViewModel : ObservableObject
     {
         try
         {
-            await Metadata.UpdateAsync(item.TitleId, result.Kind, result.SourceId, ImportOptions.Default);
+            // La fiche choisie peut venir de la section « tv » de TMDb pour un téléfilm : on prend ses
+            // métadonnées sans changer le genre que le titre a au catalogue.
+            await Metadata.UpdateAsync(item.TitleId, result.Kind, result.SourceId, ImportOptions.Default with { KeepKind = true });
             _reviews.Remove(item.TitleId);
             Done(item, Tr.F("« {0} » lié à « {1} »{2}.", item.Header, result.Title, (result.Year is { } y ? $" ({y})" : string.Empty)));
             ActivityJournal.Current.Write($"À vérifier : « {item.Header} » lié à TMDb {result.SourceId} ({result.Title})");

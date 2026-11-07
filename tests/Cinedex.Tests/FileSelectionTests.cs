@@ -50,7 +50,8 @@ public sealed class FileSelectionTests
 
         // La barre de progression a suivi l'import fichier par fichier (les signalements arrivent en différé).
         Assert.Equal(2, vm.Total);
-        for (var waited = 0; vm.Done < 2 && waited < 2000; waited += 10)
+        // Large marge : sur une machine chargée (l'intégration continue), deux secondes ne suffisaient pas.
+        for (var waited = 0; vm.Done < 2 && waited < 30_000; waited += 10)
         {
             await Task.Delay(10, TestContext.Current.CancellationToken);
         }

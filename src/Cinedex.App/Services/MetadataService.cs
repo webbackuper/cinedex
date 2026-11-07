@@ -181,13 +181,15 @@ public sealed class MetadataService(
                     continue;
                 }
 
-                // Un titre déjà lié se redemande à sa propre section : un téléfilm rattaché à « tv » reste
-                // un film du catalogue, et son genre ne doit pas changer à chaque passe.
-                var (kind, sourceId, keepKind) = title.Tmdb is { } known
-                    ? (known.Kind, known.Id, true)
+                // Un titre déjà lié se redemande à sa propre section, et le genre du catalogue est gardé dans
+                // tous les cas : un téléfilm trouvé par son numéro IMDb vit dans la section « tv » de TMDb, mais
+                // il reste un film au catalogue, là où son propriétaire l'a rangé. Mettre à jour une fiche n'est
+                // pas la reclasser.
+                var (kind, sourceId) = title.Tmdb is { } known
+                    ? (known.Kind, known.Id)
                     : identification?.Match is { } match
-                        ? (match.Kind, match.SourceId, false)
-                        : (title.Kind, 0L, false);
+                        ? (match.Kind, match.SourceId)
+                        : (title.Kind, 0L);
                 if (sourceId == 0)
                 {
                     notFound++;
@@ -195,7 +197,7 @@ public sealed class MetadataService(
                     continue;
                 }
 
-                if (await UpdateAsync(title.Id, kind, sourceId, options with { KeepKind = keepKind }, cancellationToken).ConfigureAwait(false))
+                if (await UpdateAsync(title.Id, kind, sourceId, options with { KeepKind = true }, cancellationToken).ConfigureAwait(false))
                 {
                     updated++;
                 }

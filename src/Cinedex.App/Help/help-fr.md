@@ -224,6 +224,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.11.1
+- **Mettre à jour une fiche ne la reclasse plus.** Un film sans numéro TMDb mais avec un numéro IMDb est retrouvé par ce numéro, ce que TMDb sait faire ; s'il s'agit d'un téléfilm, sa fiche vient de la section « tv » de TMDb, et le titre devenait alors une série au catalogue. Le genre que vous avez donné à un titre est désormais gardé par toute mise à jour, y compris quand vous choisissez vous-même la fiche dans la liste des rapprochements à vérifier.
+
 ### 0.11.0
 - **Six actions de plus au clic droit**, toutes sur la sélection entière :
   - **Copier les chemins des fichiers** : le chemin complet de chaque fichier vidéo, un par ligne, dans le presse-papiers. De quoi reprendre la liste dans un script, un transfert ou un lecteur.

@@ -61,6 +61,38 @@ public sealed class NfoUpdateTests : IDisposable
         Assert.Contains("<title>Heat</title>", updated, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// « Mettre à jour » ne crée rien : un film dont le dossier n'a pas de .nfo doit le rester. C'est la
+    /// différence avec « Écrire les .nfo », qui lui en crée un.
+    /// </summary>
+    [Fact]
+    public void Updating_never_creates_a_missing_nfo()
+    {
+        var withNfo = Path.Combine(_temp.Path, "Heat (1995).mkv");
+        var withoutNfo = Path.Combine(_temp.Path, "Collateral (2004).mkv");
+        File.WriteAllBytes(withNfo, new byte[1024]);
+        File.WriteAllBytes(withoutNfo, new byte[1024]);
+        var heat = _titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));
+        var collateral = _titles.Add(new NewTitle(TitleKind.Movie, "Collateral", 2004));
+        _files.Attach(heat, withNfo, 1024);
+        _files.Attach(collateral, withoutNfo, 1024);
+        File.WriteAllText(Path.ChangeExtension(withNfo, ".nfo"), """
+            <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+            <movie><title>Titre erroné</title></movie>
+            """);
+
+        var options = new Cinedex.Media.NfoWriteOptions { OverwriteExisting = true, OnlyExisting = true, Backup = false };
+        Assert.Equal(1, _nfo.WriteForTitle(heat, options));
+        Assert.Equal(0, _nfo.WriteForTitle(collateral, options));
+
+        Assert.Contains("<title>Heat</title>", File.ReadAllText(Path.ChangeExtension(withNfo, ".nfo")), StringComparison.Ordinal);
+        Assert.False(File.Exists(Path.ChangeExtension(withoutNfo, ".nfo")));
+
+        // « Écrire les .nfo », lui, le crée : c'est bien deux actions différentes.
+        Assert.Equal(1, _nfo.WriteForTitle(collateral));
+        Assert.True(File.Exists(Path.ChangeExtension(withoutNfo, ".nfo")));
+    }
+
     [Fact]
     public async Task The_command_asks_first_and_reports_what_it_rewrote()
     {

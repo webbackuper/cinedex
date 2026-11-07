@@ -2202,12 +2202,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
             : Tr.F("les {0} titre(s) affiché(s)", ids.Count);
         if (ids.Count == 0 || !await _dialogs.ConfirmAsync(
                 "Mettre à jour les .nfo",
-                Tr.F("Réécrire les .nfo de {0} depuis les fiches de Cinedex ?\nLes valeurs déjà présentes dans les .nfo sont remplacées. Les fichiers vidéo ne sont pas touchés.", scope)))
+                Tr.F("Réécrire les .nfo existants de {0} depuis les fiches de Cinedex ?\nLes valeurs déjà présentes sont remplacées. Aucun .nfo n'est créé, et les fichiers vidéo ne sont pas touchés.", scope)))
         {
             return;
         }
 
-        var options = new Cinedex.Media.NfoWriteOptions { OverwriteExisting = true, Backup = nfo.Settings.Backup };
+        // « Mettre à jour » ne crée rien : un film sans .nfo reste sans .nfo, c'est le rôle de « Écrire ».
+        var options = new Cinedex.Media.NfoWriteOptions { OverwriteExisting = true, OnlyExisting = true, Backup = nfo.Settings.Backup };
         var written = ids.Sum(id => nfo.WriteForTitle(id, options));
         Status = Tr.F("{0} fichier(s) .nfo mis à jour", written);
         Journal($"{written} fichier(s) .nfo mis à jour depuis les fiches");

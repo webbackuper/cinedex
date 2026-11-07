@@ -434,7 +434,7 @@
                   <MenuItem.Icon><controls:Icon Kind="document" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="Mettre à jour les .nfo…" Command="{Binding UpdateNfoCommand}"
-                          ToolTip.Tip="Réécrit les .nfo depuis les fiches de Cinedex en remplaçant les valeurs déjà présentes. À utiliser après avoir corrigé des fiches.">
+                          ToolTip.Tip="Réécrit les .nfo existants depuis les fiches de Cinedex, en remplaçant les valeurs déjà présentes. Aucun .nfo n'est créé : un film qui n'en a pas reste sans. À utiliser après avoir corrigé des fiches.">
                   <MenuItem.Icon><controls:Icon Kind="sync" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="Vérifier les fichiers" Command="{Binding CheckFilesCommand}">

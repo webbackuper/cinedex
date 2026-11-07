@@ -21,6 +21,12 @@ public sealed record NfoWriteOptions
     /// <summary>Copie « .nfo.bak » du fichier d'origine avant la première modification (jamais écrasée ensuite).</summary>
     public bool Backup { get; init; } = true;
 
+    /// <summary>
+    /// Ne toucher qu'aux .nfo qui existent déjà : « mettre à jour » ne veut pas dire « créer ». Un dossier
+    /// sans .nfo reste sans .nfo, ce que « Écrire les .nfo » fait de son côté quand c'est voulu.
+    /// </summary>
+    public bool OnlyExisting { get; init; }
+
     public int MaxActors { get; init; } = 15;
 }
 
@@ -46,6 +52,11 @@ public static class NfoWriter
         XDocument doc;
         string? original = null;
         var exists = File.Exists(nfoPath);
+        if (!exists && options.OnlyExisting)
+        {
+            return NfoWriteResult.Skipped;
+        }
+
         if (exists)
         {
             var info = new FileInfo(nfoPath);

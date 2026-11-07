@@ -219,6 +219,10 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.9.1
+- **Update the .nfo files**: a new entry in the "Actions on the selection" menu, which rewrites the .nfo files from Cinedex's records, **replacing** what they contain. "Write the .nfo files" only filled the empty fields, which left stale values in place. Works on the selection from any view, including a disk from the MediaID submenu, and a `.nfo.bak` copy is made if the setting asks for it.
+- **The open card refreshes as a whole** after an update from TMDb: cast, crew, poster and list of collections, not just the fields. You previously had to close and reopen it to see the new cast.
+
 ### 0.9.0
 - **TV movies**: a record's TMDb number now accepts the form `tv/322888`, and the address of a TMDb page pasted from the browser. TMDb files TV movies under its television section, with numbers independent from those of films: a bare number was therefore not enough to find them. The title **stays a film** in the catalog, and the section is kept along with the number — later updates go back to the right place by themselves, instead of landing on another film or on nothing.
 - The TMDb search accepts the same forms: `tv/322888`, `movie/949`, or the full address.

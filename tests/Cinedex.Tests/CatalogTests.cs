@@ -135,6 +135,58 @@ public sealed class CatalogTests
     }
 
 
+    /// <summary>
+    /// Une mise à jour depuis la fiche ouverte doit rafraîchir tout ce qu'elle montre, pas seulement ses
+    /// champs : la distribution, l'équipe, l'affiche et la liste des collections arrivent avec la fiche.
+    /// Sans cela, il fallait fermer et rouvrir pour les voir.
+    /// </summary>
+    [Fact]
+    public async Task Updating_from_an_open_card_refreshes_everything_it_shows()
+    {
+        using var temp = new TempDirectory();
+        var db = new CatalogDatabase(Path.Combine(temp.Path, "cinedex.db"));
+        db.Initialize(temp.Path);
+        var titles = new TitleRepository(db);
+        var id = titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));
+
+        // Ce que la fiche montrera après la mise à jour : la distribution et la saga n'existent pas encore.
+        var arrived = false;
+        Cinedex.App.ViewModels.TitleEditorView View() => arrived
+            ? new Cinedex.App.ViewModels.TitleEditorView(
+                [new Cinedex.Core.People.CastMember(1, "Al Pacino", "actor", "Vincent Hanna", 0, null, null)],
+                [new Cinedex.Core.People.CastMember(2, "Michael Mann", "director", null, 0, null, null)],
+                "Scénario : Michael Mann",
+                Path.Combine(temp.Path, "affiche.jpg"),
+                [new CollectionInfo(7, "Polars de Mann", 2)])
+            : new Cinedex.App.ViewModels.TitleEditorView([], [], string.Empty, null, []);
+
+        var editor = new TitleEditorViewModel(titles.Get(id)!, titles.Genres(), [], [], [], null, new TitleEditorExtras(
+            UpdateFromTmdb: _ =>
+            {
+                arrived = true;
+                titles.Update(titles.Get(id)! with { TmdbId = 949, CollectionId = null });
+                return Task.FromResult<TitleDetail?>(titles.Get(id));
+            },
+            Reload: View));
+
+        // Avant : rien à montrer.
+        Assert.False(editor.HasCast);
+        Assert.False(editor.HasDirectors);
+        Assert.Single(editor.Collections);   // « (aucune) » seulement
+
+        editor.TmdbId = "949";
+        await editor.UpdateFromTmdbCommand.ExecuteAsync(null);
+
+        // Après : tout est là, sans avoir fermé la fiche.
+        Assert.True(editor.HasCast);
+        Assert.Equal("Al Pacino", editor.Cast[0].Name);
+        Assert.True(editor.HasDirectors);
+        Assert.Equal("Michael Mann", editor.Directors[0].Name);
+        Assert.Contains("Scénario", editor.CrewText, StringComparison.Ordinal);
+        Assert.NotNull(editor.PosterPath);
+        Assert.Contains(editor.Collections, c => c.Label == "Polars de Mann");
+    }
+
     [Fact]
     public async Task The_editor_updates_the_card_from_tmdb_and_reloads_its_fields()
     {

@@ -429,8 +429,13 @@
                 <MenuItem Header="Relire les infos techniques (MediaInfo)" Command="{Binding RefreshTechnicalCommand}">
                   <MenuItem.Icon><controls:Icon Kind="view" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Écrire les .nfo" Command="{Binding WriteNfoCommand}">
+                <MenuItem Header="Écrire les .nfo" Command="{Binding WriteNfoCommand}"
+                          ToolTip.Tip="Crée les .nfo manquants et complète les champs vides des .nfo existants, sans toucher à ce qu'ils contiennent déjà.">
                   <MenuItem.Icon><controls:Icon Kind="document" Width="16" Height="16" /></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Mettre à jour les .nfo…" Command="{Binding UpdateNfoCommand}"
+                          ToolTip.Tip="Réécrit les .nfo depuis les fiches de Cinedex en remplaçant les valeurs déjà présentes. À utiliser après avoir corrigé des fiches.">
+                  <MenuItem.Icon><controls:Icon Kind="sync" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="Vérifier les fichiers" Command="{Binding CheckFilesCommand}">
                   <MenuItem.Icon><controls:Icon Kind="alert" Width="16" Height="16" /></MenuItem.Icon>

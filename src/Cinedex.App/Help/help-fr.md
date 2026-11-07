@@ -119,7 +119,7 @@ Les vues et liens affichés se choisissent dans **Réglages > Bandeau gauche**.
 Dans le panneau de droite ou l'onglet **Exemplaire** de la fiche : saisissez l'emprunteur (les noms déjà utilisés sont proposés) et la date, puis **Prêter**. **Marquer comme rendu** clôt le prêt. L'historique garde tous les prêts du titre ; une ligne erronée peut être effacée. La vue **Prêtés** du bandeau liste les titres dehors.
 
 ## Fichiers .nfo
-Cinedex lit et écrit les fichiers .nfo au format Kodi (Réglages > Fichiers .nfo) :
+Cinedex lit et écrit les fichiers .nfo au format Kodi (Réglages > Fichiers .nfo). Dans le menu « Actions sur la sélection », **Écrire les .nfo** complète les champs vides, **Mettre à jour les .nfo** remplace les valeurs déjà présentes :
 - à l'import, un .nfo présent à côté du film complète sa fiche, et ses identifiants servent à trouver la bonne fiche TMDb ;
 - après une mise à jour TMDb, le .nfo peut être créé ou complété, avec une copie .nfo.bak de sécurité.
 
@@ -219,6 +219,10 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.9.1
+- **Mettre à jour les .nfo** : nouvelle entrée du menu « Actions sur la sélection », qui réécrit les .nfo depuis les fiches de Cinedex en **remplaçant** ce qu'ils contiennent. « Écrire les .nfo » ne faisait que compléter les champs vides, ce qui laissait en place les valeurs devenues fausses. Fonctionne sur la sélection depuis n'importe quelle vue, y compris un disque du sous-menu MediaID, et une copie `.nfo.bak` est faite si le réglage le demande.
+- **La fiche ouverte se rafraîchit entière** après une mise à jour depuis TMDb : distribution, équipe, affiche et liste des collections, et plus seulement les champs. Il fallait auparavant la fermer et la rouvrir pour voir la nouvelle distribution.
+
 ### 0.9.0
 - **Téléfilms** : le numéro TMDb d'une fiche accepte désormais la forme `tv/322888`, et l'adresse d'une page TMDb collée depuis le navigateur. TMDb range les téléfilms dans sa section télévision, avec des numéros indépendants de ceux des films : un numéro seul ne suffisait donc pas à les retrouver. Le titre **reste un film** au catalogue, et la section est retenue avec le numéro — les mises à jour suivantes retournent d'elles-mêmes au bon endroit, au lieu de tomber sur un autre film ou sur rien.
 - La recherche TMDb accepte les mêmes formes : `tv/322888`, `movie/949`, ou l'adresse complète.

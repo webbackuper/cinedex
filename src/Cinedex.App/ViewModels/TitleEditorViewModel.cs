@@ -39,7 +39,8 @@ public sealed record TitleEditorExtras(
     Func<string, Task<string?>>? SetPoster = null,
     Func<Task>? RemovePoster = null,
     Func<TmdbReference, Task<TitleDetail?>>? UpdateFromTmdb = null,
-    ViewingsViewModel? Viewings = null);
+    ViewingsViewModel? Viewings = null,
+    Func<TitleEditorView>? Reload = null);
 
 /// <summary>Un fichier du titre dans l'onglet Fichier : chemin complet et MediaID (nom du disque) modifiable.</summary>
 public sealed partial class FileVolumeRow(MediaFileEntry file) : ObservableObject
@@ -58,6 +59,17 @@ public sealed partial class FileVolumeRow(MediaFileEntry file) : ObservableObjec
 
     public bool IsChanged => !string.Equals(MediaId.Trim(), File.VolumeLabel ?? string.Empty, StringComparison.Ordinal);
 }
+
+/// <summary>
+/// Ce que la fiche affiche autour de ses champs : distribution, réalisateurs, équipe, affiche et liste des
+/// collections. Une mise à jour depuis TMDb change tout cela aussi, et la fiche doit se relire entière.
+/// </summary>
+public sealed record TitleEditorView(
+    IReadOnlyList<CastMember> Cast,
+    IReadOnlyList<CastMember> Directors,
+    string CrewText,
+    string? PosterPath,
+    IReadOnlyList<CollectionInfo> Collections);
 
 /// <summary>
 /// Copie éditable d'une fiche. Les nombres sont saisis en texte et validés à l'enregistrement,
@@ -81,6 +93,7 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         extras ??= new TitleEditorExtras();
         _refreshMedia = extras.RefreshMedia;
         _updateFromTmdb = extras.UpdateFromTmdb;
+        _reload = extras.Reload;
         _addFile = extras.AddFile;
         _people = extras.People;
         Loans = extras.Loans;
@@ -102,6 +115,25 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         Genres = new ObservableCollection<GenreChoice>(genres.Select(g => new GenreChoice(g, false)));
 
         LoadFields(original);
+    }
+
+    /// <summary>
+    /// Relit ce que la fiche montre autour de ses champs. Sans cela, après une mise à jour depuis TMDb, la
+    /// distribution, l'affiche et la liste des collections restaient celles d'avant jusqu'à la réouverture.
+    /// </summary>
+    private void ReloadView()
+    {
+        if (_reload is not { } reload)
+        {
+            return;
+        }
+
+        var view = reload();
+        Cast = view.Cast;
+        Directors = view.Directors;
+        CrewText = view.CrewText;
+        PosterPath = view.PosterPath;
+        Collections = [new(null, "(aucune)"), .. view.Collections.Select(c => new Choice<long?>(c.Id, c.Name))];
     }
 
     /// <summary>Remplit les champs depuis une fiche : à l'ouverture, puis après une mise à jour depuis TMDb.</summary>
@@ -159,6 +191,8 @@ public sealed partial class TitleEditorViewModel : ObservableObject
     }
 
     private readonly Func<TmdbReference, Task<TitleDetail?>>? _updateFromTmdb;
+
+    private readonly Func<TitleEditorView>? _reload;
 
     private readonly Func<Task<string?>>? _refreshMedia;
 
@@ -287,16 +321,21 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         PosterPath = null;
     }
 
-    public IReadOnlyList<CastMember> Cast { get; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasCast))]
+    public partial IReadOnlyList<CastMember> Cast { get; private set; }
 
     public bool HasCast => Cast.Count > 0;
 
     /// <summary>Réalisateurs du titre (onglet Distribution), cliquables comme les acteurs.</summary>
-    public IReadOnlyList<CastMember> Directors { get; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasDirectors))]
+    public partial IReadOnlyList<CastMember> Directors { get; private set; }
 
     public bool HasDirectors => Directors.Count > 0;
 
-    public string CrewText { get; }
+    [ObservableProperty]
+    public partial string CrewText { get; private set; }
 
     /// <summary>Emplacement complet et propriétés techniques de chaque fichier (lecture seule : relu par MediaInfo).</summary>
     [ObservableProperty] public partial string MediaText { get; set; }
@@ -370,8 +409,12 @@ public sealed partial class TitleEditorViewModel : ObservableObject
             if (await _updateFromTmdb(reference) is { } refreshed)
             {
                 _original = refreshed;
+                // Les collections d'abord : une saga créée par l'import doit exister dans la liste avant que
+                // LoadFields n'y cherche celle du titre, sinon la sélection retomberait sur « (aucune) ».
+                ReloadView();
                 LoadFields(refreshed);
                 OnPropertyChanged(nameof(SourceText));
+                OnPropertyChanged(nameof(SeenText));
                 TmdbMessage = Tr.T("Fiche mise à jour depuis TMDb.");
             }
             else
@@ -419,7 +462,8 @@ public sealed partial class TitleEditorViewModel : ObservableObject
 
     public ObservableCollection<GenreChoice> Genres { get; }
 
-    public IReadOnlyList<Choice<long?>> Collections { get; }
+    [ObservableProperty]
+    public partial IReadOnlyList<Choice<long?>> Collections { get; private set; }
 
     [ObservableProperty] public partial Choice<long?> SelectedCollection { get; set; }
 

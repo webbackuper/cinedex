@@ -978,29 +978,52 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        var credits = people.Repository.Credits(detail.Id);
-        foreach (var actor in credits.Where(c => c.Role == "actor"))
+        var (cast, directors, crew) = CreditsOf(detail.Id);
+        foreach (var actor in cast)
         {
-            Cast.Add(actor with { PhotoPath = people.ResolvePhoto(actor.PhotoRelativePath) });
+            Cast.Add(actor);
         }
 
-        foreach (var director in credits.Where(c => c.Role == "director").GroupBy(c => c.PersonId).Select(g => g.First()))
+        foreach (var director in directors)
         {
-            Directors.Add(director with { PhotoPath = people.ResolvePhoto(director.PhotoRelativePath) });
+            Directors.Add(director);
         }
 
-        // Réalisateurs affichés à part (cliquables) ; le reste de l'équipe en texte.
-        var crew = credits.Where(c => c.Role is not ("actor" or "director")).GroupBy(c => c.RoleLabel)
-            .Select(g => $"{g.Key} : {string.Join(", ", g.Select(c => c.Name).Distinct())}");
-        CrewText = string.Join('\n', crew);
+        CrewText = crew;
         OnPropertyChanged(nameof(HasCast));
         OnPropertyChanged(nameof(HasDirectors));
 
         // Photos manquantes téléchargées en arrière-plan ; la distribution est rechargée si le titre est toujours affiché.
+        var credits = people.Repository.Credits(detail.Id);
         if (credits.Any(c => c.PhotoRelativePath is null && c.ProfilePath is not null))
         {
             _ = LoadCreditPhotosAsync(detail.Id, credits);
         }
+    }
+
+    /// <summary>
+    /// Distribution, réalisateurs et équipe d'un titre, photos résolues. Partagé par le panneau de droite et
+    /// par la fiche ouverte, qui doivent montrer la même chose après une mise à jour.
+    /// </summary>
+    private (IReadOnlyList<CastMember> Cast, IReadOnlyList<CastMember> Directors, string Crew) CreditsOf(long titleId)
+    {
+        if (_media?.People is not { } people)
+        {
+            return ([], [], string.Empty);
+        }
+
+        var credits = people.Repository.Credits(titleId);
+        var cast = credits.Where(c => c.Role == "actor")
+            .Select(c => c with { PhotoPath = people.ResolvePhoto(c.PhotoRelativePath) })
+            .ToList();
+        var directors = credits.Where(c => c.Role == "director").GroupBy(c => c.PersonId).Select(g => g.First())
+            .Select(c => c with { PhotoPath = people.ResolvePhoto(c.PhotoRelativePath) })
+            .ToList();
+
+        // Réalisateurs affichés à part (cliquables) ; le reste de l'équipe en texte.
+        var crew = credits.Where(c => c.Role is not ("actor" or "director")).GroupBy(c => c.RoleLabel)
+            .Select(g => $"{g.Key} : {string.Join(", ", g.Select(c => c.Name).Distinct())}");
+        return (cast, directors, string.Join('\n', crew));
     }
 
     private async Task LoadCreditPhotosAsync(long titleId, IReadOnlyList<CastMember> credits)
@@ -1560,7 +1583,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
                     : $"Titre verrouillé, non modifié : {current.Title}");
                 return applied ? _titles.Get(current.Id) : null;
             },
-            new ViewingsViewModel(_titles, current.Id));
+            new ViewingsViewModel(_titles, current.Id),
+            () =>
+            {
+                var (cast, directors, crew) = CreditsOf(current.Id);
+                return new TitleEditorView(cast, directors, crew, _images?.PathFor(current.Id, "poster"), _titles.Collections());
+            });
         var editor = new TitleEditorViewModel(
             current, _titles.Genres(), _titles.RefItems("medium"), _titles.RefItems("case"), _titles.RefItems("version"), _titles.Collections(), extras);
         // La fenêtre d'édition valide elle-même (TryBuild) avant de se fermer sur « Enregistrer ».
@@ -2152,6 +2180,37 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var written = ids.Sum(id => nfo.WriteForTitle(id));
         Status = Tr.F("{0} fichier(s) .nfo créé(s) ou complété(s)", written);
         Journal($"{written} fichier(s) .nfo créé(s) ou complété(s)");
+    }
+
+    /// <summary>
+    /// Réécrit le .nfo des fichiers de la sélection en remplaçant les valeurs déjà présentes, là où
+    /// « Écrire les .nfo » se contente de compléter les champs vides. C'est ce qu'il faut après avoir corrigé
+    /// des fiches : sans cela, le .nfo garde ce qu'il avait de faux. Une copie .nfo.bak est faite si le
+    /// réglage le demande, et aucun fichier vidéo n'est touché.
+    /// </summary>
+    [RelayCommand]
+    private async Task UpdateNfoAsync()
+    {
+        if (_media?.Nfo is not { } nfo)
+        {
+            return;
+        }
+
+        var ids = SelectedTitles.Count > 0 ? SelectedIds : Titles.Select(t => t.Id).ToList();
+        var scope = SelectedTitles.Count > 0
+            ? Tr.F("les {0} titre(s) sélectionné(s)", ids.Count)
+            : Tr.F("les {0} titre(s) affiché(s)", ids.Count);
+        if (ids.Count == 0 || !await _dialogs.ConfirmAsync(
+                "Mettre à jour les .nfo",
+                Tr.F("Réécrire les .nfo de {0} depuis les fiches de Cinedex ?\nLes valeurs déjà présentes dans les .nfo sont remplacées. Les fichiers vidéo ne sont pas touchés.", scope)))
+        {
+            return;
+        }
+
+        var options = new Cinedex.Media.NfoWriteOptions { OverwriteExisting = true, Backup = nfo.Settings.Backup };
+        var written = ids.Sum(id => nfo.WriteForTitle(id, options));
+        Status = Tr.F("{0} fichier(s) .nfo mis à jour", written);
+        Journal($"{written} fichier(s) .nfo mis à jour depuis les fiches");
     }
 
     /// <summary>Relit les infos techniques (MediaInfo) des fichiers de la sélection, ou de tous les titres affichés.</summary>

@@ -219,7 +219,10 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
-### 0.9.2
+### 0.9.3
+- **Updating the .nfo files no longer creates anything by itself.** The command rewrites the files that exist, then, if some films in the selection have none, says so and asks once whether to create them. Updating is not creating, and saying nothing would have suggested everything was up to date.
+
+### 0.9.1
 - **Update the .nfo files**: a new entry in the "Actions on the selection" menu, which rewrites the **existing** .nfo files from Cinedex's records, **replacing** what they contain. "Write the .nfo files" only filled the empty fields, which left stale values in place. Updating is not creating: if some films in the selection have no .nfo, Cinedex says so and asks whether to create them. Works on the selection from any view, including a disk from the MediaID submenu, and a `.nfo.bak` copy is made if the setting asks for it.
 - **The open card refreshes as a whole** after an update from TMDb: cast, crew, poster and list of collections, not just the fields. You previously had to close and reopen it to see the new cast.
 

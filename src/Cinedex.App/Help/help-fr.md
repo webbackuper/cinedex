@@ -219,7 +219,10 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
-### 0.9.2
+### 0.9.3
+- **Mettre à jour les .nfo ne crée plus rien tout seul.** La commande réécrit les fichiers qui existent, puis, si des films de la sélection n'en ont pas, le dit et vous demande une fois s'il faut les créer. Mettre à jour n'est pas créer, et ne rien dire aurait laissé croire que tout était à jour.
+
+### 0.9.1
 - **Mettre à jour les .nfo** : nouvelle entrée du menu « Actions sur la sélection », qui réécrit les .nfo **existants** depuis les fiches de Cinedex en **remplaçant** ce qu'ils contiennent. « Écrire les .nfo » ne faisait que compléter les champs vides, ce qui laissait en place les valeurs devenues fausses. Mettre à jour n'est pas créer : si des films de la sélection n'ont pas de .nfo, Cinedex le dit et vous demande s'il faut les créer. Fonctionne sur la sélection depuis n'importe quelle vue, y compris un disque du sous-menu MediaID, et une copie `.nfo.bak` est faite si le réglage le demande.
 - **La fiche ouverte se rafraîchit entière** après une mise à jour depuis TMDb : distribution, équipe, affiche et liste des collections, et plus seulement les champs. Il fallait auparavant la fermer et la rouvrir pour voir la nouvelle distribution.
 

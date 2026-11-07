@@ -55,7 +55,7 @@ If an API reaches its limit during an import, Cinedex offers to finish without i
 
 ## A film's details
 A click on a title shows its details in the right panel, whose width you set by dragging the handle between it and the list; a double-click (or Alt+E) opens the full, editable entry with its tabs:
-- **Details**: titles, year, runtime, summary, countries, studio, IMDb ID, trailer.
+- **Details**: titles, year, runtime, summary, countries, studio, IMDb ID, trailer. The **TMDb number** also accepts `tv/322888` for TV movies, which TMDb files under its television section, and the address of a TMDb page pasted from the browser.
 - **You will also like**: below the cast, Cinedex suggests films from **your** catalog that are close to the one shown, with the reason for each (same saga, same director, shared keywords or genres). Everything is computed from the database, so it is offline and instant; only films you own are suggested.
 - **TMDb suggestions**: a button asks TMDb what viewers of this film also liked. One call per title, the result is kept. Suggestions already in the catalog are ticked and open with a click; the others are added to your wishlist.
 - The **trailer** button in the right panel opens the video in your browser. TMDb fetches it with the rest of the record; **Settings > Metadata** offers to fill in the missing ones in one pass.
@@ -219,6 +219,11 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.9.0
+- **TV movies**: a record's TMDb number now accepts the form `tv/322888`, and the address of a TMDb page pasted from the browser. TMDb files TV movies under its television section, with numbers independent from those of films: a bare number was therefore not enough to find them. The title **stays a film** in the catalog, and the section is kept along with the number — later updates go back to the right place by themselves, instead of landing on another film or on nothing.
+- The TMDb search accepts the same forms: `tv/322888`, `movie/949`, or the full address.
+- Two titles with the same number in different sections are no longer seen as duplicates.
+
 ### 0.8.4
 - **Merge a single group of duplicates**: pick a title in the list, then **Merge this group…**. The other groups are untouched. Not every proposed match is equally convincing, and it had to be possible to decide group by group instead of taking or refusing them all. The list is read again at once, to show only what is left to decide.
 - The tooltip of **Find duplicate films** still said "same IMDb id, or same title and same year": the rule is the same TMDb **or** IMDb number, title and year serving only when no identifier exists.

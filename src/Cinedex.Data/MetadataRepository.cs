@@ -100,7 +100,10 @@ public sealed class MetadataRepository(CatalogDatabase database)
         connection.Execute(
             """
             UPDATE title SET
-                kind = @Kind, tmdb_id = CASE WHEN @SourceId > 0 THEN @SourceId ELSE tmdb_id END, imdb_id = coalesce(@ImdbId, imdb_id),
+                kind = CASE WHEN @KeepKind = 1 THEN kind ELSE @Kind END,
+                tmdb_id = CASE WHEN @SourceId > 0 THEN @SourceId ELSE tmdb_id END,
+                tmdb_kind = CASE WHEN @SourceId > 0 THEN @Kind ELSE tmdb_kind END,
+                imdb_id = coalesce(@ImdbId, imdb_id),
                 year = coalesce(@Year, year), runtime_minutes = coalesce(@RuntimeMinutes, runtime_minutes),
                 certification = coalesce(@Certification, certification),
                 countries = coalesce(@Countries, countries), spoken_languages = coalesce(@SpokenLanguages, spoken_languages), studio = coalesce(@Studio, studio),
@@ -115,6 +118,7 @@ public sealed class MetadataRepository(CatalogDatabase database)
             {
                 TitleId = titleId,
                 Kind = r.Kind == TitleKind.Series ? "series" : "movie",
+                KeepKind = options.KeepKind ? 1 : 0,
                 r.SourceId,
                 r.ImdbId,
                 r.Year,

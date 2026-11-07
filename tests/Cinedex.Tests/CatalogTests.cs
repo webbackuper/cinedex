@@ -146,7 +146,7 @@ public sealed class CatalogTests
         var genres = titles.Genres();
 
         // La mise à jour applique la fiche du numéro affiché, puis l'éditeur relit le formulaire.
-        long? asked = null;
+        Cinedex.Core.Metadata.TmdbReference? asked = null;
         var editor = new TitleEditorViewModel(titles.Get(id)!, genres, [], [], [], null, new TitleEditorExtras(
             UpdateFromTmdb: source =>
             {
@@ -157,7 +157,8 @@ public sealed class CatalogTests
                     Title = "Heat",
                     Year = 1995,
                     Overview = "Un braqueur et un flic.",
-                    TmdbId = source,
+                    TmdbId = source.Id,
+                    TmdbKind = source.Kind,
                     GenreCodes = [genres[0].Code],
                 });
                 return Task.FromResult<TitleDetail?>(titles.Get(id));
@@ -171,7 +172,7 @@ public sealed class CatalogTests
         Assert.True(editor.UpdateFromTmdbCommand.CanExecute(null));
         await editor.UpdateFromTmdbCommand.ExecuteAsync(null);
 
-        Assert.Equal(949, asked);
+        Assert.Equal(new Cinedex.Core.Metadata.TmdbReference(TitleKind.Movie, 949), asked);
         Assert.Equal("Heat", editor.Title);
         Assert.Equal("1995", editor.Year);
         Assert.Equal("Un braqueur et un flic.", editor.Overview);

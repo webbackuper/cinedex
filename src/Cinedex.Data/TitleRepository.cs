@@ -292,6 +292,7 @@ public sealed partial class TitleRepository(CatalogDatabase database)
             WebLink = row.Web_Link,
             TrailerUrl = row.Trailer_Url,
             TmdbId = row.Tmdb_Id,
+            TmdbKind = row.Tmdb_Kind is null ? null : (row.Tmdb_Kind == "series" ? TitleKind.Series : TitleKind.Movie),
             ImdbId = row.Imdb_Id,
             TmdbRating = row.Tmdb_Rating,
             ImdbRating = row.Imdb_Rating,
@@ -347,7 +348,7 @@ public sealed partial class TitleRepository(CatalogDatabase database)
                 original_title = NULL, alternative_title = NULL, year = NULL, runtime_minutes = NULL,
                 tagline = NULL, overview = NULL, overview_long = NULL, certification = NULL,
                 countries = NULL, spoken_languages = NULL, studio = NULL, web_link = NULL, trailer_url = NULL,
-                tmdb_id = NULL, imdb_id = NULL, tmdb_rating = NULL, tmdb_votes = NULL,
+                tmdb_id = NULL, tmdb_kind = NULL, imdb_id = NULL, tmdb_rating = NULL, tmdb_votes = NULL,
                 imdb_rating = NULL, imdb_votes = NULL, metascore = NULL, tomatometer = NULL, popcornmeter = NULL,
                 imdb_top250 = NULL, awards = NULL, series_status = NULL, collection_id = NULL,
                 is_adult = 0, metadata_fetched_at = NULL,
@@ -382,7 +383,7 @@ public sealed partial class TitleRepository(CatalogDatabase database)
                 sort_title = @SortTitle, year = @Year, runtime_minutes = @RuntimeMinutes, tagline = @Tagline,
                 overview = @Overview, certification = @Certification, countries = @Countries,
                 spoken_languages = @SpokenLanguages, studio = @Studio, web_link = @WebLink, trailer_url = @TrailerUrl,
-                tmdb_id = @TmdbId, imdb_id = @ImdbId, user_rating = @UserRating, comments = @Comments,
+                tmdb_id = @TmdbId, tmdb_kind = @TmdbKind, imdb_id = @ImdbId, user_rating = @UserRating, comments = @Comments,
                 tmdb_rating = @TmdbRating, imdb_rating = @ImdbRating, imdb_votes = @ImdbVotes,
                 tomatometer = @Tomatometer, metascore = @Metascore,
                 is_owned = @IsOwned, is_favorite = @IsFavorite, is_shortlisted = @IsShortlisted,
@@ -409,6 +410,8 @@ public sealed partial class TitleRepository(CatalogDatabase database)
                 WebLink = Blank(detail.WebLink),
                 TrailerUrl = Blank(detail.TrailerUrl),
                 detail.TmdbId,
+                // La section n'est gardée que lorsqu'elle surprend : un film dont le numéro vient de « tv ».
+                TmdbKind = detail.TmdbId is null || detail.TmdbKind is not { } source || source == detail.Kind ? null : ToDb(source),
                 ImdbId = Blank(detail.ImdbId),
                 detail.UserRating,
                 detail.TmdbRating,
@@ -858,6 +861,8 @@ public sealed partial class TitleRepository(CatalogDatabase database)
         public string? Trailer_Url { get; set; }
 
         public long? Tmdb_Id { get; set; }
+
+        public string? Tmdb_Kind { get; set; }
 
         public string? Imdb_Id { get; set; }
 

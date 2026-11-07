@@ -67,8 +67,8 @@
               <StackPanel Grid.Row="12" Grid.Column="1" Orientation="Horizontal" Spacing="{StaticResource Space3}">
                 <TextBox Width="160" Text="{Binding ImdbId}" PlaceholderText="tt1234567" />
                 <TextBlock Text="Numéro TMDb" VerticalAlignment="Center" />
-                <TextBox Width="110" Text="{Binding TmdbId}" PlaceholderText="949"
-                         ToolTip.Tip="Numéro de la fiche TMDb : videz-le pour détacher le titre, changez-le pour le rattacher à une autre fiche. La prochaine mise à jour suivra ce numéro." />
+                <TextBox Width="150" Text="{Binding TmdbId}" PlaceholderText="949 ou tv/322888"
+                         ToolTip.Tip="Numéro de la fiche TMDb : videz-le pour détacher le titre, changez-le pour le rattacher à une autre fiche. TMDb range les téléfilms dans sa section télévision : « tv/322888 » va les y chercher sans faire du titre une série. L&apos;adresse d&apos;une page TMDb collée depuis le navigateur est acceptée telle quelle." />
                 <Button Classes="tool" Command="{Binding UpdateFromTmdbCommand}"
                         ToolTip.Tip="Rapatrie cette fiche depuis TMDb : descriptif, genres, distribution et affiche. Les saisies non enregistrées sont remplacées.">
                   <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">

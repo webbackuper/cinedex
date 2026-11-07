@@ -55,7 +55,7 @@ Si une API atteint sa limite pendant un import, Cinedex vous propose de terminer
 
 ## La fiche d'un film
 Un clic sur un titre affiche sa fiche dans le panneau de droite, dont la largeur se règle en glissant la poignée qui le sépare de la liste ; un double-clic (ou Alt+E) ouvre la fiche complète, modifiable, avec ses onglets :
-- **Fiche** : titres, année, durée, résumé, pays, studio, identifiant IMDb, bande-annonce.
+- **Fiche** : titres, année, durée, résumé, pays, studio, identifiant IMDb, bande-annonce. Le **numéro TMDb** accepte aussi `tv/322888` pour les téléfilms, que TMDb range dans sa section télévision, et l'adresse d'une page TMDb collée depuis le navigateur.
 - **Vous aimerez aussi** : sous la distribution, Cinedex propose des films de **votre** catalogue proches de celui affiché, avec la raison du rapprochement (même saga, même réalisateur, mots-clés ou genres communs). Tout est calculé sur la base, donc hors ligne et immédiat ; seuls les films que vous possédez sont proposés.
 - **Suggestions TMDb** : un bouton demande à TMDb ce que les spectateurs de ce film ont aussi aimé. Un seul appel par titre, le résultat est gardé. Les suggestions déjà au catalogue sont cochées et s'ouvrent d'un clic ; les autres s'ajoutent à votre liste de souhaits.
 - Le bouton **bande-annonce** du panneau de droite ouvre la vidéo dans votre navigateur. TMDb la rapatrie avec le reste de la fiche ; **Réglages > Métadonnées** propose de compléter d'un coup celles qui manquent.
@@ -219,6 +219,11 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.9.0
+- **Téléfilms** : le numéro TMDb d'une fiche accepte désormais la forme `tv/322888`, et l'adresse d'une page TMDb collée depuis le navigateur. TMDb range les téléfilms dans sa section télévision, avec des numéros indépendants de ceux des films : un numéro seul ne suffisait donc pas à les retrouver. Le titre **reste un film** au catalogue, et la section est retenue avec le numéro — les mises à jour suivantes retournent d'elles-mêmes au bon endroit, au lieu de tomber sur un autre film ou sur rien.
+- La recherche TMDb accepte les mêmes formes : `tv/322888`, `movie/949`, ou l'adresse complète.
+- Deux titres portant le même numéro dans des sections différentes ne sont plus vus comme des doublons.
+
 ### 0.8.4
 - **Fusionner un seul groupe de doublons** : choisissez un titre dans la liste, puis **Fusionner ce groupe…**. Les autres groupes ne sont pas touchés. Tous les rapprochements proposés ne se valent pas, et il fallait pouvoir trancher groupe par groupe au lieu de tout prendre ou tout refuser. La liste se relit aussitôt pour ne montrer que ce qui reste à décider.
 - L'infobulle de **Trouver les films en double** disait encore « même identifiant IMDb, ou même titre et même année » : la règle est le même numéro TMDb **ou** IMDb, le titre et l'année ne servant qu'à défaut d'identifiant.

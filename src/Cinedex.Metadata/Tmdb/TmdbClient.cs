@@ -129,11 +129,12 @@ public sealed partial class TmdbClient
                 .ToList();
         }
 
-        if (SourceIdPattern().Match(text) is { Success: true } direct)
+        // « movie/949 », « tv/322888 », ou l'adresse d'une page TMDb collée depuis le navigateur : la fiche
+        // est demandée directement, sans passer par la recherche.
+        if (TmdbReference.TryParse(text, TitleKind.Movie, out var direct) && text.Contains('/', StringComparison.Ordinal))
         {
-            var kind = direct.Groups["kind"].Value == "tv" ? TitleKind.Series : TitleKind.Movie;
-            var record = await GetDetailsAsync(kind, long.Parse(direct.Groups["id"].Value, CultureInfo.InvariantCulture), cancellationToken).ConfigureAwait(false);
-            return [new MetadataSearchResult(kind, record.SourceId, record.Title, record.OriginalTitle, record.Year, record.Overview, record.PosterPath, record.Rating)];
+            var record = await GetDetailsAsync(direct.Kind, direct.Id, cancellationToken).ConfigureAwait(false);
+            return [new MetadataSearchResult(direct.Kind, record.SourceId, record.Title, record.OriginalTitle, record.Year, record.Overview, record.PosterPath, record.Rating)];
         }
 
         var q = Uri.EscapeDataString(text);
@@ -376,9 +377,6 @@ public sealed partial class TmdbClient
 
     [GeneratedRegex("^tt[0-9]{7,10}$")]
     private static partial Regex ImdbIdPattern();
-
-    [GeneratedRegex("^(?<kind>movie|tv)/(?<id>[0-9]{1,10})$")]
-    private static partial Regex SourceIdPattern();
 
     [GeneratedRegex("^/[A-Za-z0-9_-]{1,64}\\.(jpg|jpeg|png|webp)$")]
     private static partial Regex ImagePathPattern();

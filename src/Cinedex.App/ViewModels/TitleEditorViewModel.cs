@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Cinedex.App.Services;
+using Cinedex.Core.Metadata;
 using Cinedex.Core.People;
 using Cinedex.Core.Titles;
 using Cinedex.Data;
@@ -37,7 +38,7 @@ public sealed record TitleEditorExtras(
     MediaFileRepository? Files = null,
     Func<string, Task<string?>>? SetPoster = null,
     Func<Task>? RemovePoster = null,
-    Func<long, Task<TitleDetail?>>? UpdateFromTmdb = null,
+    Func<TmdbReference, Task<TitleDetail?>>? UpdateFromTmdb = null,
     ViewingsViewModel? Viewings = null);
 
 /// <summary>Un fichier du titre dans l'onglet Fichier : chemin complet et MediaID (nom du disque) modifiable.</summary>
@@ -126,7 +127,7 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         Countries = original.Countries ?? string.Empty;
         Studio = original.Studio ?? string.Empty;
         ImdbId = original.ImdbId ?? string.Empty;
-        TmdbId = original.TmdbId?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
+        TmdbId = original.Tmdb?.TextFor(original.Kind) ?? string.Empty;
         WebLink = original.WebLink ?? string.Empty;
         UserRating = original.UserRating?.ToString("0.#", CultureInfo.CurrentCulture) ?? string.Empty;
         TmdbRating = original.TmdbRating?.ToString("0.0", CultureInfo.CurrentCulture) ?? string.Empty;
@@ -157,7 +158,7 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         Is3D = copy?.Is3D ?? false;
     }
 
-    private readonly Func<long, Task<TitleDetail?>>? _updateFromTmdb;
+    private readonly Func<TmdbReference, Task<TitleDetail?>>? _updateFromTmdb;
 
     private readonly Func<Task<string?>>? _refreshMedia;
 
@@ -305,7 +306,7 @@ public sealed partial class TitleEditorViewModel : ObservableObject
     /// <summary>Identifiants en lecture seule : TMDb (rempli par la mise à jour) et date d'ajout.</summary>
     public string SourceText => string.Join(" · ", new[]
     {
-        _original.TmdbId is { } tmdb ? Tr.F("TMDb {0}", tmdb) : "Pas lié à TMDb",
+        _original.Tmdb is { } tmdb ? Tr.F("TMDb {0}", tmdb.TextFor(_original.Kind)) : "Pas lié à TMDb",
         Tr.F("ajouté le {0:d}", _original.AddedAt.ToLocalTime()),
     });
 
@@ -340,10 +341,13 @@ public sealed partial class TitleEditorViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(UpdateFromTmdbCommand))]
     public partial bool IsUpdatingFromTmdb { get; set; }
 
-    /// <summary>La mise à jour suit le numéro TMDb affiché : le changer puis l'appliquer rattache la fiche.</summary>
+    /// <summary>
+    /// La mise à jour suit la référence TMDb affichée : la changer puis l'appliquer rattache la fiche.
+    /// « tv/322888 » va chercher dans la section télévision, où TMDb range les téléfilms, sans pour autant
+    /// faire du titre une série.
+    /// </summary>
     private bool CanUpdateFromTmdb() =>
-        _updateFromTmdb is not null && !IsUpdatingFromTmdb
-        && long.TryParse(TmdbId?.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) && id > 0;
+        _updateFromTmdb is not null && !IsUpdatingFromTmdb && TmdbReference.TryParse(TmdbId, _original.Kind, out _);
 
     partial void OnTmdbIdChanged(string value) => UpdateFromTmdbCommand.NotifyCanExecuteChanged();
 
@@ -354,7 +358,7 @@ public sealed partial class TitleEditorViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanUpdateFromTmdb))]
     private async Task UpdateFromTmdbAsync()
     {
-        if (_updateFromTmdb is null || !long.TryParse(TmdbId.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var sourceId))
+        if (_updateFromTmdb is null || !TmdbReference.TryParse(TmdbId, _original.Kind, out var reference))
         {
             return;
         }
@@ -363,7 +367,7 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         TmdbMessage = Tr.T("Mise à jour depuis TMDb…");
         try
         {
-            if (await _updateFromTmdb(sourceId) is { } refreshed)
+            if (await _updateFromTmdb(reference) is { } refreshed)
             {
                 _original = refreshed;
                 LoadFields(refreshed);
@@ -535,16 +539,16 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         }
 
         var tmdbText = TmdbId.Trim();
-        long? tmdb = null;
+        TmdbReference? tmdb = null;
         if (tmdbText.Length > 0)
         {
-            if (long.TryParse(tmdbText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) && parsed > 0)
+            if (TmdbReference.TryParse(tmdbText, SelectedKind.Value, out var parsed))
             {
                 tmdb = parsed;
             }
             else
             {
-                errors.Add(Tr.T("Le numéro TMDb doit être un nombre entier positif."));
+                errors.Add(Tr.T("Le numéro TMDb doit être un nombre entier positif, ou de la forme tv/322888."));
             }
         }
 
@@ -580,7 +584,8 @@ public sealed partial class TitleEditorViewModel : ObservableObject
             Certification = Certification,
             Countries = Countries,
             Studio = Studio,
-            TmdbId = tmdb,
+            TmdbId = tmdb?.Id,
+            TmdbKind = tmdb?.Kind,
             ImdbId = imdb,
             WebLink = link,
             UserRating = rating is null ? null : (double)Math.Round(rating.Value * 2, MidpointRounding.AwayFromZero) / 2,

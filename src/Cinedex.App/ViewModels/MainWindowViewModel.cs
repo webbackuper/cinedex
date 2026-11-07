@@ -1548,12 +1548,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 _images.Remove(current.Id, "poster");
                 return Task.CompletedTask;
             },
-            _metadata is null ? null : async sourceId =>
+            _metadata is null ? null : async (TmdbReference reference) =>
             {
-                // La fiche suit le numéro affiché dans l'éditeur : le changer puis mettre à jour la rattache.
-                var applied = await _metadata.UpdateAsync(current.Id, current.Kind, sourceId, ImportOptions.Default);
+                // La fiche suit la référence affichée dans l'éditeur : la changer puis mettre à jour la
+                // rattache. « KeepKind » garde le titre tel qu'il est : un téléfilm pris dans la section
+                // « tv » de TMDb reste un film au catalogue.
+                var applied = await _metadata.UpdateAsync(
+                    current.Id, reference.Kind, reference.Id, ImportOptions.Default with { KeepKind = true });
                 Journal(applied
-                    ? $"Fiche mise à jour depuis TMDb : {current.Title} (TMDb {sourceId})"
+                    ? $"Fiche mise à jour depuis TMDb : {current.Title} (TMDb {reference.Text})"
                     : $"Titre verrouillé, non modifié : {current.Title}");
                 return applied ? _titles.Get(current.Id) : null;
             },
@@ -1715,13 +1718,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private async Task LinkToTmdbAsync()
     {
         var detail = Detail!;
-        var kind = detail.Kind;
-        long sourceId;
-        if (detail.TmdbId is { } known)
-        {
-            sourceId = known;
-        }
-        else
+        // Une fiche déjà liée se rafraîchit depuis sa propre référence, section comprise : un téléfilm
+        // rattaché à « tv » doit être redemandé à « tv », pas à « movie ».
+        var reference = detail.Tmdb;
+        var keepKind = reference is not null;
+        if (reference is null)
         {
             var query = detail.Year is { } y ? $"{detail.Title} ({y})" : detail.Title;
             var search = new MetadataSearchViewModel(_metadata!, query);
@@ -1730,15 +1731,17 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 return;
             }
 
-            (kind, sourceId) = (choice.Kind, choice.SourceId);
+            // Un choix fait dans la recherche décide aussi du genre : l'utilisateur a vu ce qu'il prenait.
+            reference = new TmdbReference(choice.Kind, choice.SourceId);
         }
 
         await RunMetadataAsync(async () =>
         {
-            var applied = await _metadata!.UpdateAsync(detail.Id, kind, sourceId, ImportOptions.Default);
+            var applied = await _metadata!.UpdateAsync(
+                detail.Id, reference.Kind, reference.Id, ImportOptions.Default with { KeepKind = keepKind });
             Refresh(selectId: detail.Id);
             Status = applied ? "Fiche mise à jour depuis TMDb" : "Titre verrouillé : non modifié";
-            Journal(applied ? $"Fiche mise à jour depuis TMDb : {detail.Title} (TMDb {sourceId})" : $"Titre verrouillé, non modifié : {detail.Title}");
+            Journal(applied ? $"Fiche mise à jour depuis TMDb : {detail.Title} (TMDb {reference.Text})" : $"Titre verrouillé, non modifié : {detail.Title}");
         });
     }
 

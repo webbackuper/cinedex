@@ -38,6 +38,15 @@ public sealed record TitleDetail
 
     public long? TmdbId { get; init; }
 
+    /// <summary>
+    /// Section TMDb du numéro : « tv » pour un téléfilm catalogué comme film. Absente quand la section est
+    /// celle qu'on attend du genre du titre, ce qui est le cas courant.
+    /// </summary>
+    public TitleKind? TmdbKind { get; init; }
+
+    /// <summary>Référence TMDb complète (section et numéro), ou null si la fiche n'est pas liée.</summary>
+    public Metadata.TmdbReference? Tmdb => TmdbId is { } id ? new Metadata.TmdbReference(TmdbKind ?? Kind, id) : null;
+
     public string? ImdbId { get; init; }
 
     public double? TmdbRating { get; init; }

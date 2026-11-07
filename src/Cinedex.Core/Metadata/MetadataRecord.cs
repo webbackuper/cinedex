@@ -118,6 +118,12 @@ public sealed record ImportOptions
 
     public bool OverwriteExistingImages { get; init; }
 
+    /// <summary>
+    /// Garde le genre du titre tel qu'il est au lieu de prendre celui de la fiche distante. Sert aux
+    /// téléfilms : TMDb les range sous « tv », mais on les catalogue comme des films.
+    /// </summary>
+    public bool KeepKind { get; init; }
+
     public int MaxActors { get; init; } = 25;
 
     public static ImportOptions Default { get; } = new();

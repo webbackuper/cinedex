@@ -77,14 +77,16 @@ public sealed class MaintenanceRepository(CatalogDatabase database)
     public IReadOnlyList<DuplicateGroup> FindDuplicateTitles()
     {
         using var connection = database.Open();
-        var rows = connection.Query<(long Id, string Title, long? Year, string Kind, long? TmdbId, string? ImdbId, long Files)>(
+        // La section TMDb fait partie de l'identifiant : les numéros de « movie » et de « tv » sont deux
+        // suites indépendantes, et un film et un téléfilm peuvent porter le même numéro sans rapport.
+        var rows = connection.Query<(long Id, string Title, long? Year, string Kind, long? TmdbId, string? TmdbKind, string? ImdbId, long Files)>(
                 """
-                SELECT t.id, t.title, t.year, t.kind, t.tmdb_id, t.imdb_id,
+                SELECT t.id, t.title, t.year, t.kind, t.tmdb_id, coalesce(t.tmdb_kind, t.kind), t.imdb_id,
                        (SELECT count(*) FROM media_file m JOIN copy c ON c.id = m.copy_id WHERE c.title_id = t.id)
                 FROM title t ORDER BY t.sort_title, t.year;
                 """)
             .ToList();
-        DuplicateTitle Row((long Id, string Title, long? Year, string Kind, long? TmdbId, string? ImdbId, long Files) r) =>
+        DuplicateTitle Row((long Id, string Title, long? Year, string Kind, long? TmdbId, string? TmdbKind, string? ImdbId, long Files) r) =>
             new(r.Id, r.Title, (int?)r.Year, r.Kind, r.TmdbId, (int)r.Files);
 
         // Chaque entrée commence seule ; partager un identifiant les réunit, de proche en proche.
@@ -119,7 +121,7 @@ public sealed class MaintenanceRepository(CatalogDatabase database)
             }
         }
 
-        foreach (var same in rows.Where(r => r.TmdbId is not null).GroupBy(r => (r.Kind, r.TmdbId)))
+        foreach (var same in rows.Where(r => r.TmdbId is not null).GroupBy(r => (r.Kind, r.TmdbKind, r.TmdbId)))
         {
             Join(same.Select(r => r.Id));
         }

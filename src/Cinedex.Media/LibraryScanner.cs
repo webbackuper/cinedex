@@ -141,11 +141,13 @@ public static class LibraryScanner
 
         var parsed = FileNameParser.Parse(nameOverride is null ? file.Name : nameOverride + ".iso", options.NoiseWords, options.IgnoreBracketed);
 
-        // Nom de fichier peu parlant (« movie.mkv », « VTS_01_1.VOB ») : on prend le nom du dossier.
+        // Le dossier porte souvent l'année que le fichier n'a pas (« Heat (1995)/Heat.mkv »), ou le titre
+        // entier quand le fichier ne dit rien (« Heat (1995)/movie.mkv »). On ne s'en sert que dans ces deux
+        // cas : sans quoi un dossier daté comme « Films 2024 » rebaptisait tous les films qu'il contient.
         if (nameOverride is null && parsed.Year is null && file.Directory is { } parent && parent.Name.Length > 3)
         {
             var fromFolder = FileNameParser.Parse(parent.Name + ".mkv", options.NoiseWords, options.IgnoreBracketed);
-            if (fromFolder.Year is not null)
+            if (fromFolder.Year is not null && (Vague(parsed.Title) || SameFilm(parsed.Title, fromFolder.Title)))
             {
                 parsed = parsed with { Title = fromFolder.Title, Year = fromFolder.Year };
             }
@@ -158,6 +160,40 @@ public static class LibraryScanner
             : CoverNames.Select(n => Path.Combine(file.DirectoryName!, n)).FirstOrDefault(File.Exists);
         results.Add(new ScanCandidate(file.FullName, file.Length, parsed, nfoPath is null ? null : NfoReader.Read(nfoPath), localCover));
     }
+
+    /// <summary>
+    /// Un nom de fichier qui ne nomme pas le film : « movie.mkv », « film », « VTS_01_1.VOB », un numéro seul.
+    /// Ce sont les cas où le dossier en dit plus que le fichier.
+    /// </summary>
+    private static bool Vague(string title)
+    {
+        var compact = Compact(title);
+        return VagueNames.Contains(compact)
+            // Pistes d'un DVD (VTS_01_1.VOB) ou d'un Blu-ray (00001.m2ts) : un numéro, pas un titre.
+            || compact.StartsWith("vts", StringComparison.Ordinal)
+            || !compact.Any(char.IsLetter);
+    }
+
+    /// <summary>Noms comparés sous forme compacte : ni espace, ni ponctuation, ni casse.</summary>
+    private static readonly HashSet<string> VagueNames = new(StringComparer.Ordinal)
+    {
+        "movie", "movies", "film", "video", "videos", "main", "maintitle", "title", "fichier", "full", "complete",
+        "disc", "disk", "dvd", "bluray", "index", "playlist", "untitled", "sanstitre", "videots",
+    };
+
+    /// <summary>
+    /// Le dossier et le fichier parlent-ils du même film ? L'un porte le titre de l'autre, aux mots de bruit
+    /// près : « Heat (1995)/Heat.mkv », mais pas « Films 2024/Heat.mkv ».
+    /// </summary>
+    private static bool SameFilm(string fileTitle, string folderTitle)
+    {
+        var a = Compact(fileTitle);
+        var b = Compact(folderTitle);
+        return a.Length > 0 && b.Length > 0 && (a.Contains(b, StringComparison.Ordinal) || b.Contains(a, StringComparison.Ordinal));
+    }
+
+    private static string Compact(string text) =>
+        string.Concat(text.Where(char.IsLetterOrDigit)).ToLowerInvariant();
 
     private static FileInfo? DiscStructure(DirectoryInfo dir)
     {

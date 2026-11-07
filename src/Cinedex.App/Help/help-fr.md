@@ -224,6 +224,11 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.12.0
+- **Les doublons sont dans le bandeau gauche**, à côté de « Films sans infos », en plus de Réglages > Maintenance. Ouvrir le menu cherche les films présents plusieurs fois au catalogue, et chaque groupe y est nommé par son premier titre, avec le motif du rapprochement. On y revient après chaque import : un détour par les réglages pour voir ce qu'il reste à trancher était un détour de trop.
+- **Choisir un groupe n'affiche que ses fiches** dans la liste principale. Toutes les actions usuelles s'y appliquent — ouvrir la fiche, lire, infos techniques, clic droit — de quoi comparer avant de décider.
+- **Toutes les options sont là** : chercher à nouveau, **fusionner ce groupe** seul, ou **fusionner tous les groupes** d'un coup. Chaque fusion est confirmée, la base est sauvegardée avant, et aucun fichier du disque n'est touché. La liste se relit aussitôt pour ne montrer que ce qui reste à trancher.
+
 ### 0.11.1
 - **Mettre à jour une fiche ne la reclasse plus.** Un film sans numéro TMDb mais avec un numéro IMDb est retrouvé par ce numéro, ce que TMDb sait faire ; s'il s'agit d'un téléfilm, sa fiche vient de la section « tv » de TMDb, et le titre devenait alors une série au catalogue. Le genre que vous avez donné à un titre est désormais gardé par toute mise à jour, y compris quand vous choisissez vous-même la fiche dans la liste des rapprochements à vérifier.
 

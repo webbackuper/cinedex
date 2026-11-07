@@ -312,6 +312,37 @@
               </ListBox.ItemTemplate>
             </ListBox>
 
+            <!-- Sous-menu Doublons : les groupes à trancher, et les fusions. Aussi dans Réglages > Maintenance. -->
+            <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Margin="{StaticResource Edges2_1_2_0}"
+                    Command="{Binding ToggleDuplicatesCommand}" ToolTip.Tip="Les films présents plusieurs fois au catalogue, groupe par groupe">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <controls:Icon Kind="columns" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" />
+                <TextBlock Grid.Column="1" Margin="{StaticResource Before3}" Text="Doublons" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
+                <controls:Icon Grid.Column="2" Kind="chevron-down" Width="14" Height="14" Foreground="{DynamicResource CinedexMuted}"
+                               RenderTransformOrigin="50%,50%" RenderTransform="{Binding IsDuplicateExpanded, Converter={x:Static views:ExpandArrowConverter.Instance}}" />
+              </Grid>
+            </Button>
+            <StackPanel IsVisible="{Binding IsDuplicateExpanded}" Margin="{StaticResource Before6}">
+              <TextBlock Text="{Binding DuplicateStatusText}" Classes="muted" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"
+                         Margin="{StaticResource Edges2_1_2_0}" />
+              <ListBox Classes="nav" ItemsSource="{Binding DuplicateGroups}" SelectedItem="{Binding SelectedDuplicateGroup}"
+                       IsVisible="{Binding HasDuplicateGroups}" AutomationProperties.Name="Groupes de films en double">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:DuplicateGroupItem">
+                    <StackPanel>
+                      <TextBlock Text="{Binding Label}" Foreground="{DynamicResource CinedexInk}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding Reason}" Classes="muted" FontSize="{StaticResource FontSmall}" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+              <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Margin="{StaticResource Edges2_1_2_0}"
+                      Content="Chercher à nouveau" Command="{Binding FindDuplicatesCommand}" />
+              <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Margin="{StaticResource Edges2_1_2_0}"
+                      Content="Fusionner tous les groupes…" Command="{Binding MergeAllDuplicatesCommand}"
+                      ToolTip.Tip="Chaque groupe devient une seule fiche qui garde tous ses fichiers vidéo. Aucun fichier du disque n'est touché." />
+            </StackPanel>
+
             <!-- Sous-menus de parcours : genres, décennies, pays, langues. Même comportement que MediaID. -->
             <ItemsControl ItemsSource="{Binding Facets}">
               <ItemsControl.ItemTemplate>
@@ -473,6 +504,22 @@
           </MenuItem>
         </MenuFlyout>
       </DockPanel.ContextFlyout>
+      <!-- Groupe de doublons affiché : pourquoi ces fiches sont rapprochées, et de quoi trancher ce seul groupe. -->
+      <Border DockPanel.Dock="Top" Margin="{StaticResource Below3}" Padding="{StaticResource Inset4x3}" CornerRadius="{StaticResource RadiusCard}"
+              Background="{DynamicResource CinedexSurfaceAlt}" IsVisible="{Binding HasSelectedDuplicateGroup}">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Spacing="{StaticResource Space1}">
+            <TextBlock Text="{Binding SelectedDuplicateGroup.Label}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
+            <TextBlock Text="{Binding SelectedDuplicateGroup.Reason}" Classes="muted" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" MaxWidth="620" />
+            <TextBlock Text="Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition."
+                       Classes="muted" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" MaxWidth="620" />
+          </StackPanel>
+          <Button Grid.Column="1" Classes="outline" VerticalAlignment="Center" Content="Fusionner ce groupe…"
+                  Command="{Binding MergeSelectedDuplicateGroupCommand}"
+                  ToolTip.Tip="Réunit ces fiches en une seule, qui gardera tous leurs fichiers vidéo : un même film en plusieurs versions, un fichier par version." />
+        </Grid>
+      </Border>
+
       <!-- Liste de référence choisie : ce qu'elle dit du catalogue, et de quoi combler les manques. -->
       <Border DockPanel.Dock="Top" Margin="{StaticResource Below3}" Padding="{StaticResource Inset4x3}" CornerRadius="{StaticResource RadiusCard}"
               Background="{DynamicResource CinedexSurfaceAlt}" IsVisible="{Binding HasSelectedList}">

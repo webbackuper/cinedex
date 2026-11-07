@@ -224,6 +224,11 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.12.0
+- **Duplicates are in the left banner**, next to "Films without info", as well as in Settings > Maintenance. Opening the menu looks for the films present more than once in the catalog, and each group is named there by its first title, with the reason for the match. You come back to it after every import: a detour through the settings to see what is left to decide was one detour too many.
+- **Choosing a group shows only its records** in the main list. Every usual action applies there — open the record, play, technical info, right-click — enough to compare before deciding.
+- **All the options are there**: search again, **merge this group** alone, or **merge every group** at once. Each merge is confirmed, the database is backed up first, and no file on disk is touched. The list is reread at once to show only what is left to decide.
+
 ### 0.11.1
 - **Updating a record no longer reclassifies it.** A film without a TMDb number but with an IMDb number is found by that number, which TMDb can do; if it is a TV movie, its record comes from TMDb's television section, and the title then became a series in the catalog. The kind you gave a title is now kept by every update, including when you pick the record yourself from the list of matches to review.
 

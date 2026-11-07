@@ -91,6 +91,11 @@ Une série liée à TMDb récupère ses saisons et épisodes. Le bouton **Saison
 
 **Suivi des séries** (lien du bandeau gauche, avec le nombre de séries qui ont des épisodes à regarder) montre pour chaque série la progression (épisodes vus sur épisodes diffusés), le **prochain épisode à regarder** — le bouton **Vu** le marque et passe au suivant — et la **prochaine diffusion** annoncée. À droite, le calendrier des épisodes annoncés dans les 60 prochains jours. **Actualiser depuis TMDb** récupère les nouveaux épisodes et dates des séries en cours. Un double-clic sur une série l'affiche dans le catalogue.
 
+## Clic droit sur un film
+Un clic droit dans la liste ou sur une affiche ouvre un menu qui agit sur **toute la sélection** : ouvrir la fiche, lire, ouvrir le dossier, vu / pas vu, favori, modifier en lot, mettre à jour via TMDb, mettre à jour les .nfo, relire les infos techniques, vider la fiche, fusionner les films sélectionnés, supprimer. Un clic droit sur un film hors sélection le sélectionne d'abord ; sur un film déjà sélectionné, le lot est conservé.
+
+**Fusionner les films sélectionnés** réunit des fiches que vous désignez vous-même, sans que Cinedex vérifie qu'il s'agit du même film : c'est à vous de le savoir. La fiche gardée récupère tous les fichiers vidéo des autres, rien n'est effacé sur le disque, et la base est sauvegardée avant. Pour les doublons que Cinedex sait reconnaître, passez plutôt par **Réglages > Maintenance**.
+
 ## Rechercher et trier
 - La zone **Rechercher…** (Ctrl+F) cherche dans les titres et les résumés.
 - **Trier par** classe la liste ; le bouton voisin inverse l'ordre.
@@ -219,6 +224,11 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.10.0
+- **Clic droit sur un film** (bureau) : un menu qui agit sur toute la sélection — fiche, lecture, dossier, vu, favori, modification en lot, mise à jour TMDb, mise à jour des .nfo, infos techniques, vider la fiche, **fusionner les films sélectionnés**, supprimer. Un clic droit hors sélection sélectionne le film visé ; sur un film déjà sélectionné, le lot est gardé.
+- **Fusionner une sélection** sans passer par la recherche de doublons : vous désignez les fiches, Cinedex les réunit. Il ne vérifie pas qu'il s'agit du même film et vous en avertit, la base étant sauvegardée avant.
+- **Téléfilms trouvés au scan** : quand aucun film ne correspond au nom du fichier, l'import va voir la section télévision de TMDb, où ils vivent. L'entrée reste un film du catalogue. Vos fichiers qui restaient sans fiche devraient maintenant s'identifier seuls.
+
 ### 0.9.3
 - **Mettre à jour les .nfo ne crée plus rien tout seul.** La commande réécrit les fichiers qui existent, puis, si des films de la sélection n'en ont pas, le dit et vous demande une fois s'il faut les créer. Mettre à jour n'est pas créer, et ne rien dire aurait laissé croire que tout était à jour.
 

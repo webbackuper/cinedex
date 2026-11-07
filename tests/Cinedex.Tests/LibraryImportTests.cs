@@ -202,6 +202,52 @@ public sealed class LibraryImportTests
             m.Contains("Meurtres", StringComparison.OrdinalIgnoreCase) && m.Contains("sans fiche TMDb", StringComparison.Ordinal));
     }
 
+    /// <summary>
+    /// Un téléfilm n'existe pas dans la section « movie » de TMDb. Quand aucun film ne répond, l'import va
+    /// voir du côté télévision : le fichier entre avec sa fiche, et reste un film du catalogue.
+    /// </summary>
+    [Fact]
+    public async Task A_tv_movie_is_found_in_the_television_section_and_stays_a_film()
+    {
+        using var temp = new TempDirectory();
+        var db = new CatalogDatabase(Path.Combine(temp.Path, "cinedex.db"));
+        db.Initialize(temp.Path);
+        var titles = new TitleRepository(db);
+        var files = new MediaFileRepository(db);
+        var images = new ImageStore(db, Path.Combine(temp.Path, "img"));
+
+        // TMDb ne connaît ce titre que sous « tv » : la recherche de films ne renvoie rien.
+        var tmdb = new TmdbClient(new HttpClient(new Handler(request =>
+            {
+                var path = request.RequestUri!.AbsolutePath;
+                if (path.Contains("/search/movie", StringComparison.Ordinal))
+                {
+                    return Json("""{"results":[]}""");
+                }
+
+                return path.Contains("/search/tv", StringComparison.Ordinal)
+                    ? Json("""{"results":[{"id":322888,"name":"Coup de foudre à Saint-Pétersbourg","first_air_date":"2019-04-20"}]}""")
+                    : Json("""{"id":322888,"name":"Coup de foudre à Saint-Pétersbourg","first_air_date":"2019-04-20","overview":"Un téléfilm.","episode_run_time":[95]}""");
+            })),
+            _ => ValueTask.FromResult<string?>("jeton"));
+        var metadata = new MetadataService(tmdb, new MetadataRepository(db), images, NullLogger<MetadataService>.Instance);
+        var service = new LibraryImportService(titles, files, images, metadata, () => new MediaProbe("absent", "absent"), NullLogger<LibraryImportService>.Instance);
+
+        var library = Directory.CreateDirectory(Path.Combine(temp.Path, "Films")).FullName;
+        File.WriteAllBytes(Path.Combine(library, "Coup de foudre à Saint-Petersbourg (2019).mp4"), new byte[2048]);
+
+        var candidates = await service.ScanAsync(library, new ScanOptions { MinimumBytes = 1024 }, TestContext.Current.CancellationToken);
+        var result = await service.ImportAsync(candidates, new LibraryImportOptions(), null, TestContext.Current.CancellationToken);
+
+        Assert.Equal(1, result.Added);
+        Assert.Equal(0, result.Failed);
+        var detail = titles.Get(Assert.Single(titles.ListAll()).Id)!;
+        Assert.Equal(TitleKind.Movie, detail.Kind);            // il reste un film au catalogue
+        Assert.Equal("tv/322888", detail.Tmdb!.Text);          // sa fiche vient de la section télévision
+        Assert.Equal("Un téléfilm.", detail.Overview);
+        Assert.Single(files.FilesOf(detail.Id));
+    }
+
     private static HttpResponseMessage Json(string body) => new(HttpStatusCode.OK) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
 
     private sealed class Handler(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler

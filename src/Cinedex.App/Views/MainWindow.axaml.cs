@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using Cinedex.App.Services;
 using Cinedex.App.ViewModels;
 using Cinedex.Core.Metadata;
@@ -383,6 +384,29 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
     private void OnOpenPersonImdb(object? sender, RoutedEventArgs e) => WebLinks.Open((DataContext as MainWindowViewModel)?.PersonPage?.ImdbUrl);
 
     /// <summary>Clic sur une affiche : sélection (Ctrl pour ajouter ou retirer, Maj pour une plage).</summary>
+    /// <summary>
+    /// Clic droit dans la liste ou les affiches : le film visé entre dans la sélection s'il n'y était pas,
+    /// pour que le menu agisse sur ce que l'utilisateur désigne. Un clic droit sur une sélection existante
+    /// la laisse telle quelle, afin de garder le lot.
+    /// </summary>
+    private void OnTitlesContextRequested(object? sender, ContextRequestedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm || e.Source is not Visual source)
+        {
+            return;
+        }
+
+        var title = source.GetSelfAndVisualAncestors()
+            .OfType<Control>()
+            .Select(c => c.DataContext)
+            .OfType<Cinedex.Core.Titles.TitleSummary>()
+            .FirstOrDefault();
+        if (title is not null && !vm.SelectedIdSet.Contains(title.Id))
+        {
+            vm.SelectInGrid(vm.Titles.IndexOf(title), toggle: false, extend: false);
+        }
+    }
+
     private void OnPosterPressed(object? sender, PointerPressedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm || sender is not Control { DataContext: Cinedex.Core.Titles.TitleSummary title } ||

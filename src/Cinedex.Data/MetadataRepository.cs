@@ -19,7 +19,7 @@ public sealed class MetadataRepository(CatalogDatabase database)
         // deux sources d'un même film ont chacune leur entrée, que la fusion des doublons regroupe ensuite.
         var id = connection.ExecuteScalar<long>(
             "INSERT INTO title (kind, title, sort_title) VALUES (@Kind, @Title, @SortTitle) RETURNING id;",
-            new { Kind = record.Kind == TitleKind.Series ? "series" : "movie", record.Title, SortTitle = SortTitle.Compute(record.Title) },
+            new { Kind = Db(options.AsKind ?? record.Kind), record.Title, SortTitle = SortTitle.Compute(record.Title) },
             transaction);
         connection.Execute(
             "INSERT INTO copy (title_id, number) VALUES (@id, (SELECT coalesce(max(number), 0) + 1 FROM copy));",
@@ -95,6 +95,8 @@ public sealed class MetadataRepository(CatalogDatabase database)
             new { kind = kind == TitleKind.Series ? "series" : "movie", sourceId },
             transaction);
 
+    private static string Db(TitleKind kind) => kind == TitleKind.Series ? "series" : "movie";
+
     private static void ApplyCore(SqliteConnection connection, SqliteTransaction transaction, long titleId, MetadataRecord r, ImportOptions options)
     {
         connection.Execute(
@@ -102,7 +104,7 @@ public sealed class MetadataRepository(CatalogDatabase database)
             UPDATE title SET
                 kind = CASE WHEN @KeepKind = 1 THEN kind ELSE @Kind END,
                 tmdb_id = CASE WHEN @SourceId > 0 THEN @SourceId ELSE tmdb_id END,
-                tmdb_kind = CASE WHEN @SourceId > 0 THEN @Kind ELSE tmdb_kind END,
+                tmdb_kind = CASE WHEN @SourceId > 0 THEN @SourceKind ELSE tmdb_kind END,
                 imdb_id = coalesce(@ImdbId, imdb_id),
                 year = coalesce(@Year, year), runtime_minutes = coalesce(@RuntimeMinutes, runtime_minutes),
                 certification = coalesce(@Certification, certification),
@@ -117,7 +119,10 @@ public sealed class MetadataRepository(CatalogDatabase database)
             new
             {
                 TitleId = titleId,
-                Kind = r.Kind == TitleKind.Series ? "series" : "movie",
+                // @Kind est le genre de l'entrée au catalogue, @SourceKind la section TMDb d'où vient la
+                // fiche : un téléfilm est un film ici, et vit sous « tv » là-bas.
+                Kind = Db(options.AsKind ?? r.Kind),
+                SourceKind = Db(r.Kind),
                 KeepKind = options.KeepKind ? 1 : 0,
                 r.SourceId,
                 r.ImdbId,

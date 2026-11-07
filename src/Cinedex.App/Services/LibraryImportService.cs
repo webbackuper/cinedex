@@ -224,7 +224,8 @@ public sealed class LibraryImportService(
                     {
                         // Chaque fichier a son entrée, même si le film est déjà au catalogue sous une autre source :
                         // « Fusionner les films en double » les regroupe ensuite en un film à plusieurs sources.
-                        imported = await metadataService!.ImportAsync(choice, ImportOptions.Default, cancellationToken).ConfigureAwait(false);
+                        imported = await metadataService!.ImportAsync(
+                            choice, ImportOptions.Default with { AsKind = TitleKind.Movie }, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception ex) when (TmdbMissedThisTitle(ex))
                     {
@@ -396,10 +397,17 @@ public sealed class LibraryImportService(
             }
         }
 
-        var results = (await metadataService!.SearchAsync(query, cancellationToken).ConfigureAwait(false))
-            .Where(r => r.Kind == TitleKind.Movie)
-            .ToList();
-        return Identification.Decide(results, candidate.BestYear, query, options.UseFirstMatch);
+        var results = await metadataService!.SearchAsync(query, cancellationToken).ConfigureAwait(false);
+        var films = results.Where(r => r.Kind == TitleKind.Movie).ToList();
+        if (films.Count > 0)
+        {
+            return Identification.Decide(films, candidate.BestYear, query, options.UseFirstMatch);
+        }
+
+        // Aucun film de ce titre : TMDb range les téléfilms dans sa section télévision, et c'est là qu'ils
+        // sont. L'entrée reste un film du catalogue, seule la fiche vient d'ailleurs.
+        var shows = results.Where(r => r.Kind == TitleKind.Series).ToList();
+        return Identification.Decide(shows, candidate.BestYear, query, options.UseFirstMatch);
     }
 
     private void TryAttachCover(long titleId, string cover)

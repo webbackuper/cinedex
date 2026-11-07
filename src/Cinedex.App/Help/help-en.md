@@ -91,6 +91,11 @@ A series linked to TMDb gets its seasons and episodes. The **Seasons and episode
 
 **Series tracker** (left sidebar link, with the number of series that have episodes to watch) shows for each series its progress (episodes watched out of episodes aired), the **next episode to watch** — the **Seen** button marks it and moves to the next one — and the **next announced airing**. On the right, the calendar of episodes announced for the next 60 days. **Refresh from TMDb** fetches new episodes and dates for airing series. Double-clicking a series shows it in the catalog.
 
+## Right-click on a film
+A right-click in the list or on a poster opens a menu acting on **the whole selection**: open the details, play, open the folder, watched / not watched, favorite, batch edit, update from TMDb, update the .nfo files, re-read the technical info, clear the record, merge the selected films, delete. A right-click on a film outside the selection selects it first; on a film already selected, the batch is kept.
+
+**Merge the selected films** gathers records you name yourself, without Cinedex checking that this is the same film: that is for you to know. The kept record takes over every video file of the others, nothing is erased on the disk, and the database is backed up first. For the duplicates Cinedex can recognize, use **Settings > Maintenance** instead.
+
 ## Search and sort
 - The **Search…** box (Ctrl+F) searches titles and summaries.
 - **Sort by** orders the list; the button next to it reverses the order.
@@ -219,6 +224,11 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.10.0
+- **Right-click on a film** (desktop): a menu acting on the whole selection — details, play, folder, watched, favorite, batch edit, TMDb update, .nfo update, technical info, clear the record, **merge the selected films**, delete. A right-click outside the selection selects the film aimed at; on a film already selected, the batch is kept.
+- **Merge a selection** without going through the duplicate search: you name the records, Cinedex gathers them. It does not check that this is the same film and warns you, the database being backed up first.
+- **TV movies found by the scan**: when no film matches the file name, the import looks at TMDb's television section, where they live. The entry stays a film in the catalog. Your files that stayed without a record should now identify themselves.
+
 ### 0.9.3
 - **Updating the .nfo files no longer creates anything by itself.** The command rewrites the files that exist, then, if some films in the selection have none, says so and asks once whether to create them. Updating is not creating, and saying nothing would have suggested everything was up to date.
 

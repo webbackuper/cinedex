@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using Cinedex.Core.Titles;
+using Cinedex.Core.Localization;
 using Dapper;
 
 namespace Cinedex.Data;
@@ -217,6 +218,34 @@ public sealed class MaintenanceRepository(CatalogDatabase database)
     {
         var group = FindDuplicateTitles().FirstOrDefault(g => g.Titles.Any(t => t.Id == titleId));
         return group is null ? new TitleMerge(0, 0, 0) : Merge([group]);
+    }
+
+    /// <summary>
+    /// Fusionne des titres désignés à la main, sans se demander s'ils se ressemblent : c'est l'utilisateur qui
+    /// affirme qu'il s'agit du même film en plusieurs versions. Une seule fiche est gardée, les exemplaires et
+    /// les fichiers des autres lui sont rattachés.
+    /// </summary>
+    public TitleMerge MergeChosenTitles(IReadOnlyCollection<long> titleIds)
+    {
+        ArgumentNullException.ThrowIfNull(titleIds);
+        if (titleIds.Count < 2)
+        {
+            return new TitleMerge(0, 0, 0);
+        }
+
+        using var connection = database.Open();
+        var chosen = connection.Query<(long Id, string Title, long? Year, string Kind, long? TmdbId, long Files)>(
+                $"""
+                SELECT t.id, t.title, t.year, t.kind, t.tmdb_id,
+                       (SELECT count(*) FROM media_file m JOIN copy c ON c.id = m.copy_id WHERE c.title_id = t.id)
+                FROM title t WHERE t.id IN @titleIds;
+                """,
+                new { titleIds })
+            .Select(r => new DuplicateTitle(r.Id, r.Title, (int?)r.Year, r.Kind, r.TmdbId, (int)r.Files))
+            .ToList();
+        return chosen.Count < 2
+            ? new TitleMerge(0, 0, 0)
+            : Merge([new DuplicateGroup(Tr.T("Choisis à la main"), chosen)]);
     }
 
     private TitleMerge Merge(IReadOnlyList<DuplicateGroup> groups)

@@ -124,6 +124,12 @@ public sealed record ImportOptions
     /// </summary>
     public bool KeepKind { get; init; }
 
+    /// <summary>
+    /// Genre à donner à l'entrée, quelle que soit la section d'où vient la fiche. Sert à l'import d'un
+    /// téléfilm trouvé dans la section télévision : le fichier scanné est un film et le reste.
+    /// </summary>
+    public Titles.TitleKind? AsKind { get; init; }
+
     public int MaxActors { get; init; } = 25;
 
     public static ImportOptions Default { get; } = new();

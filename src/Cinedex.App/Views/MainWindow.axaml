@@ -384,7 +384,56 @@
     </ScrollViewer>
 
     <!-- ======================= Zone centrale ======================= -->
-    <DockPanel Grid.Column="1" Margin="{StaticResource Edges6_4_1_0}" IsVisible="{Binding IsTitlesView}">
+    <DockPanel Grid.Column="1" Margin="{StaticResource Edges6_4_1_0}" IsVisible="{Binding IsTitlesView}"
+               ContextRequested="OnTitlesContextRequested">
+      <!-- Clic droit sur un film ou sur la sélection : les mêmes actions dans la liste et dans les affiches. -->
+      <DockPanel.ContextFlyout>
+        <MenuFlyout>
+          <MenuItem Header="Ouvrir la fiche" Command="{Binding EditCommand}" InputGesture="Alt+E">
+            <MenuItem.Icon><controls:Icon Kind="edit" Width="16" Height="16" /></MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="Lire" Command="{Binding PlayCommand}">
+            <MenuItem.Icon><controls:Icon Kind="play" Width="16" Height="16" /></MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="Ouvrir le dossier du fichier" Command="{Binding OpenFolderCommand}" InputGesture="Ctrl+O">
+            <MenuItem.Icon><controls:Icon Kind="folder" Width="16" Height="16" /></MenuItem.Icon>
+          </MenuItem>
+          <Separator />
+          <MenuItem Header="Vu / pas vu" Command="{Binding ToggleSeenCommand}" InputGesture="Ctrl+S">
+            <MenuItem.Icon><controls:Icon Kind="eye" Width="16" Height="16" /></MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="Favori" Command="{Binding ToggleFavoriteCommand}" InputGesture="Ctrl+D">
+            <MenuItem.Icon><controls:Icon Kind="heart" Width="16" Height="16" /></MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="Modifier en lot…" Command="{Binding BulkEditCommand}"
+                    ToolTip.Tip="Support, emplacement, collection, tags, groupes, possédé, vu : appliqué à toute la sélection.">
+            <MenuItem.Icon><controls:Icon Kind="columns" Width="16" Height="16" /></MenuItem.Icon>
+          </MenuItem>
+          <Separator />
+          <MenuItem Header="Mettre à jour via TMDb" Command="{Binding UpdateAllFromTmdbCommand}" InputGesture="Ctrl+Shift+U">
+            <MenuItem.Icon><controls:Icon Kind="cloud" Width="16" Height="16" /></MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="Mettre à jour les .nfo…" Command="{Binding UpdateNfoCommand}"
+                    ToolTip.Tip="Réécrit les .nfo existants depuis les fiches, et propose de créer ceux qui manquent.">
+            <MenuItem.Icon><controls:Icon Kind="sync" Width="16" Height="16" /></MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="Relire les infos techniques (MediaInfo)" Command="{Binding RefreshTechnicalCommand}">
+            <MenuItem.Icon><controls:Icon Kind="view" Width="16" Height="16" /></MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="Vider la fiche" Command="{Binding ClearDetailCommand}"
+                    ToolTip.Tip="Efface le descriptif, les identifiants, les notes, les genres, la distribution et l'affiche. Le titre, vos saisies et les fichiers restent.">
+            <MenuItem.Icon><controls:Icon Kind="eraser" Width="16" Height="16" /></MenuItem.Icon>
+          </MenuItem>
+          <Separator />
+          <MenuItem Header="Fusionner les films sélectionnés…" Command="{Binding MergeSelectionCommand}"
+                    ToolTip.Tip="Réunit les fiches sélectionnées en une seule, qui garde tous leurs fichiers vidéo. Cinedex ne vérifie pas qu'il s'agit du même film.">
+            <MenuItem.Icon><controls:Icon Kind="link" Width="16" Height="16" /></MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="Supprimer du catalogue" Command="{Binding DeleteCommand}" InputGesture="Delete">
+            <MenuItem.Icon><controls:Icon Kind="delete" Width="16" Height="16" Foreground="{DynamicResource CinedexNegative}" /></MenuItem.Icon>
+          </MenuItem>
+        </MenuFlyout>
+      </DockPanel.ContextFlyout>
       <!-- Liste de référence choisie : ce qu'elle dit du catalogue, et de quoi combler les manques. -->
       <Border DockPanel.Dock="Top" Margin="{StaticResource Below3}" Padding="{StaticResource Inset4x3}" CornerRadius="{StaticResource RadiusCard}"
               Background="{DynamicResource CinedexSurfaceAlt}" IsVisible="{Binding HasSelectedList}">

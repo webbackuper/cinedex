@@ -2182,6 +2182,39 @@ public sealed partial class MainWindowViewModel : ObservableObject
         Journal($"{written} fichier(s) .nfo créé(s) ou complété(s)");
     }
 
+    private bool CanMergeSelection() => _extras.Maintenance is not null && SelectedTitles.Count > 1 && !IsBusy;
+
+    /// <summary>
+    /// Fusionne les titres sélectionnés en une seule fiche, sur la seule affirmation de l'utilisateur : rien
+    /// ne vérifie qu'ils désignent le même film. D'où l'avertissement, et la sauvegarde faite avant.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanMergeSelection))]
+    private async Task MergeSelectionAsync()
+    {
+        if (_extras.Maintenance is not { } maintenance)
+        {
+            return;
+        }
+
+        var chosen = SelectedTitles.ToList();
+        var keep = chosen.OrderByDescending(t => t.Id == chosen.Min(c => c.Id) ? 0 : 1).First();
+        if (!await _dialogs.ConfirmAsync(
+                "Fusionner les films sélectionnés",
+                Tr.F("Réunir ces {0} fiches en une seule ?\n\n{1}\n\nAttention : Cinedex ne vérifie pas qu'il s'agit du même film, c'est vous qui l'affirmez. Les fiches absorbées sont supprimées et leurs fichiers vidéo rattachés à celle qui reste ; rien n'est effacé sur le disque, et une sauvegarde de la base est faite avant.",
+                    chosen.Count, string.Join("\n", chosen.Take(8).Select(t => "· " + t.TitleWithYear)) + (chosen.Count > 8 ? "\n· …" : string.Empty))))
+        {
+            return;
+        }
+
+        var result = maintenance.MergeChosenTitles(chosen.Select(t => t.Id).ToList());
+        ReloadSideLists();
+        Refresh(selectId: keep.Id);
+        Status = result.Merged == 0
+            ? Tr.T("Rien à fusionner.")
+            : Tr.F("{0} fiche(s) réunie(s), {1} exemplaire(s) regroupé(s)", result.Merged, result.Files);
+        Journal($"Fusion manuelle de {chosen.Count} fiche(s) : {result.Merged} retirée(s), {result.Files} exemplaire(s) regroupé(s)");
+    }
+
     /// <summary>
     /// Réécrit le .nfo des fichiers de la sélection en remplaçant les valeurs déjà présentes, là où
     /// « Écrire les .nfo » se contente de compléter les champs vides. C'est ce qu'il faut après avoir corrigé
@@ -2274,6 +2307,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    /// <summary>Modification groupée de la sélection ; « Modifier la fiche » y mène aussi quand il y en a plusieurs.</summary>
+    [RelayCommand(CanExecute = nameof(HasSelection))]
     private async Task BulkEditAsync()
     {
         var ids = SelectedIds;

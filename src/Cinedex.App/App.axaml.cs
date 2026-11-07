@@ -243,7 +243,8 @@ public sealed class App : Application
                 services.GetRequiredService<SuggestionRepository>(),
                 services.GetRequiredService<HomeRepository>(),
                 services.GetRequiredService<StatisticsRepository>(),
-                services.GetRequiredService<ReferenceListService>()));
+                services.GetRequiredService<ReferenceListService>(),
+                services.GetRequiredService<MaintenanceRepository>()));
         main.Updates = _updates;
         main.Load();
         _ = main.CheckForUpdatesAtStartupAsync();

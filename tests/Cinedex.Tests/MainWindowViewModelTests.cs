@@ -203,10 +203,13 @@ public sealed class MainWindowViewModelTests : IDisposable
 
         public Task<bool> EditTitleAsync(TitleEditorViewModel editor) => Task.FromResult(Answer);
 
+        /// <summary>Réponse donnée question après question, quand une commande en pose plusieurs.</summary>
+        public Func<bool>? OnConfirm { get; set; }
+
         public Task<bool> ConfirmAsync(string title, string message)
         {
             Confirmations++;
-            return Task.FromResult(Answer);
+            return Task.FromResult(OnConfirm?.Invoke() ?? Answer);
         }
 
         public Task InformAsync(string title, string message) => Task.CompletedTask;

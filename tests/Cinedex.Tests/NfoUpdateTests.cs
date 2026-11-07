@@ -93,6 +93,44 @@ public sealed class NfoUpdateTests : IDisposable
         Assert.True(File.Exists(Path.ChangeExtension(withoutNfo, ".nfo")));
     }
 
+    /// <summary>
+    /// Un film sans .nfo n'est pas passé sous silence : la commande le signale et propose de le créer. Le
+    /// refus laisse le dossier intact, l'accord crée le fichier manquant sans toucher aux autres réponses.
+    /// </summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task The_command_offers_to_create_the_missing_nfo(bool accept)
+    {
+        var withNfo = Path.Combine(_temp.Path, "Heat (1995).mkv");
+        var withoutNfo = Path.Combine(_temp.Path, "Collateral (2004).mkv");
+        File.WriteAllBytes(withNfo, new byte[1024]);
+        File.WriteAllBytes(withoutNfo, new byte[1024]);
+        var heat = _titles.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));
+        var collateral = _titles.Add(new NewTitle(TitleKind.Movie, "Collateral", 2004));
+        _files.Attach(heat, withNfo, 1024);
+        _files.Attach(collateral, withoutNfo, 1024);
+        File.WriteAllText(Path.ChangeExtension(withNfo, ".nfo"), """
+            <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+            <movie><title>Titre erroné</title></movie>
+            """);
+
+        // La première question (réécrire) est acceptée ; la seconde (créer) suit le cas testé.
+        var answers = new Queue<bool>([true, accept]);
+        var dialogs = new MainWindowViewModelTests.FakeDialogs { OnConfirm = () => answers.Dequeue() };
+        var vm = NewViewModel(dialogs);
+        foreach (var row in vm.Titles.ToList())
+        {
+            vm.SelectedTitles.Add(row);
+        }
+
+        await vm.UpdateNfoCommand.ExecuteAsync(null);
+
+        // Le .nfo existant est réécrit dans les deux cas.
+        Assert.Contains("<title>Heat</title>", File.ReadAllText(Path.ChangeExtension(withNfo, ".nfo")), StringComparison.Ordinal);
+        Assert.Equal(accept, File.Exists(Path.ChangeExtension(withoutNfo, ".nfo")));
+    }
+
     [Fact]
     public async Task The_command_asks_first_and_reports_what_it_rewrote()
     {
@@ -106,14 +144,7 @@ public sealed class NfoUpdateTests : IDisposable
             """);
 
         var dialogs = new MainWindowViewModelTests.FakeDialogs { Answer = false };
-        var media = new MediaContext(
-            _files,
-            new LibraryImportService(_titles, _files, new ImageStore(_db, Path.Combine(_temp.Path, "img")), null,
-                () => new Cinedex.Media.MediaProbe("absent", "absent"), NullLogger<LibraryImportService>.Instance),
-            new SettingsStore(_db),
-            _nfo);
-        var vm = new MainWindowViewModel(_titles, new AppPaths(_temp.Path, isPortable: false), dialogs, media: media);
-        vm.Load();
+        var vm = NewViewModel(dialogs);
         vm.SelectedTitles.Add(vm.Titles[0]);
 
         // Refus : le fichier n'est pas touché.
@@ -125,5 +156,19 @@ public sealed class NfoUpdateTests : IDisposable
 
         Assert.DoesNotContain("Titre erroné", File.ReadAllText(Path.ChangeExtension(video, ".nfo")), StringComparison.Ordinal);
         Assert.Contains("1", vm.Status, StringComparison.Ordinal);
+    }
+
+    /// <summary>Fenêtre principale branchée sur ce catalogue, avec ses fichiers et son service .nfo.</summary>
+    private MainWindowViewModel NewViewModel(IDialogs dialogs)
+    {
+        var media = new MediaContext(
+            _files,
+            new LibraryImportService(_titles, _files, new ImageStore(_db, Path.Combine(_temp.Path, "img")), null,
+                () => new Cinedex.Media.MediaProbe("absent", "absent"), NullLogger<LibraryImportService>.Instance),
+            new SettingsStore(_db),
+            _nfo);
+        var vm = new MainWindowViewModel(_titles, new AppPaths(_temp.Path, isPortable: false), dialogs, media: media);
+        vm.Load();
+        return vm;
     }
 }

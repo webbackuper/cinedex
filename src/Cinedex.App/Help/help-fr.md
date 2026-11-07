@@ -119,7 +119,7 @@ Les vues et liens affichés se choisissent dans **Réglages > Bandeau gauche**.
 Dans le panneau de droite ou l'onglet **Exemplaire** de la fiche : saisissez l'emprunteur (les noms déjà utilisés sont proposés) et la date, puis **Prêter**. **Marquer comme rendu** clôt le prêt. L'historique garde tous les prêts du titre ; une ligne erronée peut être effacée. La vue **Prêtés** du bandeau liste les titres dehors.
 
 ## Fichiers .nfo
-Cinedex lit et écrit les fichiers .nfo au format Kodi (Réglages > Fichiers .nfo). Dans le menu « Actions sur la sélection », **Écrire les .nfo** complète les champs vides, **Mettre à jour les .nfo** remplace les valeurs déjà présentes :
+Cinedex lit et écrit les fichiers .nfo au format Kodi (Réglages > Fichiers .nfo). Dans le menu « Actions sur la sélection », **Écrire les .nfo** crée ceux qui manquent et complète les champs vides ; **Mettre à jour les .nfo** ne touche qu'aux fichiers existants et y remplace les valeurs, puis propose de créer ceux qui manquent :
 - à l'import, un .nfo présent à côté du film complète sa fiche, et ses identifiants servent à trouver la bonne fiche TMDb ;
 - après une mise à jour TMDb, le .nfo peut être créé ou complété, avec une copie .nfo.bak de sécurité.
 
@@ -220,7 +220,7 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 
 ## Nouveautés
 ### 0.9.2
-- **Mettre à jour les .nfo** : nouvelle entrée du menu « Actions sur la sélection », qui réécrit les .nfo depuis les fiches de Cinedex en **remplaçant** ce qu'ils contiennent. « Écrire les .nfo » ne faisait que compléter les champs vides, ce qui laissait en place les valeurs devenues fausses. Fonctionne sur la sélection depuis n'importe quelle vue, y compris un disque du sous-menu MediaID, et une copie `.nfo.bak` est faite si le réglage le demande.
+- **Mettre à jour les .nfo** : nouvelle entrée du menu « Actions sur la sélection », qui réécrit les .nfo **existants** depuis les fiches de Cinedex en **remplaçant** ce qu'ils contiennent. « Écrire les .nfo » ne faisait que compléter les champs vides, ce qui laissait en place les valeurs devenues fausses. Mettre à jour n'est pas créer : si des films de la sélection n'ont pas de .nfo, Cinedex le dit et vous demande s'il faut les créer. Fonctionne sur la sélection depuis n'importe quelle vue, y compris un disque du sous-menu MediaID, et une copie `.nfo.bak` est faite si le réglage le demande.
 - **La fiche ouverte se rafraîchit entière** après une mise à jour depuis TMDb : distribution, équipe, affiche et liste des collections, et plus seulement les champs. Il fallait auparavant la fermer et la rouvrir pour voir la nouvelle distribution.
 
 ### 0.9.0

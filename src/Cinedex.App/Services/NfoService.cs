@@ -73,6 +73,25 @@ public sealed class NfoService(
         }
     }
 
+    /// <summary>
+    /// Titres dont au moins un dossier de fichier vidéo n'a pas encore de .nfo. Sert à proposer leur création
+    /// après une mise à jour, qui elle ne touche qu'aux fichiers existants.
+    /// </summary>
+    public IReadOnlyList<long> WithoutNfo(IEnumerable<long> titleIds)
+    {
+        ArgumentNullException.ThrowIfNull(titleIds);
+        return titleIds
+            .Where(id => titles.Get(id) is { Kind: TitleKind.Movie } && Destinations(id).Any(p => !File.Exists(p)))
+            .ToList();
+    }
+
+    /// <summary>Un .nfo par dossier de fichier vidéo du titre : c'est là qu'un lecteur comme Kodi le cherche.</summary>
+    private IEnumerable<string> Destinations(long titleId) =>
+        files.FilesOf(titleId)
+            .Where(f => File.Exists(f.FullPath))
+            .GroupBy(f => Path.GetDirectoryName(f.FullPath))
+            .Select(g => NfoReader.NfoPathFor(g.First().FullPath));
+
     /// <summary>Écrit ou complète le .nfo de chaque fichier vidéo du titre ; renvoie le nombre de fichiers modifiés.</summary>
     public int WriteForTitle(long titleId, NfoWriteOptions? options = null)
     {

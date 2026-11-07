@@ -2207,11 +2207,23 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        // « Mettre à jour » ne crée rien : un film sans .nfo reste sans .nfo, c'est le rôle de « Écrire ».
+        // « Mettre à jour » ne crée rien de lui-même : un film sans .nfo reste sans, sauf demande expresse.
         var options = new Cinedex.Media.NfoWriteOptions { OverwriteExisting = true, OnlyExisting = true, Backup = nfo.Settings.Backup };
         var written = ids.Sum(id => nfo.WriteForTitle(id, options));
-        Status = Tr.F("{0} fichier(s) .nfo mis à jour", written);
-        Journal($"{written} fichier(s) .nfo mis à jour depuis les fiches");
+        var created = 0;
+
+        // Les films sans .nfo ne sont pas passés sous silence : on demande, une fois, s'il faut les créer.
+        if (nfo.WithoutNfo(ids) is { Count: > 0 } missing && await _dialogs.ConfirmAsync(
+                "Créer les .nfo manquants",
+                Tr.F("{0} film(s) de la sélection n'ont pas de .nfo. Les créer maintenant ?", missing.Count)))
+        {
+            created = missing.Sum(id => nfo.WriteForTitle(id, options with { OnlyExisting = false }));
+        }
+
+        Status = created == 0
+            ? Tr.F("{0} fichier(s) .nfo mis à jour", written)
+            : Tr.F("{0} fichier(s) .nfo mis à jour, {1} créé(s)", written, created);
+        Journal($"{written} fichier(s) .nfo mis à jour depuis les fiches, {created} créé(s)");
     }
 
     /// <summary>Relit les infos techniques (MediaInfo) des fichiers de la sélection, ou de tous les titres affichés.</summary>

@@ -987,6 +987,7 @@
  "{0} anomalie(s) : {1}": "{0} مشكلة: {1}",
  "{0} chemin(s) copié(s)": "نُسخ {0} مسارًا",
  "{0} collection(s)": "{0} مجموعة",
+ "{0} collection(s) sur {1}": "{0} من {1} مجموعة",
  "{0} collection(s), {1} tag(s) et {2} groupe(s) vides supprimés.": "تم حذف {0} مجموعة و{1} وسم و{2} زمرة فارغة.",
  "{0} exemplaire(s) renuméroté(s).": "تمت إعادة ترقيم {0} نسخة.",
  "{0} fiche(s) de collection téléchargée(s) depuis TMDb.": "تم تنزيل {0} بطاقة مجموعة من TMDb.",

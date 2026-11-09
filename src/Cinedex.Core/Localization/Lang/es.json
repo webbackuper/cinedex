@@ -980,6 +980,7 @@
  "{0} anomalie(s) : {1}": "{0} anomalía(s): {1}",
  "{0} chemin(s) copié(s)": "{0} ruta(s) copiada(s)",
  "{0} collection(s)": "{0} colección(es)",
+ "{0} collection(s) sur {1}": "{0} de {1} colección(es)",
  "{0} collection(s), {1} tag(s) et {2} groupe(s) vides supprimés.": "{0} colección(es), {1} etiqueta(s) y {2} grupo(s) vacíos eliminados.",
  "{0} exemplaire(s) renuméroté(s).": "{0} ejemplar(es) renumerado(s).",
  "{0} fiche(s) de collection téléchargée(s) depuis TMDb.": "{0} ficha(s) de colección descargada(s) de TMDb.",

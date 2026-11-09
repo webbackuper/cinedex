@@ -971,6 +971,7 @@
  "{0} anomalie(s) : {1}": "{0} Fehler: {1}",
  "{0} chemin(s) copié(s)": "{0} Pfade kopiert",
  "{0} collection(s)": "{0} Sammlung(en)",
+ "{0} collection(s) sur {1}": "{0} von {1} Sammlung(en)",
  "{0} collection(s), {1} tag(s) et {2} groupe(s) vides supprimés.": "{0} leere Sammlung(en), {1} Tag(s) und {2} Gruppe(n) gelöscht.",
  "{0} exemplaire(s) renuméroté(s).": "{0} Exemplar(e) neu nummeriert.",
  "{0} fiche(s) de collection téléchargée(s) depuis TMDb.": "{0} Sammlungsdatenblatt/-blätter von TMDb geladen.",

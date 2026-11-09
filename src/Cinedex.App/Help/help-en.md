@@ -224,6 +224,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.12.1
+- **The collection count follows the filtering.** Under the "Only incomplete collections" box, the number always announced the catalog's total, even in front of a shortened list. It now says what the list shows, and recalls the total as soon as a filter removes something: "12 of 48 collection(s)". The search by name is counted the same way.
+
 ### 0.12.0
 - **Duplicates are in the left banner**, next to "Films without info", as well as in Settings > Maintenance. Opening the menu looks for the films present more than once in the catalog, and each group is named there by its first title, with the reason for the match. You come back to it after every import: a detour through the settings to see what is left to decide was one detour too many.
 - **Choosing a group shows only its records** in the main list. Every usual action applies there — open the record, play, technical info, right-click — enough to compare before deciding.

@@ -960,6 +960,7 @@
  "{0} anomalie(s) : {1}": "{0} problem(s): {1}",
  "{0} chemin(s) copié(s)": "{0} path(s) copied",
  "{0} collection(s)": "{0} collection(s)",
+ "{0} collection(s) sur {1}": "{0} of {1} collection(s)",
  "{0} collection(s), {1} tag(s) et {2} groupe(s) vides supprimés.": "{0} empty collection(s), {1} tag(s) and {2} group(s) deleted.",
  "{0} exemplaire(s) renuméroté(s).": "{0} copy/copies renumbered.",
  "{0} fiche(s) de collection téléchargée(s) depuis TMDb.": "{0} collection record(s) downloaded from TMDb.",

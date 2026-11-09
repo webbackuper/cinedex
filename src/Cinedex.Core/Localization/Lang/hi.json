@@ -986,6 +986,7 @@
  "{0} anomalie(s) : {1}": "{0} समस्याएँ: {1}",
  "{0} chemin(s) copié(s)": "{0} पथ कॉपी किए गए",
  "{0} collection(s)": "{0} संग्रह",
+ "{0} collection(s) sur {1}": "{1} में से {0} संग्रह",
  "{0} collection(s), {1} tag(s) et {2} groupe(s) vides supprimés.": "{0} खाली संग्रह, {1} टैग और {2} समूह हटाए गए।",
  "{0} exemplaire(s) renuméroté(s).": "{0} प्रतियाँ पुनः क्रमांकित।",
  "{0} fiche(s) de collection téléchargée(s) depuis TMDb.": "TMDb से {0} संग्रह विवरण डाउनलोड हुए।",

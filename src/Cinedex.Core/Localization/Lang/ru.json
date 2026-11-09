@@ -987,6 +987,7 @@
  "{0} anomalie(s) : {1}": "Проблем: {0}: {1}",
  "{0} chemin(s) copié(s)": "Скопировано путей: {0}",
  "{0} collection(s)": "Коллекций: {0}",
+ "{0} collection(s) sur {1}": "{0} из {1} коллекций",
  "{0} collection(s), {1} tag(s) et {2} groupe(s) vides supprimés.": "Удалено пустых коллекций: {0}, тегов: {1}, групп: {2}.",
  "{0} exemplaire(s) renuméroté(s).": "Перенумеровано экземпляров: {0}.",
  "{0} fiche(s) de collection téléchargée(s) depuis TMDb.": "Загружено карточек коллекций из TMDb: {0}.",

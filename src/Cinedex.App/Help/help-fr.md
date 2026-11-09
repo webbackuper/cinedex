@@ -224,6 +224,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.12.1
+- **Le compte des collections suit le filtrage.** Sous la case « Seulement les collections incomplètes », le nombre annonçait toujours le total du catalogue, même devant une liste réduite. Il dit maintenant ce que la liste montre, et rappelle le total dès qu'un filtre retire quelque chose : « 12 collection(s) sur 48 ». La recherche par nom est comptée de la même façon.
+
 ### 0.12.0
 - **Les doublons sont dans le bandeau gauche**, à côté de « Films sans infos », en plus de Réglages > Maintenance. Ouvrir le menu cherche les films présents plusieurs fois au catalogue, et chaque groupe y est nommé par son premier titre, avec le motif du rapprochement. On y revient après chaque import : un détour par les réglages pour voir ce qu'il reste à trancher était un détour de trop.
 - **Choisir un groupe n'affiche que ses fiches** dans la liste principale. Toutes les actions usuelles s'y appliquent — ouvrir la fiche, lire, infos techniques, clic droit — de quoi comparer avant de décider.

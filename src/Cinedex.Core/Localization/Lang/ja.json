@@ -987,6 +987,7 @@
  "{0} anomalie(s) : {1}": "{0} 件の問題：{1}",
  "{0} chemin(s) copié(s)": "{0} 件のパスをコピーしました",
  "{0} collection(s)": "{0} 件のコレクション",
+ "{0} collection(s) sur {1}": "{1} 件のコレクションのうち {0} 件",
  "{0} collection(s), {1} tag(s) et {2} groupe(s) vides supprimés.": "空のコレクション {0} 件、タグ {1} 件、グループ {2} 件を削除しました。",
  "{0} exemplaire(s) renuméroté(s).": "{0} 件の所蔵品に番号を振り直しました。",
  "{0} fiche(s) de collection téléchargée(s) depuis TMDb.": "TMDb から {0} 件のコレクション情報をダウンロードしました。",

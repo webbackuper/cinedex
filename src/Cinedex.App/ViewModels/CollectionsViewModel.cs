@@ -152,7 +152,14 @@ public sealed partial class CollectionsViewModel : ObservableObject
         }
     }
 
-    public string CountText => Tr.F("{0} collection(s)", _all.Count);
+    /// <summary>
+    /// Ce que la liste montre. Le compte suit la recherche et la case « incomplètes » : placé juste sous
+    /// elle, un total figé contredisait ce qu'on avait sous les yeux. Le total reste rappelé dès qu'un filtre
+    /// retire quelque chose, pour qu'on sache de combien on part.
+    /// </summary>
+    public string CountText => Collections.Count == _all.Count
+        ? Tr.F("{0} collection(s)", _all.Count)
+        : Tr.F("{0} collection(s) sur {1}", Collections.Count, _all.Count);
 
     partial void OnQueryChanged(string value) => ApplyFilter();
 
@@ -263,7 +270,6 @@ public sealed partial class CollectionsViewModel : ObservableObject
     {
         _all = [.. _service.Repository.List().Select(c => new CollectionRow(c, _service.Resolve(c.PosterRelativePath)))];
         OnPropertyChanged(nameof(HasCollections));
-        OnPropertyChanged(nameof(CountText));
         ApplyFilter(selectId, reloadDetail: true);
     }
 
@@ -278,6 +284,7 @@ public sealed partial class CollectionsViewModel : ObservableObject
             Collections.Add(row);
         }
 
+        OnPropertyChanged(nameof(CountText));
         Selected = Collections.FirstOrDefault(c => c.Id == selectId) ?? Collections.FirstOrDefault();
         if (reloadDetail && ReferenceEquals(previous, Selected) && Selected is { } current)
         {

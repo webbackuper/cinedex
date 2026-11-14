@@ -972,26 +972,57 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public bool HasSimilar => Similar.Count > 0;
 
-    private void LoadSimilar()
+    private void LoadSimilar() => Similar = Detail is null ? [] : SimilarOf(Detail.Id);
+
+    /// <summary>
+    /// Titres proches de celui-ci, dans l'ordre des scores. Pris à part de la fiche affichée, parce que
+    /// l'onglet Recommandations de la fiche ouverte en a besoin pour le titre qu'il édite.
+    /// </summary>
+    private List<SimilarTitle> SimilarOf(long titleId)
     {
-        if (_extras.Recommendations is null || Detail is null)
+        if (_extras.Recommendations is null)
         {
-            Similar = [];
-            return;
+            return [];
         }
 
-        var found = _extras.Recommendations.For(Detail.Id);
+        var found = _extras.Recommendations.For(titleId);
         if (found.Count == 0)
         {
-            Similar = [];
-            return;
+            return [];
         }
 
         // Les fiches viennent de la requête ordinaire (affiche, année, notes) ; l'ordre reste celui des scores.
         var rows = _titles.Query(new TitleQuery(Ids: found.Select(r => r.TitleId).ToList())).Select(Prepare).ToDictionary(t => t.Id);
-        Similar = found.Where(r => rows.ContainsKey(r.TitleId))
+        return found.Where(r => rows.ContainsKey(r.TitleId))
             .Select(r => new SimilarTitle(rows[r.TitleId], r.Reason))
             .ToList();
+    }
+
+    /// <summary>
+    /// Les films de la collection d'un titre : ceux du catalogue, puis ceux que la fiche TMDb de la saga
+    /// annonce et qu'on n'a pas. Rangés par année, comme une saga se regarde.
+    /// </summary>
+    private (IReadOnlyList<CollectionSibling> Films, string? Name) CollectionOf(TitleDetail title)
+    {
+        if (title.CollectionId is not { } collectionId || _metadata?.Collections is not { } service)
+        {
+            return ([], null);
+        }
+
+        var detail = service.Repository.Get(collectionId);
+        var owned = service.Repository.Members(collectionId);
+        var known = owned.Where(m => m.TmdbId is not null).Select(m => m.TmdbId!.Value).ToHashSet();
+        var films = owned
+            .Select(m => new CollectionSibling(m.TitleId, m.Title, m.Year, service.Resolve(m.PosterRelativePath), m.TitleId == title.Id))
+            .Concat((detail?.Parts ?? [])
+                .Where(p => !known.Contains(p.SourceId))
+                .Select(p => new CollectionSibling(null, p.Title, p.Year, null, false)))
+            .OrderBy(f => f.Year ?? int.MaxValue)
+            .ThenBy(f => f.Title, StringComparer.CurrentCulture)
+            .ToList();
+
+        // Un seul film dans la saga, et aucun manquant : l'onglet n'apprendrait rien.
+        return films.Count > 1 ? (films, detail?.Name ?? title.CollectionName) : ([], null);
     }
 
     /// <summary>
@@ -1035,10 +1066,24 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
+        await FetchSuggestionsForAsync(detail);
+    }
+
+    /// <summary>
+    /// Demande les suggestions de TMDb pour un titre et les garde en base. À part de la commande, parce que
+    /// l'onglet Recommandations de la fiche ouverte les demande pour le titre qu'il édite, pas pour l'affiché.
+    /// </summary>
+    private async Task FetchSuggestionsForAsync(TitleDetail title)
+    {
+        if (title.TmdbId is not { } sourceId || _extras.Suggestions is not { } store || _metadata is null)
+        {
+            return;
+        }
+
         await RunMetadataAsync(async () =>
         {
-            var found = await _metadata!.RecommendationsAsync(detail.Kind, sourceId, CancellationToken.None);
-            store.Save(detail.Id, found);
+            var found = await _metadata.RecommendationsAsync(title.Kind, sourceId, CancellationToken.None);
+            store.Save(title.Id, found);
             LoadSuggestions();
             Status = found.Count == 0
                 ? Tr.T("TMDb ne propose rien pour ce titre.")
@@ -1061,6 +1106,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
+        await AddSuggestionToWishlistAsync(suggestion);
+    }
+
+    /// <summary>
+    /// Un film suggéré qu'on n'a pas : sa fiche est rapatriée de TMDb et il entre en liste de souhaits. La
+    /// question est posée avant, puisque chaque ajout coûte un appel et une entrée au catalogue.
+    /// </summary>
+    private async Task AddSuggestionToWishlistAsync(TmdbSuggestion suggestion)
+    {
         if (_metadata is null || !await _dialogs.ConfirmAsync(
                 "Ajouter à la liste de souhaits",
                 Tr.F("Ajouter « {0} » à votre liste de souhaits ? Sa fiche est rapatriée de TMDb, et il est marqué non possédé.", suggestion.Name)))
@@ -1694,6 +1748,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         // La fiche reprend tout ce que montre le panneau de droite : affiche, notes, distribution, fichiers.
+        var (collectionFilms, collectionName) = CollectionOf(current);
         var extras = new TitleEditorExtras(
             _images?.PathFor(current.Id, "poster"),
             Detail?.Id == current.Id ? Cast.ToList() : null,
@@ -1739,7 +1794,19 @@ public sealed partial class MainWindowViewModel : ObservableObject
             {
                 var (cast, directors, crew) = CreditsOf(current.Id);
                 return new TitleEditorView(cast, directors, crew, _images?.PathFor(current.Id, "poster"), _titles.Collections());
-            });
+            },
+            collectionFilms,
+            collectionName,
+            SimilarOf(current.Id),
+            _extras.Suggestions?.For(current.Id) ?? [],
+            _extras.Suggestions is null || _metadata is null || current.TmdbId is null
+                ? null
+                : async () =>
+                {
+                    await FetchSuggestionsForAsync(current);
+                    return _extras.Suggestions.For(current.Id);
+                },
+            _extras.Suggestions is null || _metadata is null ? null : suggestion => AddSuggestionToWishlistAsync(suggestion));
         var editor = new TitleEditorViewModel(
             current, _titles.Genres(), _titles.RefItems("medium"), _titles.RefItems("case"), _titles.RefItems("version"), _titles.Collections(), extras);
         // La fenêtre d'édition valide elle-même (TryBuild) avant de se fermer sur « Enregistrer ».

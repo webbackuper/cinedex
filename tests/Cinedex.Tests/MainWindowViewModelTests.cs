@@ -201,7 +201,14 @@ public sealed class MainWindowViewModelTests : IDisposable
 
         public int Confirmations { get; private set; }
 
-        public Task<bool> EditTitleAsync(TitleEditorViewModel editor) => Task.FromResult(Answer);
+        /// <summary>Fiche ouverte, pour vérifier ce que la fenêtre principale y a mis.</summary>
+        public TitleEditorViewModel? Edited { get; private set; }
+
+        public Task<bool> EditTitleAsync(TitleEditorViewModel editor)
+        {
+            Edited = editor;
+            return Task.FromResult(Answer);
+        }
 
         /// <summary>Réponse donnée question après question, quand une commande en pose plusieurs.</summary>
         public Func<bool>? OnConfirm { get; set; }

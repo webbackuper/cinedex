@@ -224,6 +224,10 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.13.0
+- **Onglet Collection dans la fiche d'un film.** Quand le film appartient à une saga, sa fiche montre les films de cette collection avec leur affiche : ceux du catalogue, et ceux que la fiche TMDb de la saga annonce et que vous n'avez pas. Rangés par année, comme une saga se regarde. Un clic ouvre la fiche d'un film que vous avez ; les manquants sont là pour vous dire quoi chercher. L'onglet n'apparaît pas pour un film seul dans sa collection : il n'apprendrait rien.
+- **Onglet Recommandations dans la fiche**, qui réunit « Vous aimerez aussi » et les suggestions TMDb. Ils étaient dans le panneau de droite, dans une colonne trop étroite pour des affiches lisibles ; ils ont maintenant la place de s'étaler. Un clic sur un film proche ouvre sa fiche, un clic sur une suggestion que vous n'avez pas l'ajoute à la liste de souhaits, comme avant.
+
 ### 0.12.1
 - **Le compte des collections suit le filtrage.** Sous la case « Seulement les collections incomplètes », le nombre annonçait toujours le total du catalogue, même devant une liste réduite. Il dit maintenant ce que la liste montre, et rappelle le total dès qu'un filtre retire quelque chose : « 12 collection(s) sur 48 ». La recherche par nom est comptée de la même façon.
 

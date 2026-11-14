@@ -40,7 +40,30 @@ public sealed record TitleEditorExtras(
     Func<Task>? RemovePoster = null,
     Func<TmdbReference, Task<TitleDetail?>>? UpdateFromTmdb = null,
     ViewingsViewModel? Viewings = null,
-    Func<TitleEditorView>? Reload = null);
+    Func<TitleEditorView>? Reload = null,
+    IReadOnlyList<CollectionSibling>? CollectionFilms = null,
+    string? CollectionTitle = null,
+    IReadOnlyList<SimilarTitle>? Similar = null,
+    IReadOnlyList<TmdbSuggestion>? Suggestions = null,
+    Func<Task<IReadOnlyList<TmdbSuggestion>>>? FetchSuggestions = null,
+    Func<TmdbSuggestion, Task>? AddSuggestion = null);
+
+/// <summary>
+/// Un film de la même collection, dans l'onglet Collection de la fiche. Un film manquant au catalogue n'a
+/// pas d'identifiant : il est montré quand même, puisque c'est en voyant le trou qu'on sait quoi chercher.
+/// </summary>
+public sealed record CollectionSibling(long? TitleId, string Title, int? Year, string? PosterPath, bool IsCurrent)
+{
+    public bool IsOwned => TitleId is not null;
+
+    public bool CanOpen => TitleId is not null && !IsCurrent;
+
+    public string Subtitle => string.Join(" · ", new[]
+    {
+        Year?.ToString(System.Globalization.CultureInfo.CurrentCulture),
+        IsCurrent ? Tr.T("Cette fiche") : IsOwned ? Tr.T("Dans le catalogue") : Tr.T("Manquant"),
+    }.Where(p => p is not null));
+}
 
 /// <summary>Un fichier du titre dans l'onglet Fichier : chemin complet et MediaID (nom du disque) modifiable.</summary>
 public sealed partial class FileVolumeRow(MediaFileEntry file) : ObservableObject
@@ -103,6 +126,12 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         PosterPath = extras.PosterPath;
         _setPoster = extras.SetPoster;
         _removePoster = extras.RemovePoster;
+        CollectionFilms = extras.CollectionFilms ?? [];
+        CollectionTitle = extras.CollectionTitle;
+        Similar = extras.Similar ?? [];
+        Suggestions = extras.Suggestions ?? [];
+        _fetchSuggestions = extras.FetchSuggestions;
+        _addSuggestion = extras.AddSuggestion;
         Cast = extras.Cast ?? [];
         Directors = extras.Directors ?? [];
         CrewText = extras.CrewText ?? string.Empty;
@@ -241,6 +270,73 @@ public sealed partial class TitleEditorViewModel : ObservableObject
 
     /// <summary>Titre choisi depuis la fiche d'un acteur : la fiche se ferme et le catalogue s'y place.</summary>
     public long? NavigateToTitleId { get; set; }
+
+    /// <summary>
+    /// Les films de la collection du titre, onglet Collection. Vus depuis la fiche, ils disent d'un coup
+    /// d'œil ce que la saga contient et ce qui manque, sans passer par la fenêtre des collections.
+    /// </summary>
+    public IReadOnlyList<CollectionSibling> CollectionFilms { get; private set; } = [];
+
+    public bool HasCollectionFilms => CollectionFilms.Count > 0;
+
+    /// <summary>Nom de la collection, pour en-tête de l'onglet.</summary>
+    public string? CollectionTitle { get; private set; }
+
+    /// <summary>« Vous aimerez aussi » : titres proches du catalogue, avec la raison du rapprochement.</summary>
+    public IReadOnlyList<SimilarTitle> Similar { get; private set; } = [];
+
+    public bool HasSimilar => Similar.Count > 0;
+
+    /// <summary>Suggestions de TMDb, surtout des films absents du catalogue.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSuggestions))]
+    [NotifyCanExecuteChangedFor(nameof(FetchSuggestionsCommand))]
+    public partial IReadOnlyList<TmdbSuggestion> Suggestions { get; private set; } = [];
+
+    public bool HasSuggestions => Suggestions.Count > 0;
+
+    /// <summary>Un onglet vide ne sert à rien : il n'apparaît que s'il y a de quoi le remplir.</summary>
+    public bool HasRecommendations => HasSimilar || HasSuggestions || _fetchSuggestions is not null;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(FetchSuggestionsCommand))]
+    public partial bool IsFetchingSuggestions { get; private set; }
+
+    private Func<Task<IReadOnlyList<TmdbSuggestion>>>? _fetchSuggestions;
+
+    private Func<TmdbSuggestion, Task>? _addSuggestion;
+
+    private bool CanFetchSuggestions() => _fetchSuggestions is not null && !IsFetchingSuggestions && Suggestions.Count == 0;
+
+    /// <summary>
+    /// Demande à TMDb ce que les spectateurs de ce film ont aussi aimé. Un seul appel par titre : le
+    /// résultat est gardé en base, et ouvrir la fiche ne coûte jamais de réseau.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanFetchSuggestions))]
+    private async Task FetchSuggestionsAsync()
+    {
+        if (_fetchSuggestions is not { } fetch)
+        {
+            return;
+        }
+
+        IsFetchingSuggestions = true;
+        try
+        {
+            Suggestions = await fetch();
+        }
+        finally
+        {
+            IsFetchingSuggestions = false;
+        }
+    }
+
+    /// <summary>
+    /// Un film suggéré que l'on n'a pas : il part dans la liste de souhaits, ce qui demande sa fiche à TMDb.
+    /// La fenêtre principale s'en charge, puisque c'est elle qui tient le service et la question posée.
+    /// </summary>
+    public Task AddSuggestionAsync(TmdbSuggestion suggestion) =>
+        _addSuggestion is { } add ? add(suggestion) : Task.CompletedTask;
 
     public bool CanOpenPerson => _people is not null;
 

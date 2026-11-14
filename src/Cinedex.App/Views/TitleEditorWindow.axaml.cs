@@ -58,6 +58,45 @@ public sealed partial class TitleEditorWindow : Window
         }
     }
 
+    /// <summary>
+    /// Un film de la même collection, ou un film proche : la fiche se ferme et le catalogue s'y place. C'est
+    /// le chemin déjà pris pour un acteur, et il garde une seule fiche ouverte à la fois.
+    /// </summary>
+    private void OnOpenSibling(object? sender, RoutedEventArgs e) =>
+        GoTo((sender as Control)?.DataContext is CollectionSibling { TitleId: { } id, IsCurrent: false } ? id : null);
+
+    private void OnOpenSimilar(object? sender, RoutedEventArgs e) =>
+        GoTo((sender as Control)?.DataContext is SimilarTitle similar ? similar.Title.Id : null);
+
+    /// <summary>
+    /// Une suggestion TMDb : celle qu'on possède s'ouvre, celle qu'on n'a pas part dans la liste de souhaits.
+    /// La fenêtre principale pose la question et appelle TMDb, puisque c'est elle qui en tient les moyens.
+    /// </summary>
+    private async void OnOpenSuggestion(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not TitleEditorViewModel editor || (sender as Control)?.DataContext is not Cinedex.Data.TmdbSuggestion suggestion)
+        {
+            return;
+        }
+
+        if (suggestion.OwnedTitleId is { } owned)
+        {
+            GoTo(owned);
+            return;
+        }
+
+        await editor.AddSuggestionAsync(suggestion);
+    }
+
+    private void GoTo(long? titleId)
+    {
+        if (DataContext is TitleEditorViewModel editor && titleId is { } id)
+        {
+            editor.NavigateToTitleId = id;
+            Close(false);
+        }
+    }
+
     /// <summary>Fichier supplémentaire du même film (CD2, part2...).</summary>
     private async void OnAddPart(object? sender, RoutedEventArgs e)
     {

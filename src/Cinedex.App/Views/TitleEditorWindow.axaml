@@ -4,6 +4,7 @@
         xmlns:views="using:Cinedex.App.Views"
         xmlns:people="using:Cinedex.Core.People"
         xmlns:controls="using:Cinedex.App.Controls"
+        xmlns:data="using:Cinedex.Data"
         x:Class="Cinedex.App.Views.TitleEditorWindow"
         x:DataType="vm:TitleEditorViewModel"
         Title="{Binding WindowTitle}"
@@ -318,6 +319,104 @@
           <TextBlock Text="Groupes personnels, séparés par des virgules" Margin="{StaticResource Above2}" />
           <TextBox Text="{Binding GroupsText}" PlaceholderText="Soirée famille, Noël" />
         </StackPanel>
+      </TabItem>
+
+      <!-- Collection : les films de la saga, ceux du catalogue et ceux qui manquent. -->
+      <TabItem Header="Collection" IsVisible="{Binding HasCollectionFilms}">
+        <ScrollViewer>
+          <StackPanel Spacing="{StaticResource Space3}" Margin="{StaticResource Block2}">
+            <TextBlock Text="{Binding CollectionTitle}" FontWeight="SemiBold" FontSize="{StaticResource FontTitle}"
+                       IsVisible="{Binding CollectionTitle, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            <TextBlock Text="Les films de cette collection. Un clic ouvre celui du catalogue ; ceux qui manquent sont grisés."
+                       Opacity="0.7" TextWrapping="Wrap" FontSize="{StaticResource FontSmall}" />
+            <ItemsControl ItemsSource="{Binding CollectionFilms}" AutomationProperties.Name="Films de la collection">
+              <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:CollectionSibling">
+                  <Button Classes="tool" Width="124" Padding="{StaticResource Inset1x2}" Margin="{StaticResource Trail1}" VerticalContentAlignment="Top"
+                          Click="OnOpenSibling" IsEnabled="{Binding CanOpen}" Cursor="Hand">
+                    <StackPanel Spacing="{StaticResource Space1}" HorizontalAlignment="Center">
+                      <Border Width="92" Height="136" CornerRadius="{StaticResource RadiusChip}" ClipToBounds="True"
+                              Background="{DynamicResource CinedexPosterBack}" HorizontalAlignment="Center">
+                        <Panel>
+                          <controls:Icon Kind="film" Width="24" Height="24" Foreground="{DynamicResource CinedexMuted}" />
+                          <controls:AsyncImage Path="{Binding PosterPath}" DecodeWidth="184" Stretch="UniformToFill" />
+                        </Panel>
+                      </Border>
+                      <TextBlock Text="{Binding Title}" FontSize="{StaticResource FontSmall}" FontWeight="SemiBold" TextAlignment="Center"
+                                 TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding Subtitle}" FontSize="{StaticResource FontSmall}" Opacity="0.7" TextAlignment="Center"
+                                 TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- Recommandations : films proches du catalogue, puis ce que TMDb propose. -->
+      <TabItem Header="Recommandations" IsVisible="{Binding HasRecommendations}">
+        <ScrollViewer>
+          <StackPanel Spacing="{StaticResource Space3}" Margin="{StaticResource Block2}">
+            <StackPanel Spacing="{StaticResource Space2}" IsVisible="{Binding HasSimilar}">
+              <TextBlock Text="Vous aimerez aussi" FontWeight="SemiBold" FontSize="{StaticResource FontTitle}" />
+              <TextBlock Text="Des films que vous avez, rapprochés de celui-ci par leur genre, leurs mots-clés, leur réalisateur ou leur distribution."
+                         Opacity="0.7" TextWrapping="Wrap" FontSize="{StaticResource FontSmall}" />
+              <ItemsControl ItemsSource="{Binding Similar}" AutomationProperties.Name="Vous aimerez aussi">
+                <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:SimilarTitle">
+                    <Button Classes="tool" Width="124" Padding="{StaticResource Inset1x2}" Margin="{StaticResource Trail1}" VerticalContentAlignment="Top"
+                            Click="OnOpenSimilar" Cursor="Hand" ToolTip.Tip="{Binding Reason}">
+                      <StackPanel Spacing="{StaticResource Space1}" HorizontalAlignment="Center">
+                        <Border Width="92" Height="136" CornerRadius="{StaticResource RadiusChip}" ClipToBounds="True"
+                                Background="{DynamicResource CinedexPosterBack}" HorizontalAlignment="Center">
+                          <Panel>
+                            <controls:Icon Kind="film" Width="24" Height="24" Foreground="{DynamicResource CinedexMuted}" />
+                            <controls:AsyncImage Path="{Binding Title.PosterPath}" DecodeWidth="184" Stretch="UniformToFill" />
+                          </Panel>
+                        </Border>
+                        <TextBlock Text="{Binding Title.Title}" FontSize="{StaticResource FontSmall}" FontWeight="SemiBold" TextAlignment="Center"
+                                   TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Reason}" FontSize="{StaticResource FontSmall}" Opacity="0.7" TextAlignment="Center"
+                                   TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <StackPanel Spacing="{StaticResource Space2}">
+              <TextBlock Text="Suggestions TMDb" FontWeight="SemiBold" FontSize="{StaticResource FontTitle}" Margin="{StaticResource Above2}" />
+              <Button Classes="outline" HorizontalAlignment="Left" Command="{Binding FetchSuggestionsCommand}"
+                      Content="Demander les suggestions à TMDb"
+                      ToolTip.Tip="Ce que les spectateurs de ce film ont aussi aimé. Un seul appel par titre : le résultat est gardé." />
+              <TextBlock Text="Aucune suggestion enregistrée pour ce titre." Opacity="0.7" IsVisible="{Binding !HasSuggestions}" />
+              <StackPanel Spacing="{StaticResource Space1}" IsVisible="{Binding HasSuggestions}">
+                <ItemsControl ItemsSource="{Binding Suggestions}" AutomationProperties.Name="Suggestions TMDb">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="data:TmdbSuggestion">
+                      <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="{StaticResource Inset1x2}"
+                              Click="OnOpenSuggestion" Cursor="Hand">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                          <controls:Icon Kind="check" Width="14" Height="14" IsVisible="{Binding IsOwned}" Foreground="{DynamicResource CinedexAccent}" VerticalAlignment="Center" />
+                          <controls:Icon Kind="add" Width="14" Height="14" IsVisible="{Binding !IsOwned}" Foreground="{DynamicResource CinedexMuted}" VerticalAlignment="Center" />
+                          <TextBlock Grid.Column="1" Margin="{StaticResource Before2}" Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                          <TextBlock Grid.Column="2" Text="{Binding Year}" Opacity="0.7" FontSize="{StaticResource FontSmall}" VerticalAlignment="Center" />
+                        </Grid>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Text="Coché : déjà au catalogue. Sinon, un clic l'ajoute à votre liste de souhaits." Opacity="0.7"
+                           FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" />
+              </StackPanel>
+            </StackPanel>
+          </StackPanel>
+        </ScrollViewer>
       </TabItem>
 
       <TabItem Header="Statut">

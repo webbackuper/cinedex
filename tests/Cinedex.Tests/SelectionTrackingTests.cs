@@ -53,7 +53,7 @@ public sealed class SelectionTrackingTests : IDisposable
 
         Assert.Empty(_vm.SelectedIdSet);
         Assert.False(_vm.IsSelected(_vm.Titles[0].Id));
-        Assert.False(_vm.HasDetail);
+        Assert.False(_vm.Record.HasDetail);
     }
 
     [Fact]
@@ -61,8 +61,8 @@ public sealed class SelectionTrackingTests : IDisposable
     {
         _vm.SelectedTitles.Add(_vm.Titles[3]);
 
-        Assert.True(_vm.HasDetail);
-        Assert.Equal(_vm.Titles[3].Id, _vm.Detail!.Id);
+        Assert.True(_vm.Record.HasDetail);
+        Assert.Equal(_vm.Titles[3].Id, _vm.Record.Detail!.Id);
         Assert.Equal([_vm.Titles[3].Id], _vm.SelectedIdSet);
     }
 

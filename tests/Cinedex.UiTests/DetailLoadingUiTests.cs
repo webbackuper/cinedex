@@ -18,24 +18,24 @@ public sealed class DetailLoadingUiTests(UiSession ui)
         UiCatalog.Pump();
 
         // La fiche elle-même est là tout de suite ; le générique attend qu'on s'arrête.
-        Assert.Equal(first.Id, vm.Detail!.Id);
-        Assert.Empty(vm.Cast);
+        Assert.Equal(first.Id, vm.Record.Detail!.Id);
+        Assert.Empty(vm.Record.Cast);
 
         // On passe au titre suivant avant la fin du délai : le premier générique n'est jamais chargé.
         vm.SelectedTitles.Clear();
         vm.SelectedTitles.Add(second);
         UiCatalog.Pump();
-        Assert.Equal(second.Id, vm.Detail!.Id);
-        Assert.Empty(vm.Cast);
+        Assert.Equal(second.Id, vm.Record.Detail!.Id);
+        Assert.Empty(vm.Record.Cast);
 
         // Le délai est une vraie minuterie : il faut laisser tourner le répartiteur, pas seulement vider sa file.
         await UiCatalog.Wait(600);
 
-        Assert.Equal(6, vm.Cast.Count);
-        Assert.Single(vm.Directors);
-        Assert.True(vm.HasSelectionPeople);
+        Assert.Equal(6, vm.Record.Cast.Count);
+        Assert.Single(vm.Record.Directors);
+        Assert.True(vm.Record.HasSelectionPeople);
         // « Voir aussi » nomme bien les personnes du film affiché, pas celles du précédent.
-        Assert.Contains(vm.SelectionPeople, p => p.Label.Contains(vm.Directors[0].Name, StringComparison.Ordinal));
+        Assert.Contains(vm.Record.SelectionPeople, p => p.Label.Contains(vm.Record.Directors[0].Name, StringComparison.Ordinal));
     });
 
     [Fact]
@@ -46,12 +46,12 @@ public sealed class DetailLoadingUiTests(UiSession ui)
 
         vm.SelectedTitles.Add(vm.Titles.First(t => t.Title == "Film 3"));
         UiCatalog.Pump();
-        Assert.Empty(vm.Cast);
+        Assert.Empty(vm.Record.Cast);
 
         // Un double-clic ou un clic droit dans le délai : ce qui s'ouvre a besoin du générique maintenant.
-        vm.EnsureDetailLoaded();
+        vm.Record.EnsureLoaded();
 
-        Assert.Equal(6, vm.Cast.Count);
-        Assert.Single(vm.Directors);
+        Assert.Equal(6, vm.Record.Cast.Count);
+        Assert.Single(vm.Record.Directors);
     });
 }

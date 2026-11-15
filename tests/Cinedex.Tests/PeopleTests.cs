@@ -150,7 +150,7 @@ public sealed class PeopleTests : IDisposable
         main.ChoosePersonTitleCommand.Execute(main.PersonPage.Titles.Single(t => t.TitleId == _heat));
         Assert.True(main.IsTitlesView);
         Assert.False(main.HasPersonPage);
-        Assert.Equal(_heat, main.Detail!.Id);
+        Assert.Equal(_heat, main.Record.Detail!.Id);
 
         // Changer de galerie efface la personne choisie.
         main.OpenPeopleCommand.Execute(null);
@@ -166,7 +166,7 @@ public sealed class PeopleTests : IDisposable
         };
         await main.OpenBrowsedPersonCommand.ExecuteAsync(main.PeopleBrowser!.People[0]);
         Assert.True(main.IsTitlesView);
-        Assert.Equal(_insider, main.Detail!.Id);
+        Assert.Equal(_insider, main.Record.Detail!.Id);
     }
 
     private static MetadataRecord Movie(long id, string title, int year, IReadOnlyList<MetadataCredit> credits) => new()

@@ -30,7 +30,7 @@ public sealed class MainWindowViewModelTests : IDisposable
         _vm.Load();
 
         Assert.Single(_vm.Titles);
-        Assert.False(_vm.HasDetail);
+        Assert.False(_vm.Record.HasDetail);
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public sealed class MainWindowViewModelTests : IDisposable
 
         var selected = Assert.Single(_vm.SelectedTitles);
         Assert.Equal("Alien", selected.Title);
-        Assert.Equal(1979, _vm.Detail!.Year);
+        Assert.Equal(1979, _vm.Record.Detail!.Year);
         Assert.Equal(string.Empty, _vm.NewTitleText);
     }
 
@@ -81,7 +81,7 @@ public sealed class MainWindowViewModelTests : IDisposable
 
         Assert.True(_vm.HasMultiSelection);
         Assert.False(_vm.ShowDetailHint);
-        Assert.Null(_vm.Detail);
+        Assert.Null(_vm.Record.Detail);
         Assert.Equal("3 titres sélectionnés", _vm.SelectionLabel);
         Assert.Equal(["A", "B", "C"], _vm.SelectionPreview);
 
@@ -90,7 +90,7 @@ public sealed class MainWindowViewModelTests : IDisposable
         Assert.Equal(["B", "C"], _vm.SelectionPreview);
         _vm.RemoveFromSelectionCommand.Execute(_vm.SelectedTitles[0]);
         Assert.False(_vm.HasMultiSelection);
-        Assert.Equal("C", _vm.Detail!.Title);
+        Assert.Equal("C", _vm.Record.Detail!.Title);
     }
 
     [Fact]
@@ -116,14 +116,14 @@ public sealed class MainWindowViewModelTests : IDisposable
         _repo.Add(new NewTitle(TitleKind.Movie, "Heat", 1995));
         _vm.Load();
         _vm.SelectedTitles.Add(_vm.Titles[0]);
-        _vm.BorrowerText = "Paul";
+        _vm.Record.BorrowerText = "Paul";
 
         _vm.LendCommand.Execute(null);
-        Assert.Equal("Paul", _vm.Detail!.CurrentLoan!.Borrower);
+        Assert.Equal("Paul", _vm.Record.Detail!.CurrentLoan!.Borrower);
         Assert.False(_vm.LendCommand.CanExecute(null));
 
         _vm.ReturnLoanCommand.Execute(null);
-        Assert.Null(_vm.Detail!.CurrentLoan);
+        Assert.Null(_vm.Record.Detail!.CurrentLoan);
     }
 
     [Fact]

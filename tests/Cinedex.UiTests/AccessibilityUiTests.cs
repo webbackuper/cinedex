@@ -124,7 +124,7 @@ public sealed class AccessibilityUiTests(UiSession ui)
         catalog.Window.KeyPressQwerty(PhysicalKey.ArrowDown, RawInputModifiers.None);
         await UiCatalog.Wait(50);
         Assert.Single(vm.SelectedTitles);
-        Assert.NotNull(vm.Detail);
+        Assert.NotNull(vm.Record.Detail);
 
         var before = catalog.Window.FocusManager?.GetFocusedElement();
         catalog.Window.KeyPressQwerty(PhysicalKey.Tab, RawInputModifiers.None);

@@ -484,7 +484,7 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
         }
 
         // Le menu « Voir aussi » liste le réalisateur et les acteurs : ils doivent être chargés à son ouverture.
-        vm.EnsureDetailLoaded();
+        vm.Record.EnsureLoaded();
     }
 
     /// <summary>Presse-papiers de la fenêtre : absent sur certaines plates-formes, d'où le résultat renvoyé.</summary>

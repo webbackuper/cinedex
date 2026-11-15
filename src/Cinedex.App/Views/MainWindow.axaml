@@ -488,7 +488,7 @@
               </ControlTheme>
             </MenuItem.ItemContainerTheme>
           </MenuItem>
-          <MenuItem Header="Voir aussi" ItemsSource="{Binding SelectionPeople}" IsVisible="{Binding HasSelectionPeople}"
+          <MenuItem Header="Voir aussi" ItemsSource="{Binding Record.SelectionPeople}" IsVisible="{Binding Record.HasSelectionPeople}"
                     ToolTip.Tip="Les autres films du réalisateur ou des acteurs principaux de ce film.">
             <MenuItem.Icon><controls:Icon Kind="person" Width="16" Height="16" /></MenuItem.Icon>
             <MenuItem.ItemContainerTheme>
@@ -976,11 +976,11 @@
           </ScrollViewer>
         </DockPanel>
 
-        <ScrollViewer IsVisible="{Binding HasDetail}">
+        <ScrollViewer IsVisible="{Binding Record.HasDetail}">
           <StackPanel>
             <!-- Bandeau : image de fond fondue, affiche, titre -->
             <Panel Height="230">
-              <controls:AsyncImage Path="{Binding BackdropPath}" DecodeWidth="800" Stretch="UniformToFill" />
+              <controls:AsyncImage Path="{Binding Record.BackdropPath}" DecodeWidth="800" Stretch="UniformToFill" />
               <Border>
                 <Border.Background>
                   <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
@@ -993,10 +993,10 @@
                 <Border Width="92" Height="138" CornerRadius="{StaticResource RadiusControl}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
                   <Panel>
                     <controls:Icon Kind="default" Width="28" Height="28" Foreground="{DynamicResource CinedexMuted}" />
-                    <controls:AsyncImage Path="{Binding PosterPath}" DecodeWidth="200" Stretch="UniformToFill" />
+                    <controls:AsyncImage Path="{Binding Record.PosterPath}" DecodeWidth="200" Stretch="UniformToFill" />
                   </Panel>
                 </Border>
-                <StackPanel Grid.Column="1" Margin="{StaticResource Edges4_0_0_1}" VerticalAlignment="Bottom" Spacing="{StaticResource Space1}" DataContext="{Binding Detail}" x:DataType="titles:TitleDetail">
+                <StackPanel Grid.Column="1" Margin="{StaticResource Edges4_0_0_1}" VerticalAlignment="Bottom" Spacing="{StaticResource Space1}" DataContext="{Binding Record.Detail}" x:DataType="titles:TitleDetail">
                   <TextBlock Text="{Binding Title}" FontSize="{StaticResource FontTitle}" FontWeight="SemiBold" Foreground="White" TextWrapping="Wrap" MaxLines="3" />
                   <TextBlock Text="{Binding OriginalTitle}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource OnImageTextBrush}" TextTrimming="CharacterEllipsis" />
                   <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
@@ -1020,7 +1020,7 @@
                     <TextBlock Text="Lire" />
                   </StackPanel>
                 </Button>
-                <Button Classes="outline" Margin="{StaticResource Trail2}" Command="{Binding OpenSeriesCommand}" IsVisible="{Binding IsSeries}" ToolTip.Tip="Saisons et épisodes">
+                <Button Classes="outline" Margin="{StaticResource Trail2}" Command="{Binding OpenSeriesCommand}" IsVisible="{Binding Record.IsSeries}" ToolTip.Tip="Saisons et épisodes">
                   <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
                     <controls:Icon Kind="tv" Width="18" Height="18" />
                     <TextBlock Text="Épisodes" />
@@ -1055,7 +1055,7 @@
               </WrapPanel>
 
               <!-- Genres : entre les boutons et les notes -->
-              <ItemsControl ItemsSource="{Binding DetailGenres}" IsVisible="{Binding HasDetailGenres}" AutomationProperties.Name="Genres">
+              <ItemsControl ItemsSource="{Binding Record.DetailGenres}" IsVisible="{Binding Record.HasDetailGenres}" AutomationProperties.Name="Genres">
                 <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="x:String">
@@ -1064,7 +1064,7 @@
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
 
-              <StackPanel Spacing="{StaticResource Space3}" DataContext="{Binding Detail}" x:DataType="titles:TitleDetail">
+              <StackPanel Spacing="{StaticResource Space3}" DataContext="{Binding Record.Detail}" x:DataType="titles:TitleDetail">
                 <!-- Notes -->
                 <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space4}">
                   <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}" IsVisible="{Binding UserRating, Converter={x:Static ObjectConverters.IsNotNull}}">
@@ -1125,9 +1125,9 @@
               </StackPanel>
 
               <!-- Distribution et équipe : chaque personne ouvre sa fiche -->
-              <StackPanel Spacing="{StaticResource Space2}" IsVisible="{Binding HasDirectors}">
+              <StackPanel Spacing="{StaticResource Space2}" IsVisible="{Binding Record.HasDirectors}">
                 <TextBlock Text="Réalisation" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
-                <ItemsControl ItemsSource="{Binding Directors}">
+                <ItemsControl ItemsSource="{Binding Record.Directors}">
                   <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="people:CastMember">
@@ -1149,9 +1149,9 @@
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
               </StackPanel>
-              <StackPanel Spacing="{StaticResource Space2}" IsVisible="{Binding HasCast}">
+              <StackPanel Spacing="{StaticResource Space2}" IsVisible="{Binding Record.HasCast}">
                 <TextBlock Text="Distribution" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
-                <ItemsControl ItemsSource="{Binding Cast}">
+                <ItemsControl ItemsSource="{Binding Record.Cast}">
                   <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="people:CastMember">
@@ -1173,16 +1173,16 @@
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
               </StackPanel>
-              <TextBlock Text="{Binding CrewText}" Classes="muted" TextWrapping="Wrap" FontSize="{StaticResource FontSmall}" LineHeight="19"
-                         IsVisible="{Binding CrewText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              <TextBlock Text="{Binding Record.CrewText}" Classes="muted" TextWrapping="Wrap" FontSize="{StaticResource FontSmall}" LineHeight="19"
+                         IsVisible="{Binding Record.CrewText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
               <!-- Vous aimerez aussi, et les suggestions TMDb. Les mêmes listes sont dans l'onglet
                    Recommandations de la fiche, où elles ont la place de montrer de grandes affiches ;
                    ici, elles restent sous les yeux sans rien ouvrir. -->
               <!-- Vous aimerez aussi : films proches du catalogue, avec la raison du rapprochement -->
-              <StackPanel Spacing="{StaticResource Space2}" IsVisible="{Binding HasSimilar}">
+              <StackPanel Spacing="{StaticResource Space2}" IsVisible="{Binding Record.HasSimilar}">
                 <TextBlock Text="Vous aimerez aussi" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
-                <ItemsControl ItemsSource="{Binding Similar}" AutomationProperties.Name="Vous aimerez aussi">
+                <ItemsControl ItemsSource="{Binding Record.Similar}" AutomationProperties.Name="Vous aimerez aussi">
                   <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:SimilarTitle">
@@ -1214,8 +1214,8 @@
                     <TextBlock Text="Suggestions TMDb" />
                   </StackPanel>
                 </Button>
-                <StackPanel Spacing="{StaticResource Space1}" IsVisible="{Binding HasTmdbSuggestions}">
-                  <ItemsControl ItemsSource="{Binding TmdbSuggestions}" AutomationProperties.Name="Suggestions TMDb">
+                <StackPanel Spacing="{StaticResource Space1}" IsVisible="{Binding Record.HasTmdbSuggestions}">
+                  <ItemsControl ItemsSource="{Binding Record.TmdbSuggestions}" AutomationProperties.Name="Suggestions TMDb">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate x:DataType="data:TmdbSuggestion">
                         <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="{StaticResource Inset1x2}"
@@ -1241,9 +1241,9 @@
                     <controls:Icon Kind="harddisk" Width="16" Height="16" Foreground="{DynamicResource CinedexMuted}" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1" Margin="{StaticResource Before2}" Text="Fichier et infos techniques" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
                     <Button Grid.Column="2" Classes="tool" Content="Relire (MediaInfo)" Command="{Binding RefreshTechnicalCommand}"
-                            IsVisible="{Binding HasDetailFiles}" ToolTip.Tip="Relire codecs, résolution, pistes audio et sous-titres" />
+                            IsVisible="{Binding Record.HasDetailFiles}" ToolTip.Tip="Relire codecs, résolution, pistes audio et sous-titres" />
                   </Grid>
-                  <SelectableTextBlock Text="{Binding TechnicalSummary}" TextWrapping="Wrap" FontSize="{StaticResource FontSmall}" LineHeight="19" Foreground="{DynamicResource CinedexMuted}" />
+                  <SelectableTextBlock Text="{Binding Record.TechnicalSummary}" TextWrapping="Wrap" FontSize="{StaticResource FontSmall}" LineHeight="19" Foreground="{DynamicResource CinedexMuted}" />
                 </StackPanel>
               </Border>
 
@@ -1254,12 +1254,12 @@
                     <controls:Icon Kind="loan" Width="16" Height="16" Foreground="{DynamicResource CinedexMuted}" />
                     <TextBlock Text="Prêt" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
                   </StackPanel>
-                  <TextBlock Text="{Binding Detail.CurrentLoan.Borrower, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='Prêté à {0}'}" Foreground="{DynamicResource CinedexInk}"
-                             IsVisible="{Binding Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                  <TextBlock Text="{Binding Detail.CurrentLoan.LoanedAt, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='depuis le {0:d}'}" Classes="muted"
-                             IsVisible="{Binding Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                  <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNull}}">
-                    <TextBox PlaceholderText="Emprunteur" Text="{Binding BorrowerText}" />
+                  <TextBlock Text="{Binding Record.Detail.CurrentLoan.Borrower, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='Prêté à {0}'}" Foreground="{DynamicResource CinedexInk}"
+                             IsVisible="{Binding Record.Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  <TextBlock Text="{Binding Record.Detail.CurrentLoan.LoanedAt, Converter={x:Static views:TrFormatConverter.Instance}, ConverterParameter='depuis le {0:d}'}" Classes="muted"
+                             IsVisible="{Binding Record.Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding Record.Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNull}}">
+                    <TextBox PlaceholderText="Emprunteur" Text="{Binding Record.BorrowerText}" />
                     <Button Grid.Column="1" Margin="{StaticResource Before2}" Content="Prêter" Command="{Binding LendCommand}" />
                   </Grid>
                   <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">

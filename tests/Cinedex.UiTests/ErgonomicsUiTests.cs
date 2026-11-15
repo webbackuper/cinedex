@@ -84,7 +84,7 @@ public sealed class ErgonomicsUiTests(UiSession ui)
         Assert.Equal(!seen, after.IsSeen);
         Assert.Equal(!favorite, after.IsFavorite);
         Assert.Equal([selected.Id], vm.SelectedTitles.Select(t => t.Id));
-        Assert.Equal(selected.Id, vm.Detail!.Id);
+        Assert.Equal(selected.Id, vm.Record.Detail!.Id);
     });
 
     [Fact]

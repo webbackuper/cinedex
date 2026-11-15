@@ -288,7 +288,7 @@ public sealed class MainWindowUiTests(UiSession ui)
         UiCatalog.Pump();
         Assert.Equal(vm.Titles[1].Id, Assert.Single(vm.SelectedTitles).Id);
         Assert.True(second.IsSelected);
-        Assert.Equal(vm.Titles[1].Id, vm.Detail?.Id);
+        Assert.Equal(vm.Titles[1].Id, vm.Record.Detail?.Id);
 
         // Flèche droite, puis flèche bas (une rangée plus loin), puis Maj+flèche gauche (deux titres).
         catalog.Window.KeyPressQwerty(PhysicalKey.ArrowRight, RawInputModifiers.None);
@@ -365,7 +365,7 @@ public sealed class MainWindowUiTests(UiSession ui)
 
         var expected = catalog.Titles.GenreLabels(vm.Titles[3].Id);
         Assert.NotEmpty(expected);
-        Assert.Equal(expected, vm.DetailGenres);
+        Assert.Equal(expected, vm.Record.DetailGenres);
 
         // Pastilles affichées dans la fiche, après la rangée de boutons et avant les notes.
         var genres = catalog.Find<ItemsControl>(c => Avalonia.Automation.AutomationProperties.GetName(c) == "Genres");
@@ -373,13 +373,13 @@ public sealed class MainWindowUiTests(UiSession ui)
         var panel = Assert.IsType<StackPanel>(genres.Parent);
         var index = panel.Children.IndexOf(genres);
         Assert.IsType<WrapPanel>(panel.Children[index - 1]);
-        Assert.Equal(vm.Detail, panel.Children[index + 1].DataContext);
+        Assert.Equal(vm.Record.Detail, panel.Children[index + 1].DataContext);
         UiCatalog.Shot(catalog.Window, "fiche-genres");
 
         // Plus de genres quand rien n'est sélectionné.
         vm.SelectedTitles.Clear();
         UiCatalog.Pump();
-        Assert.Empty(vm.DetailGenres);
+        Assert.Empty(vm.Record.DetailGenres);
     });
 
     [Fact]

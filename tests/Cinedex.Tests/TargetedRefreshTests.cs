@@ -66,7 +66,7 @@ public sealed class TargetedRefreshTests : IDisposable
         Assert.Equal(["Alien", "Casino", "Heat"], _vm.Titles.Select(t => t.Title));
         Assert.True(_vm.Titles.Single(t => t.Id == _casino).IsFavorite);
         Assert.Equal([_casino], _vm.SelectedTitles.Select(t => t.Id));
-        Assert.True(_vm.Detail!.IsFavorite);
+        Assert.True(_vm.Record.Detail!.IsFavorite);
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public sealed class TargetedRefreshTests : IDisposable
         // Rien n'est remis à zéro : le titre était sous les yeux, il est simplement sélectionné.
         Assert.Equal(QuickFilter.Movies, _vm.SelectedFilter.Value);
         Assert.Equal([_heat], _vm.SelectedTitles.Select(t => t.Id));
-        Assert.Equal(_heat, _vm.Detail!.Id);
+        Assert.Equal(_heat, _vm.Record.Detail!.Id);
     }
 
     [Fact]

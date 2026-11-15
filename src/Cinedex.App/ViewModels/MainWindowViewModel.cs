@@ -61,6 +61,28 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _media = media;
         _catalogs = catalogs;
         Duplicates = CreateDuplicates();
+        Record = new RecordViewModel(titles, images, media, _extras, Prepare);
+        Record.PropertyChanged += (_, e) =>
+        {
+            switch (e.PropertyName)
+            {
+                case nameof(RecordViewModel.Detail):
+                    LendCommand.NotifyCanExecuteChanged();
+                    ReturnLoanCommand.NotifyCanExecuteChanged();
+                    PlayTrailerCommand.NotifyCanExecuteChanged();
+                    break;
+                case nameof(RecordViewModel.BorrowerText):
+                    LendCommand.NotifyCanExecuteChanged();
+                    break;
+                case nameof(RecordViewModel.DetailFiles):
+                    PlayCommand.NotifyCanExecuteChanged();
+                    OpenFolderCommand.NotifyCanExecuteChanged();
+                    break;
+                case nameof(RecordViewModel.SuggestionsFetched) or nameof(RecordViewModel.TmdbSuggestions):
+                    FetchSuggestionsCommand.NotifyCanExecuteChanged();
+                    break;
+            }
+        };
         ApplyDisplaySettings();
         SelectedFilter = Filters[0];
         SelectedSort = Sorts[0];
@@ -869,23 +891,20 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(AddCommand))]
     public partial string NewTitleText { get; set; } = string.Empty;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasDetail))]
-    [NotifyCanExecuteChangedFor(nameof(LendCommand), nameof(ReturnLoanCommand), nameof(PlayTrailerCommand))]
-    public partial TitleDetail? Detail { get; set; }
+    /// <summary>
+    /// La fiche de droite : le titre affiché et ce qu'on en montre. La fenêtre lui dit quel titre montrer ;
+    /// les actions sur ce titre restent ici, parce qu'elles touchent à la liste et aux dialogues.
+    /// </summary>
+    public RecordViewModel Record { get; }
 
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(LendCommand))]
-    public partial string BorrowerText { get; set; } = string.Empty;
+    private TitleDetail? Detail => Record.Detail;
+
+    private IReadOnlyList<MediaFileEntry> DetailFiles => Record.DetailFiles;
+
+    private string BorrowerText => Record.BorrowerText;
 
     [ObservableProperty]
     public partial string Status { get; set; } = string.Empty;
-
-    [ObservableProperty]
-    public partial string? PosterPath { get; set; }
-
-    [ObservableProperty]
-    public partial string? BackdropPath { get; set; }
 
     /// <summary>Vue affiches (grille) ou liste détaillée.</summary>
     [ObservableProperty]
@@ -986,49 +1005,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void ShowList() => IsGridView = false;
 
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(PlayCommand), nameof(OpenFolderCommand))]
-    public partial IReadOnlyList<MediaFileEntry> DetailFiles { get; set; } = [];
-
-    [ObservableProperty]
-    public partial string? TechnicalSummary { get; set; }
-
-    /// <summary>
-    /// « Vous aimerez aussi » : titres du catalogue proches de la fiche affichée, chacun avec la raison du
-    /// rapprochement. Calculé sur la base, donc instantané et hors ligne ; vide quand rien ne ressort.
-    /// </summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasSimilar))]
-    public partial IReadOnlyList<SimilarTitle> Similar { get; private set; } = [];
-
-    public bool HasSimilar => Similar.Count > 0;
-
-    private void LoadSimilar() => Similar = Detail is null ? [] : SimilarOf(Detail.Id);
-
-    /// <summary>
-    /// Titres proches de celui-ci, dans l'ordre des scores. Pris à part de la fiche affichée, parce que
-    /// l'onglet Recommandations de la fiche ouverte en a besoin pour le titre qu'il édite.
-    /// </summary>
-    private List<SimilarTitle> SimilarOf(long titleId)
-    {
-        if (_extras.Recommendations is null)
-        {
-            return [];
-        }
-
-        var found = _extras.Recommendations.For(titleId);
-        if (found.Count == 0)
-        {
-            return [];
-        }
-
-        // Les fiches viennent de la requête ordinaire (affiche, année, notes) ; l'ordre reste celui des scores.
-        var rows = _titles.Query(new TitleQuery(Ids: found.Select(r => r.TitleId).ToList())).Select(Prepare).ToDictionary(t => t.Id);
-        return found.Where(r => rows.ContainsKey(r.TitleId))
-            .Select(r => new SimilarTitle(rows[r.TitleId], r.Reason))
-            .ToList();
-    }
-
     /// <summary>
     /// Les films de la collection d'un titre : ceux du catalogue, puis ceux que la fiche TMDb de la saga
     /// annonce et qu'on n'a pas. Rangés par année, comme une saga se regarde.
@@ -1056,37 +1032,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         return films.Count > 1 ? (films, detail?.Name ?? title.CollectionName) : ([], null);
     }
 
-    /// <summary>
-    /// Suggestions de TMDb pour la fiche affichée. Elles portent surtout sur des films que vous n'avez pas :
-    /// elles complètent « Vous aimerez aussi » plutôt que de le remplacer. Récupérées à la demande, puis
-    /// gardées en base : ouvrir une fiche ne coûte jamais d'appel réseau.
-    /// </summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasTmdbSuggestions))]
-    public partial IReadOnlyList<TmdbSuggestion> TmdbSuggestions { get; private set; } = [];
-
-    public bool HasTmdbSuggestions => TmdbSuggestions.Count > 0;
-
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(FetchSuggestionsCommand))]
-    public partial bool SuggestionsFetched { get; private set; }
-
-    private void LoadSuggestions()
-    {
-        if (_extras.Suggestions is null || Detail is null)
-        {
-            TmdbSuggestions = [];
-            SuggestionsFetched = false;
-            return;
-        }
-
-        TmdbSuggestions = _extras.Suggestions.For(Detail.Id);
-        SuggestionsFetched = _extras.Suggestions.WasFetched(Detail.Id);
-        FetchSuggestionsCommand.NotifyCanExecuteChanged();
-    }
-
     private bool CanFetchSuggestions() =>
-        _extras.Suggestions is not null && _metadata is not null && !IsBusy && !SuggestionsFetched && Detail?.TmdbId is not null;
+        _extras.Suggestions is not null && _metadata is not null && !IsBusy && !Record.SuggestionsFetched && Detail?.TmdbId is not null;
 
     /// <summary>Demande à TMDb ses suggestions pour la fiche affichée, une seule fois par titre.</summary>
     [RelayCommand(CanExecute = nameof(CanFetchSuggestions))]
@@ -1115,7 +1062,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             var found = await _metadata.RecommendationsAsync(title.Kind, sourceId, CancellationToken.None);
             store.Save(title.Id, found);
-            LoadSuggestions();
+            Record.ReloadSuggestions();
             Status = found.Count == 0
                 ? Tr.T("TMDb ne propose rien pour ce titre.")
                 : Tr.F("{0} suggestion(s) de TMDb.", found.Count);
@@ -1158,7 +1105,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             var result = new MetadataSearchResult(suggestion.Kind, suggestion.TmdbId, suggestion.Name, null, suggestion.Year, null, suggestion.PosterPath, suggestion.Rating);
             var id = await _metadata.ImportAsync(result, ImportOptions.Default);
             _titles.SetOwned([id], false);
-            LoadSuggestions();
+            Record.ReloadSuggestions();
             Refresh(selectId: id);
             Status = Tr.F("« {0} » ajouté à la liste de souhaits.", suggestion.Name);
             Journal($"Ajouté à la liste de souhaits depuis les suggestions TMDb : {suggestion.Name} (TMDb {suggestion.TmdbId})");
@@ -1175,103 +1122,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    /// <summary>Distribution (acteurs, avec photo et personnage) du titre affiché.</summary>
-    public ObservableCollection<CastMember> Cast { get; } = [];
-
-    [ObservableProperty]
-    public partial string? CrewText { get; set; }
-
-    public bool HasCast => Cast.Count > 0;
-
-    /// <summary>Réalisateurs du titre affiché, cliquables (fiche et films réalisés).</summary>
-    public ObservableCollection<CastMember> Directors { get; } = [];
-
-    public bool HasDirectors => Directors.Count > 0;
-
     public bool HasPeople => _media?.People is not null;
-
-    /// <summary>Genres du titre affiché, dans la langue de l'interface (pastilles sous les boutons de la fiche).</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasDetailGenres))]
-    public partial IReadOnlyList<string> DetailGenres { get; set; } = [];
-
-    public bool HasDetailGenres => DetailGenres.Count > 0;
-
-    private void LoadCredits()
-    {
-        Cast.Clear();
-        Directors.Clear();
-        CrewText = null;
-        if (Detail is not { } detail || _media?.People is not { } people)
-        {
-            OnPropertyChanged(nameof(HasCast));
-            OnPropertyChanged(nameof(HasDirectors));
-            return;
-        }
-
-        var (cast, directors, crew) = CreditsOf(detail.Id);
-        foreach (var actor in cast)
-        {
-            Cast.Add(actor);
-        }
-
-        foreach (var director in directors)
-        {
-            Directors.Add(director);
-        }
-
-        CrewText = crew;
-        OnPropertyChanged(nameof(HasCast));
-        OnPropertyChanged(nameof(HasDirectors));
-        LoadSelectionPeople();
-
-        // Photos manquantes téléchargées en arrière-plan ; la distribution est rechargée si le titre est toujours affiché.
-        var credits = people.Repository.Credits(detail.Id);
-        if (credits.Any(c => c.PhotoRelativePath is null && c.ProfilePath is not null))
-        {
-            _ = LoadCreditPhotosAsync(detail.Id, credits);
-        }
-    }
-
-    /// <summary>
-    /// Distribution, réalisateurs et équipe d'un titre, photos résolues. Partagé par le panneau de droite et
-    /// par la fiche ouverte, qui doivent montrer la même chose après une mise à jour.
-    /// </summary>
-    private (IReadOnlyList<CastMember> Cast, IReadOnlyList<CastMember> Directors, string Crew) CreditsOf(long titleId)
-    {
-        if (_media?.People is not { } people)
-        {
-            return ([], [], string.Empty);
-        }
-
-        var credits = people.Repository.Credits(titleId);
-        var cast = credits.Where(c => c.Role == "actor")
-            .Select(c => c with { PhotoPath = people.ResolvePhoto(c.PhotoRelativePath) })
-            .ToList();
-        var directors = credits.Where(c => c.Role == "director").GroupBy(c => c.PersonId).Select(g => g.First())
-            .Select(c => c with { PhotoPath = people.ResolvePhoto(c.PhotoRelativePath) })
-            .ToList();
-
-        // Réalisateurs affichés à part (cliquables) ; le reste de l'équipe en texte.
-        var crew = credits.Where(c => c.Role is not ("actor" or "director")).GroupBy(c => c.RoleLabel)
-            .Select(g => $"{g.Key} : {string.Join(", ", g.Select(c => c.Name).Distinct())}");
-        return (cast, directors, string.Join('\n', crew));
-    }
-
-    private async Task LoadCreditPhotosAsync(long titleId, IReadOnlyList<CastMember> credits)
-    {
-        try
-        {
-            if (await _media!.People!.EnsureCreditPhotosAsync(credits.Where(c => c.Role == "actor")) > 0 && Detail?.Id == titleId)
-            {
-                Avalonia.Threading.Dispatcher.UIThread.Post(LoadCredits);
-            }
-        }
-        catch (Exception ex) when (ex is HttpRequestException or IOException)
-        {
-            // Pas de photo : la fiche reste utilisable.
-        }
-    }
 
     /// <summary>Fiche d'une personne ; si l'un de ses titres y est choisi, il est sélectionné dans le catalogue.</summary>
     [RelayCommand]
@@ -1479,19 +1330,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
         Refresh(selectId: titleId);
     }
 
-    public bool HasDetailFiles => DetailFiles.Count > 0;
-
-    partial void OnDetailFilesChanged(IReadOnlyList<MediaFileEntry> value) => OnPropertyChanged(nameof(HasDetailFiles));
-
-    /// <summary>Emplacement complet et infos MediaInfo de chaque fichier du titre, ou une indication s'il n'y en a pas.</summary>
-    private string MediaTextOf(long titleId)
-    {
-        var files = _media?.Files.TechnicalDetails(titleId) ?? [];
-        return files.Count == 0
-            ? "Aucun fichier vidéo rattaché à ce titre (ajouté depuis TMDb ou à la main). Utilisez « Importer » pour l'associer à son fichier."
-            : string.Join("\n\n", files.Select(f => f.Describe()));
-    }
-
     public bool HasMedia => _media is not null;
 
     [ObservableProperty]
@@ -1534,10 +1372,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     public bool HasMetadataSource => _metadata is not null;
-
-    public bool HasDetail => Detail is not null;
-
-    public bool IsSeries => Detail?.Kind == TitleKind.Series;
 
     public bool IsEmpty => _loaded && Titles.Count == 0;
 
@@ -1701,169 +1535,19 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private void OnSelectionChanged()
     {
-        Detail = SelectedTitles.Count == 1 ? _titles.Get(SelectedTitles[0].Id) : null;
+        Record.Show(SelectedTitles.Count == 1 ? SelectedTitles[0].Id : null);
         OnPropertyChanged(nameof(HasMultiSelection));
         OnPropertyChanged(nameof(ShowDetailHint));
         OnPropertyChanged(nameof(SelectionLabel));
         OnPropertyChanged(nameof(SelectionPreview));
-        PosterPath = Detail is null ? null : _images?.PathFor(Detail.Id, "poster");
-        BackdropPath = Detail is null ? null : _images?.PathFor(Detail.Id, "backdrop");
-        DetailFiles = Detail is null || _media is null ? [] : _media.Files.FilesOf(Detail.Id);
-        DetailGenres = Detail is null ? [] : _titles.GenreLabels(Detail.Id).Select(Tr.T).ToList();
-        ScheduleDetailExtras();
         LinkToTmdbCommand.NotifyCanExecuteChanged();
         OpenSeriesCommand.NotifyCanExecuteChanged();
-        OnPropertyChanged(nameof(IsSeries));
-
-        // Le dernier emprunteur ne sert qu'à préremplir le prêt d'une fiche affichée et libre : inutile de
-        // le demander à la base quand aucune fiche n'est montrée (sélection multiple, liste vide).
-        BorrowerText = Detail is { CurrentLoan: null } ? _titles.LastBorrower() ?? string.Empty : string.Empty;
         EditCommand.NotifyCanExecuteChanged();
         DeleteCommand.NotifyCanExecuteChanged();
         ToggleSeenCommand.NotifyCanExecuteChanged();
         ToggleFavoriteCommand.NotifyCanExecuteChanged();
         MoveUpCommand.NotifyCanExecuteChanged();
         MoveDownCommand.NotifyCanExecuteChanged();
-    }
-
-    /// <summary>
-    /// Ce que la fiche de droite montre en plus de ses champs, et qui coûte à lire : infos techniques,
-    /// générique, films proches, suggestions. Lu d'un bloc pour pouvoir l'être hors du fil d'interface.
-    /// </summary>
-    private sealed record DetailExtras(
-        long TitleId,
-        string? Technical,
-        IReadOnlyList<SimilarTitle> Similar,
-        IReadOnlyList<TmdbSuggestion> Suggestions,
-        bool SuggestionsFetched,
-        IReadOnlyList<CastMember> Cast,
-        IReadOnlyList<CastMember> Directors,
-        string Crew,
-        IReadOnlyList<CastMember> Credits);
-
-    /// <summary>Délai d'immobilité avant de charger le reste de la fiche : tenir la flèche bas ne le déclenche pas.</summary>
-    private static readonly TimeSpan DetailDelay = TimeSpan.FromMilliseconds(80);
-
-    private Avalonia.Threading.DispatcherTimer? _detailTimer;
-
-    private int _detailGeneration;
-
-    /// <summary>Titre dont le complément de fiche est affiché ; nul tant qu'il n'est pas chargé.</summary>
-    private long? _detailLoadedFor;
-
-    /// <summary>
-    /// Charge le complément de la fiche affichée. Au parcours clavier chaque flèche change de titre : les
-    /// lire tous en entier faisait une dizaine de requêtes par touche pour des fiches qu'on ne regarde pas.
-    /// Le complément est donc vidé tout de suite, puis lu en arrière-plan après un court arrêt, et abandonné
-    /// si la sélection a encore bougé. Le même titre republié (après une modification) est relu sur place,
-    /// sans clignoter.
-    /// </summary>
-    private void ScheduleDetailExtras()
-    {
-        ++_detailGeneration;
-        _detailTimer?.Stop();
-        if (Detail is not { } detail)
-        {
-            ApplyDetailExtras(null);
-            return;
-        }
-
-        if (Avalonia.Application.Current is null || _detailLoadedFor == detail.Id)
-        {
-            ApplyDetailExtras(ReadDetailExtras(detail.Id));
-            return;
-        }
-
-        ApplyDetailExtras(null);
-        if (_detailTimer is null)
-        {
-            _detailTimer = new Avalonia.Threading.DispatcherTimer { Interval = DetailDelay };
-            _detailTimer.Tick += async (_, _) =>
-            {
-                _detailTimer.Stop();
-                await LoadDetailExtrasAsync();
-            };
-        }
-
-        _detailTimer.Start();
-    }
-
-    private async Task LoadDetailExtrasAsync()
-    {
-        if (Detail is not { } detail)
-        {
-            return;
-        }
-
-        var generation = _detailGeneration;
-        var extras = await Task.Run(() => ReadDetailExtras(detail.Id));
-        if (generation == _detailGeneration && Detail?.Id == extras.TitleId)
-        {
-            ApplyDetailExtras(extras);
-        }
-    }
-
-    /// <summary>
-    /// Le complément de la fiche est-il là ? Sinon il est lu tout de suite. À appeler avant d'ouvrir ce qui
-    /// s'en sert (la fiche d'édition, le menu du clic droit), au cas où l'on agit dans le délai d'attente.
-    /// </summary>
-    public void EnsureDetailLoaded()
-    {
-        if (Detail is { } detail && _detailLoadedFor != detail.Id)
-        {
-            ++_detailGeneration;
-            _detailTimer?.Stop();
-            ApplyDetailExtras(ReadDetailExtras(detail.Id));
-        }
-    }
-
-    /// <summary>Lectures seules, chacune sur sa propre connexion : sûr hors du fil d'interface.</summary>
-    private DetailExtras ReadDetailExtras(long titleId)
-    {
-        var (cast, directors, crew) = CreditsOf(titleId);
-        return new DetailExtras(
-            titleId,
-            MediaTextOf(titleId),
-            SimilarOf(titleId),
-            _extras.Suggestions?.For(titleId) ?? [],
-            _extras.Suggestions?.WasFetched(titleId) ?? false,
-            cast,
-            directors,
-            crew,
-            _media?.People?.Repository.Credits(titleId) ?? []);
-    }
-
-    private void ApplyDetailExtras(DetailExtras? extras)
-    {
-        _detailLoadedFor = extras?.TitleId;
-        TechnicalSummary = extras?.Technical;
-        Similar = extras?.Similar ?? [];
-        TmdbSuggestions = extras?.Suggestions ?? [];
-        SuggestionsFetched = extras?.SuggestionsFetched ?? false;
-        FetchSuggestionsCommand.NotifyCanExecuteChanged();
-
-        Cast.Clear();
-        Directors.Clear();
-        foreach (var actor in extras?.Cast ?? [])
-        {
-            Cast.Add(actor);
-        }
-
-        foreach (var director in extras?.Directors ?? [])
-        {
-            Directors.Add(director);
-        }
-
-        CrewText = string.IsNullOrEmpty(extras?.Crew) ? null : extras.Crew;
-        OnPropertyChanged(nameof(HasCast));
-        OnPropertyChanged(nameof(HasDirectors));
-        LoadSelectionPeople();
-
-        // Photos manquantes téléchargées en arrière-plan ; la distribution est rechargée si le titre est toujours affiché.
-        if (extras is not null && extras.Credits.Any(c => c.PhotoRelativePath is null && c.ProfilePath is not null))
-        {
-            _ = LoadCreditPhotosAsync(extras.TitleId, extras.Credits);
-        }
     }
 
     [RelayCommand(CanExecute = nameof(CanAdd))]
@@ -1917,7 +1601,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         // Un double-clic ouvre la fiche avant la fin du délai de chargement : le générique doit y être.
-        EnsureDetailLoaded();
+        Record.EnsureLoaded();
 
         var current = _titles.Get(SelectedTitles[0].Id);
         if (current is null)
@@ -1929,22 +1613,22 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var (collectionFilms, collectionName) = CollectionOf(current);
         var extras = new TitleEditorExtras(
             _images?.PathFor(current.Id, "poster"),
-            Detail?.Id == current.Id ? Cast.ToList() : null,
-            Detail?.Id == current.Id ? CrewText : null,
-            Detail?.Id == current.Id ? Directors.ToList() : null,
-            MediaTextOf(current.Id),
+            Detail?.Id == current.Id ? Record.Cast.ToList() : null,
+            Detail?.Id == current.Id ? Record.CrewText : null,
+            Detail?.Id == current.Id ? Record.Directors.ToList() : null,
+            Record.MediaTextOf(current.Id),
             _media is null ? null : async () =>
             {
                 var (_, tool) = await _media.Import.RefreshTechnicalAsync([current.Id], new Progress<string>(m => Status = m), CancellationToken.None);
                 Status = tool == "aucun" ? "MediaInfo introuvable : indiquez son chemin dans les réglages." : Tr.F("Infos techniques relues avec {0}", tool);
-                return MediaTextOf(current.Id);
+                return Record.MediaTextOf(current.Id);
             },
             _media is null ? null : async path =>
             {
                 var part = await _media.Import.AddPartAsync(current.Id, path, videoExtensions: ScanSettings.Load(_media.Settings).ExtensionSet);
                 Status = Tr.F("Partie {0} rattachée à « {1} »", part, current.Title);
                 Journal($"Partie {part} rattachée à « {current.Title} » : {path}");
-                return MediaTextOf(current.Id);
+                return Record.MediaTextOf(current.Id);
             },
             _media?.People,
             new LoanEditorViewModel(_titles, current.Id),
@@ -1970,12 +1654,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
             new ViewingsViewModel(_titles, current.Id),
             () =>
             {
-                var (cast, directors, crew) = CreditsOf(current.Id);
+                var (cast, directors, crew) = Record.CreditsOf(current.Id);
                 return new TitleEditorView(cast, directors, crew, _images?.PathFor(current.Id, "poster"), _titles.Collections());
             },
             collectionFilms,
             collectionName,
-            SimilarOf(current.Id),
+            Record.SimilarOf(current.Id),
             _extras.Suggestions?.For(current.Id) ?? [],
             _extras.Suggestions is null || _metadata is null || current.TmdbId is null
                 ? null
@@ -2736,33 +2420,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         AddToList(target);
-    }
-
-    /// <summary>
-    /// Personnes du titre affiché, pour rebondir sur leurs autres films : réalisateurs d'abord, puis les
-    /// premiers rôles. Chaque entrée porte la recherche qu'un clic applique.
-    /// </summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasSelectionPeople))]
-    public partial IReadOnlyList<FacetItem> SelectionPeople { get; private set; } = [];
-
-    public bool HasSelectionPeople => SelectionPeople.Count > 0;
-
-    private void LoadSelectionPeople()
-    {
-        if (Detail is null)
-        {
-            SelectionPeople = [];
-            return;
-        }
-
-        SelectionPeople =
-        [
-            .. Directors.Select(d => new FacetItem(
-                Tr.F("Films de {0}", d.Name), new RuleSearch([new SearchRule("director", RuleOperator.Equals, d.Name)]))),
-            .. Cast.Take(6).Select(a => new FacetItem(
-                Tr.F("Films avec {0}", a.Name), new RuleSearch([new SearchRule("actor", RuleOperator.Equals, a.Name)]))),
-        ];
     }
 
     /// <summary>Affiche les films d'une personne : la recherche remplace la vue en cours.</summary>

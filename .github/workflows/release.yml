@@ -17,7 +17,21 @@ env:
   VPK_VERSION: "1.2.161"
 
 jobs:
+  # Les tests une seule fois, avant les paquets. L'intégration continue les a déjà passés sur les trois
+  # systèmes pour ce même commit : les rejouer dans trois travaux de paquets triplait surtout le risque
+  # qu'un test capricieux bloque une publication.
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - name: Tests
+        run: dotnet test -c Release --project tests/Cinedex.Tests
+
   package:
+    needs: tests
     strategy:
       fail-fast: false
       matrix:
@@ -34,9 +48,6 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
-      - name: Tests
-        if: matrix.installer
-        run: dotnet test -c Release --project tests/Cinedex.Tests
       - name: Archive portable ${{ matrix.rid }}
         shell: pwsh
         run: ./build/package.ps1 -Rid ${{ matrix.rid }}

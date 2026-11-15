@@ -172,6 +172,20 @@ internal sealed class UiCatalog : IDisposable
     }
 
     /// <summary>Temps mesurés : fichier désigné par CINEDEX_PERF_LOG s'il est défini.</summary>
+    /// <summary>
+    /// Mesure de durée. Elle est toujours consignée ; elle n'échoue que si <c>CINEDEX_PERF_STRICT=1</c>, ce
+    /// que fait l'intégration continue ordinaire. Ailleurs (poste chargé, chaîne de publication), une machine
+    /// lente ne doit pas se faire passer pour une régression du code.
+    /// </summary>
+    public static void Budget(string label, TimeSpan elapsed, TimeSpan budget)
+    {
+        Report($"{label} : {elapsed.TotalMilliseconds:0} ms (budget {budget.TotalMilliseconds:0} ms)");
+        if (Environment.GetEnvironmentVariable("CINEDEX_PERF_STRICT") == "1")
+        {
+            Assert.True(elapsed < budget, $"{label} : {elapsed.TotalMilliseconds:0} ms, budget {budget.TotalMilliseconds:0} ms");
+        }
+    }
+
     public static void Report(string line)
     {
         TestContext.Current.SendDiagnosticMessage(line);

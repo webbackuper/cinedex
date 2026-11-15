@@ -131,9 +131,8 @@ public sealed class MainWindowUiTests(UiSession ui)
     public Task Big_catalog_opens_quickly_and_only_visible_rows_exist() => ui.Run(() =>
     {
         using var catalog = new UiCatalog(BigCatalog);
-        UiCatalog.Report($"Ouverture de {BigCatalog} titres : {catalog.OpenedIn.TotalMilliseconds:0} ms");
         Assert.Equal(BigCatalog, catalog.ViewModel.Titles.Count);
-        Assert.True(catalog.OpenedIn < TimeSpan.FromSeconds(8), $"ouverture {catalog.OpenedIn}");
+        UiCatalog.Budget($"Ouverture de {BigCatalog} titres", catalog.OpenedIn, TimeSpan.FromSeconds(8));
 
         // Vue liste : seules les lignes visibles sont créées.
         var list = catalog.Find<ListBox>(l => l.Classes.Contains("titles"));
@@ -170,14 +169,11 @@ public sealed class MainWindowUiTests(UiSession ui)
         var watch = Stopwatch.StartNew();
         vm.ToggleFavoriteCommand.Execute(null);
         UiCatalog.Pump();
-        UiCatalog.Report($"Favori sur une ligne parmi {BigCatalog} : {watch.ElapsedMilliseconds} ms");
-
         Assert.Equal(!before, vm.Titles.Single(t => t.Id == id).IsFavorite);
         Assert.Equal(BigCatalog, vm.Titles.Count);
         // Ce qu'on garde ici, c'est qu'une seule ligne soit relue, non une vitesse absolue : relire les
-        // 12 000 prendrait des secondes. La marge est donc large, pour qu'une machine chargée ne crie pas
-        // à la régression quand il n'y en a pas.
-        Assert.True(watch.ElapsedMilliseconds < 1_500, $"{watch.ElapsedMilliseconds} ms");
+        // 12 000 prendrait des secondes.
+        UiCatalog.Budget($"Favori sur une ligne parmi {BigCatalog}", watch.Elapsed, TimeSpan.FromMilliseconds(1_500));
     });
 
     [Fact]

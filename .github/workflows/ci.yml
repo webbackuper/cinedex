@@ -18,6 +18,9 @@ jobs:
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT: "1"
       DOTNET_NOLOGO: "1"
+      # Les mesures de durée des tests d'interface échouent ici, et seulement ici, quand un budget est dépassé.
+      CINEDEX_PERF_STRICT: "1"
+      CINEDEX_PERF_LOG: ${{ github.workspace }}/perf.log
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-dotnet@v5
@@ -44,6 +47,13 @@ jobs:
             echo "::error title=Tests en échec::${summary}"
           fi
           exit $status
+      - name: Mesures de durée
+        if: always()
+        shell: bash
+        run: |
+          if [ -f perf.log ]; then
+            { echo "### Mesures de durée (${{ matrix.os }})"; echo; sed 's/^/- /' perf.log; } >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Paquets vulnérables
         shell: bash
         run: |

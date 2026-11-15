@@ -225,6 +225,18 @@ public sealed class MainWindowViewModelTests : IDisposable
 
         public Task InformAsync(string title, string message) => Task.CompletedTask;
 
+        /// <summary>Réponses données aux questions à plusieurs choix, dans l'ordre ; -1 quand il n'y en a plus.</summary>
+        public Queue<int> Choices { get; } = new();
+
+        /// <summary>Les questions à plusieurs choix posées, pour vérifier ce qui a été demandé.</summary>
+        public List<string> Asked { get; } = [];
+
+        public Task<int> ChooseAsync(string title, string message, params string[] answers)
+        {
+            Asked.Add(message);
+            return Task.FromResult(Choices.Count > 0 ? Choices.Dequeue() : -1);
+        }
+
         /// <summary>Dernier texte copié, pour vérifier ce que la commande met dans le presse-papiers.</summary>
         public string? Copied { get; private set; }
 

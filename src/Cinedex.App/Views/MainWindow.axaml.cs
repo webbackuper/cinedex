@@ -375,6 +375,9 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
 
     public Task InformAsync(string title, string message) => MessageWindow.ShowAsync(this, title, message, confirm: false);
 
+    public Task<int> ChooseAsync(string title, string message, params string[] answers) =>
+        MessageWindow.ChooseAsync(this, title, message, answers);
+
     public Task<MetadataSearchResult?> SearchMetadataAsync(MetadataSearchViewModel search)
     {
         AddButton.Flyout?.Hide();

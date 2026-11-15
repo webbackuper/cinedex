@@ -11,6 +11,9 @@ public interface IDialogs
 
     Task InformAsync(string title, string message);
 
+    /// <summary>Question à plusieurs réponses ; renvoie le rang de celle choisie, ou -1 si la fenêtre est fermée.</summary>
+    Task<int> ChooseAsync(string title, string message, params string[] answers);
+
     /// <summary>Met un texte dans le presse-papiers ; renvoie faux si le système ne le permet pas.</summary>
     Task<bool> CopyTextAsync(string text);
 

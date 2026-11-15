@@ -227,6 +227,11 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.15.0
+- **Playing a film whose disc is not plugged in asks for the disc.** Before every playback, of a film or an episode, and before opening a file's folder, Cinedex checks that the file is there. If it is missing, a window names the disc to connect (its MediaID) and recalls the expected path, with three answers: **Try again** once the disc is plugged in, **Search the other drive letters**, or **Cancel**.
+- **Searching the other drives**: on Windows, the same path is looked for under every ready drive letter (`E:\Films\Heat.mkv` under `F:`, `G:`…). On macOS it is looked for in the discs of `/Volumes`, on Linux in those of `/media`, `/run/media` and `/mnt`. If the file is not there, the window says so and stays open.
+- **The recorded location does not change.** A file found on another drive is played from there this once; the catalog's path and MediaID remain those of the cataloguing.
+
 ### 0.14.1
 - **Nothing new on screen: the main window's code has been split up.** The right-hand record and the left sidebar each have their own module, after the duplicates in 0.14.0. This closes the work opened by the audit: the window now only carries the list, the selection and the actions, which makes the next changes safer.
 

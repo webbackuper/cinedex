@@ -227,6 +227,11 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.15.0
+- **Lire un film dont le disque n'est pas branché demande le disque.** Avant chaque lecture, d'un film comme d'un épisode, et avant d'ouvrir le dossier d'un fichier, Cinedex vérifie que le fichier est là. S'il manque, une fenêtre nomme le disque à connecter (son MediaID) et rappelle le chemin attendu, avec trois réponses : **Réessayer** une fois le disque branché, **Chercher sur les autres lettres de lecteur**, ou **Annuler**.
+- **Chercher sur les autres lecteurs** : sous Windows, le même chemin est cherché sous chaque lettre de lecteur prête (`E:\Films\Heat.mkv` sous `F:`, `G:`…). Sous macOS il l'est dans les disques de `/Volumes`, sous Linux dans ceux de `/media`, `/run/media` et `/mnt`. Si le fichier n'y est pas, la fenêtre le dit et reste ouverte.
+- **L'emplacement enregistré ne change pas.** Un fichier trouvé sur un autre lecteur est lu de là pour cette fois ; le chemin et le MediaID du catalogue restent ceux du catalogage.
+
 ### 0.14.1
 - **Rien de nouveau à l'écran : le code de la fenêtre principale est découpé.** La fiche de droite et le bandeau gauche ont chacun leur propre module, après les doublons en 0.14.0. C'est la fin du chantier ouvert par l'audit : la fenêtre ne porte plus que la liste, la sélection et les actions, ce qui rend les évolutions suivantes plus sûres.
 

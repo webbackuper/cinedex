@@ -147,13 +147,38 @@ public sealed partial class SeriesViewModel : ObservableObject
         Reload(SelectedSeason?.Id);
     }
 
+    /// <summary>
+    /// Question à plusieurs réponses, posée par la fenêtre de la série. Sans elle (tests), un fichier absent
+    /// est simplement signalé.
+    /// </summary>
+    public MediaLocator.Ask? Ask { get; set; }
+
+    /// <summary>Racines où chercher un fichier absent ; nul pour celles du système.</summary>
+    public Func<IReadOnlyList<string>>? MediaRoots { get; set; }
+
     [RelayCommand]
-    private void PlayEpisode()
+    private async Task PlayEpisodeAsync()
     {
-        if (SelectedEpisode?.Episode.FilePath is not { } path)
+        if (SelectedEpisode is not { Episode.FilePath: { } recorded } chosen)
         {
             Message = "Pas de fichier pour cet épisode.";
             return;
+        }
+
+        // Le fichier d'un épisode se vérifie comme celui d'un film : s'il manque, on demande son disque.
+        var path = recorded;
+        if (!File.Exists(path))
+        {
+            var located = Ask is null
+                ? null
+                : await MediaLocator.LocateAsync(() => [new MediaCandidate(recorded, null)], Ask, MediaRoots);
+            if (located is null)
+            {
+                Message = Tr.T("Fichier introuvable : le disque est peut-être débranché.");
+                return;
+            }
+
+            path = located.Path;
         }
 
         try
@@ -161,7 +186,7 @@ public sealed partial class SeriesViewModel : ObservableObject
             Player.Play(path, _settings?.Get(MediaContext.PlayerKey), _settings?.Get(MediaContext.PlayerArgsKey));
             if (_settings?.Get(MediaContext.MarkSeenOnPlayKey) != "false")
             {
-                SelectedEpisode.IsSeen = true;
+                chosen.IsSeen = true;
             }
         }
         catch (Exception ex) when (ex is IOException or InvalidOperationException or System.ComponentModel.Win32Exception)

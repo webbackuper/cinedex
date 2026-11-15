@@ -1965,12 +1965,49 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     /// <summary>Lit le premier fichier présent ; marque le titre comme vu si le réglage le demande (par défaut).</summary>
     [RelayCommand(CanExecute = nameof(HasFiles))]
-    private void Play() => PlayFirst(DetailFiles, keepSelection: null);
+    private Task PlayAsync() => Detail is { } detail ? PlayTitleAsync(detail.Id, keepSelection: null) : Task.CompletedTask;
 
-    private void PlayFirst(IReadOnlyList<MediaFileEntry> files, IReadOnlyList<long>? keepSelection)
+    /// <summary>
+    /// Retrouve le fichier d'un titre avant de s'en servir. S'il n'est pas là, on demande de connecter son
+    /// disque (son MediaID est nommé), avec de quoi réessayer ou chercher le même chemin sur les autres
+    /// lecteurs : la lettre d'un disque USB change d'un branchement à l'autre. Nul si l'utilisateur renonce.
+    /// </summary>
+    private async Task<LocatedMedia?> LocateFileAsync(long titleId)
     {
-        var file = files.FirstOrDefault(f => File.Exists(f.FullPath));
-        if (file is null || _media is null)
+        if (_media is not { } media)
+        {
+            return null;
+        }
+
+        // Relu à chaque essai : un disque qu'on vient de brancher est reconnu à son nom, quelle que soit sa lettre.
+        var located = await MediaLocator.LocateAsync(
+            () => media.Files.FilesOf(titleId).Select(f => new MediaCandidate(f.FullPath, f.VolumeLabel, f.Id)).ToList(),
+            _dialogs.ChooseAsync,
+            MediaRoots);
+        if (located is { FoundElsewhere: true })
+        {
+            // Trouvé ailleurs : on s'en sert pour cette fois. L'emplacement enregistré au catalogue ne change
+            // pas : c'est l'endroit où le fichier a été catalogué, et une lettre de lecteur de passage n'a pas
+            // à le réécrire.
+            Journal($"Fichier lu depuis un autre lecteur : {located.File.Path} → {located.Path}");
+            Status = Tr.F("Fichier trouvé sur un autre lecteur : {0}", located.Path);
+        }
+
+        return located;
+    }
+
+    /// <summary>Racines où chercher un fichier absent ; nul pour celles du système. Les tests y mettent les leurs.</summary>
+    public Func<IReadOnlyList<string>>? MediaRoots { get; set; }
+
+    private async Task PlayTitleAsync(long titleId, IReadOnlyList<long>? keepSelection)
+    {
+        if (_media is null || _media.Files.FilesOf(titleId).Count == 0)
+        {
+            Status = MissingMediaMessage();
+            return;
+        }
+
+        if (await LocateFileAsync(titleId) is not { } located)
         {
             Status = MissingMediaMessage();
             return;
@@ -1978,13 +2015,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         try
         {
-            Player.Play(file.FullPath, _media.Settings.Get(MediaContext.PlayerKey), _media.Settings.Get(MediaContext.PlayerArgsKey));
-            Journal($"Lecture : {file.FullPath}");
+            Player.Play(located.Path, _media.Settings.Get(MediaContext.PlayerKey), _media.Settings.Get(MediaContext.PlayerArgsKey));
+            Journal($"Lecture : {located.Path}");
             if (_media.Settings.Get(MediaContext.MarkSeenOnPlayKey) != "false")
             {
                 // Chaque lecture laisse sa trace datée : c'est ce qui fait l'historique, et « revu trois fois ».
-                _titles.AddViewing(file.TitleId, DateTimeOffset.Now, ViewingSource.Playback);
-                Touch([file.TitleId], keepSelection);
+                _titles.AddViewing(titleId, DateTimeOffset.Now, ViewingSource.Playback);
+                Touch([titleId], keepSelection);
             }
         }
         catch (Exception ex) when (ex is IOException or InvalidOperationException or System.ComponentModel.Win32Exception)
@@ -1998,15 +2035,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// sélection telle qu'elle est. Marquer vu un film n'oblige plus à le sélectionner d'abord.
     /// </summary>
     [RelayCommand]
-    private void PlayOf(TitleSummary? title)
+    private Task PlayOfAsync(TitleSummary? title)
     {
         if (title is null || _media is null)
         {
             Status = MissingMediaMessage();
-            return;
+            return Task.CompletedTask;
         }
 
-        PlayFirst(_media.Files.FilesOf(title.Id), SelectedIds);
+        return PlayTitleAsync(title.Id, SelectedIds);
     }
 
     [RelayCommand]
@@ -2036,10 +2073,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand(CanExecute = nameof(HasFiles))]
-    private void OpenFolder()
+    private async Task OpenFolderAsync()
     {
-        var file = DetailFiles.FirstOrDefault(f => File.Exists(f.FullPath));
-        if (file is null)
+        if (Detail is not { } detail || await LocateFileAsync(detail.Id) is not { } located)
         {
             Status = MissingMediaMessage();
             return;
@@ -2047,7 +2083,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         try
         {
-            Player.RevealInFolder(file.FullPath);
+            Player.RevealInFolder(located.Path);
         }
         catch (System.ComponentModel.Win32Exception ex)
         {
@@ -2081,7 +2117,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        var vm = new SeriesViewModel(detail.Id, detail.Title, detail.TmdbId, series, _metadata, _media.Files, _media.Settings);
+        var vm = new SeriesViewModel(detail.Id, detail.Title, detail.TmdbId, series, _metadata, _media.Files, _media.Settings) { MediaRoots = MediaRoots };
         if (await _dialogs.ShowSeriesAsync(vm))
         {
             Touch([detail.Id]);

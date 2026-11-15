@@ -7,7 +7,19 @@ namespace Cinedex.App.Views;
 
 public sealed partial class SeriesWindow : Window
 {
-    public SeriesWindow() => InitializeComponent();
+    public SeriesWindow()
+    {
+        InitializeComponent();
+
+        // La question « connectez le disque » d'un épisode absent se pose au-dessus de cette fenêtre.
+        DataContextChanged += (_, _) =>
+        {
+            if (DataContext is SeriesViewModel vm)
+            {
+                vm.Ask = (title, message, answers) => MessageWindow.ChooseAsync(this, title, message, answers);
+            }
+        };
+    }
 
     private async void OnAttachFolder(object? sender, RoutedEventArgs e)
     {

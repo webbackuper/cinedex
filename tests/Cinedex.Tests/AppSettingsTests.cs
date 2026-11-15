@@ -362,6 +362,8 @@ public sealed class AppSettingsTests : IDisposable
 
         public Task InformAsync(string title, string message) => Task.CompletedTask;
 
+        public Task<int> ChooseAsync(string title, string message, params string[] answers) => Task.FromResult(-1);
+
         public Task<bool> CopyTextAsync(string text) => Task.FromResult(false);
 
         public Task<Cinedex.Core.Metadata.MetadataSearchResult?> SearchMetadataAsync(MetadataSearchViewModel search) =>

@@ -3,8 +3,20 @@
 Le texte français sert de clé de traduction : après avoir ajouté ou modifié des textes dans l'interface,
 relancer ce script (python build/i18n-extract.py), puis ajouter les traductions dans Lang/<code>.json.
 Le test LocalizationTests signale les textes des fenêtres absents du catalogue.
+
+Options, toutes appliquées après l'extraction :
+  --missing      liste, langue par langue, les textes du catalogue qui n'ont pas de traduction ;
+  --prune        retire des dictionnaires les textes que le catalogue ne contient plus ;
+  --add FICHIER  verse dans les dictionnaires les traductions d'un fichier JSON {"<code>": {"<texte>": "<traduction>"}}.
+Les fichiers de langue ne sont écrits qu'ici, pour que leur format n'existe qu'à un seul endroit.
 """
-import os, re, json, html
+import argparse, io, os, re, json, html
+
+parser = argparse.ArgumentParser(description="Catalogue des textes de Cinedex et dictionnaires de langue.")
+parser.add_argument('--missing', action='store_true', help="liste les textes sans traduction, par langue")
+parser.add_argument('--prune', action='store_true', help="retire des dictionnaires les textes absents du catalogue")
+parser.add_argument('--add', metavar='FICHIER', help="verse les traductions d'un fichier JSON : code de langue, puis texte et traduction")
+args = parser.parse_args()
 
 ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src')
 OUT = os.path.join(ROOT, 'Cinedex.Core', 'Localization', 'Lang', 'catalog.json')
@@ -87,3 +99,67 @@ result = sorted(strings, key=lambda s: s.lower())
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 json.dump(result, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 print(len(result), 'textes')
+
+# 4. Dictionnaires de langue : traductions à verser, textes orphelins, textes manquants.
+LANG_DIR = os.path.dirname(OUT)
+catalog = set(result)
+
+
+def languages():
+    return sorted(f[:-5] for f in os.listdir(LANG_DIR) if f.endswith('.json') and f != 'catalog.json')
+
+
+def read(code):
+    with io.open(os.path.join(LANG_DIR, code + '.json'), encoding='utf-8') as f:
+        return json.load(f)
+
+
+def write(code, data):
+    """Un texte par ligne, clés triées, une espace d'indentation, fins de ligne CRLF."""
+    lines = ['{']
+    keys = sorted(data)
+    for i, key in enumerate(keys):
+        comma = '' if i == len(keys) - 1 else ','
+        lines.append(' %s: %s%s' % (json.dumps(key, ensure_ascii=False), json.dumps(data[key], ensure_ascii=False), comma))
+    lines.append('}')
+    with io.open(os.path.join(LANG_DIR, code + '.json'), 'w', encoding='utf-8', newline='\r\n') as f:
+        f.write('\n'.join(lines) + '\n')
+
+
+if args.add:
+    with io.open(args.add, encoding='utf-8') as f:
+        added = json.load(f)
+    for code, texts in sorted(added.items()):
+        unknown = [k for k in texts if k not in catalog]
+        if unknown:
+            raise SystemExit('%s : %d texte(s) absents du catalogue, par exemple %r' % (code, len(unknown), unknown[0]))
+        data = read(code)
+        data.update(texts)
+        write(code, data)
+        print('%s : %d traduction(s) versée(s)' % (code, len(texts)))
+
+if args.prune:
+    for code in languages():
+        data = read(code)
+        orphans = [k for k in data if k not in catalog]
+        if orphans:
+            for k in orphans:
+                del data[k]
+            write(code, data)
+        print('%s : %d texte(s) orphelin(s) retiré(s)' % (code, len(orphans)))
+
+if args.missing:
+    reference = None
+    for code in languages():
+        data = read(code)
+        missing = [k for k in result if k not in data]
+        print('%s : %d texte(s) sans traduction' % (code, len(missing)))
+        reference = missing if reference is None or len(missing) < len(reference) else reference
+    # Les textes qu'aucune langue ne traduit sont le plus souvent des noms propres ; ceux qui manquent
+    # à une langue et pas aux autres sont les oublis.
+    everywhere = set(reference or [])
+    for code in languages():
+        data = read(code)
+        forgotten = [k for k in result if k not in data and k not in everywhere]
+        for k in forgotten:
+            print('  %s : %r' % (code, k))

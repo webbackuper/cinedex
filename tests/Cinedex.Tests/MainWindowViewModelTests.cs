@@ -204,9 +204,13 @@ public sealed class MainWindowViewModelTests : IDisposable
         /// <summary>Fiche ouverte, pour vérifier ce que la fenêtre principale y a mis.</summary>
         public TitleEditorViewModel? Edited { get; private set; }
 
+        /// <summary>Ce que l'utilisateur fait dans la fiche avant de la fermer.</summary>
+        public Action<TitleEditorViewModel>? OnEdit { get; set; }
+
         public Task<bool> EditTitleAsync(TitleEditorViewModel editor)
         {
             Edited = editor;
+            OnEdit?.Invoke(editor);
             return Task.FromResult(Answer);
         }
 

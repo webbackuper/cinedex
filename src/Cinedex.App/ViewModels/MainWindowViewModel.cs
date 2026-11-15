@@ -1494,15 +1494,19 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// <summary>Sélectionne un titre, en levant recherche et filtres s'il n'est pas affiché.</summary>
     public void GoToTitle(long titleId)
     {
-        if (Titles.All(t => t.Id != titleId))
+        if (Titles.FirstOrDefault(t => t.Id == titleId) is { } shown)
         {
-            _loaded = false;
-            SearchText = string.Empty;
-            SelectedFilter = Filters[0];
-            Rules = null;
-            _loaded = true;
+            // Déjà sous les yeux : rien n'a changé dans la base, le sélectionner suffit.
+            SetSelection([shown]);
+            return;
         }
 
+        _loaded = false;
+        SearchText = string.Empty;
+        SelectedFilter = Filters[0];
+        SelectedDuplicateGroup = null;
+        Rules = null;
+        _loaded = true;
         Refresh(selectId: titleId);
     }
 
@@ -1791,7 +1795,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         Status = targets.Count == 1
             ? Tr.F("Fiche de « {0} » vidée : relancez « Lier ou mettre à jour depuis TMDb » pour la remplir.", targets[0].Title)
             : Tr.F("{0} fiches vidées : relancez « Mettre à jour via TMDb » pour les remplir.", targets.Count);
-        Refresh(selectIds: targets.Select(t => t.Id).ToList());
+        Touch(targets.Select(t => t.Id).ToList());
     }
 
     /// <summary>Un titre : fiche complète. Plusieurs : modification groupée.</summary>
@@ -1892,7 +1896,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 Journal($"Marqué {(editor.IsSeen ? "vu" : "non vu")} : {updated.Title}");
             }
 
-            Refresh(selectId: updated.Id);
+            Touch([updated.Id]);
         }
         else if (editor.NavigateToTitleId is { } target)
         {
@@ -1902,7 +1906,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         else
         {
             // Infos techniques relues, partie ajoutée ou prêt modifié depuis la fiche, même sans enregistrer.
-            Refresh(selectId: current.Id);
+            Touch([current.Id]);
         }
     }
 
@@ -1946,14 +1950,19 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void PickRandom()
     {
-        var pick = _titles.PickRandom(CurrentQuery, unseenOnly: true);
-        if (pick is null)
+        // Tiré dans la liste affichée, qui est déjà la réponse à la requête courante : la redemander à la
+        // base puis tout relire coûtait deux lectures complètes du catalogue pour choisir un seul titre.
+        var unseen = Titles.Where(t => !t.IsSeen).ToList();
+        if (unseen.Count == 0)
         {
             Status = "Aucun titre non vu dans la sélection courante.";
             return;
         }
 
-        Refresh(selectId: pick.Id);
+#pragma warning disable CA5394 // Tirage d'agrément, pas d'usage cryptographique.
+        var pick = unseen[Random.Shared.Next(unseen.Count)];
+#pragma warning restore CA5394
+        SetSelection([pick]);
         Status = Tr.F("Au hasard : {0}", pick.Title);
     }
 
@@ -2048,7 +2057,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             var applied = await _metadata!.UpdateAsync(
                 detail.Id, reference.Kind, reference.Id, ImportOptions.Default with { KeepKind = keepKind });
-            Refresh(selectId: detail.Id);
+            Touch([detail.Id]);
             Status = applied ? "Fiche mise à jour depuis TMDb" : "Titre verrouillé : non modifié";
             Journal(applied ? $"Fiche mise à jour depuis TMDb : {detail.Title} (TMDb {reference.Text})" : $"Titre verrouillé, non modifié : {detail.Title}");
         });
@@ -2124,7 +2133,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             var progress = TrackedProgress(targets.Count);
             var result = await _metadata!.UpdateTitlesAsync(targets, ImportOptions.Default, progress, CancellationToken.None);
             ReloadSideLists();
-            Refresh(selectIds: ids);
+            Touch(ids);
             Status = Tr.F("{0} mis à jour, {1} à vérifier, {2} non trouvé(s), {3} ignoré(s), {4} échec(s)", result.Updated, result.ToReview, result.NotFound, result.Skipped, result.Failed);
             Journal($"Mise à jour via TMDb de {targets.Count} titre(s) : {result.Updated} mis à jour, {result.ToReview} à vérifier, {result.NotFound} non trouvé(s), {result.Skipped} ignoré(s), {result.Failed} échec(s)");
             if (result.ToReview > 0)
@@ -2322,7 +2331,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             {
                 // Chaque lecture laisse sa trace datée : c'est ce qui fait l'historique, et « revu trois fois ».
                 _titles.AddViewing(file.TitleId, DateTimeOffset.Now, ViewingSource.Playback);
-                Refresh(selectId: file.TitleId);
+                Touch([file.TitleId]);
             }
         }
         catch (Exception ex) when (ex is IOException or InvalidOperationException or System.ComponentModel.Win32Exception)
@@ -2380,7 +2389,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var vm = new SeriesViewModel(detail.Id, detail.Title, detail.TmdbId, series, _metadata, _media.Files, _media.Settings);
         if (await _dialogs.ShowSeriesAsync(vm))
         {
-            Refresh(selectId: detail.Id);
+            Touch([detail.Id]);
         }
     }
 
@@ -2611,7 +2620,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         var done = renames.Apply(doable, out var problems);
-        Refresh(selectIds: SelectedIds);
+        Touch(SelectedIds);
         Status = problems.Count == 0
             ? Tr.F("{0} fichier(s) renommé(s)", done)
             : Tr.F("{0} fichier(s) renommé(s), {1} échec(s)", done, problems.Count);
@@ -2713,7 +2722,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         try
         {
             var (read, tool) = await _media.Import.RefreshTechnicalAsync(ids, TrackedProgress(ids.Sum(id => _media.Files.FilesOf(id).Count)), CancellationToken.None);
-            Refresh(selectIds: SelectedIds);
+            Touch(SelectedIds);
             Status = tool == "aucun"
                 ? "MediaInfo introuvable : indiquez son chemin dans les réglages."
                 : Tr.F("{0} fichier(s) analysé(s) avec {1}", read, tool);
@@ -2756,7 +2765,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         if (await _dialogs.BulkEditAsync(edit))
         {
             _titles.ApplyBulk(ids.ToList(), edit.Build());
-            Refresh(selectIds: ids);
+            Touch(ids);
             Status = Tr.F("{0} titres modifiés", ids.Count);
             Journal($"Modification groupée de {ids.Count} titre(s)");
         }
@@ -2884,6 +2893,40 @@ public sealed partial class MainWindowViewModel : ObservableObject
         CustomSubtitle = Columns.Subtitle(title),
     };
 
+    /// <summary>Au-delà de ce nombre de titres touchés, relire toute la liste coûte moins que les remplacer un par un.</summary>
+    private const int TargetedRefreshLimit = 200;
+
+    /// <summary>
+    /// Relit ce qu'une action a modifié : les seules lignes touchées quand elles sont peu nombreuses (une
+    /// demi-milliseconde au lieu d'une relecture de tout le catalogue), la liste entière sinon.
+    /// </summary>
+    private void Touch(IReadOnlyList<long> ids, IReadOnlyList<long>? selectIds = null)
+    {
+        if (ids.Count is > 0 and <= TargetedRefreshLimit)
+        {
+            RefreshTitles(ids, selectIds);
+        }
+        else
+        {
+            Refresh(selectIds: selectIds ?? ids);
+        }
+    }
+
+    /// <summary>
+    /// Ce qui place une ligne dans le tri courant. Deux valeurs égales : la ligne n'a pas bougé de rang. Le
+    /// tri manuel d'une liste personnelle ne change que par les commandes de déplacement, qui relisent tout.
+    /// </summary>
+    private object? SortKey(TitleSummary title) => SelectedSort.Value switch
+    {
+        SortField.Title => (title.Title, title.Year),
+        SortField.Year => (title.Year, title.Title),
+        SortField.Number => (title.Number, title.Title),
+        SortField.AddedAt => (title.AddedOn, title.Title),
+        SortField.UserRating => (title.UserRating, title.Title),
+        SortField.Runtime => (title.RuntimeMinutes, title.Title),
+        _ => null,
+    };
+
     /// <summary>
     /// Met à jour quelques titres de la liste sans tout relire (favori, vu, prêt) : chaque ligne est remplacée en
     /// place, ou retirée si elle ne correspond plus au filtre. Si un titre doit apparaître dans la liste, toute la
@@ -2896,9 +2939,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        var current = Titles.Select((t, i) => (t.Id, i)).Where(x => ids.Contains(x.Id)).ToDictionary(x => x.Id, x => x.i);
+        var wanted = ids.ToHashSet();
+        var current = Titles.Select((t, i) => (t.Id, i)).Where(x => wanted.Contains(x.Id)).ToDictionary(x => x.Id, x => x.i);
         var fresh = _titles.Query(CurrentQuery with { Ids = ids }).ToDictionary(t => t.Id);
-        if (fresh.Keys.Any(id => !current.ContainsKey(id)))
+
+        // Un titre qui doit apparaître, ou dont la valeur de tri a changé (un titre renommé, une année
+        // corrigée), n'est plus à sa place : seule la relecture complète le range au bon rang.
+        if (fresh.Keys.Any(id => !current.ContainsKey(id)) ||
+            fresh.Values.Any(title => !Equals(SortKey(title), SortKey(Titles[current[title.Id]]))))
         {
             Refresh(selectIds: selectIds ?? ids);
             return;

@@ -179,10 +179,13 @@ Ces opérations s'appliquent tout de suite, sans « Enregistrer ». Chacune de c
 - **Ctrl+F** : rechercher ; **Ctrl+Maj+F** : recherche multicritère ; **Échap** : tout afficher
 - **Ctrl+H** : ajouter depuis le disque ; **Alt+A** : ajouter un titre ; **Ctrl+T** : chercher sur TMDb
 - **Ctrl+U** : lier ou mettre à jour depuis TMDb ; **Ctrl+Maj+U** : mettre à jour via TMDb
-- **Alt+E** ou double-clic : modifier la fiche ; **Suppr** : supprimer du catalogue
-- **Ctrl+P** : lire ; **Ctrl+O** : ouvrir le dossier du fichier
+- **F2**, **Alt+E** ou double-clic : modifier la fiche ; **Suppr** : supprimer du catalogue
+- Dans la fiche : **Ctrl+Page suivante** et **Ctrl+Page précédente** enregistrent et passent au titre voisin
+- **Ctrl+P** : lire ; **Ctrl+O** : ouvrir le dossier du fichier ; **Ctrl+I** : relire les infos techniques
+- **Ctrl+M** : fusionner la sélection ; **Ctrl+Maj+C** : copier les chemins ; **Ctrl+E** : exporter la sélection ; **Ctrl+L** : ajouter à la dernière liste utilisée
 - **Ctrl+S** : vu / pas vu ; **Ctrl+D** : favori ; **Ctrl+R** ou **F7** : un titre non vu au hasard
 - **Ctrl+1** : liste ; **Ctrl+2** : affiches ; **F5** : rafraîchir ; **F11** : plein écran
+- **F8** : réduire le bandeau à ses icônes ou le déplier ; **F9** : replier ou rouvrir la fiche de droite
 - Dans la vue affiches : **flèches** pour se déplacer (avec **Maj** pour étendre la sélection), **Début**/**Fin**, **Pg préc.**/**Pg suiv.**, **Entrée** pour ouvrir la fiche, **Ctrl+A** pour tout sélectionner, **Ctrl+clic** et **Maj+clic** pour une sélection multiple.
 
 ## Accessibilité
@@ -224,6 +227,23 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.14.0
+Une version née d'un audit complet du code : la fenêtre ne gèle plus sur un gros catalogue, la mémoire d'images est tenue, et cinq gestes du quotidien demandent moins de clics.
+
+- **La fenêtre ne gèle plus aux changements de vue.** Changer de filtre, de tri ou d'entrée du bandeau relisait toute la liste sur place : 150 à 700 ms d'arrêt sur 12 000 titres. La lecture se fait maintenant en arrière-plan.
+- **Modifier une fiche ne relit plus tout le catalogue.** Seules les lignes touchées sont relues ; un titre renommé retrouve quand même son rang.
+- **Tout sélectionner est instantané.** Ctrl+A sur 12 000 titres prenait environ trois secondes.
+- **Le parcours au clavier est fluide.** Tenir la flèche bas ne charge plus en entier chaque fiche traversée : générique, films proches et infos techniques arrivent quand vous vous arrêtez.
+- **La mémoire d'images est plafonnée à 256 Mo.** Le cache gardait 600 images quelle que soit leur taille, ce qui laissait l'économiseur d'écran en retenir des gigaoctets. Les grandes images ne sont plus décodées sur le fil d'affichage, et une affiche illisible n'est plus qu'une affiche absente.
+- **Une erreur imprévue ne ferme plus Cinedex** : elle est montrée, consignée au journal, et l'application continue.
+- **Une fusion de films sauvegarde vraiment la base avant.** La fusion depuis le bandeau « Doublons » et celle du clic droit annonçaient cette sauvegarde sans la faire ; seule celle des réglages la faisait. Les trois passent maintenant par le même chemin. Si vous avez fusionné par le bandeau ou le clic droit depuis la 0.10.0, aucune sauvegarde « avant fusion » n'a été créée à ce moment-là.
+- **Enchaîner les fiches** : dans une fiche, **Précédent** et **Suivant** (Ctrl+Page précédente, Ctrl+Page suivante) enregistrent et ouvrent la fiche du titre voisin de la liste.
+- **Quitter une fiche modifiée demande avant** : cliquer un film dans l'onglet Collection, Recommandations ou la fiche d'un acteur propose d'enregistrer, d'abandonner ou de rester.
+- **Raccourcis des actions du clic droit**, écrits dans le menu : **F2** ouvrir la fiche, **Ctrl+M** fusionner la sélection, **Ctrl+Maj+C** copier les chemins, **Ctrl+E** exporter la sélection, **Ctrl+I** relire les infos techniques, **Ctrl+L** ajouter à la dernière liste utilisée.
+- **Lire, vu, favori au survol** d'une ligne ou d'une affiche : un clic, sans changer la sélection.
+- **La fenêtre se replie sur petit écran** : sous 1 150 px la fiche de droite se replie, sous 1 000 px le bandeau passe en colonne d'icônes (**F8** à la main). Ce que la largeur a replié revient avec la place ; ce que vous avez replié vous-même reste replié.
+- « Voir aussi », au clic droit, listait le réalisateur et les acteurs du film précédemment affiché. Aller à un titre depuis un groupe de doublons ne l'affichait pas s'il était hors du groupe.
+
 ### 0.13.1
 - **« Vous aimerez aussi » et les suggestions TMDb sont de retour dans le panneau de droite**, sans quitter l'onglet Recommandations de la fiche. La 0.13.0 les avait déplacés ; les deux endroits ont leur usage. Sous les yeux, à droite, sans rien ouvrir ; en grand, dans l'onglet, quand on double-clique sur le film.
 

@@ -179,10 +179,13 @@ These operations apply immediately, without “Save”. Each one that changes th
 - **Ctrl+F**: search; **Ctrl+Shift+F**: advanced search; **Esc**: show all
 - **Ctrl+H**: add from disk; **Alt+A**: add a title; **Ctrl+T**: search TMDb
 - **Ctrl+U**: link or update from TMDb; **Ctrl+Shift+U**: update from TMDb
-- **Alt+E** or double-click: edit the entry; **Del**: delete from the catalog
-- **Ctrl+P**: play; **Ctrl+O**: open the file's folder
+- **F2**, **Alt+E** or double-click: edit the entry; **Del**: delete from the catalog
+- In the record: **Ctrl+Page Down** and **Ctrl+Page Up** save and move to the neighbouring title
+- **Ctrl+P**: play; **Ctrl+O**: open the file's folder; **Ctrl+I**: reread the technical info
+- **Ctrl+M**: merge the selection; **Ctrl+Shift+C**: copy the paths; **Ctrl+E**: export the selection; **Ctrl+L**: add to the last list used
 - **Ctrl+S**: watched / not watched; **Ctrl+D**: favorite; **Ctrl+R** or **F7**: a random unwatched title
 - **Ctrl+1**: list; **Ctrl+2**: posters; **F5**: refresh; **F11**: full screen
+- **F8**: shrink the sidebar to its icons or expand it; **F9**: fold or reopen the right-hand record
 - In the poster view: **arrows** to move (with **Shift** to extend the selection), **Home**/**End**, **Page Up**/**Page Down**, **Enter** to open the details, **Ctrl+A** to select all, **Ctrl+click** and **Shift+click** for multiple selection.
 
 ## Accessibility
@@ -224,6 +227,23 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.14.0
+A version born from a full audit of the code: the window no longer freezes on a large catalog, image memory is kept in check, and five everyday gestures take fewer clicks.
+
+- **The window no longer freezes on view changes.** Changing the filter, the sort or the sidebar entry reread the whole list in place: a 150 to 700 ms stop on 12,000 titles. The reading now happens in the background.
+- **Editing a record no longer rereads the whole catalog.** Only the lines touched are reread; a renamed title still finds its rank.
+- **Select all is instant.** Ctrl+A on 12,000 titles took about three seconds.
+- **Keyboard browsing is fluid.** Holding the down arrow no longer loads every record passed in full: cast, nearby films and technical info arrive when you stop.
+- **Image memory is capped at 256 MB.** The cache kept 600 images whatever their size, which let the screen saver hold gigabytes. Large images are no longer decoded on the display thread, and an unreadable poster is now just a missing poster.
+- **An unforeseen error no longer closes Cinedex**: it is shown, written to the log, and the application carries on.
+- **Merging films really backs the database up first.** Merging from the "Duplicates" sidebar entry and from the right-click announced that backup without making it; only the settings one did. All three now take the same path. If you merged from the sidebar or by right-click since 0.10.0, no "before merge" backup was created at that moment.
+- **Chaining records**: in a record, **Previous** and **Next** (Ctrl+Page Up, Ctrl+Page Down) save and open the record of the neighbouring title in the list.
+- **Leaving a changed record asks first**: clicking a film in the Collection tab, the Recommendations tab or an actor's page offers to save, discard or stay.
+- **Shortcuts for the right-click actions**, written in the menu: **F2** open the record, **Ctrl+M** merge the selection, **Ctrl+Shift+C** copy the paths, **Ctrl+E** export the selection, **Ctrl+I** reread the technical info, **Ctrl+L** add to the last list used.
+- **Play, watched, favorite on hover** over a line or a poster: one click, without changing the selection.
+- **The window folds on a small screen**: under 1,150 px the right-hand record folds, under 1,000 px the sidebar becomes a column of icons (**F8** by hand). What the width folded comes back with the room; what you folded yourself stays folded.
+- "See also", on right-click, listed the director and actors of the film shown before. Going to a title from a duplicate group did not show it if it was outside the group.
+
 ### 0.13.1
 - **"You will also like" and the TMDb suggestions are back in the right pane**, without leaving the record's Recommendations tab. Version 0.13.0 had moved them; both places have their use. Under your eyes, on the right, without opening anything; in full size, in the tab, when you double-click the film.
 

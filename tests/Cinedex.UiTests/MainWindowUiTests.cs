@@ -177,6 +177,44 @@ public sealed class MainWindowUiTests(UiSession ui)
     });
 
     [Fact]
+    public Task Selecting_everything_in_a_big_catalog_is_quick() => ui.Run(() =>
+    {
+        using var catalog = new UiCatalog(BigCatalog);
+        var vm = catalog.ViewModel;
+        var list = catalog.Find<ListBox>(l => l.Classes.Contains("titles"));
+        list.Focus();
+        UiCatalog.Pump();
+
+        // Ce que fait Ctrl+A : la liste sélectionne tout, puis verse les titres dans la sélection un par un.
+        var watch = Stopwatch.StartNew();
+        list.SelectAll();
+        UiCatalog.Pump();
+        watch.Stop();
+
+        Assert.Equal(BigCatalog, vm.SelectedIdSet.Count);
+        Assert.True(vm.HasMultiSelection);
+        // Le coût doit rester proportionnel au nombre de titres : il était quadratique, environ trois secondes ici.
+        UiCatalog.Budget($"Tout sélectionner parmi {BigCatalog}", watch.Elapsed, TimeSpan.FromMilliseconds(1_500));
+    });
+
+    [Fact]
+    public Task Changing_the_filter_of_a_big_catalog_returns_at_once() => ui.Run(() =>
+    {
+        using var catalog = new UiCatalog(BigCatalog);
+        var vm = catalog.ViewModel;
+
+        var watch = Stopwatch.StartNew();
+        vm.SelectedFilter = vm.Filters.Single(f => f.Value == QuickFilter.Movies);
+        watch.Stop();
+        var blocked = watch.Elapsed;
+
+        catalog.Settle();
+        Assert.All(vm.Titles, t => Assert.Equal(TitleKind.Movie, t.Kind));
+        // Ce qui compte : le temps pendant lequel la fenêtre ne répond pas, pas celui de la requête.
+        UiCatalog.Budget($"Fil d'interface retenu par un changement de filtre sur {BigCatalog}", blocked, TimeSpan.FromMilliseconds(100));
+    });
+
+    [Fact]
     public Task Typing_in_the_search_box_filters_the_list() => ui.RunAsync(async () =>
     {
         using var catalog = new UiCatalog(2_000);

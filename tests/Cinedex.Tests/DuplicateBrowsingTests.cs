@@ -50,13 +50,13 @@ public sealed class DuplicateBrowsingTests : IDisposable
         _vm.Load();
 
         // Avant toute recherche, on ne prétend pas qu'il n'y a aucun doublon.
-        Assert.Empty(_vm.DuplicateGroups);
-        Assert.Contains("Cherchez", _vm.DuplicateStatusText, StringComparison.Ordinal);
+        Assert.Empty(_vm.Duplicates!.Groups);
+        Assert.Contains("Cherchez", _vm.Duplicates!.StatusText, StringComparison.Ordinal);
 
-        await _vm.ToggleDuplicatesCommand.ExecuteAsync(null);
+        await _vm.Duplicates!.ToggleCommand.ExecuteAsync(null);
 
-        Assert.True(_vm.IsDuplicateExpanded);
-        var group = Assert.Single(_vm.DuplicateGroups);
+        Assert.True(_vm.Duplicates!.IsExpanded);
+        var group = Assert.Single(_vm.Duplicates!.Groups);
         Assert.Equal([first, second], group.TitleIds.Order());
         Assert.Contains("Heat (1995)", group.Label, StringComparison.Ordinal);
         Assert.Contains("2 fiches", group.Label, StringComparison.Ordinal);
@@ -70,17 +70,17 @@ public sealed class DuplicateBrowsingTests : IDisposable
         _vm.Load();
         Assert.Equal(3, _vm.Titles.Count);
 
-        await _vm.ToggleDuplicatesCommand.ExecuteAsync(null);
-        _vm.SelectedDuplicateGroup = _vm.DuplicateGroups[0];
+        await _vm.Duplicates!.ToggleCommand.ExecuteAsync(null);
+        _vm.Duplicates!.Selected = _vm.Duplicates!.Groups[0];
 
         Assert.Equal([first, second], _vm.Titles.Select(t => t.Id).Order());
         Assert.DoesNotContain(other, _vm.Titles.Select(t => t.Id));
-        Assert.True(_vm.HasSelectedDuplicateGroup);
+        Assert.True(_vm.Duplicates!.HasSelected);
 
         // Revenir à une vue du bandeau relâche le groupe : la liste n'en reste pas filtrée sans qu'on le voie.
         // « Films seulement » les garde tous les trois, donc seul le relâchement du groupe explique le compte.
         _vm.SelectedFilter = MainWindowViewModel.AllMainFilters.First(f => f.Value == QuickFilter.Movies);
-        Assert.Null(_vm.SelectedDuplicateGroup);
+        Assert.Null(_vm.Duplicates!.Selected);
         Assert.Equal(3, _vm.Titles.Count);
     }
 
@@ -97,23 +97,73 @@ public sealed class DuplicateBrowsingTests : IDisposable
         _repo.Update(_repo.Get(thirdB)! with { TmdbId = 348, TmdbKind = TitleKind.Movie });
 
         _vm.Load();
-        await _vm.ToggleDuplicatesCommand.ExecuteAsync(null);
-        Assert.Equal(2, _vm.DuplicateGroups.Count);
+        await _vm.Duplicates!.ToggleCommand.ExecuteAsync(null);
+        Assert.Equal(2, _vm.Duplicates!.Groups.Count);
 
         // Sans confirmation, rien ne bouge : la fusion ne se défait pas.
         _dialogs.Answer = false;
-        _vm.SelectedDuplicateGroup = _vm.DuplicateGroups.Single(g => g.TitleIds.Contains(first));
-        await _vm.MergeSelectedDuplicateGroupCommand.ExecuteAsync(null);
+        _vm.Duplicates!.Selected = _vm.Duplicates!.Groups.Single(g => g.TitleIds.Contains(first));
+        await _vm.Duplicates!.MergeSelectedCommand.ExecuteAsync(null);
         Assert.Equal(4, _repo.ListAll().Count);
 
         _dialogs.Answer = true;
-        await _vm.MergeSelectedDuplicateGroupCommand.ExecuteAsync(null);
+        await _vm.Duplicates!.MergeSelectedCommand.ExecuteAsync(null);
 
         // Le groupe de Heat est réuni, celui d'Alien est intact et reste à trancher.
         Assert.Equal(3, _repo.ListAll().Count);
-        var left = Assert.Single(_vm.DuplicateGroups);
+        var left = Assert.Single(_vm.Duplicates!.Groups);
         Assert.Equal([thirdA, thirdB], left.TitleIds.Order());
-        Assert.Null(_vm.SelectedDuplicateGroup);
+        Assert.Null(_vm.Duplicates!.Selected);
+    }
+
+    /// <summary>Sauvegardes faites avant une fusion, reconnues à leur nom.</summary>
+    private string[] BackupsBeforeMerge() =>
+        Directory.Exists(new AppPaths(_temp.Path, isPortable: false).BackupsDirectory)
+            ? Directory.GetFiles(new AppPaths(_temp.Path, isPortable: false).BackupsDirectory, "*avant-fusion*")
+            : [];
+
+    /// <summary>
+    /// Une fusion ne se défait pas : la sauvegarde que la question annonce doit exister. Le bandeau et le clic
+    /// droit l'annonçaient sans la faire, tant que chacun fusionnait de son côté.
+    /// </summary>
+    [Fact]
+    public async Task Merging_a_group_from_the_banner_backs_the_database_up_first()
+    {
+        TwoDuplicatesAndOneOther();
+        _vm.Load();
+        await _vm.Duplicates!.ToggleCommand.ExecuteAsync(null);
+        _vm.Duplicates!.Selected = _vm.Duplicates!.Groups[0];
+
+        // Refusée, la fusion ne laisse rien : ni fiche retirée, ni sauvegarde inutile.
+        _dialogs.Answer = false;
+        await _vm.Duplicates!.MergeSelectedCommand.ExecuteAsync(null);
+        Assert.Empty(BackupsBeforeMerge());
+
+        _dialogs.Answer = true;
+        await _vm.Duplicates!.MergeSelectedCommand.ExecuteAsync(null);
+
+        var backup = Assert.Single(BackupsBeforeMerge());
+        // La sauvegarde est celle d'avant : elle contient encore les trois fiches.
+        Assert.Equal(3, new TitleRepository(new CatalogDatabase(backup)).ListAll().Count);
+        Assert.Equal(2, _repo.ListAll().Count);
+    }
+
+    [Fact]
+    public async Task Merging_a_selection_by_right_click_backs_the_database_up_first()
+    {
+        var (first, second, _) = TwoDuplicatesAndOneOther();
+        _vm.Load();
+        foreach (var title in _vm.Titles.Where(t => t.Id == first || t.Id == second))
+        {
+            _vm.SelectedTitles.Add(title);
+        }
+
+        _dialogs.Answer = true;
+        await _vm.MergeSelectionCommand.ExecuteAsync(null);
+
+        Assert.Single(BackupsBeforeMerge());
+        Assert.Equal(2, _repo.ListAll().Count);
+        Assert.Contains("fusionnée", _vm.Status, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -121,13 +171,17 @@ public sealed class DuplicateBrowsingTests : IDisposable
     {
         TwoDuplicatesAndOneOther();
         _vm.Load();
-        await _vm.ToggleDuplicatesCommand.ExecuteAsync(null);
+        await _vm.Duplicates!.ToggleCommand.ExecuteAsync(null);
         _dialogs.Answer = true;
 
-        await _vm.MergeAllDuplicatesCommand.ExecuteAsync(null);
+        await _vm.Duplicates!.MergeAllCommand.ExecuteAsync(null);
 
-        Assert.Empty(_vm.DuplicateGroups);
-        Assert.Equal("Aucun film en double au catalogue.", _vm.DuplicateStatusText);
+        Assert.Empty(_vm.Duplicates!.Groups);
+        Assert.Equal("Aucun film en double au catalogue.", _vm.Duplicates!.StatusText);
         Assert.Equal(2, _repo.ListAll().Count);
+        Assert.Single(BackupsBeforeMerge());
+        // La fenêtre dit ce que la fusion a fait, et sa liste est à jour.
+        Assert.Contains("fusionnée", _vm.Status, StringComparison.Ordinal);
+        Assert.Equal(2, _vm.Titles.Count);
     }
 }

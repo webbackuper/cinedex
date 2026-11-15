@@ -60,6 +60,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _settings = settings;
         _media = media;
         _catalogs = catalogs;
+        Duplicates = CreateDuplicates();
         ApplyDisplaySettings();
         SelectedFilter = Filters[0];
         SelectedSort = Sorts[0];
@@ -590,7 +591,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         PeopleBrowser = null;
         Home = null;
         SelectedReferenceList = null;
-        SelectedDuplicateGroup = null;
+        ReleaseDuplicateGroup();
 
         // Une liste personnelle s'ouvre dans l'ordre que l'utilisateur lui a donné ; il reste libre de trier
         // autrement ensuite, le choix du tri l'emporte alors.
@@ -642,55 +643,61 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Films en double du bandeau gauche. La gestion complète est aussi dans Réglages &gt; Maintenance ;
-    /// elle est reprise ici parce qu'on y revient après chaque import, et qu'un détour par les réglages pour
-    /// voir ce qu'il reste à trancher était un détour de trop.
+    /// Films en double du bandeau gauche : leur propre modèle, que la fenêtre ne fait qu'héberger. Elle n'en
+    /// retient que le groupe choisi, pour n'afficher que ses fiches, et le moment où une fusion a eu lieu,
+    /// pour relire sa liste. Nul quand le catalogue n'offre pas la maintenance.
     /// </summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasDuplicateGroups), nameof(DuplicateStatusText))]
-    [NotifyCanExecuteChangedFor(nameof(MergeAllDuplicatesCommand))]
-    public partial IReadOnlyList<DuplicateGroupItem> DuplicateGroups { get; private set; } = [];
+    public DuplicatesViewModel? Duplicates { get; }
 
-    public bool HasDuplicateGroups => DuplicateGroups.Count > 0;
-
-    /// <summary>La recherche a déjà été lancée : sans quoi « aucun doublon » et « pas encore cherché » se confondent.</summary>
-    private bool _duplicatesSearched;
-
-    public string DuplicateStatusText => !_duplicatesSearched
-        ? Tr.T("Cherchez les films présents plusieurs fois au catalogue.")
-        : DuplicateGroups.Count == 0
-            ? Tr.T("Aucun film en double au catalogue.")
-            : Tr.F("{0} groupe(s) à trancher. Choisissez un groupe pour n'afficher que ses fiches.", DuplicateGroups.Count);
-
-    [ObservableProperty]
-    public partial bool IsDuplicateExpanded { get; set; }
-
-    /// <summary>Ouvrir le menu cherche les doublons la première fois : on vient le consulter, pas l'armer.</summary>
-    [RelayCommand]
-    private async Task ToggleDuplicatesAsync()
-    {
-        IsDuplicateExpanded = !IsDuplicateExpanded;
-        if (IsDuplicateExpanded && !_duplicatesSearched)
-        {
-            await FindDuplicatesAsync();
-        }
-    }
-
-    /// <summary>Groupe choisi : la liste principale ne montre que ses fiches, avec toutes les actions usuelles.</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasSelectedDuplicateGroup))]
-    [NotifyCanExecuteChangedFor(nameof(MergeSelectedDuplicateGroupCommand))]
-    public partial DuplicateGroupItem? SelectedDuplicateGroup { get; set; }
-
-    public bool HasSelectedDuplicateGroup => SelectedDuplicateGroup is not null;
+    public bool HasDuplicates => Duplicates is not null;
 
     private IReadOnlyList<long>? _duplicateIds;
 
-    partial void OnSelectedDuplicateGroupChanged(DuplicateGroupItem? value)
+    private DuplicatesViewModel? CreateDuplicates()
+    {
+        if (Merger is not { } merger)
+        {
+            return null;
+        }
+
+        var duplicates = new DuplicatesViewModel(merger, _dialogs.ConfirmAsync);
+        duplicates.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(DuplicatesViewModel.Selected))
+            {
+                OnDuplicateGroupChosen(duplicates.Selected);
+            }
+            else if (e.PropertyName == nameof(DuplicatesViewModel.Message) && duplicates.Message is { } message)
+            {
+                Status = message;
+            }
+        };
+        duplicates.Merged += (_, _) =>
+        {
+            ReloadSideLists();
+            Refresh();
+
+            // La relecture annonce le nombre de titres ; ce qu'on veut lire ici, c'est ce que la fusion a fait.
+            if (duplicates.Message is { } done)
+            {
+                Status = done;
+            }
+        };
+        return duplicates;
+    }
+
+    /// <summary>La fusion de fiches, sauvegarde comprise, pour le bandeau comme pour le clic droit.</summary>
+    private DuplicateMerger? Merger => _merger ??= _extras.Maintenance is { } maintenance
+        ? new DuplicateMerger(maintenance, _paths.BackupsDirectory)
+        : null;
+
+    private DuplicateMerger? _merger;
+
+    private void OnDuplicateGroupChosen(DuplicateGroupItem? group)
     {
         // Les identifiants d'abord : ce qui suit peut relire la liste, et elle doit déjà être la bonne.
-        _duplicateIds = value?.TitleIds;
-        if (value is not null)
+        _duplicateIds = group?.TitleIds;
+        if (group is not null)
         {
             Home = null;
             PeopleBrowser = null;
@@ -700,90 +707,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
             Rules = null;
         }
 
-        RefreshView(value?.TitleIds);
+        RefreshView(group?.TitleIds);
     }
 
-    private bool CanFindDuplicates() => _extras.Maintenance is not null && !IsBusy;
-
-    /// <summary>Cherche les films en double. Rien n'est modifié : c'est une lecture du catalogue.</summary>
-    [RelayCommand(CanExecute = nameof(CanFindDuplicates))]
-    private async Task FindDuplicatesAsync()
+    /// <summary>Une autre vue est choisie : le groupe de doublons affiché est relâché.</summary>
+    private void ReleaseDuplicateGroup()
     {
-        if (_extras.Maintenance is not { } maintenance)
+        if (Duplicates is { Selected: not null } duplicates)
         {
-            return;
+            duplicates.Selected = null;
         }
-
-        IsBusy = true;
-        try
-        {
-            var groups = await Task.Run(maintenance.FindDuplicateTitles);
-            var chosen = SelectedDuplicateGroup?.Label;
-            DuplicateGroups = [.. groups.Select(DuplicateGroupItem.From)];
-            _duplicatesSearched = true;
-            OnPropertyChanged(nameof(DuplicateStatusText));
-            SelectedDuplicateGroup = chosen is null
-                ? null
-                : DuplicateGroups.FirstOrDefault(g => string.Equals(g.Label, chosen, StringComparison.Ordinal));
-            Status = DuplicateStatusText;
-        }
-        finally
-        {
-            IsBusy = false;
-        }
-    }
-
-    private bool CanMergeAllDuplicates() => _extras.Maintenance is not null && !IsBusy && DuplicateGroups.Count > 0;
-
-    /// <summary>
-    /// Fusionne tous les groupes d'un coup. Chaque fiche gardée réunit les fichiers de celles qu'elle remplace :
-    /// un même film en plusieurs versions, un fichier par version. Aucun fichier du disque n'est touché.
-    /// </summary>
-    [RelayCommand(CanExecute = nameof(CanMergeAllDuplicates))]
-    private Task MergeAllDuplicatesAsync() => MergeDuplicatesAsync(
-        Tr.F("Regrouper les {0} groupe(s) de doublons, chacun en une seule fiche qui gardera tous ses fichiers vidéo ?\n\nAucun fichier du disque n'est touché, et la base est sauvegardée avant.", DuplicateGroups.Count),
-        maintenance => maintenance.MergeDuplicateTitles());
-
-    private bool CanMergeSelectedDuplicateGroup() => _extras.Maintenance is not null && !IsBusy && SelectedDuplicateGroup is not null;
-
-    /// <summary>
-    /// Fusionne le seul groupe affiché. Tous les rapprochements proposés ne se valent pas : pouvoir trancher
-    /// groupe par groupe évite d'avoir à tout accepter ou tout refuser.
-    /// </summary>
-    [RelayCommand(CanExecute = nameof(CanMergeSelectedDuplicateGroup))]
-    private Task MergeSelectedDuplicateGroupAsync() => SelectedDuplicateGroup is not { } group
-        ? Task.CompletedTask
-        : MergeDuplicatesAsync(
-            Tr.F("Regrouper en une seule fiche le groupe « {0} » ?\n\nLes autres groupes ne sont pas touchés, et aucun fichier du disque non plus.", group.Label),
-            maintenance => maintenance.MergeChosenTitles(group.TitleIds));
-
-    private async Task MergeDuplicatesAsync(string question, Func<MaintenanceRepository, TitleMerge> merge)
-    {
-        if (_extras.Maintenance is not { } maintenance || !await _dialogs.ConfirmAsync("Fusionner les films en double", question))
-        {
-            return;
-        }
-
-        IsBusy = true;
-        try
-        {
-            var result = await Task.Run(() => merge(maintenance));
-            SelectedDuplicateGroup = null;
-            Status = result.Merged == 0
-                ? Tr.T("Aucune fiche en double à fusionner.")
-                : Tr.F("{0} fiche(s) fusionnée(s), {1} fichier(s) regroupé(s), dont {2} de caractéristiques identiques à un autre du même film.",
-                    result.Merged, result.Files, result.SameEncoding);
-            Journal($"Doublons : {result.Merged} fiche(s) fusionnée(s), {result.Files} fichier(s) regroupé(s), {result.SameEncoding} de même encodage");
-        }
-        finally
-        {
-            IsBusy = false;
-        }
-
-        // La liste porte encore les groupes disparus : elle est relue pour ne montrer que ce qui reste à trancher.
-        await FindDuplicatesAsync();
-        ReloadSideLists();
-        Refresh();
     }
 
     /// <summary>Listes de référence (Top 250, palmarès, listes à vous), avec leur état face au catalogue.</summary>
@@ -1452,7 +1385,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         PeopleBrowser = null;
         SelectedMediaId = null;
         SelectedReferenceList = null;
-        SelectedDuplicateGroup = null;
+        ReleaseDuplicateGroup();
         ClearFacets();
         Rules = null;
     }
@@ -1540,7 +1473,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _loaded = false;
         SearchText = string.Empty;
         SelectedFilter = Filters[0];
-        SelectedDuplicateGroup = null;
+        ReleaseDuplicateGroup();
         Rules = null;
         _loaded = true;
         Refresh(selectId: titleId);
@@ -1711,7 +1644,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ClearFacets();
         Home = null;
         SelectedReferenceList = null;
-        SelectedDuplicateGroup = null;
+        ReleaseDuplicateGroup();
 
         OnPropertyChanged(nameof(SelectedMainFilter));
         OnPropertyChanged(nameof(SelectedDefinitionFilter));
@@ -2845,7 +2778,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         PeopleBrowser = null;
         SelectedMediaId = null;
         SelectedReferenceList = null;
-        SelectedDuplicateGroup = null;
+        ReleaseDuplicateGroup();
         ClearFacets();
         Rules = person.Search;
     }
@@ -2898,7 +2831,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    private bool CanMergeSelection() => _extras.Maintenance is not null && SelectedTitles.Count > 1 && !IsBusy;
+    private bool CanMergeSelection() => Merger is not null && SelectedTitles.Count > 1 && !IsBusy;
 
     /// <summary>
     /// Fusionne les titres sélectionnés en une seule fiche, sur la seule affirmation de l'utilisateur : rien
@@ -2907,7 +2840,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanMergeSelection))]
     private async Task MergeSelectionAsync()
     {
-        if (_extras.Maintenance is not { } maintenance)
+        if (Merger is not { } merger)
         {
             return;
         }
@@ -2922,13 +2855,21 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        var result = maintenance.MergeChosenTitles(chosen.Select(t => t.Id).ToList());
+        TitleMerge result;
+        try
+        {
+            // La sauvegarde annoncée dans la question est faite ici, par le chemin commun à toutes les fusions.
+            result = merger.MergeChosen(chosen.Select(t => t.Id).ToList());
+        }
+        catch (Exception ex) when (ex is Microsoft.Data.Sqlite.SqliteException or IOException or UnauthorizedAccessException)
+        {
+            Status = ex.Message;
+            return;
+        }
+
         ReloadSideLists();
         Refresh(selectId: keep.Id);
-        Status = result.Merged == 0
-            ? Tr.T("Rien à fusionner.")
-            : Tr.F("{0} fiche(s) réunie(s), {1} exemplaire(s) regroupé(s)", result.Merged, result.Files);
-        Journal($"Fusion manuelle de {chosen.Count} fiche(s) : {result.Merged} retirée(s), {result.Files} exemplaire(s) regroupé(s)");
+        Status = result.Merged == 0 ? Tr.T("Rien à fusionner.") : DuplicateMerger.Describe(result);
     }
 
     /// <summary>

@@ -22,6 +22,9 @@ public sealed partial class MaintenanceViewModel : ObservableObject
     private readonly string _backupsDirectory;
     private readonly string _imagesDirectory;
 
+    /// <summary>La fusion des doublons, la même que celle du bandeau gauche et du clic droit : sauvegarde comprise.</summary>
+    private readonly DuplicateMerger _merger;
+
     public MaintenanceViewModel(MaintenanceRepository repository, CatalogManager catalogs, string catalogName, string backupsDirectory, string imagesDirectory)
     {
         _repository = repository;
@@ -30,6 +33,7 @@ public sealed partial class MaintenanceViewModel : ObservableObject
         NewName = catalogName;
         _backupsDirectory = backupsDirectory;
         _imagesDirectory = imagesDirectory;
+        _merger = new DuplicateMerger(repository, backupsDirectory);
         RefreshInfo();
     }
 
@@ -149,7 +153,7 @@ public sealed partial class MaintenanceViewModel : ObservableObject
     {
         await RunAsync(() =>
         {
-            var groups = _repository.FindDuplicateTitles();
+            var groups = _merger.Find();
             return () =>
             {
                 Duplicates.Clear();
@@ -177,20 +181,23 @@ public sealed partial class MaintenanceViewModel : ObservableObject
     /// base les numérote avec le même champ. Le compte rendu signale les fichiers de caractéristiques identiques.
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanRun))]
-    private Task MergeDuplicateTitlesAsync() => ModifyAsync(
-        Tr.T("Fusionner les films en double"),
-        Tr.T("Regrouper chaque groupe de doublons en une seule fiche, qui gardera tous leurs fichiers vidéo ? Aucun fichier du disque n'est touché."),
-        "fusion-doublons",
-        () =>
+    private async Task MergeDuplicateTitlesAsync()
+    {
+        var before = Message;
+        await ModifyAsync(
+            Tr.T("Fusionner les films en double"),
+            Tr.T("Regrouper chaque groupe de doublons en une seule fiche, qui gardera tous leurs fichiers vidéo ? Aucun fichier du disque n'est touché."),
+            backupLabel: null,
+            () => DuplicateMerger.Describe(_merger.MergeAll()));
+
+        // La liste est relue sur le fil d'interface, une fois la fusion finie, pour ne montrer que ce qui reste.
+        if (Changed && !ReferenceEquals(before, Message))
         {
-            var result = _repository.MergeDuplicateTitles();
-            ActivityJournal.Current.Write($"Maintenance : {result.Merged} fiche(s) en double fusionnée(s), {result.Files} exemplaire(s) regroupé(s)");
-            Duplicates.Clear();
-            return result.Merged == 0
-                ? Tr.T("Aucun film en double à fusionner.")
-                : Tr.F("{0} fiche(s) en double fusionnée(s), {1} exemplaire(s) regroupé(s). {2} fichier(s) ont les mêmes caractéristiques MediaInfo qu'un autre du même film : ce sont des copies du même encodage, les autres sont bien des versions différentes.",
-                    result.Merged, result.Files, result.SameEncoding);
-        });
+            var result = Message;
+            await FindDuplicatesAsync();
+            Message = result;
+        }
+    }
 
     private bool CanMergeOne() => !IsBusy && SelectedDuplicate is { TitleId: not null };
 
@@ -209,15 +216,11 @@ public sealed partial class MaintenanceViewModel : ObservableObject
         await ModifyAsync(
             Tr.T("Fusionner ce groupe de doublons"),
             Tr.F("Regrouper en une seule fiche le groupe de « {0} » ? Les autres groupes ne sont pas touchés, et aucun fichier du disque non plus.", row.Text),
-            "fusion-doublon",
+            backupLabel: null,
             () =>
             {
-                var result = _repository.MergeDuplicateTitles(titleId);
-                ActivityJournal.Current.Write($"Maintenance : groupe de doublons fusionné, {result.Merged} fiche(s) retirée(s), {result.Files} exemplaire(s) regroupé(s)");
-                return result.Merged == 0
-                    ? Tr.T("Ce titre n'est plus en double.")
-                    : Tr.F("Groupe fusionné : {0} fiche(s) retirée(s), {1} exemplaire(s) regroupé(s), {2} fichier(s) de même encodage.",
-                        result.Merged, result.Files, result.SameEncoding);
+                var result = _merger.MergeGroupOf(titleId);
+                return result.Merged == 0 ? Tr.T("Ce titre n'est plus en double.") : DuplicateMerger.Describe(result);
             });
 
         // La liste porte encore le groupe disparu : elle est relue pour ne montrer que ce qui reste à trancher.
@@ -334,7 +337,8 @@ public sealed partial class MaintenanceViewModel : ObservableObject
     }
 
     /// <summary>Opération qui modifie la base : confirmation, sauvegarde préalable, exécution, compte rendu.</summary>
-    private async Task ModifyAsync(string title, string question, string backupLabel, Func<string> action)
+    /// <param name="backupLabel">Nom de la sauvegarde faite avant ; nul quand l'action la fait elle-même (les fusions).</param>
+    private async Task ModifyAsync(string title, string question, string? backupLabel, Func<string> action)
     {
         if (!await AskAsync(title, question + "\n\n" + Tr.T("Une sauvegarde de la base est faite juste avant.")))
         {
@@ -343,7 +347,11 @@ public sealed partial class MaintenanceViewModel : ObservableObject
 
         await RunAsync(() =>
         {
-            _repository.Backup(_backupsDirectory, "avant-" + backupLabel);
+            if (backupLabel is not null)
+            {
+                _repository.Backup(_backupsDirectory, "avant-" + backupLabel);
+            }
+
             var result = action();
             Changed = true;
             return () => Message = result;

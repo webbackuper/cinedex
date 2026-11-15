@@ -63,15 +63,79 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ApplyDisplaySettings();
         SelectedFilter = Filters[0];
         SelectedSort = Sorts[0];
-        SelectedTitles.CollectionChanged += (_, _) =>
+        SelectedTitles.CollectionChanged += (_, e) =>
         {
-            SelectedIdSet = SelectedTitles.Select(t => t.Id).ToHashSet();
-            if (!_refreshing)
+            TrackSelection(e);
+            if (_refreshing)
             {
-                OnSelectionChanged();
+                // Un lot en cours (relecture, sélection par plage) : il publie lui-même, une fois, à la fin.
+                return;
+            }
+
+            if (Avalonia.Application.Current is null)
+            {
+                // Sans application (tests du modèle seul), rien ne viendrait exécuter une tâche différée.
+                PublishSelection();
+                return;
+            }
+
+            // La liste ajoute les éléments un par un : Ctrl+A sur 12 000 titres lève 12 000 événements. Un
+            // seul passage suffit, une fois la rafale terminée, avant le prochain affichage.
+            if (!_selectionPending)
+            {
+                _selectionPending = true;
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    _selectionPending = false;
+                    PublishSelection();
+                });
             }
         };
     }
+
+    private readonly HashSet<long> _selectedIds = [];
+
+    private bool _selectionPending;
+
+    /// <summary>
+    /// Tient l'ensemble des identifiants à jour d'après l'événement lui-même : une insertion ou un retrait
+    /// par élément, au lieu de le reconstruire en entier à chaque fois (ce qui rendait la sélection de n
+    /// titres quadratique).
+    /// </summary>
+    private void TrackSelection(System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        switch (e.Action)
+        {
+            case System.Collections.Specialized.NotifyCollectionChangedAction.Add when e.NewItems is not null:
+                foreach (TitleSummary added in e.NewItems)
+                {
+                    _selectedIds.Add(added.Id);
+                }
+
+                break;
+            case System.Collections.Specialized.NotifyCollectionChangedAction.Remove when e.OldItems is not null:
+                foreach (TitleSummary removed in e.OldItems)
+                {
+                    _selectedIds.Remove(removed.Id);
+                }
+
+                break;
+            default:
+                _selectedIds.Clear();
+                _selectedIds.UnionWith(SelectedTitles.Select(t => t.Id));
+                break;
+        }
+    }
+
+    /// <summary>Publie la sélection telle qu'elle est : l'ensemble pour la grille, puis la fiche et les commandes.</summary>
+    private void PublishSelection()
+    {
+        SelectedIdSet = new HashSet<long>(_selectedIds);
+        OnSelectionChanged();
+    }
+
+    /// <summary>Le titre est-il sélectionné ? Lu sur l'état courant, même si la publication est encore en attente.</summary>
+    public bool IsSelected(long titleId) => _selectedIds.Contains(titleId);
 
     /// <summary>Identifiants sélectionnés : la grille d'affiches (virtualisée) s'en sert pour marquer la sélection.</summary>
     [ObservableProperty]
@@ -147,8 +211,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         _refreshing = false;
-        SelectedIdSet = SelectedTitles.Select(t => t.Id).ToHashSet();
-        OnSelectionChanged();
+        PublishSelection();
     }
 
     /// <summary>Titres affichés ; remplacés d'un bloc à chaque relecture (une seule notification pour 10 000 lignes).</summary>
@@ -2762,13 +2825,18 @@ public sealed partial class MainWindowViewModel : ObservableObject
         Titles.ReplaceAll(rows);
 
         SelectedTitles.Clear();
-        foreach (var title in Titles.Where(t => keep.Contains(t.Id)))
+        if (keep.Count > 0)
         {
-            SelectedTitles.Add(title);
+            // Un ensemble, pas une liste : garder 6 000 titres parmi 12 000 ne doit pas coûter 72 millions de comparaisons.
+            var kept = keep as IReadOnlySet<long> ?? keep.ToHashSet();
+            foreach (var title in Titles.Where(t => kept.Contains(t.Id)))
+            {
+                SelectedTitles.Add(title);
+            }
         }
 
         _refreshing = false;
-        OnSelectionChanged();
+        PublishSelection();
         Status = SelectedFilter.Value == QuickFilter.All && string.IsNullOrWhiteSpace(SearchText)
             ? Tr.F("{0} titre(s) dans le catalogue", Titles.Count)
             : Tr.F("{0} titre(s) trouvé(s)", Titles.Count);
@@ -2849,7 +2917,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             }
         }
 
-        var keep = selectIds ?? ids;
+        var keep = (selectIds ?? ids).ToHashSet();
         SelectedTitles.Clear();
         foreach (var title in Titles.Where(t => keep.Contains(t.Id)))
         {
@@ -2857,7 +2925,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         _refreshing = false;
-        OnSelectionChanged();
+        PublishSelection();
         OnPropertyChanged(nameof(IsEmpty));
     }
 }

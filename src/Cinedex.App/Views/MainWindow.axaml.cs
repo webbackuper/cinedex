@@ -402,7 +402,7 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
             .Select(c => c.DataContext)
             .OfType<Cinedex.Core.Titles.TitleSummary>()
             .FirstOrDefault();
-        if (title is not null && !vm.SelectedIdSet.Contains(title.Id))
+        if (title is not null && !vm.IsSelected(title.Id))
         {
             vm.SelectInGrid(vm.Titles.IndexOf(title), toggle: false, extend: false);
         }

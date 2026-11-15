@@ -46,7 +46,9 @@ public sealed record TitleEditorExtras(
     IReadOnlyList<SimilarTitle>? Similar = null,
     IReadOnlyList<TmdbSuggestion>? Suggestions = null,
     Func<Task<IReadOnlyList<TmdbSuggestion>>>? FetchSuggestions = null,
-    Func<TmdbSuggestion, Task>? AddSuggestion = null);
+    Func<TmdbSuggestion, Task>? AddSuggestion = null,
+    long? PreviousTitleId = null,
+    long? NextTitleId = null);
 
 /// <summary>
 /// Un film de la même collection, dans l'onglet Collection de la fiche. Un film manquant au catalogue n'a
@@ -126,6 +128,8 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         PosterPath = extras.PosterPath;
         _setPoster = extras.SetPoster;
         _removePoster = extras.RemovePoster;
+        PreviousTitleId = extras.PreviousTitleId;
+        NextTitleId = extras.NextTitleId;
         CollectionFilms = extras.CollectionFilms ?? [];
         CollectionTitle = extras.CollectionTitle;
         Similar = extras.Similar ?? [];
@@ -144,6 +148,7 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         Genres = new ObservableCollection<GenreChoice>(genres.Select(g => new GenreChoice(g, false)));
 
         LoadFields(original);
+        _baseline = Snapshot();
     }
 
     /// <summary>
@@ -270,6 +275,41 @@ public sealed partial class TitleEditorViewModel : ObservableObject
 
     /// <summary>Titre choisi depuis la fiche d'un acteur : la fiche se ferme et le catalogue s'y place.</summary>
     public long? NavigateToTitleId { get; set; }
+
+    /// <summary>Le titre que cette fiche édite.</summary>
+    public long TitleId => _original.Id;
+
+    /// <summary>La fenêtre principale rouvre une fiche sur le titre où l'on va : c'est ainsi qu'on enchaîne.</summary>
+    public bool ReopenAfterNavigation { get; set; }
+
+    /// <summary>Titres voisins dans la liste affichée ; nuls au bout de la liste.</summary>
+    public long? PreviousTitleId { get; private set; }
+
+    public long? NextTitleId { get; private set; }
+
+    public bool HasPrevious => PreviousTitleId is not null;
+
+    public bool HasNext => NextTitleId is not null;
+
+    private string? _baseline;
+
+    /// <summary>
+    /// La saisie telle qu'elle serait enregistrée, sous une forme comparable. Nul si elle est invalide.
+    /// Le message d'erreur affiché n'est pas touché : regarder si la fiche a changé ne doit rien signaler.
+    /// </summary>
+    private string? Snapshot()
+    {
+        var shown = LastError;
+        var valid = TryBuild(out var built);
+        LastError = shown;
+        return valid ? System.Text.Json.JsonSerializer.Serialize(built) + "|" + IsSeen : null;
+    }
+
+    /// <summary>
+    /// La fiche a-t-elle des modifications non enregistrées ? Une saisie invalide en est une : elle ne
+    /// ressemble plus à ce qui a été chargé. Sert à ne pas perdre un travail en rebondissant vers un autre film.
+    /// </summary>
+    public bool HasUnsavedChanges => Snapshot() is not { } now || now != _baseline || Files.Any(f => f.IsChanged);
 
     /// <summary>
     /// Les films de la collection du titre, onglet Collection. Vus depuis la fiche, ils disent d'un coup
@@ -509,6 +549,9 @@ public sealed partial class TitleEditorViewModel : ObservableObject
                 // LoadFields n'y cherche celle du titre, sinon la sélection retomberait sur « (aucune) ».
                 ReloadView();
                 LoadFields(refreshed);
+
+                // La mise à jour depuis TMDb est déjà enregistrée : c'est le nouveau point de départ.
+                _baseline = Snapshot();
                 OnPropertyChanged(nameof(SourceText));
                 OnPropertyChanged(nameof(SeenText));
                 TmdbMessage = Tr.T("Fiche mise à jour depuis TMDb.");

@@ -21,10 +21,19 @@
     <StackPanel DockPanel.Dock="Bottom" Spacing="{StaticResource Space2}" Margin="{StaticResource Above3}">
       <TextBlock Text="{Binding LastError}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" TextWrapping="Wrap"
                  IsVisible="{Binding LastError, Converter={x:Static ObjectConverters.IsNotNull}}" />
-      <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}" HorizontalAlignment="Right">
-        <Button Classes="tool" Content="Annuler" IsCancel="True" Click="OnCancel" />
-        <Button Classes="primary" Content="Enregistrer" IsDefault="True" Click="OnSave" />
-      </StackPanel>
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <!-- Enchaîner les fiches : enregistre s'il y a lieu, puis ouvre le titre voisin de la liste. -->
+        <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
+          <Button Classes="tool" Content="‹ Précédent" Click="OnPrevious" IsEnabled="{Binding HasPrevious}"
+                  ToolTip.Tip="Enregistre, puis ouvre le titre précédent de la liste (Ctrl+Page précédente)" />
+          <Button Classes="tool" Content="Suivant ›" Click="OnNext" IsEnabled="{Binding HasNext}"
+                  ToolTip.Tip="Enregistre, puis ouvre le titre suivant de la liste (Ctrl+Page suivante)" />
+        </StackPanel>
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="{StaticResource Space2}">
+          <Button Classes="tool" Content="Annuler" IsCancel="True" Click="OnCancel" />
+          <Button Classes="primary" Content="Enregistrer" IsDefault="True" Click="OnSave" />
+        </StackPanel>
+      </Grid>
     </StackPanel>
 
     <TabControl>

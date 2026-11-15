@@ -77,11 +77,20 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
             if (DataContext is MainWindowViewModel vm)
             {
                 ApplyDetailWidth(vm.DetailWidth);
+                // Un autre catalogue : ce que la largeur avait replié pour le précédent ne le concerne pas.
+                _detailCollapsedByWidth = false;
+                _bannerRailByWidth = false;
+                ApplyBanner(vm.IsBannerRail);
+                AdaptToWidth(double.PositiveInfinity, Bounds.Width);
                 vm.PropertyChanged += (_, e) =>
                 {
                     if (e.PropertyName is nameof(MainWindowViewModel.DetailWidth) or nameof(MainWindowViewModel.DetailCollapsed))
                     {
                         ApplyDetailWidth(vm.DetailWidth);
+                    }
+                    else if (e.PropertyName == nameof(MainWindowViewModel.IsBannerRail))
+                    {
+                        ApplyBanner(vm.IsBannerRail);
                     }
                     else if (e.PropertyName == nameof(MainWindowViewModel.PeopleBrowser) && vm.IsPeopleView)
                     {
@@ -90,7 +99,12 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
                 };
             }
         };
-        SizeChanged += (_, _) => LimitDetailWidth();
+        SizeChanged += (_, e) =>
+        {
+            // À l'ouverture la taille précédente est nulle : une fenêtre qui naît étroite a bien franchi le seuil.
+            AdaptToWidth(e.PreviousSize.Width <= 0 ? double.PositiveInfinity : e.PreviousSize.Width, e.NewSize.Width);
+            LimitDetailWidth();
+        };
         PosterGrid.SizeChanged += (_, e) => FitPosters(e.NewSize.Width);
     }
 
@@ -141,10 +155,72 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
         LimitDetailWidth();
     }
 
+    /// <summary>Largeur du bandeau gauche : déplié, ou réduit à ses icônes.</summary>
+    private const double BannerWidth = 232;
+
+    private const double BannerRailWidth = 64;
+
+    /// <summary>Sous cette largeur de fenêtre, la fiche de droite se replie d'elle-même.</summary>
+    private const double NarrowForDetail = 1150;
+
+    /// <summary>Sous cette largeur, le bandeau passe en colonne d'icônes.</summary>
+    private const double NarrowForBanner = 1000;
+
+    private bool _detailCollapsedByWidth;
+
+    private bool _bannerRailByWidth;
+
+    private void ApplyBanner(bool rail)
+    {
+        MainGrid.ColumnDefinitions[0].Width = new GridLength(rail ? BannerRailWidth : BannerWidth);
+        Banner.Classes.Set("rail", rail);
+        LimitDetailWidth();
+    }
+
+    /// <summary>
+    /// Adapte la fenêtre quand sa largeur franchit un seuil, et seulement à ce moment : entre deux
+    /// franchissements, ce que l'utilisateur ouvre ou replie à la main (F8, F9) reste comme il l'a mis. Ce
+    /// que la largeur a replié se rouvre quand la place revient ; ce que l'utilisateur avait replié lui-même
+    /// reste replié.
+    /// </summary>
+    private void AdaptToWidth(double previous, double current)
+    {
+        if (DataContext is not MainWindowViewModel vm || current <= 0)
+        {
+            return;
+        }
+
+        if (previous >= NarrowForDetail && current < NarrowForDetail && !vm.DetailCollapsed)
+        {
+            _detailCollapsedByWidth = true;
+            vm.CollapseDetailForWidth(true);
+        }
+        else if (previous < NarrowForDetail && current >= NarrowForDetail && _detailCollapsedByWidth)
+        {
+            _detailCollapsedByWidth = false;
+            if (vm.DetailCollapsed)
+            {
+                vm.CollapseDetailForWidth(false);
+            }
+        }
+
+        if (previous >= NarrowForBanner && current < NarrowForBanner && !vm.IsBannerRail)
+        {
+            _bannerRailByWidth = true;
+            vm.IsBannerRail = true;
+        }
+        else if (previous < NarrowForBanner && current >= NarrowForBanner && _bannerRailByWidth)
+        {
+            _bannerRailByWidth = false;
+            vm.IsBannerRail = false;
+        }
+    }
+
     /// <summary>La fiche ne peut pas manger la liste : barre latérale, 380 px de liste et poignée restent visibles.</summary>
     private void LimitDetailWidth()
     {
-        var room = Bounds.Width - 232 - 380 - 8;
+        var banner = (DataContext as MainWindowViewModel)?.IsBannerRail == true ? BannerRailWidth : BannerWidth;
+        var room = Bounds.Width - banner - 380 - 8;
         DetailColumn.MaxWidth = room > 0 ? Math.Clamp(room, MainWindowViewModel.MinDetailWidth, MainWindowViewModel.MaxDetailWidth) : MainWindowViewModel.MaxDetailWidth;
     }
 
@@ -492,6 +568,12 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
 
     private void OnListDoubleTapped(object? sender, RoutedEventArgs e)
     {
+        // Deux clics rapprochés sur un bouton d'action de la ligne (vu, favori) ne sont pas un double-clic sur le film.
+        if (e.Source is Visual source && source.GetSelfAndVisualAncestors().OfType<Button>().Any())
+        {
+            return;
+        }
+
         if (DataContext is MainWindowViewModel vm && vm.EditCommand.CanExecute(null))
         {
             vm.EditCommand.Execute(null);

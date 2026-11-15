@@ -32,6 +32,13 @@
     <KeyBinding Gesture="Ctrl+D1" Command="{Binding ShowListCommand}" />
     <KeyBinding Gesture="Ctrl+D2" Command="{Binding ShowGridCommand}" />
     <KeyBinding Gesture="F9" Command="{Binding ToggleDetailCommand}" />
+    <KeyBinding Gesture="F8" Command="{Binding ToggleBannerCommand}" />
+    <KeyBinding Gesture="F2" Command="{Binding EditCommand}" />
+    <KeyBinding Gesture="Ctrl+M" Command="{Binding MergeSelectionCommand}" />
+    <KeyBinding Gesture="Ctrl+Shift+C" Command="{Binding CopyPathsCommand}" />
+    <KeyBinding Gesture="Ctrl+E" Command="{Binding ExportSelectionCommand}" />
+    <KeyBinding Gesture="Ctrl+I" Command="{Binding RefreshTechnicalCommand}" />
+    <KeyBinding Gesture="Ctrl+L" Command="{Binding AddToLastListCommand}" />
   </Window.KeyBindings>
 
   <Window.Styles>
@@ -55,6 +62,23 @@
     </Style>
     <Style Selector="Button.tool.current /template/ ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource CinedexActive}" />
+    </Style>
+    <!-- Bandeau en colonne d'icônes (fenêtre étroite, ou F8) : les libellés et les sous-menus, qui sont des
+         listes de texte, se retirent ; chaque icône garde son infobulle. -->
+    <Style Selector="Border.rail TextBlock">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="Border.rail StackPanel.fullonly">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="Border.rail controls|Icon[Kind=chevron-down]">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <!-- Boutons d'action d'une ligne : compacts, pour ne pas faire grandir la ligne qui les porte. -->
+    <Style Selector="Button.rowaction">
+      <Setter Property="Padding" Value="{StaticResource Inset1}" />
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="MinHeight" Value="0" />
     </Style>
     <!-- Liste et grille de titres. -->
     <Style Selector="ListBox.titles">
@@ -128,7 +152,7 @@
       <ColumnDefinition Width="372" MinWidth="300" MaxWidth="760" />
     </Grid.ColumnDefinitions>
     <!-- ======================= Barre latérale ======================= -->
-    <Border Grid.Column="0" Background="{DynamicResource CinedexSidebar}" BorderBrush="{DynamicResource CinedexBorder}" BorderThickness="{StaticResource HairlineEnd}">
+    <Border x:Name="Banner" Grid.Column="0" Background="{DynamicResource CinedexSidebar}" BorderBrush="{DynamicResource CinedexBorder}" BorderThickness="{StaticResource HairlineEnd}">
       <DockPanel>
         <StackPanel DockPanel.Dock="Top" Margin="{StaticResource Edges6_6_4_2}" Spacing="{StaticResource Space1}">
           <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
@@ -141,6 +165,10 @@
               <TextBlock Text="{Binding CatalogName}" FontSize="{StaticResource FontSmall}" />
               <controls:Icon Kind="chevron-down" Width="14" Height="14" />
             </StackPanel>
+          </Button>
+          <Button Classes="tool" Margin="-8,0,0,0" HorizontalAlignment="Left" Command="{Binding ToggleBannerCommand}"
+                  ToolTip.Tip="Réduire le bandeau à ses icônes, ou le déplier (F8)" AutomationProperties.Name="Réduire ou déplier le bandeau">
+            <controls:Icon Kind="list" Width="18" Height="18" />
           </Button>
         </StackPanel>
 
@@ -248,6 +276,7 @@
               </ListBox.ItemTemplate>
             </ListBox>
 
+            <StackPanel Classes="fullonly">
             <!-- Sous-menu Définition : se déplie au clic, et reste ouvert tant qu'une de ses vues est choisie. -->
             <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Margin="{StaticResource Edges2_1_2_0}"
                     Command="{Binding ToggleDefinitionsCommand}" IsVisible="{Binding HasDefinitionFilters}" ToolTip.Tip="Classer par définition de l'image">
@@ -369,6 +398,7 @@
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
+            </StackPanel>
           </StackPanel>
         </ScrollViewer>
       </DockPanel>
@@ -420,10 +450,10 @@
       <!-- Clic droit sur un film ou sur la sélection : les mêmes actions dans la liste et dans les affiches. -->
       <DockPanel.ContextFlyout>
         <MenuFlyout>
-          <MenuItem Header="Ouvrir la fiche" Command="{Binding EditCommand}" InputGesture="Alt+E">
+          <MenuItem Header="Ouvrir la fiche" Command="{Binding EditCommand}" InputGesture="F2">
             <MenuItem.Icon><controls:Icon Kind="edit" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="Lire" Command="{Binding PlayCommand}">
+          <MenuItem Header="Lire" Command="{Binding PlayCommand}" InputGesture="Ctrl+P">
             <MenuItem.Icon><controls:Icon Kind="play" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
           <MenuItem Header="Ouvrir le dossier du fichier" Command="{Binding OpenFolderCommand}" InputGesture="Ctrl+O">
@@ -447,7 +477,7 @@
             <MenuItem.Icon><controls:Icon Kind="bookmark" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
           <MenuItem Header="Ajouter à une liste" ItemsSource="{Binding ListNames}" IsVisible="{Binding HasLists}"
-                    ToolTip.Tip="Vos listes personnelles ; le titre se range à la fin de celle que vous choisissez.">
+                    ToolTip.Tip="Vos listes personnelles ; le titre se range à la fin de celle que vous choisissez. Ctrl+L reprend la dernière liste utilisée.">
             <MenuItem.Icon><controls:Icon Kind="tag" Width="16" Height="16" /></MenuItem.Icon>
             <MenuItem.ItemContainerTheme>
               <ControlTheme TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}" x:DataType="x:String">
@@ -476,18 +506,18 @@
                     ToolTip.Tip="Réécrit les .nfo existants depuis les fiches, et propose de créer ceux qui manquent.">
             <MenuItem.Icon><controls:Icon Kind="sync" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="Relire les infos techniques (MediaInfo)" Command="{Binding RefreshTechnicalCommand}">
+          <MenuItem Header="Relire les infos techniques (MediaInfo)" Command="{Binding RefreshTechnicalCommand}" InputGesture="Ctrl+I">
             <MenuItem.Icon><controls:Icon Kind="view" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
           <MenuItem Header="Vider la fiche" Command="{Binding ClearDetailCommand}"
                     ToolTip.Tip="Efface le descriptif, les identifiants, les notes, les genres, la distribution et l'affiche. Le titre, vos saisies et les fichiers restent.">
             <MenuItem.Icon><controls:Icon Kind="eraser" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="Copier les chemins des fichiers" Command="{Binding CopyPathsCommand}"
+          <MenuItem Header="Copier les chemins des fichiers" Command="{Binding CopyPathsCommand}" InputGesture="Ctrl+Shift+C"
                     ToolTip.Tip="Met dans le presse-papiers le chemin complet de chaque fichier vidéo de la sélection, un par ligne.">
             <MenuItem.Icon><controls:Icon Kind="document" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="Exporter la sélection…" Command="{Binding ExportSelectionCommand}">
+          <MenuItem Header="Exporter la sélection…" Command="{Binding ExportSelectionCommand}" InputGesture="Ctrl+E">
             <MenuItem.Icon><controls:Icon Kind="export" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
           <MenuItem Header="Renommer les fichiers…" Command="{Binding RenameFilesCommand}"
@@ -495,7 +525,7 @@
             <MenuItem.Icon><controls:Icon Kind="edit" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
           <Separator />
-          <MenuItem Header="Fusionner les films sélectionnés…" Command="{Binding MergeSelectionCommand}"
+          <MenuItem Header="Fusionner les films sélectionnés…" Command="{Binding MergeSelectionCommand}" InputGesture="Ctrl+M"
                     ToolTip.Tip="Réunit les fiches sélectionnées en une seule, qui garde tous leurs fichiers vidéo. Cinedex ne vérifie pas qu'il s'agit du même film.">
             <MenuItem.Icon><controls:Icon Kind="link" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
@@ -700,6 +730,21 @@
                              IsVisible="{Binding DisplaySubtitle, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="{StaticResource Space3}" VerticalAlignment="Center">
+                  <!-- Au survol : lire, vu, favori, d'un clic et sans changer la sélection. -->
+                  <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space1}" IsVisible="{Binding $parent[ListBoxItem].IsPointerOver}">
+                    <Button Classes="tool rowaction" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).PlayOfCommand}" CommandParameter="{Binding}"
+                            ToolTip.Tip="Lire" AutomationProperties.Name="Lire">
+                      <controls:Icon Kind="play" Width="16" Height="16" />
+                    </Button>
+                    <Button Classes="tool rowaction" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ToggleSeenOfCommand}" CommandParameter="{Binding}"
+                            ToolTip.Tip="Vu / pas vu" AutomationProperties.Name="Vu / pas vu">
+                      <controls:Icon Kind="check" Width="16" Height="16" />
+                    </Button>
+                    <Button Classes="tool rowaction" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ToggleFavoriteOfCommand}" CommandParameter="{Binding}"
+                            ToolTip.Tip="Favori" AutomationProperties.Name="Favori">
+                      <controls:Icon Kind="heart" Width="16" Height="16" />
+                    </Button>
+                  </StackPanel>
                   <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space1}" ToolTip.Tip="Prêté"
                               IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Columns.Loan}">
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space1}" IsVisible="{Binding IsLoaned}">
@@ -775,6 +820,24 @@
                 <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource CinedexInk}" />
                 <TextBlock Text="{Binding Year}" Classes="muted" FontSize="{StaticResource FontSmall}" Margin="0,-4,0,0" />
               </StackPanel>
+              <!-- Au survol de l'affiche : lire, vu, favori, sans changer la sélection. -->
+              <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="{StaticResource Inset2}" CornerRadius="{StaticResource RadiusControl}"
+                      Background="{DynamicResource CinedexSurface}" IsVisible="{Binding $parent[controls:PosterCard].IsPointerOver}">
+                  <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space1}">
+                    <Button Classes="tool rowaction" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).PlayOfCommand}" CommandParameter="{Binding}"
+                            ToolTip.Tip="Lire" AutomationProperties.Name="Lire">
+                      <controls:Icon Kind="play" Width="16" Height="16" />
+                    </Button>
+                    <Button Classes="tool rowaction" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ToggleSeenOfCommand}" CommandParameter="{Binding}"
+                            ToolTip.Tip="Vu / pas vu" AutomationProperties.Name="Vu / pas vu">
+                      <controls:Icon Kind="check" Width="16" Height="16" />
+                    </Button>
+                    <Button Classes="tool rowaction" Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ToggleFavoriteOfCommand}" CommandParameter="{Binding}"
+                            ToolTip.Tip="Favori" AutomationProperties.Name="Favori">
+                      <controls:Icon Kind="heart" Width="16" Height="16" />
+                    </Button>
+                  </StackPanel>
+              </Border>
               <!-- Croix dans un rond : le titre est sélectionné ; un clic le retire de la sélection. -->
               <Button Classes="selbadge" HorizontalAlignment="Right" VerticalAlignment="Top"
                       Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).RemoveFromSelectionCommand}" CommandParameter="{Binding}"

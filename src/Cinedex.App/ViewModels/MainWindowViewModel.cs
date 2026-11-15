@@ -998,8 +998,43 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ? Tr.T("Afficher la fiche du titre (F9)")
         : Tr.T("Replier la fiche pour élargir les affiches (F9)");
 
-    partial void OnDetailCollapsedChanged(bool value) =>
-        _media?.Settings.Set(DetailCollapsedKey, value ? "true" : "false");
+    partial void OnDetailCollapsedChanged(bool value)
+    {
+        if (_persistDetailCollapsed)
+        {
+            _media?.Settings.Set(DetailCollapsedKey, value ? "true" : "false");
+        }
+    }
+
+    private bool _persistDetailCollapsed = true;
+
+    /// <summary>
+    /// Replie ou rouvre la fiche parce que la fenêtre a changé de largeur. Le réglage mémorisé n'est pas
+    /// touché : c'est le choix de l'utilisateur, et il doit revenir quand la fenêtre retrouve de la place.
+    /// </summary>
+    public void CollapseDetailForWidth(bool collapsed)
+    {
+        _persistDetailCollapsed = false;
+        try
+        {
+            DetailCollapsed = collapsed;
+        }
+        finally
+        {
+            _persistDetailCollapsed = true;
+        }
+    }
+
+    /// <summary>
+    /// Bandeau gauche réduit à une colonne d'icônes : la fenêtre le fait d'elle-même quand elle devient
+    /// étroite, et F8 le bascule à la main. Les sous-menus, qui sont des listes de texte, attendent qu'on
+    /// le déplie.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsBannerRail { get; set; }
+
+    [RelayCommand]
+    private void ToggleBanner() => IsBannerRail = !IsBannerRail;
 
     [RelayCommand]
     private void ToggleDetail() => DetailCollapsed = !DetailCollapsed;
@@ -2016,7 +2051,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
                     await FetchSuggestionsForAsync(current);
                     return _extras.Suggestions.For(current.Id);
                 },
-            _extras.Suggestions is null || _metadata is null ? null : suggestion => AddSuggestionToWishlistAsync(suggestion));
+            _extras.Suggestions is null || _metadata is null ? null : suggestion => AddSuggestionToWishlistAsync(suggestion),
+            NeighbourOf(current.Id, -1),
+            NeighbourOf(current.Id, 1));
         var editor = new TitleEditorViewModel(
             current, _titles.Genres(), _titles.RefItems("medium"), _titles.RefItems("case"), _titles.RefItems("version"), _titles.Collections(), extras);
         // La fenêtre d'édition valide elle-même (TryBuild) avant de se fermer sur « Enregistrer ».
@@ -2041,16 +2078,37 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
             Touch([updated.Id]);
         }
-        else if (editor.NavigateToTitleId is { } target)
-        {
-            // Un film choisi depuis la fiche d'un acteur.
-            GoToTitle(target);
-        }
-        else
+        else if (editor.NavigateToTitleId is null)
         {
             // Infos techniques relues, partie ajoutée ou prêt modifié depuis la fiche, même sans enregistrer.
             Touch([current.Id]);
         }
+
+        if (editor.NavigateToTitleId is { } target)
+        {
+            // Un film choisi depuis la fiche (acteur, collection, recommandations), ou le titre voisin.
+            GoToTitle(target);
+            if (editor.ReopenAfterNavigation && SelectedTitles.Count == 1 && SelectedTitles[0].Id == target)
+            {
+                // Enchaîner les fiches : la suivante s'ouvre aussitôt, sans repasser par la liste.
+                await EditAsync();
+            }
+        }
+    }
+
+    /// <summary>Le titre voisin dans la liste affichée, ou rien au bout de la liste.</summary>
+    private long? NeighbourOf(long titleId, int step)
+    {
+        for (var i = 0; i < Titles.Count; i++)
+        {
+            if (Titles[i].Id == titleId)
+            {
+                var index = i + step;
+                return index >= 0 && index < Titles.Count ? Titles[index].Id : null;
+            }
+        }
+
+        return null;
     }
 
     [RelayCommand(CanExecute = nameof(HasSelection))]
@@ -2457,10 +2515,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     /// <summary>Lit le premier fichier présent ; marque le titre comme vu si le réglage le demande (par défaut).</summary>
     [RelayCommand(CanExecute = nameof(HasFiles))]
-    private void Play()
+    private void Play() => PlayFirst(DetailFiles, keepSelection: null);
+
+    private void PlayFirst(IReadOnlyList<MediaFileEntry> files, IReadOnlyList<long>? keepSelection)
     {
-        var file = DetailFiles.FirstOrDefault(f => File.Exists(f.FullPath));
-        if (file is null)
+        var file = files.FirstOrDefault(f => File.Exists(f.FullPath));
+        if (file is null || _media is null)
         {
             Status = MissingMediaMessage();
             return;
@@ -2468,19 +2528,61 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         try
         {
-            Player.Play(file.FullPath, _media!.Settings.Get(MediaContext.PlayerKey), _media.Settings.Get(MediaContext.PlayerArgsKey));
+            Player.Play(file.FullPath, _media.Settings.Get(MediaContext.PlayerKey), _media.Settings.Get(MediaContext.PlayerArgsKey));
             Journal($"Lecture : {file.FullPath}");
             if (_media.Settings.Get(MediaContext.MarkSeenOnPlayKey) != "false")
             {
                 // Chaque lecture laisse sa trace datée : c'est ce qui fait l'historique, et « revu trois fois ».
                 _titles.AddViewing(file.TitleId, DateTimeOffset.Now, ViewingSource.Playback);
-                Touch([file.TitleId]);
+                Touch([file.TitleId], keepSelection);
             }
         }
         catch (Exception ex) when (ex is IOException or InvalidOperationException or System.ComponentModel.Win32Exception)
         {
             Status = ex.Message;
         }
+    }
+
+    /// <summary>
+    /// Actions au survol d'une ligne ou d'une affiche : elles visent le titre survolé et laissent la
+    /// sélection telle qu'elle est. Marquer vu un film n'oblige plus à le sélectionner d'abord.
+    /// </summary>
+    [RelayCommand]
+    private void PlayOf(TitleSummary? title)
+    {
+        if (title is null || _media is null)
+        {
+            Status = MissingMediaMessage();
+            return;
+        }
+
+        PlayFirst(_media.Files.FilesOf(title.Id), SelectedIds);
+    }
+
+    [RelayCommand]
+    private void ToggleSeenOf(TitleSummary? title)
+    {
+        if (title is null)
+        {
+            return;
+        }
+
+        _titles.SetSeen([title.Id], !title.IsSeen, DateTimeOffset.Now);
+        Journal($"Marqué {(title.IsSeen ? "non vu" : "vu")} : {title.Title}");
+        RefreshTitles([title.Id], SelectedIds);
+    }
+
+    [RelayCommand]
+    private void ToggleFavoriteOf(TitleSummary? title)
+    {
+        if (title is null)
+        {
+            return;
+        }
+
+        _titles.SetFavorite([title.Id], !title.IsFavorite);
+        Journal($"{(title.IsFavorite ? "Retiré des" : "Ajouté aux")} favoris : {title.Title}");
+        RefreshTitles([title.Id], SelectedIds);
     }
 
     [RelayCommand(CanExecute = nameof(HasFiles))]
@@ -2676,9 +2778,31 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         var ids = SelectedIds;
         _titles.ApplyBulk(ids, new BulkEdit { AddGroups = [name] });
+        _lastList = name;
         ReloadSideLists();
         Status = Tr.F("{0} titre(s) ajouté(s) à « {1} »", ids.Count, name);
         Journal($"Ajouté à la liste « {name} » : {Names(SelectedTitles.ToList())}");
+    }
+
+    private string? _lastList;
+
+    /// <summary>
+    /// Raccourci clavier d'« Ajouter à une liste » : la dernière liste utilisée, ou la seule qui existe. Un
+    /// sous-menu ne se déclenche pas d'une touche ; ranger une série de films dans la même liste, si.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(HasSelection))]
+    private void AddToLastList()
+    {
+        var target = _lastList is { } last && ListNames.Contains(last) ? last : ListNames.Count == 1 ? ListNames[0] : null;
+        if (target is null)
+        {
+            Status = ListNames.Count == 0
+                ? Tr.T("Aucune liste personnelle : créez-en une depuis la fiche d'un film ou la modification en lot.")
+                : Tr.T("Choisissez d'abord une liste au clic droit : le raccourci reprendra ensuite la même.");
+            return;
+        }
+
+        AddToList(target);
     }
 
     /// <summary>

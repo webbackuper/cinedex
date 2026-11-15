@@ -224,6 +224,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.13.1
+- **« Vous aimerez aussi » et les suggestions TMDb sont de retour dans le panneau de droite**, sans quitter l'onglet Recommandations de la fiche. La 0.13.0 les avait déplacés ; les deux endroits ont leur usage. Sous les yeux, à droite, sans rien ouvrir ; en grand, dans l'onglet, quand on double-clique sur le film.
+
 ### 0.13.0
 - **Onglet Collection dans la fiche d'un film.** Quand le film appartient à une saga, sa fiche montre les films de cette collection avec leur affiche : ceux du catalogue, et ceux que la fiche TMDb de la saga annonce et que vous n'avez pas. Rangés par année, comme une saga se regarde. Un clic ouvre la fiche d'un film que vous avez ; les manquants sont là pour vous dire quoi chercher. L'onglet n'apparaît pas pour un film seul dans sa collection : il n'apprendrait rien.
 - **Onglet Recommandations dans la fiche**, qui réunit « Vous aimerez aussi » et les suggestions TMDb. Ils étaient dans le panneau de droite, dans une colonne trop étroite pour des affiches lisibles ; ils ont maintenant la place de s'étaler. Un clic sur un film proche ouvre sa fiche, un clic sur une suggestion que vous n'avez pas l'ajoute à la liste de souhaits, comme avant.

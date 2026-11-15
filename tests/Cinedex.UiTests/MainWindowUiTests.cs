@@ -174,7 +174,10 @@ public sealed class MainWindowUiTests(UiSession ui)
 
         Assert.Equal(!before, vm.Titles.Single(t => t.Id == id).IsFavorite);
         Assert.Equal(BigCatalog, vm.Titles.Count);
-        Assert.True(watch.ElapsedMilliseconds < 400, $"{watch.ElapsedMilliseconds} ms");
+        // Ce qu'on garde ici, c'est qu'une seule ligne soit relue, non une vitesse absolue : relire les
+        // 12 000 prendrait des secondes. La marge est donc large, pour qu'une machine chargée ne crie pas
+        // à la régression quand il n'y en a pas.
+        Assert.True(watch.ElapsedMilliseconds < 1_500, $"{watch.ElapsedMilliseconds} ms");
     });
 
     [Fact]

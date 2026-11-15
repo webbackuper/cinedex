@@ -224,6 +224,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.13.1
+- **"You will also like" and the TMDb suggestions are back in the right pane**, without leaving the record's Recommendations tab. Version 0.13.0 had moved them; both places have their use. Under your eyes, on the right, without opening anything; in full size, in the tab, when you double-click the film.
+
 ### 0.13.0
 - **Collection tab in a film's record.** When the film belongs to a saga, its record shows the films of that collection with their posters: the ones in the catalog, and the ones the saga's TMDb record announces and you do not have. Ordered by year, the way a saga is watched. A click opens the record of a film you own; the missing ones are there to tell you what to look for. The tab does not appear for a film alone in its collection: it would teach nothing.
 - **Recommendations tab in the record**, gathering "You will also like" and the TMDb suggestions. They were in the right pane, in a column too narrow for legible posters; they now have room to spread out. A click on a nearby film opens its record, a click on a suggestion you do not own adds it to the wish list, as before.

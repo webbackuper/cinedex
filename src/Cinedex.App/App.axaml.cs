@@ -37,6 +37,7 @@ public sealed class App : Application
             _paths = AppPaths.Resolve();
             _paths.EnsureCreated();
             _serilog = CreateLogger(_paths);
+            GuardUiThread(_serilog, () => _window);
             Services.Appearance.Apply(Services.Appearance.Load(_paths.DataRoot));
             Services.Appearance.ApplyStyle(Services.Appearance.LoadStyle(_paths.DataRoot));
             ProxySettings.Current = ProxySettings.Load(_paths.DataRoot);
@@ -270,6 +271,50 @@ public sealed class App : Application
         };
         TaskScheduler.UnobservedTaskException += (_, e) => serilog.Error(e.Exception, "Erreur non observée dans une tâche");
         return serilog;
+    }
+
+    /// <summary>
+    /// Filet du fil d'interface. Un gestionnaire d'événement <c>async void</c> qui lève une exception
+    /// imprévue la remet au répartiteur, et sans ce filet l'application se ferme en emportant le travail en
+    /// cours. Ici l'erreur est consignée, montrée, et l'application continue. Les erreurs attendues gardent
+    /// leur traitement là où elles surviennent : ce filet n'est que pour ce que personne n'a prévu.
+    /// </summary>
+    internal static void GuardUiThread(Serilog.ILogger serilog, Func<Avalonia.Controls.Window?> owner)
+    {
+        Avalonia.Threading.Dispatcher.UIThread.UnhandledException += (_, e) =>
+        {
+            serilog.Error(e.Exception, "Erreur non gérée sur le fil d'interface");
+            e.Handled = true;
+            if (_reportingUiError)
+            {
+                // Une erreur pendant l'affichage de la précédente : on s'en tient au journal, sans boucle.
+                return;
+            }
+
+            _reportingUiError = true;
+            _ = ReportUiErrorAsync(owner(), e.Exception);
+        };
+    }
+
+    private static bool _reportingUiError;
+
+    private static async Task ReportUiErrorAsync(Avalonia.Controls.Window? owner, Exception exception)
+    {
+        try
+        {
+            if (owner is not null)
+            {
+                await MessageWindow.ShowAsync(
+                    owner,
+                    "Erreur inattendue",
+                    Tr.F("Une erreur inattendue s'est produite, et Cinedex continue.\n\n{0}\n\nLe détail est dans le journal.", exception.Message),
+                    confirm: false);
+            }
+        }
+        finally
+        {
+            _reportingUiError = false;
+        }
     }
 
     internal static ServiceProvider ConfigureServices(AppPaths paths, string catalog, Serilog.ILogger serilog, IApiLimitPrompt? prompt = null)

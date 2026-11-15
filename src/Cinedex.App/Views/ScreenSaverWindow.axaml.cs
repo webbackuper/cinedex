@@ -20,7 +20,42 @@ public sealed partial class ScreenSaverWindow : Window
     public ScreenSaverWindow()
     {
         InitializeComponent();
-        _timer.Tick += (_, _) => (DataContext as ScreenSaverViewModel)?.Next();
+        _timer.Tick += async (_, _) => await AdvanceAsync();
+    }
+
+    /// <summary>Largeurs de décodage de la diapositive, les mêmes que dans la vue : le cache se retrouve par elles.</summary>
+    private const int BackgroundWidth = 960;
+
+    private const int PosterWidth = 900;
+
+    private bool _advancing;
+
+    /// <summary>
+    /// Passe à la diapositive suivante une fois ses deux images décodées. Le décodage d'une affiche en 900 px
+    /// prend quelques dizaines de millisecondes : fait sur le fil d'interface, il saccadait chaque transition.
+    /// </summary>
+    private async Task AdvanceAsync()
+    {
+        if (_advancing || DataContext is not ScreenSaverViewModel vm)
+        {
+            return;
+        }
+
+        _advancing = true;
+        try
+        {
+            var next = vm.Upcoming;
+            await Task.Run(() =>
+            {
+                PathToBitmapConverter.Load(next.BackgroundPath, BackgroundWidth);
+                PathToBitmapConverter.Load(next.PosterPath, PosterWidth);
+            });
+            vm.Next();
+        }
+        finally
+        {
+            _advancing = false;
+        }
     }
 
     protected override void OnOpened(EventArgs e)

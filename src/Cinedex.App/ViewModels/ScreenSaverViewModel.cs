@@ -41,20 +41,39 @@ public sealed partial class ScreenSaverViewModel : ObservableObject
     public partial ScreenSaverSlide? Current { get; private set; }
 
     /// <summary>Affiche suivante ; jamais deux fois la même d'affilée quand il y en a plusieurs.</summary>
+    /// <summary>
+    /// La diapositive que <see cref="Next"/> montrera. La fenêtre s'en sert pour décoder ses images avant le
+    /// changement, hors du fil d'interface : la transition n'attend alors plus le décodage.
+    /// </summary>
+    public ScreenSaverSlide Upcoming
+    {
+        get
+        {
+            EnsureOrder();
+            return _order[_position];
+        }
+    }
+
     public void Next()
     {
-        if (_position >= _order.Count)
-        {
-            var previous = Current;
-            _order = [.. _slides.OrderBy(_ => _random.Next())];
-            if (_order.Count > 1 && ReferenceEquals(_order[0], previous))
-            {
-                (_order[0], _order[^1]) = (_order[^1], _order[0]);
-            }
+        EnsureOrder();
+        Current = _order[_position++];
+    }
 
-            _position = 0;
+    private void EnsureOrder()
+    {
+        if (_position < _order.Count)
+        {
+            return;
         }
 
-        Current = _order[_position++];
+        var previous = Current;
+        _order = [.. _slides.OrderBy(_ => _random.Next())];
+        if (_order.Count > 1 && ReferenceEquals(_order[0], previous))
+        {
+            (_order[0], _order[^1]) = (_order[^1], _order[0]);
+        }
+
+        _position = 0;
     }
 }

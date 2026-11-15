@@ -916,7 +916,7 @@
           <StackPanel>
             <!-- Bandeau : image de fond fondue, affiche, titre -->
             <Panel Height="230">
-              <Image Source="{Binding BackdropPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=800}" Stretch="UniformToFill" />
+              <controls:AsyncImage Path="{Binding BackdropPath}" DecodeWidth="800" Stretch="UniformToFill" />
               <Border>
                 <Border.Background>
                   <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
@@ -929,7 +929,7 @@
                 <Border Width="92" Height="138" CornerRadius="{StaticResource RadiusControl}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
                   <Panel>
                     <controls:Icon Kind="default" Width="28" Height="28" Foreground="{DynamicResource CinedexMuted}" />
-                    <Image Source="{Binding PosterPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=200}" Stretch="UniformToFill" />
+                    <controls:AsyncImage Path="{Binding PosterPath}" DecodeWidth="200" Stretch="UniformToFill" />
                   </Panel>
                 </Border>
                 <StackPanel Grid.Column="1" Margin="{StaticResource Edges4_0_0_1}" VerticalAlignment="Bottom" Spacing="{StaticResource Space1}" DataContext="{Binding Detail}" x:DataType="titles:TitleDetail">
@@ -1221,7 +1221,7 @@
               <Border Width="120" Height="180" CornerRadius="{StaticResource RadiusCard}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
                 <Panel>
                   <controls:Icon Kind="person" Width="36" Height="36" Foreground="{DynamicResource CinedexMuted}" Opacity="0.6" />
-                  <Image Source="{Binding PhotoPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=240}" Stretch="UniformToFill" />
+                  <controls:AsyncImage Path="{Binding PhotoPath}" DecodeWidth="240" Stretch="UniformToFill" />
                 </Panel>
               </Border>
               <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Spacing="{StaticResource Space1}">

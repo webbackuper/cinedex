@@ -69,7 +69,7 @@
         <!-- Décor, affiche et nom -->
         <Border DockPanel.Dock="Top" Height="230" CornerRadius="{StaticResource RadiusCard}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
           <Panel>
-            <Image Source="{Binding BackdropPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=1280}" Stretch="UniformToFill" />
+            <controls:AsyncImage Path="{Binding BackdropPath}" DecodeWidth="1280" Stretch="UniformToFill" />
             <Border>
               <Border.Background>
                 <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
@@ -82,7 +82,7 @@
               <Border Width="100" Height="150" CornerRadius="{StaticResource RadiusCard}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
                 <Panel>
                   <controls:Icon Kind="collection" Width="32" Height="32" Foreground="{DynamicResource CinedexMuted}" />
-                  <Image Source="{Binding PosterPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=200}" Stretch="UniformToFill" />
+                  <controls:AsyncImage Path="{Binding PosterPath}" DecodeWidth="200" Stretch="UniformToFill" />
                 </Panel>
               </Border>
               <StackPanel Grid.Column="1" Margin="{StaticResource Before4}" VerticalAlignment="Bottom" Spacing="{StaticResource Space1}">
@@ -137,7 +137,7 @@
                     <Border Width="132" Height="198" CornerRadius="{StaticResource RadiusControl}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
                       <Panel>
                         <controls:Icon Kind="film" Width="28" Height="28" Foreground="{DynamicResource CinedexMuted}" Opacity="0.6" />
-                        <Image Source="{Binding PosterPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=264}" Stretch="UniformToFill" />
+                        <controls:AsyncImage Path="{Binding PosterPath}" DecodeWidth="264" Stretch="UniformToFill" />
                         <Border Background="{DynamicResource CinedexPosterBack}" IsVisible="{Binding Thumbnail, Converter={x:Static ObjectConverters.IsNotNull}}">
                           <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" Opacity="0.5" />
                         </Border>

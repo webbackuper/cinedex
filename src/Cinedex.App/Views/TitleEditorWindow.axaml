@@ -92,7 +92,7 @@
               <Border Height="225" CornerRadius="{StaticResource RadiusCard}" ClipToBounds="True" Background="{DynamicResource CinedexSurfaceAlt}">
                 <Panel>
                   <controls:Icon Kind="default" Width="36" Height="36" Foreground="{DynamicResource CinedexMuted}" Opacity="0.6" />
-                  <Image Source="{Binding PosterPath, Converter={x:Static views:PathToBitmapConverter.Instance}, ConverterParameter=300}" Stretch="UniformToFill" />
+                  <controls:AsyncImage Path="{Binding PosterPath}" DecodeWidth="300" Stretch="UniformToFill" />
                 </Panel>
               </Border>
               <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Click="OnChoosePoster"

@@ -1255,6 +1255,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         CrewText = crew;
         OnPropertyChanged(nameof(HasCast));
         OnPropertyChanged(nameof(HasDirectors));
+        LoadSelectionPeople();
 
         // Photos manquantes téléchargées en arrière-plan ; la distribution est rechargée si le titre est toujours affiché.
         var credits = people.Repository.Credits(detail.Id);
@@ -1740,22 +1741,161 @@ public sealed partial class MainWindowViewModel : ObservableObject
         PosterPath = Detail is null ? null : _images?.PathFor(Detail.Id, "poster");
         BackdropPath = Detail is null ? null : _images?.PathFor(Detail.Id, "backdrop");
         DetailFiles = Detail is null || _media is null ? [] : _media.Files.FilesOf(Detail.Id);
-        TechnicalSummary = Detail is null ? null : MediaTextOf(Detail.Id);
         DetailGenres = Detail is null ? [] : _titles.GenreLabels(Detail.Id).Select(Tr.T).ToList();
-        LoadSimilar();
-        LoadSuggestions();
-        LoadSelectionPeople();
-        LoadCredits();
+        ScheduleDetailExtras();
         LinkToTmdbCommand.NotifyCanExecuteChanged();
         OpenSeriesCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(IsSeries));
-        BorrowerText = Detail?.CurrentLoan is null ? _titles.LastBorrower() ?? string.Empty : string.Empty;
+
+        // Le dernier emprunteur ne sert qu'à préremplir le prêt d'une fiche affichée et libre : inutile de
+        // le demander à la base quand aucune fiche n'est montrée (sélection multiple, liste vide).
+        BorrowerText = Detail is { CurrentLoan: null } ? _titles.LastBorrower() ?? string.Empty : string.Empty;
         EditCommand.NotifyCanExecuteChanged();
         DeleteCommand.NotifyCanExecuteChanged();
         ToggleSeenCommand.NotifyCanExecuteChanged();
         ToggleFavoriteCommand.NotifyCanExecuteChanged();
         MoveUpCommand.NotifyCanExecuteChanged();
         MoveDownCommand.NotifyCanExecuteChanged();
+    }
+
+    /// <summary>
+    /// Ce que la fiche de droite montre en plus de ses champs, et qui coûte à lire : infos techniques,
+    /// générique, films proches, suggestions. Lu d'un bloc pour pouvoir l'être hors du fil d'interface.
+    /// </summary>
+    private sealed record DetailExtras(
+        long TitleId,
+        string? Technical,
+        IReadOnlyList<SimilarTitle> Similar,
+        IReadOnlyList<TmdbSuggestion> Suggestions,
+        bool SuggestionsFetched,
+        IReadOnlyList<CastMember> Cast,
+        IReadOnlyList<CastMember> Directors,
+        string Crew,
+        IReadOnlyList<CastMember> Credits);
+
+    /// <summary>Délai d'immobilité avant de charger le reste de la fiche : tenir la flèche bas ne le déclenche pas.</summary>
+    private static readonly TimeSpan DetailDelay = TimeSpan.FromMilliseconds(80);
+
+    private Avalonia.Threading.DispatcherTimer? _detailTimer;
+
+    private int _detailGeneration;
+
+    /// <summary>Titre dont le complément de fiche est affiché ; nul tant qu'il n'est pas chargé.</summary>
+    private long? _detailLoadedFor;
+
+    /// <summary>
+    /// Charge le complément de la fiche affichée. Au parcours clavier chaque flèche change de titre : les
+    /// lire tous en entier faisait une dizaine de requêtes par touche pour des fiches qu'on ne regarde pas.
+    /// Le complément est donc vidé tout de suite, puis lu en arrière-plan après un court arrêt, et abandonné
+    /// si la sélection a encore bougé. Le même titre republié (après une modification) est relu sur place,
+    /// sans clignoter.
+    /// </summary>
+    private void ScheduleDetailExtras()
+    {
+        ++_detailGeneration;
+        _detailTimer?.Stop();
+        if (Detail is not { } detail)
+        {
+            ApplyDetailExtras(null);
+            return;
+        }
+
+        if (Avalonia.Application.Current is null || _detailLoadedFor == detail.Id)
+        {
+            ApplyDetailExtras(ReadDetailExtras(detail.Id));
+            return;
+        }
+
+        ApplyDetailExtras(null);
+        if (_detailTimer is null)
+        {
+            _detailTimer = new Avalonia.Threading.DispatcherTimer { Interval = DetailDelay };
+            _detailTimer.Tick += async (_, _) =>
+            {
+                _detailTimer.Stop();
+                await LoadDetailExtrasAsync();
+            };
+        }
+
+        _detailTimer.Start();
+    }
+
+    private async Task LoadDetailExtrasAsync()
+    {
+        if (Detail is not { } detail)
+        {
+            return;
+        }
+
+        var generation = _detailGeneration;
+        var extras = await Task.Run(() => ReadDetailExtras(detail.Id));
+        if (generation == _detailGeneration && Detail?.Id == extras.TitleId)
+        {
+            ApplyDetailExtras(extras);
+        }
+    }
+
+    /// <summary>
+    /// Le complément de la fiche est-il là ? Sinon il est lu tout de suite. À appeler avant d'ouvrir ce qui
+    /// s'en sert (la fiche d'édition, le menu du clic droit), au cas où l'on agit dans le délai d'attente.
+    /// </summary>
+    public void EnsureDetailLoaded()
+    {
+        if (Detail is { } detail && _detailLoadedFor != detail.Id)
+        {
+            ++_detailGeneration;
+            _detailTimer?.Stop();
+            ApplyDetailExtras(ReadDetailExtras(detail.Id));
+        }
+    }
+
+    /// <summary>Lectures seules, chacune sur sa propre connexion : sûr hors du fil d'interface.</summary>
+    private DetailExtras ReadDetailExtras(long titleId)
+    {
+        var (cast, directors, crew) = CreditsOf(titleId);
+        return new DetailExtras(
+            titleId,
+            MediaTextOf(titleId),
+            SimilarOf(titleId),
+            _extras.Suggestions?.For(titleId) ?? [],
+            _extras.Suggestions?.WasFetched(titleId) ?? false,
+            cast,
+            directors,
+            crew,
+            _media?.People?.Repository.Credits(titleId) ?? []);
+    }
+
+    private void ApplyDetailExtras(DetailExtras? extras)
+    {
+        _detailLoadedFor = extras?.TitleId;
+        TechnicalSummary = extras?.Technical;
+        Similar = extras?.Similar ?? [];
+        TmdbSuggestions = extras?.Suggestions ?? [];
+        SuggestionsFetched = extras?.SuggestionsFetched ?? false;
+        FetchSuggestionsCommand.NotifyCanExecuteChanged();
+
+        Cast.Clear();
+        Directors.Clear();
+        foreach (var actor in extras?.Cast ?? [])
+        {
+            Cast.Add(actor);
+        }
+
+        foreach (var director in extras?.Directors ?? [])
+        {
+            Directors.Add(director);
+        }
+
+        CrewText = string.IsNullOrEmpty(extras?.Crew) ? null : extras.Crew;
+        OnPropertyChanged(nameof(HasCast));
+        OnPropertyChanged(nameof(HasDirectors));
+        LoadSelectionPeople();
+
+        // Photos manquantes téléchargées en arrière-plan ; la distribution est rechargée si le titre est toujours affiché.
+        if (extras is not null && extras.Credits.Any(c => c.PhotoRelativePath is null && c.ProfilePath is not null))
+        {
+            _ = LoadCreditPhotosAsync(extras.TitleId, extras.Credits);
+        }
     }
 
     [RelayCommand(CanExecute = nameof(CanAdd))]
@@ -1807,6 +1947,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
             await BulkEditAsync();
             return;
         }
+
+        // Un double-clic ouvre la fiche avant la fin du délai de chargement : le générique doit y être.
+        EnsureDetailLoaded();
 
         var current = _titles.Get(SelectedTitles[0].Id);
         if (current is null)

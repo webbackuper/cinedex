@@ -80,7 +80,7 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
                 // Un autre catalogue : ce que la largeur avait replié pour le précédent ne le concerne pas.
                 _detailCollapsedByWidth = false;
                 _bannerRailByWidth = false;
-                ApplyBanner(vm.IsBannerRail);
+                ApplyBanner(vm.SideBar.IsRail);
                 AdaptToWidth(double.PositiveInfinity, Bounds.Width);
                 vm.PropertyChanged += (_, e) =>
                 {
@@ -88,13 +88,16 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
                     {
                         ApplyDetailWidth(vm.DetailWidth);
                     }
-                    else if (e.PropertyName == nameof(MainWindowViewModel.IsBannerRail))
-                    {
-                        ApplyBanner(vm.IsBannerRail);
-                    }
                     else if (e.PropertyName == nameof(MainWindowViewModel.PeopleBrowser) && vm.IsPeopleView)
                     {
                         Avalonia.Threading.Dispatcher.UIThread.Post(() => PeopleQueryBox.Focus());
+                    }
+                };
+                vm.SideBar.PropertyChanged += (_, e) =>
+                {
+                    if (e.PropertyName == nameof(SideBarViewModel.IsRail))
+                    {
+                        ApplyBanner(vm.SideBar.IsRail);
                     }
                 };
             }
@@ -204,22 +207,22 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
             }
         }
 
-        if (previous >= NarrowForBanner && current < NarrowForBanner && !vm.IsBannerRail)
+        if (previous >= NarrowForBanner && current < NarrowForBanner && !vm.SideBar.IsRail)
         {
             _bannerRailByWidth = true;
-            vm.IsBannerRail = true;
+            vm.SideBar.IsRail = true;
         }
         else if (previous < NarrowForBanner && current >= NarrowForBanner && _bannerRailByWidth)
         {
             _bannerRailByWidth = false;
-            vm.IsBannerRail = false;
+            vm.SideBar.IsRail = false;
         }
     }
 
     /// <summary>La fiche ne peut pas manger la liste : barre latérale, 380 px de liste et poignée restent visibles.</summary>
     private void LimitDetailWidth()
     {
-        var banner = (DataContext as MainWindowViewModel)?.IsBannerRail == true ? BannerRailWidth : BannerWidth;
+        var banner = (DataContext as MainWindowViewModel)?.SideBar.IsRail == true ? BannerRailWidth : BannerWidth;
         var room = Bounds.Width - banner - 380 - 8;
         DetailColumn.MaxWidth = room > 0 ? Math.Clamp(room, MainWindowViewModel.MinDetailWidth, MainWindowViewModel.MaxDetailWidth) : MainWindowViewModel.MaxDetailWidth;
     }

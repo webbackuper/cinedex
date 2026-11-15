@@ -227,6 +227,9 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.14.1
+- **Nothing new on screen: the main window's code has been split up.** The right-hand record and the left sidebar each have their own module, after the duplicates in 0.14.0. This closes the work opened by the audit: the window now only carries the list, the selection and the actions, which makes the next changes safer.
+
 ### 0.14.0
 A version born from a full audit of the code: the window no longer freezes on a large catalog, image memory is kept in check, and five everyday gestures take fewer clicks.
 

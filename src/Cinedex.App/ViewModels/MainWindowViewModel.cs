@@ -61,6 +61,20 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _media = media;
         _catalogs = catalogs;
         Duplicates = CreateDuplicates();
+        SideBar = new SideBarViewModel(titles, _extras.Lists);
+        SideBar.Requested += (_, request) => OnSideBarRequested(request);
+        SideBar.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(SideBarViewModel.SelectedListName))
+            {
+                MoveUpCommand.NotifyCanExecuteChanged();
+                MoveDownCommand.NotifyCanExecuteChanged();
+            }
+            else if (e.PropertyName == nameof(SideBarViewModel.SelectedReferenceList))
+            {
+                AddMissingToWishlistCommand.NotifyCanExecuteChanged();
+            }
+        };
         Record = new RecordViewModel(titles, images, media, _extras, Prepare);
         Record.PropertyChanged += (_, e) =>
         {
@@ -513,128 +527,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void ToggleDefinitions() => IsDefinitionExpanded = !IsDefinitionExpanded;
 
-    /// <summary>Disques du catalogue (MediaID) listés dans le bandeau gauche, les mieux garnis d'abord.</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasMediaIds))]
-    public partial IReadOnlyList<string> MediaIds { get; private set; } = [];
-
-    public bool HasMediaIds => MediaIds.Count > 0;
-
-    [ObservableProperty]
-    public partial bool IsMediaIdExpanded { get; set; }
-
-    [RelayCommand]
-    private void ToggleMediaIds() => IsMediaIdExpanded = !IsMediaIdExpanded;
-
-    /// <summary>Disque choisi : la liste ne montre que ses titres. Le reprendre, ou un filtre, revient à tout.</summary>
-    [ObservableProperty]
-    public partial string? SelectedMediaId { get; set; }
-
-    partial void OnSelectedMediaIdChanged(string? value)
-    {
-        if (value is not null)
-        {
-            ClearFacets();
-        }
-
-        // Un disque et une recherche multicritère ne se cumulent pas : le disque remplace les critères.
-        Rules = value is null ? null : new RuleSearch([new SearchRule("media_id", RuleOperator.Equals, value)]);
-    }
-
-    /// <summary>
-    /// Sous-menus de parcours du bandeau gauche. Ils se comportent tous pareil, d'où un seul mécanisme :
-    /// une liste d'entrées, chacune portant la recherche qu'elle applique.
-    /// </summary>
-    public ObservableCollection<FacetGroup> Facets { get; } = [];
-
-    private void LoadFacets()
-    {
-        var chosen = Facets.Select(f => f.SelectedItem?.Label).ToList();
-        Facets.Clear();
-
-        var genres = _titles.UsedGenres()
-            .Select(g => new FacetItem(Tr.T(g.Label), new RuleSearch([new SearchRule("genre", RuleOperator.Equals, g.Code)])))
-            .OrderBy(i => i.Label, StringComparer.CurrentCultureIgnoreCase)
-            .ToList();
-        Add("Genres", "tag", genres);
-
-        Add("Décennies", "clock", _titles.Decades()
-            .Select(d => new FacetItem(
-                TitleText.DecadeLabel(d),
-                new RuleSearch([
-                    new SearchRule("year", RuleOperator.GreaterOrEqual, d.ToString(CultureInfo.InvariantCulture)),
-                    new SearchRule("year", RuleOperator.LessOrEqual, (d + 9).ToString(CultureInfo.InvariantCulture)),
-                ])))
-            .ToList());
-
-        // Les groupes sont les listes personnelles : ils existaient, mais seule la recherche multicritère
-        // y menait. Les mettre ici est ce qui manquait pour qu'ils servent.
-        Add("Mes listes", "bookmark", _titles.Groups()
-            .Select(g => new FacetItem(g.Name, new RuleSearch([new SearchRule("group", RuleOperator.Equals, g.Name)]), g.Name))
-            .OrderBy(i => i.Label, StringComparer.CurrentCultureIgnoreCase)
-            .ToList());
-
-        Add("Pays", "globe", Named(_titles.CountryCodes(), TitleText.CountryName, "countries"));
-        Add("Langues", "speech", Named(_titles.LanguageCodes(), TitleText.LanguageName, "languages"));
-
-        // La sélection d'avant survit au rechargement quand son entrée existe encore.
-        for (var i = 0; i < Facets.Count && i < chosen.Count; i++)
-        {
-            if (chosen[i] is { } label)
-            {
-                Facets[i].SelectedItem = Facets[i].Items.FirstOrDefault(x => string.Equals(x.Label, label, StringComparison.Ordinal));
-            }
-        }
-
-        void Add(string label, string icon, IReadOnlyList<FacetItem> items)
-        {
-            if (items.Count > 0)
-            {
-                Facets.Add(new FacetGroup(Tr.T(label), icon, items, OnFacetSelected));
-            }
-        }
-
-        static List<FacetItem> Named(IReadOnlyList<string> codes, Func<string, string> name, string field) =>
-            codes.Select(c => new FacetItem(name(c), new RuleSearch([new SearchRule(field, RuleOperator.Contains, c)])))
-                .OrderBy(i => i.Label, StringComparer.CurrentCultureIgnoreCase)
-                .ToList();
-    }
-
-    /// <summary>Une entrée de sous-menu cliquée : elle remplace toute autre vue latérale.</summary>
-    private void OnFacetSelected(FacetGroup group)
-    {
-        foreach (var other in Facets.Where(f => f != group))
-        {
-            other.Clear();
-        }
-
-        // Le disque pose sa propre recherche : il faut le relâcher avant, sinon il efface celle du sous-menu.
-        SelectedMediaId = null;
-        PeopleBrowser = null;
-        Home = null;
-        SelectedReferenceList = null;
-        ReleaseDuplicateGroup();
-
-        // Une liste personnelle s'ouvre dans l'ordre que l'utilisateur lui a donné ; il reste libre de trier
-        // autrement ensuite, le choix du tri l'emporte alors.
-        SelectedListName = group.SelectedItem?.GroupName;
-        if (SelectedListName is not null && SelectedSort.Value != SortField.ListOrder)
-        {
-            SelectedSort = Sorts.First(s => s.Value == SortField.ListOrder);
-        }
-
-        Rules = group.SelectedItem?.Search;
-    }
-
-    /// <summary>Liste personnelle ouverte, s'il y en a une : c'est elle qui donne l'ordre et qu'on réordonne.</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasPersonalList))]
-    [NotifyCanExecuteChangedFor(nameof(MoveUpCommand), nameof(MoveDownCommand))]
-    public partial string? SelectedListName { get; private set; }
-
-    public bool HasPersonalList => SelectedListName is not null;
-
-    private bool CanMove() => SelectedListName is not null && SelectedTitles.Count > 0 && SelectedSort.Value == SortField.ListOrder;
+    private bool CanMove() => SideBar.SelectedListName is not null && SelectedTitles.Count > 0 && SelectedSort.Value == SortField.ListOrder;
 
     [RelayCommand(CanExecute = nameof(CanMove))]
     private void MoveUp() => Move(-1);
@@ -644,7 +537,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private void Move(int delta)
     {
-        if (SelectedListName is not { } list)
+        if (SideBar.SelectedListName is not { } list)
         {
             return;
         }
@@ -652,16 +545,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var ids = SelectedIds;
         _titles.MoveInGroup(list, ids, delta);
         Refresh(selectIds: ids);
-    }
-
-    /// <summary>Relâche les sous-menus de parcours quand une autre vue prend la main.</summary>
-    private void ClearFacets()
-    {
-        SelectedListName = null;
-        foreach (var group in Facets)
-        {
-            group.Clear();
-        }
     }
 
     /// <summary>
@@ -723,9 +606,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             Home = null;
             PeopleBrowser = null;
-            SelectedMediaId = null;
-            SelectedReferenceList = null;
-            ClearFacets();
+            SideBar.ReleaseAll();
             Rules = null;
         }
 
@@ -741,47 +622,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    /// <summary>Listes de référence (Top 250, palmarès, listes à vous), avec leur état face au catalogue.</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasReferenceLists))]
-    public partial IReadOnlyList<ReferenceList> ReferenceLists { get; private set; } = [];
-
-    public bool HasReferenceLists => ReferenceLists.Count > 0;
-
-    [ObservableProperty]
-    public partial bool IsListExpanded { get; set; }
-
-    [RelayCommand]
-    private void ToggleLists() => IsListExpanded = !IsListExpanded;
-
-    /// <summary>Liste choisie : le panneau central montre les titres du catalogue qui en font partie.</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasSelectedList), nameof(ListStatusText))]
-    [NotifyCanExecuteChangedFor(nameof(AddMissingToWishlistCommand))]
-    public partial ReferenceList? SelectedReferenceList { get; set; }
-
-    public bool HasSelectedList => SelectedReferenceList is not null;
-
-    /// <summary>Ce que la liste dit du catalogue : c'est elle le sujet, pas le classement lui-même.</summary>
-    public string ListStatusText => SelectedReferenceList is not { } list
-        ? string.Empty
-        : Tr.F("{0} sur {1} au catalogue, {2} manquant(s)", list.Owned, list.Total, list.Missing);
-
-    partial void OnSelectedReferenceListChanged(ReferenceList? value)
-    {
-        if (value is null)
-        {
-            return;
-        }
-
-        Home = null;
-        PeopleBrowser = null;
-        SelectedMediaId = null;
-        ClearFacets();
-        Rules = new RuleSearch([new SearchRule("list", RuleOperator.Equals, value.Name)]);
-    }
-
-    private bool CanAddMissing() => _extras.Lists is not null && _metadata is not null && !IsBusy && SelectedReferenceList is { Missing: > 0 };
+    private bool CanAddMissing() => _extras.Lists is not null && _metadata is not null && !IsBusy && SideBar.SelectedReferenceList is { Missing: > 0 };
 
     /// <summary>
     /// Ajoute à la liste de souhaits les films de la liste choisie qui manquent au catalogue, étiquetés à son
@@ -790,7 +631,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanAddMissing))]
     private async Task AddMissingToWishlistAsync()
     {
-        if (_extras.Lists is not { } service || SelectedReferenceList is not { } list)
+        if (_extras.Lists is not { } service || SideBar.SelectedReferenceList is not { } list)
         {
             return;
         }
@@ -806,7 +647,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             var progress = TrackedProgress(list.Missing);
             var (added, notFound) = await service.AddMissingToWishlistAsync(list, progress, CancellationToken.None);
-            LoadReferenceLists();
+            SideBar.Reload();
             Refresh();
             Status = Tr.F("{0} film(s) ajouté(s) à la liste de souhaits, {1} introuvable(s) sur TMDb", added, notFound);
             Journal($"Liste « {list.Name} » : {added} film(s) ajoutés à la liste de souhaits, {notFound} introuvables sur TMDb");
@@ -825,9 +666,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         try
         {
             var list = await service.BuildImdbTopAsync(progress: new Progress<string>(m => Status = m));
-            LoadReferenceLists();
-            IsListExpanded = true;
-            SelectedReferenceList = ReferenceLists.FirstOrDefault(l => l.Id == list.Id);
+            SideBar.Reload();
+            SideBar.ShowReferenceList(list.Id);
             Status = Tr.F("{0} : {1} films, {2} au catalogue", list.Name, list.Total, list.Owned);
             Journal($"Liste « {list.Name} » recalculée : {list.Total} films, {list.Owned} au catalogue");
         }
@@ -838,29 +678,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
         finally
         {
             IsBusy = false;
-        }
-    }
-
-    private void LoadReferenceLists()
-    {
-        if (_extras.Lists is not { } service)
-        {
-            return;
-        }
-
-        var chosen = SelectedReferenceList?.Id;
-        ReferenceLists = service.Lists.All();
-        SelectedReferenceList = chosen is { } id ? ReferenceLists.FirstOrDefault(l => l.Id == id) : null;
-    }
-
-    private void LoadMediaIds()
-    {
-        var chosen = SelectedMediaId;
-        MediaIds = _titles.MediaIds();
-        if (chosen is not null)
-        {
-            // La sélection suit le disque s'il est toujours là ; sinon elle est relâchée.
-            SelectedMediaId = MediaIds.FirstOrDefault(d => string.Equals(d, chosen, StringComparison.Ordinal));
         }
     }
 
@@ -890,6 +707,39 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AddCommand))]
     public partial string NewTitleText { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Les sous-menus du bandeau gauche : disques, listes de référence, parcours par genre, décennie, liste
+    /// personnelle, pays et langue. Le bandeau tient ses listes et leur exclusion mutuelle ; quand une
+    /// entrée est choisie, il le demande et la fenêtre applique la recherche.
+    /// </summary>
+    public SideBarViewModel SideBar { get; }
+
+    private void OnSideBarRequested(SideBarRequest request)
+    {
+        switch (request.Source)
+        {
+            case SideBarSource.ReferenceList:
+                Home = null;
+                PeopleBrowser = null;
+                break;
+            case SideBarSource.Facet:
+                PeopleBrowser = null;
+                Home = null;
+                ReleaseDuplicateGroup();
+
+                // Une liste personnelle s'ouvre dans l'ordre que l'utilisateur lui a donné ; il reste libre de
+                // trier autrement ensuite, le choix du tri l'emporte alors.
+                if (request.ListName is not null && SelectedSort.Value != SortField.ListOrder)
+                {
+                    SelectedSort = Sorts.First(s => s.Value == SortField.ListOrder);
+                }
+
+                break;
+        }
+
+        Rules = request.Rules;
+    }
 
     /// <summary>
     /// La fiche de droite : le titre affiché et ce qu'on en montre. La fenêtre lui dit quel titre montrer ;
@@ -976,17 +826,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
             _persistDetailCollapsed = true;
         }
     }
-
-    /// <summary>
-    /// Bandeau gauche réduit à une colonne d'icônes : la fenêtre le fait d'elle-même quand elle devient
-    /// étroite, et F8 le bascule à la main. Les sous-menus, qui sont des listes de texte, attendent qu'on
-    /// le déplie.
-    /// </summary>
-    [ObservableProperty]
-    public partial bool IsBannerRail { get; set; }
-
-    [RelayCommand]
-    private void ToggleBanner() => IsBannerRail = !IsBannerRail;
 
     [RelayCommand]
     private void ToggleDetail() => DetailCollapsed = !DetailCollapsed;
@@ -1234,10 +1073,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         Home = null;
         PeopleBrowser = null;
-        SelectedMediaId = null;
-        SelectedReferenceList = null;
+        SideBar.ReleaseAll();
         ReleaseDuplicateGroup();
-        ClearFacets();
         Rules = null;
     }
 
@@ -1411,7 +1248,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     partial void OnRulesChanged(RuleSearch? value) => RefreshView();
 
     private TitleQuery CurrentQuery => new(SearchText, SelectedFilter.Value, SelectedSort.Value, SortDescending, _display.HideAdult,
-        Rules: Rules, Ids: _duplicateIds, GroupOrder: SelectedListName);
+        Rules: Rules, Ids: _duplicateIds, GroupOrder: SideBar.SelectedListName);
 
     private IReadOnlyList<long> SelectedIds => SelectedTitles.Select(t => t.Id).ToList();
 
@@ -1432,10 +1269,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// </summary>
     private void ReloadSideLists()
     {
-        LoadMediaIds();
-        LoadFacets();
-        LoadReferenceLists();
-        ListNames = _titles.Groups().Select(g => g.Name).ToList();
+        SideBar.Reload();
     }
 
     private Avalonia.Threading.DispatcherTimer? _searchTimer;
@@ -1469,15 +1303,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     partial void OnSelectedFilterChanged(FilterItem value)
     {
-        if (SelectedMediaId is not null)
+        if (SideBar.ReleaseDisc())
         {
             // Choisir une vue de la bibliothèque sort du disque, comme elle sort d'une recherche multicritère.
-            SelectedMediaId = null;
+            Rules = null;
         }
 
-        ClearFacets();
+        SideBar.ReleaseBrowsing();
         Home = null;
-        SelectedReferenceList = null;
         ReleaseDuplicateGroup();
 
         OnPropertyChanged(nameof(SelectedMainFilter));
@@ -2377,13 +2210,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
         RefreshTitles(ids);
     }
 
-    /// <summary>Listes personnelles où verser la sélection ; le menu contextuel en fait un sous-menu.</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasLists))]
-    public partial IReadOnlyList<string> ListNames { get; private set; } = [];
-
-    public bool HasLists => ListNames.Count > 0;
-
     /// <summary>Ajoute la sélection à une liste personnelle existante, à la fin de celle-ci.</summary>
     [RelayCommand(CanExecute = nameof(HasSelection))]
     private void AddToList(string? name)
@@ -2410,10 +2236,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(HasSelection))]
     private void AddToLastList()
     {
-        var target = _lastList is { } last && ListNames.Contains(last) ? last : ListNames.Count == 1 ? ListNames[0] : null;
+        var target = _lastList is { } last && SideBar.ListNames.Contains(last) ? last : SideBar.ListNames.Count == 1 ? SideBar.ListNames[0] : null;
         if (target is null)
         {
-            Status = ListNames.Count == 0
+            Status = SideBar.ListNames.Count == 0
                 ? Tr.T("Aucune liste personnelle : créez-en une depuis la fiche d'un film ou la modification en lot.")
                 : Tr.T("Choisissez d'abord une liste au clic droit : le raccourci reprendra ensuite la même.");
             return;
@@ -2433,10 +2259,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         Home = null;
         PeopleBrowser = null;
-        SelectedMediaId = null;
-        SelectedReferenceList = null;
+        SideBar.ReleaseAll();
         ReleaseDuplicateGroup();
-        ClearFacets();
         Rules = person.Search;
     }
 

@@ -18,26 +18,26 @@ public sealed class ErgonomicsUiTests(UiSession ui)
         var vm = catalog.ViewModel;
         var grid = catalog.Find<Grid>(g => g.Name == "MainGrid");
         Assert.False(vm.DetailCollapsed);
-        Assert.False(vm.IsBannerRail);
+        Assert.False(vm.SideBar.IsRail);
         Assert.Equal(232, grid.ColumnDefinitions[0].Width.Value);
 
         // Sous 1 150 px : la fiche se replie, le bandeau reste.
         catalog.Window.Width = 1100;
         UiCatalog.Pump(50);
         Assert.True(vm.DetailCollapsed);
-        Assert.False(vm.IsBannerRail);
+        Assert.False(vm.SideBar.IsRail);
 
         // Sous 1 000 px : le bandeau passe en colonne d'icônes.
         catalog.Window.Width = 980;
         UiCatalog.Pump(50);
-        Assert.True(vm.IsBannerRail);
+        Assert.True(vm.SideBar.IsRail);
         Assert.Equal(64, grid.ColumnDefinitions[0].Width.Value);
         UiCatalog.Shot(catalog.Window, "fenetre-etroite");
 
         // La place revient : ce que la largeur avait replié se rouvre.
         catalog.Window.Width = 1600;
         UiCatalog.Pump(50);
-        Assert.False(vm.IsBannerRail);
+        Assert.False(vm.SideBar.IsRail);
         Assert.False(vm.DetailCollapsed);
         Assert.Equal(232, grid.ColumnDefinitions[0].Width.Value);
     });
@@ -50,9 +50,9 @@ public sealed class ErgonomicsUiTests(UiSession ui)
 
         // Replié à la main, sur une fenêtre large.
         vm.ToggleDetailCommand.Execute(null);
-        vm.ToggleBannerCommand.Execute(null);
+        vm.SideBar.ToggleRailCommand.Execute(null);
         Assert.True(vm.DetailCollapsed);
-        Assert.True(vm.IsBannerRail);
+        Assert.True(vm.SideBar.IsRail);
 
         catalog.Window.Width = 980;
         UiCatalog.Pump(50);
@@ -61,7 +61,7 @@ public sealed class ErgonomicsUiTests(UiSession ui)
 
         // La largeur n'y était pour rien : elle ne rouvre pas ce qu'elle n'a pas fermé.
         Assert.True(vm.DetailCollapsed);
-        Assert.True(vm.IsBannerRail);
+        Assert.True(vm.SideBar.IsRail);
     });
 
     [Fact]

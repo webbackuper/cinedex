@@ -108,10 +108,10 @@ public sealed class PersonalListTests : IDisposable
         var vm = new MainWindowViewModel(_repo, new AppPaths(_temp.Path, isPortable: false), new MainWindowViewModelTests.FakeDialogs());
         vm.Load();
 
-        var lists = vm.Facets.Single(f => f.Label == "Mes listes");
+        var lists = vm.SideBar.Facets.Single(f => f.Label == "Mes listes");
         lists.SelectedItem = lists.Items.Single(i => i.Label == List);
 
-        Assert.Equal(List, vm.SelectedListName);
+        Assert.Equal(List, vm.SideBar.SelectedListName);
         Assert.Equal(SortField.ListOrder, vm.SelectedSort.Value);
         Assert.Equal([z, a], vm.Titles.Select(t => t.Id));
 
@@ -123,7 +123,7 @@ public sealed class PersonalListTests : IDisposable
         Assert.Equal([a], vm.SelectedTitles.Select(t => t.Id));
 
         vm.LeaveSideViews();
-        Assert.Null(vm.SelectedListName);
+        Assert.Null(vm.SideBar.SelectedListName);
         Assert.False(vm.MoveUpCommand.CanExecute(null));
     }
 

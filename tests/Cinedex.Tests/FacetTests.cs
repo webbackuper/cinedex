@@ -35,7 +35,7 @@ public sealed class FacetTests : IDisposable
         Film("Amélie", 2001, ["comedy"], "FR", "fr");
         _vm.Load();
 
-        var genres = _vm.Facets.Single(f => f.Label == "Genres");
+        var genres = _vm.SideBar.Facets.Single(f => f.Label == "Genres");
         genres.SelectedItem = genres.Items.Single(i => i.Label == "Policier");
         Assert.Equal(["Heat"], _vm.Titles.Select(t => t.Title));
 
@@ -53,7 +53,7 @@ public sealed class FacetTests : IDisposable
         Film("Matrix", 1999, ["sci-fi"], "US", "en");
         _vm.Load();
 
-        var decades = _vm.Facets.Single(f => f.Label == "Décennies");
+        var decades = _vm.SideBar.Facets.Single(f => f.Label == "Décennies");
         Assert.Equal(["1990 – 1999", "1980 – 1989", "1970 – 1979"], decades.Items.Select(i => i.Label));
 
         decades.SelectedItem = decades.Items.Single(i => i.Label == "1990 – 1999");
@@ -73,14 +73,14 @@ public sealed class FacetTests : IDisposable
         Assert.NotEqual("FR", france);
         Assert.NotEqual("fr", french);
 
-        var countries = _vm.Facets.Single(f => f.Label == "Pays");
+        var countries = _vm.SideBar.Facets.Single(f => f.Label == "Pays");
         Assert.Equal(2, countries.Items.Count);
         Assert.DoesNotContain(countries.Items, i => i.Label == "FR");
 
         countries.SelectedItem = countries.Items.Single(i => i.Label == france);
         Assert.Equal(["Amélie"], _vm.Titles.Select(t => t.Title));
 
-        var languages = _vm.Facets.Single(f => f.Label == "Langues");
+        var languages = _vm.SideBar.Facets.Single(f => f.Label == "Langues");
         Assert.Equal(2, languages.Items.Count);
         languages.SelectedItem = languages.Items.Single(i => i.Label == french);
         Assert.Equal(["Amélie"], _vm.Titles.Select(t => t.Title));
@@ -94,7 +94,7 @@ public sealed class FacetTests : IDisposable
     {
         _vm.Load();
 
-        Assert.Empty(_vm.Facets);
+        Assert.Empty(_vm.SideBar.Facets);
     }
 
     private void Film(string title, int year, string[] genres, string country, string language)

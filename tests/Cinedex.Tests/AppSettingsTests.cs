@@ -235,26 +235,26 @@ public sealed class AppSettingsTests : IDisposable
         var main = new MainWindowViewModel(titles, new AppPaths(_temp.Path, isPortable: false), new NoDialogs(), media: new MediaContext(files, import, _store));
         main.Load();
 
-        Assert.True(main.HasMediaIds);
-        Assert.Equal(["archives", "FILMS-A", "FILMS-B"], main.MediaIds);
+        Assert.True(main.SideBar.HasMediaIds);
+        Assert.Equal(["archives", "FILMS-A", "FILMS-B"], main.SideBar.MediaIds);
 
         // Choisir un disque ne montre que ses films.
-        main.SelectedMediaId = "FILMS-B";
+        main.SideBar.SelectedMediaId = "FILMS-B";
         Assert.Equal(["Ran"], main.Titles.Select(t => t.Title));
 
-        main.SelectedMediaId = "FILMS-A";
+        main.SideBar.SelectedMediaId = "FILMS-A";
         Assert.Equal(["Alien", "Heat"], main.Titles.Select(t => t.Title));
 
         // Changer de vue sort du disque.
         main.SelectedFilter = main.Filters.Single(f => f.Value == QuickFilter.Movies);
-        Assert.Null(main.SelectedMediaId);
+        Assert.Null(main.SideBar.SelectedMediaId);
         Assert.Equal(3, main.Titles.Count);
 
         // Et recliquer la vue déjà choisie en sort aussi : le filtre ne bouge pas, l'intention est de tout revoir.
-        main.SelectedMediaId = "FILMS-A";
+        main.SideBar.SelectedMediaId = "FILMS-A";
         Assert.Equal(2, main.Titles.Count);
         main.LeaveSideViews();
-        Assert.Null(main.SelectedMediaId);
+        Assert.Null(main.SideBar.SelectedMediaId);
         Assert.Equal(3, main.Titles.Count);
     }
 

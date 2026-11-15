@@ -227,6 +227,9 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.14.1
+- **Rien de nouveau à l'écran : le code de la fenêtre principale est découpé.** La fiche de droite et le bandeau gauche ont chacun leur propre module, après les doublons en 0.14.0. C'est la fin du chantier ouvert par l'audit : la fenêtre ne porte plus que la liste, la sélection et les actions, ce qui rend les évolutions suivantes plus sûres.
+
 ### 0.14.0
 Une version née d'un audit complet du code : la fenêtre ne gèle plus sur un gros catalogue, la mémoire d'images est tenue, et cinq gestes du quotidien demandent moins de clics.
 

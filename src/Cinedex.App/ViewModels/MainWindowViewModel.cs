@@ -700,7 +700,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             Rules = null;
         }
 
-        Refresh(selectIds: value?.TitleIds);
+        RefreshView(value?.TitleIds);
     }
 
     private bool CanFindDuplicates() => _extras.Maintenance is not null && !IsBusy;
@@ -1605,7 +1605,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// <summary>Une recherche multicritère est active (le bouton d'effacement apparaît).</summary>
     public bool HasCriteria => Rules is { IsEmpty: false };
 
-    partial void OnRulesChanged(RuleSearch? value) => Refresh();
+    partial void OnRulesChanged(RuleSearch? value) => RefreshView();
 
     private TitleQuery CurrentQuery => new(SearchText, SelectedFilter.Value, SelectedSort.Value, SortDescending, _display.HideAdult,
         Rules: Rules, Ids: _duplicateIds, GroupOrder: SelectedListName);
@@ -1646,7 +1646,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         if (Avalonia.Application.Current is null || string.IsNullOrEmpty(value))
         {
             _searchTimer?.Stop();
-            Refresh();
+            RefreshView();
             return;
         }
 
@@ -1684,17 +1684,17 @@ public sealed partial class MainWindowViewModel : ObservableObject
             IsDefinitionExpanded = true;
         }
 
-        Refresh();
+        RefreshView();
     }
 
     partial void OnSelectedSortChanged(Choice<SortField> value)
     {
         MoveUpCommand.NotifyCanExecuteChanged();
         MoveDownCommand.NotifyCanExecuteChanged();
-        Refresh();
+        RefreshView();
     }
 
-    partial void OnSortDescendingChanged(bool value) => Refresh();
+    partial void OnSortDescendingChanged(bool value) => RefreshView();
 
     /// <summary>Plusieurs titres sélectionnés : le bandeau droit affiche leur nombre et leur liste.</summary>
     public bool HasMultiSelection => SelectedTitles.Count > 1;
@@ -2822,9 +2822,71 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
+        // Ce qui a été demandé en arrière-plan avant cet instant est dépassé : la liste lue ici fait foi.
+        ++_searchGeneration;
         ReviewCount = _metadata?.Reviews?.Count() ?? 0;
         UpdateSeriesTracking();
         Apply(_titles.Query(CurrentQuery).Select(Prepare).ToList(), selectIds ?? (selectId is { } one ? [one] : []));
+    }
+
+    private IReadOnlyList<long>? _viewSelect;
+
+    private int _viewGeneration;
+
+    private bool _viewRefreshScheduled;
+
+    /// <summary>
+    /// Dernière relecture de vue demandée ; terminée quand la liste affichée correspond au filtre, au tri et
+    /// au bandeau courants. Les tests d'interface l'attendent, l'application n'en a pas besoin.
+    /// </summary>
+    public Task ViewRefresh { get; private set; } = Task.CompletedTask;
+
+    /// <summary>
+    /// Relit la liste après un changement de vue : filtre, tri, entrée du bandeau, recherche effacée. La
+    /// requête part en arrière-plan, parce qu'elle coûte 150 à 700 ms sur 12 000 titres et que la fenêtre
+    /// gelait d'autant. Plusieurs changements dans la même foulée (un filtre qui en relâche un autre) ne
+    /// donnent qu'une requête, et un résultat dépassé par une demande plus récente n'est jamais appliqué.
+    /// </summary>
+    private void RefreshView(IReadOnlyList<long>? selectIds = null)
+    {
+        if (!_loaded)
+        {
+            return;
+        }
+
+        if (Avalonia.Application.Current is null)
+        {
+            // Sans application (tests du modèle seul), rien ne viendrait exécuter la suite : on lit sur place.
+            Refresh(selectIds: selectIds);
+            return;
+        }
+
+        _viewSelect = selectIds;
+        _viewGeneration = ++_searchGeneration;
+        if (_viewRefreshScheduled)
+        {
+            return;
+        }
+
+        _viewRefreshScheduled = true;
+        var done = new TaskCompletionSource();
+        ViewRefresh = done.Task;
+        Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
+        {
+            _viewRefreshScheduled = false;
+            try
+            {
+                // Une relecture synchrone passée entre-temps a déjà mis la liste à jour : ne pas la défaire.
+                if (_viewGeneration == _searchGeneration)
+                {
+                    await RefreshAsync(_viewSelect ?? []);
+                }
+            }
+            finally
+            {
+                done.TrySetResult();
+            }
+        });
     }
 
     /// <summary>Installe les lignes trouvées : sélection conservée, compte rendu, état de la liste vide.</summary>
@@ -2858,7 +2920,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// </summary>
     private int _searchGeneration;
 
-    private async Task SearchAsync()
+    private Task SearchAsync() => RefreshAsync(select: null);
+
+    /// <summary>
+    /// Lit la liste en arrière-plan et l'installe si elle est toujours la plus récente demandée.
+    /// <paramref name="select"/> donne la sélection à poser ; sans lui, celle du moment est gardée.
+    /// </summary>
+    private async Task RefreshAsync(IReadOnlyList<long>? select)
     {
         if (!_loaded)
         {
@@ -2868,9 +2936,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var generation = ++_searchGeneration;
         var query = CurrentQuery;
         List<TitleSummary> rows;
+        int reviews;
         try
         {
-            rows = await Task.Run(() => _titles.Query(query).Select(Prepare).ToList());
+            (rows, reviews) = await Task.Run(() =>
+                (_titles.Query(query).Select(Prepare).ToList(), _metadata?.Reviews?.Count() ?? 0));
         }
         catch (Microsoft.Data.Sqlite.SqliteException ex)
         {
@@ -2880,7 +2950,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         if (generation == _searchGeneration)
         {
-            Apply(rows, SelectedIds);
+            ReviewCount = reviews;
+            UpdateSeriesTracking();
+            Apply(rows, select ?? SelectedIds);
         }
     }
 

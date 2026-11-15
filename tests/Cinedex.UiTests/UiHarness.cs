@@ -91,6 +91,23 @@ internal sealed class UiCatalog : IDisposable
 
     public CatalogDatabase Database { get; }
 
+    /// <summary>
+    /// Attend que la liste affichée corresponde à la vue demandée. Un changement de filtre ou de tri relit la
+    /// liste en arrière-plan : le test laisse tourner le répartiteur jusqu'à ce que le résultat soit installé.
+    /// </summary>
+    public void Settle()
+    {
+        var until = DateTime.UtcNow.AddSeconds(30);
+        do
+        {
+            Pump(15);
+        }
+        while (!ViewModel.ViewRefresh.IsCompleted && DateTime.UtcNow < until);
+
+        Assert.True(ViewModel.ViewRefresh.IsCompleted, "La relecture de la liste n'a pas abouti en 30 secondes.");
+        Pump();
+    }
+
     /// <summary>Douze films, chacun avec un réalisateur et six acteurs pris parmi quarante (TMDb injoignable).</summary>
     private MediaContext SeedPeople(string images)
     {

@@ -282,11 +282,39 @@ public sealed class MainWindowUiTests(UiSession ui)
         using var catalog = new UiCatalog(1_000);
         var vm = catalog.ViewModel;
         vm.SelectedFilter = vm.Filters.Single(f => f.Value == QuickFilter.Seen);
-        UiCatalog.Pump();
+
+        // La fenêtre rend la main tout de suite : la liste n'est pas encore relue, et c'est voulu.
+        Assert.Equal(1_000, vm.Titles.Count);
+        catalog.Settle();
 
         Assert.NotEmpty(vm.Titles);
         Assert.All(vm.Titles, t => Assert.True(t.IsSeen));
         Assert.True(vm.Titles.Count < 1_000);
+    });
+
+    [Fact]
+    public Task Several_view_changes_in_a_row_end_on_the_last_one() => ui.Run(() =>
+    {
+        using var catalog = new UiCatalog(1_000);
+        var vm = catalog.ViewModel;
+
+        // Trois changements dans la même foulée : seul le dernier état doit se retrouver à l'écran.
+        vm.SelectedFilter = vm.Filters.Single(f => f.Value == QuickFilter.Seen);
+        vm.SelectedFilter = vm.Filters.Single(f => f.Value == QuickFilter.Favorites);
+        vm.SortDescending = true;
+        catalog.Settle();
+
+        Assert.NotEmpty(vm.Titles);
+        Assert.All(vm.Titles, t => Assert.True(t.IsFavorite));
+        var titles = vm.Titles.Select(t => t.Title.ToLowerInvariant()).ToList();
+        Assert.Equal(titles.OrderByDescending(t => t, StringComparer.Ordinal), titles);
+
+        // Une action qui relit sur place garde la main sur une relecture de vue encore en route.
+        vm.SortDescending = false;
+        vm.ReloadCommand.Execute(null);
+        var afterReload = vm.Titles.Select(t => t.Id).ToList();
+        catalog.Settle();
+        Assert.Equal(afterReload, vm.Titles.Select(t => t.Id));
     });
 
     [Fact]

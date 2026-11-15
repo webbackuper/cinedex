@@ -710,9 +710,11 @@ public sealed partial class TitleRepository(CatalogDatabase database)
                 : null,
             _ => throw new ArgumentOutOfRangeException(nameof(sort), sort, null),
         };
+        // Du SQL, donc jamais par la fonction de traduction : une clé traduite par mégarde dans un fichier
+        // de langue aurait cassé toutes les listes pour cette langue.
         return column is null
-            ? Tr.F("t.sort_title {0}, t.year {1}", direction, direction)
-            : Tr.F("{0} IS NULL, {1} {2}, t.sort_title ASC", column, column, direction);
+            ? $"t.sort_title {direction}, t.year {direction}"
+            : $"{column} IS NULL, {column} {direction}, t.sort_title ASC";
     }
 
     private void SetFlag(IEnumerable<long> ids, string column, bool value)

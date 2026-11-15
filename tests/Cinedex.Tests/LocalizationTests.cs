@@ -50,6 +50,19 @@ public sealed partial class LocalizationTests
         Assert.True(strings.Count >= Catalog.Count * 0.85, $"{code} : {strings.Count}/{Catalog.Count}");
     }
 
+    /// <summary>
+    /// Le catalogue ne propose aux traducteurs que du texte affiché. Un fragment de SQL qui s'y glisse est
+    /// un piège : traduit par mégarde, il casserait la requête pour cette seule langue, sans autre signal.
+    /// </summary>
+    [Fact]
+    public void No_sql_is_offered_for_translation()
+    {
+        Assert.DoesNotContain(Catalog, text =>
+            text.Contains("t.sort_title", StringComparison.Ordinal) ||
+            text.Contains("IS NULL", StringComparison.Ordinal) ||
+            text.Contains("ORDER BY", StringComparison.Ordinal));
+    }
+
     [Fact]
     public void Every_text_written_in_the_windows_is_in_the_catalog()
     {

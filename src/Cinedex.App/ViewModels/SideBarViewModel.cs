@@ -23,7 +23,9 @@ public enum SideBarSource
 }
 
 /// <summary>Ce que le bandeau demande d'afficher : la recherche à appliquer, et la liste personnelle ouverte s'il y en a une.</summary>
-public sealed record SideBarRequest(SideBarSource Source, RuleSearch? Rules, string? ListName);
+/// <param name="GroupKey">Clé du sous-menu de parcours d'où vient la demande (« genres »), quand il en a une.</param>
+/// <param name="Label">Libellé de l'entrée choisie, pour le dire au-dessus de la liste.</param>
+public sealed record SideBarRequest(SideBarSource Source, RuleSearch? Rules, string? ListName, string? GroupKey = null, string? Label = null);
 
 /// <summary>
 /// Les sous-menus du bandeau gauche : disques (MediaID), listes de référence, et les parcours par genre,
@@ -51,6 +53,41 @@ public sealed partial class SideBarViewModel : ObservableObject
 
     /// <summary>Une entrée du bandeau vient d'être choisie (ou un disque relâché) par l'utilisateur.</summary>
     public event EventHandler<SideBarRequest>? Requested;
+
+    /// <summary>Clé du sous-menu des genres : celui qui a une galerie dans la vue centrale.</summary>
+    public const string GenresKey = "genres";
+
+    /// <summary>Un sous-menu qui a une galerie vient d'être déplié : la vue centrale peut la montrer.</summary>
+    public event EventHandler<string>? GalleryRequested;
+
+    /// <summary>
+    /// Choisit une entrée d'un sous-menu comme si on l'avait cliquée dans le bandeau : c'est ce qui garde le
+    /// bandeau et la galerie centrale en phase. Renvoie faux si l'entrée n'existe pas.
+    /// </summary>
+    public bool SelectFacet(string groupKey, Func<FacetItem, bool> entry)
+    {
+        ArgumentNullException.ThrowIfNull(entry);
+        if (Facets.FirstOrDefault(f => f.Key == groupKey) is not { } group || group.Items.FirstOrDefault(entry) is not { } item)
+        {
+            return false;
+        }
+
+        group.IsExpanded = true;
+        if (ReferenceEquals(group.SelectedItem, item))
+        {
+            // Déjà choisie : la demande est rejouée, pour que la vue centrale y revienne.
+            OnFacetSelected(group);
+        }
+        else
+        {
+            group.SelectedItem = item;
+        }
+
+        return true;
+    }
+
+    /// <summary>Relâche les sous-menus de parcours seuls, sans le signaler : on revient à leur galerie.</summary>
+    public void ReleaseFacets() => Quietly(ClearFacets);
 
     /// <summary>
     /// Bandeau réduit à une colonne d'icônes : la fenêtre le fait d'elle-même quand elle devient étroite, et
@@ -253,13 +290,14 @@ public sealed partial class SideBarViewModel : ObservableObject
     private void LoadFacets()
     {
         var chosen = Facets.Select(f => f.SelectedItem?.Label).ToList();
+        var wasExpanded = Facets.Where(f => f.IsExpanded).Select(f => f.Key ?? f.Label).ToHashSet(StringComparer.Ordinal);
         Facets.Clear();
 
         var genres = _titles.UsedGenres()
             .Select(g => new FacetItem(Tr.T(g.Label), new RuleSearch([new SearchRule("genre", RuleOperator.Equals, g.Code)])))
             .OrderBy(i => i.Label, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
-        Add("Genres", "tag", genres);
+        Add("Genres", "tag", genres, GenresKey);
 
         Add("Décennies", "clock", _titles.Decades()
             .Select(d => new FacetItem(
@@ -289,11 +327,15 @@ public sealed partial class SideBarViewModel : ObservableObject
             }
         }
 
-        void Add(string label, string icon, IReadOnlyList<FacetItem> items)
+        void Add(string label, string icon, IReadOnlyList<FacetItem> items, string? key = null)
         {
             if (items.Count > 0)
             {
-                Facets.Add(new FacetGroup(Tr.T(label), icon, items, OnFacetSelected));
+                Facets.Add(new FacetGroup(Tr.T(label), icon, items, OnFacetSelected, key, key is null ? null : OnGalleryGroupExpanded)
+                {
+                    // Rechargé pendant qu'il était ouvert : il le reste, sans redemander sa galerie.
+                    IsExpanded = wasExpanded.Contains(key ?? label),
+                });
             }
         }
 
@@ -323,6 +365,15 @@ public sealed partial class SideBarViewModel : ObservableObject
         });
 
         SelectedListName = group.SelectedItem?.GroupName;
-        Requested?.Invoke(this, new SideBarRequest(SideBarSource.Facet, group.SelectedItem?.Search, SelectedListName));
+        Requested?.Invoke(this, new SideBarRequest(
+            SideBarSource.Facet, group.SelectedItem?.Search, SelectedListName, group.Key, group.SelectedItem?.Label));
+    }
+
+    private void OnGalleryGroupExpanded(FacetGroup group)
+    {
+        if (!_quiet && group.Key is { } key)
+        {
+            GalleryRequested?.Invoke(this, key);
+        }
     }
 }

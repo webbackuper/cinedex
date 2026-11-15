@@ -18,9 +18,21 @@ public sealed record FacetItem(string Label, RuleSearch Search, string? GroupNam
 /// Un sous-menu dépliable du bandeau gauche (genres, décennies, pays, langues). Chacun se comporte comme le
 /// sous-menu MediaID : un clic remplace la recherche en cours, et choisir ailleurs relâche la sélection.
 /// </summary>
-public sealed partial class FacetGroup(string label, string icon, IReadOnlyList<FacetItem> items, Action<FacetGroup> onSelected)
+public sealed partial class FacetGroup(
+    string label, string icon, IReadOnlyList<FacetItem> items, Action<FacetGroup> onSelected, string? key = null, Action<FacetGroup>? onExpanded = null)
     : ObservableObject
 {
+    /// <summary>Clé stable du sous-menu (« genres »), indépendante de la langue ; nulle pour ceux qui n'en ont pas besoin.</summary>
+    public string? Key { get; } = key;
+
+    partial void OnIsExpandedChanged(bool value)
+    {
+        if (value)
+        {
+            onExpanded?.Invoke(this);
+        }
+    }
+
     public string Label { get; } = label;
 
     /// <summary>

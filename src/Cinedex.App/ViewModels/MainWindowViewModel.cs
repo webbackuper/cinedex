@@ -63,6 +63,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
         Duplicates = CreateDuplicates();
         SideBar = new SideBarViewModel(titles, _extras.Lists);
         SideBar.Requested += (_, request) => OnSideBarRequested(request);
+        SideBar.GalleryRequested += (_, key) =>
+        {
+            if (key == SideBarViewModel.GenresKey)
+            {
+                ShowGenreGallery();
+            }
+        };
         SideBar.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(SideBarViewModel.SelectedListName))
@@ -459,6 +466,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         var browser = new CollectionsViewModel(collections);
+        if (Trail is { Kind: GalleryKind.Collections, Id: { } inside } &&
+            browser.Collections.FirstOrDefault(c => c.Id == inside) is { } current)
+        {
+            // Ouverte depuis une collection : c'est elle que la fenêtre montre.
+            browser.Selected = current;
+        }
+
         var chosen = await _dialogs.ShowCollectionsAsync(browser) && browser.ChosenTitleId is not null;
         if (chosen)
         {
@@ -466,6 +480,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
         else if (browser.Changed)
         {
+            if (Gallery is { Kind: GalleryKind.Collections })
+            {
+                // Une collection renommée, supprimée ou complétée : la galerie se relit.
+                ShowCollectionGallery();
+            }
+
             Refresh(selectIds: SelectedIds);
         }
     }
@@ -738,7 +758,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 break;
         }
 
+        _nextTrail = request is { GroupKey: SideBarViewModel.GenresKey, Label: { } genre, Rules: not null }
+            ? new GalleryTrail(GalleryKind.Genres, Tr.T("Genres"), genre, string.Empty)
+            : null;
         Rules = request.Rules;
+        Trail = _nextTrail;
+        _nextTrail = null;
+        if (request.Rules is not null)
+        {
+            Gallery = null;
+        }
     }
 
     /// <summary>
@@ -989,7 +1018,162 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public bool IsPeopleView => PeopleBrowser is not null;
 
-    public bool IsTitlesView => PeopleBrowser is null && Home is null;
+    public bool IsTitlesView => PeopleBrowser is null && Home is null && Gallery is null;
+
+    /// <summary>
+    /// Galerie affichée dans la vue centrale : les collections ou les genres, en vignettes. Entrer dans une
+    /// vignette revient à la liste des titres, filtrée, avec un fil d'Ariane pour revenir ici.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsGalleryView), nameof(IsTitlesView), nameof(IsCollectionsView))]
+    public partial GalleryViewModel? Gallery { get; private set; }
+
+    public bool IsGalleryView => Gallery is not null;
+
+    /// <summary>Le lien « Collections » du bandeau est allumé : on est dans leur galerie, ou dans l'une d'elles.</summary>
+    public bool IsCollectionsView => Gallery is { Kind: GalleryKind.Collections } || Trail is { Kind: GalleryKind.Collections };
+
+    partial void OnGalleryChanged(GalleryViewModel? value)
+    {
+        if (value is not null)
+        {
+            Home = null;
+            PeopleBrowser = null;
+        }
+    }
+
+    /// <summary>Où l'on est entré depuis une galerie ; nul quand la liste ne vient pas de là.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasTrail), nameof(IsCollectionsView), nameof(IsInCollection))]
+    public partial GalleryTrail? Trail { get; private set; }
+
+    public bool HasTrail => Trail is not null;
+
+    public bool IsInCollection => Trail is { Kind: GalleryKind.Collections };
+
+    /// <summary>Le fil d'Ariane à poser quand la recherche en cours de changement sera appliquée.</summary>
+    private GalleryTrail? _nextTrail;
+
+    /// <summary>Montre la galerie des collections dans la vue centrale.</summary>
+    [RelayCommand]
+    private void ShowCollectionGallery()
+    {
+        if (_metadata?.Collections is not { } service)
+        {
+            return;
+        }
+
+        var cards = service.Repository.List()
+            .Select(c =>
+            {
+                // Le décor de la saga fait le meilleur visuel ; à défaut son affiche ; à défaut la couleur seule.
+                var detail = service.Repository.Get(c.Id);
+                var image = service.Resolve(detail?.BackdropRelativePath) ?? service.Resolve(c.PosterRelativePath);
+                var count = c.Parts > 0 ? Tr.F("{0} / {1} films", c.Owned, c.Parts) : Tr.F("{0} film(s)", c.Owned);
+                return new GalleryCard(GalleryKind.Collections, c.Name, c.Name, count, image is null ? [] : [image], c.Id);
+            })
+            .ToList();
+        ShowGallery(new GalleryViewModel(
+            GalleryKind.Collections,
+            Tr.T("Collections"),
+            Tr.F("{0} collection(s). Cliquez sur l'une d'elles pour voir ses films.", cards.Count),
+            cards));
+    }
+
+    /// <summary>Montre la galerie des genres dans la vue centrale.</summary>
+    [RelayCommand]
+    private void ShowGenreGallery()
+    {
+        var cards = _titles.GenreShowcases()
+            .Select(g => new GalleryCard(
+                GalleryKind.Genres,
+                g.Code,
+                Tr.T(g.Label),
+                Tr.F("{0} titre(s)", g.Titles),
+                g.PosterRelativePaths.Select(p => _images?.PathInside(p)).OfType<string>().ToList()))
+            .OrderBy(c => c.Title, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+        ShowGallery(new GalleryViewModel(
+            GalleryKind.Genres,
+            Tr.T("Genres"),
+            Tr.F("{0} genre(s). Cliquez sur l'un d'eux pour voir ses titres.", cards.Count),
+            cards));
+    }
+
+    private void ShowGallery(GalleryViewModel gallery)
+    {
+        // Une galerie n'est pas une recherche : ce que le bandeau avait de choisi est relâché, et la liste
+        // qu'on retrouvera en sortant est entière (elle se relit en arrière-plan, derrière la galerie).
+        SideBar.ReleaseAll();
+        ReleaseDuplicateGroup();
+        Rules = null;
+        Trail = null;
+        Gallery = gallery;
+    }
+
+    /// <summary>Entre dans une vignette : ses films s'affichent dans la liste, avec de quoi revenir.</summary>
+    [RelayCommand]
+    private void OpenGalleryCard(GalleryCard? card)
+    {
+        if (card is null)
+        {
+            return;
+        }
+
+        if (card.Kind == GalleryKind.Genres)
+        {
+            // Par le bandeau : c'est lui qui applique la recherche, et son sous-menu montre où l'on est.
+            if (!SideBar.SelectFacet(SideBarViewModel.GenresKey, i => i.Search.Rules.Any(r => r.Value == card.Key)))
+            {
+                ShowInTitles(new RuleSearch([new SearchRule("genre", RuleOperator.Equals, card.Key)]), TrailOf(card));
+            }
+
+            return;
+        }
+
+        SideBar.ReleaseAll();
+        ReleaseDuplicateGroup();
+        ShowInTitles(new RuleSearch([new SearchRule("collection", RuleOperator.Equals, card.Key)]), TrailOf(card));
+    }
+
+    private static GalleryTrail TrailOf(GalleryCard card) => new(
+        card.Kind,
+        card.Kind == GalleryKind.Collections ? Tr.T("Collections") : Tr.T("Genres"),
+        card.Title,
+        card.Subtitle,
+        card.Id);
+
+    /// <summary>Affiche la liste des titres pour cette recherche, sous ce fil d'Ariane.</summary>
+    private void ShowInTitles(RuleSearch rules, GalleryTrail trail)
+    {
+        _nextTrail = trail;
+        Rules = rules;
+
+        // Si la recherche était déjà celle-là, rien n'a changé et rien n'a posé le fil : on le pose ici.
+        _nextTrail = null;
+        Trail = trail;
+        Gallery = null;
+    }
+
+    /// <summary>Revient à la galerie d'où l'on est entré.</summary>
+    [RelayCommand]
+    private void BackToGallery()
+    {
+        if (Trail is not { } trail)
+        {
+            return;
+        }
+
+        if (trail.Kind == GalleryKind.Collections)
+        {
+            ShowCollectionGallery();
+        }
+        else
+        {
+            ShowGenreGallery();
+        }
+    }
+
 
     public bool IsActorsView => PeopleBrowser is { IsDirectors: false };
 
@@ -1073,6 +1257,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         Home = null;
         PeopleBrowser = null;
+        Gallery = null;
+        Trail = null;
         SideBar.ReleaseAll();
         ReleaseDuplicateGroup();
         Rules = null;
@@ -1084,6 +1270,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
         if (value is not null)
         {
             Home = null;
+            Gallery = null;
+        }
+    }
+
+    partial void OnHomeChanged(HomeViewModel? value)
+    {
+        if (value is not null)
+        {
+            Gallery = null;
         }
     }
 
@@ -1245,7 +1440,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// <summary>Une recherche multicritère est active (le bouton d'effacement apparaît).</summary>
     public bool HasCriteria => Rules is { IsEmpty: false };
 
-    partial void OnRulesChanged(RuleSearch? value) => RefreshView();
+    partial void OnRulesChanged(RuleSearch? value)
+    {
+        // Une recherche qui change, c'est la liste des titres qu'on regarde : la galerie s'efface, et le fil
+        // d'Ariane ne reste que si c'est lui qui a amené cette recherche.
+        Trail = _nextTrail;
+        Gallery = null;
+        RefreshView();
+    }
 
     private TitleQuery CurrentQuery => new(SearchText, SelectedFilter.Value, SelectedSort.Value, SortDescending, _display.HideAdult,
         Rules: Rules, Ids: _duplicateIds, GroupOrder: SideBar.SelectedListName);
@@ -1311,6 +1513,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         SideBar.ReleaseBrowsing();
         Home = null;
+        Gallery = null;
+        Trail = null;
         ReleaseDuplicateGroup();
 
         OnPropertyChanged(nameof(SelectedMainFilter));

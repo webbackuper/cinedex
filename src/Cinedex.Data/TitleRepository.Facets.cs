@@ -6,6 +6,8 @@ namespace Cinedex.Data;
 /// Listes de parcours du bandeau gauche : genres, décennies, pays, langues. Chacune ne contient que ce que
 /// le catalogue porte vraiment, pour qu'un clic ne tombe jamais sur une vue vide.
 /// </summary>
+public sealed record GenreShowcase(string Code, string Label, int Titles, IReadOnlyList<string> PosterRelativePaths);
+
 public sealed partial class TitleRepository
 {
     /// <summary>Genres portés par au moins un titre : code (clé de recherche) et libellé français de référence.</summary>
@@ -19,6 +21,36 @@ public sealed partial class TitleRepository
                 ORDER BY g.label COLLATE NOCASE;
                 """)
             .ToList();
+    }
+
+    /// <summary>
+    /// Les genres portés par le catalogue, chacun avec son nombre de titres et jusqu'à quatre affiches : de
+    /// quoi lui faire un visuel avec ce que le catalogue contient. Les affiches sont celles des titres les
+    /// mieux notés du genre, pour qu'il se reconnaisse à ses films les plus connus.
+    /// </summary>
+    public IReadOnlyList<GenreShowcase> GenreShowcases()
+    {
+        using var connection = database.Open();
+        var counts = connection.Query<(string Code, string Label, long Count)>(
+                """
+                SELECT g.code, g.label, count(*) FROM genre g JOIN title_genre tg ON tg.genre_id = g.id
+                GROUP BY g.id ORDER BY g.label COLLATE NOCASE;
+                """)
+            .ToList();
+        var posters = connection.Query<(string Code, string Path)>(
+                """
+                SELECT code, rel_path FROM (
+                    SELECT g.code AS code, i.rel_path AS rel_path,
+                           row_number() OVER (PARTITION BY g.id ORDER BY t.imdb_rating IS NULL, t.imdb_rating DESC, t.id) AS rank
+                    FROM genre g
+                    JOIN title_genre tg ON tg.genre_id = g.id
+                    JOIN title t ON t.id = tg.title_id
+                    JOIN title_image ti ON ti.title_id = t.id AND ti.role = 'poster'
+                    JOIN image i ON i.id = ti.image_id)
+                WHERE rank <= 4 ORDER BY code, rank;
+                """)
+            .ToLookup(p => p.Code, p => p.Path, StringComparer.Ordinal);
+        return counts.Select(c => new GenreShowcase(c.Code, c.Label, (int)c.Count, posters[c.Code].ToList())).ToList();
     }
 
     /// <summary>Décennies présentes, la plus récente d'abord : 2020 vaut « 2020 – 2029 ».</summary>

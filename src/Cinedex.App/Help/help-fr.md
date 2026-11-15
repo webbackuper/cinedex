@@ -78,7 +78,9 @@ Le lien **Réalisateurs** du bandeau gauche affiche les réalisateurs du catalog
 ## Collections
 Une **collection** regroupe les films d'une saga ou d'un coffret (Retour vers le futur, Le Seigneur des anneaux…). Elle est créée à l'import d'un film lié à TMDb qui appartient à une saga, ou à la main dans l'onglet **Classement** de la fiche.
 
-Le lien **Collections** du bandeau gauche ouvre la liste des collections avec, pour chacune, son décor, son affiche, sa présentation et tous les films de la saga dans l'ordre de sortie :
+Le lien **Collections** du bandeau gauche affiche, au centre de la fenêtre, une galerie de vignettes : une par collection, avec son décor et son compte de films. Un clic sur une vignette montre ses films dans la liste ; le bouton **‹ Collections** au-dessus de la liste (ou **Alt+Gauche**) ramène à la galerie. Les genres ont la même galerie : dépliez **Genres** dans le bandeau.
+
+**Gérer les collections…**, dans la galerie, et **Détails de la collection…**, quand on est dans l'une d'elles, ouvrent la fenêtre des collections avec, pour chacune, son décor, son affiche, sa présentation et tous les films de la saga dans l'ordre de sortie :
 - les films **du catalogue** portent une coche ; un clic affiche le film dans la liste principale ;
 - les films **manquants** sont grisés avec leur affiche TMDb ; un clic ouvre leur fiche sur TMDb.
 
@@ -227,6 +229,13 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.16.0
+- **Les collections s'affichent dans la fenêtre principale.** Le lien **Collections** du bandeau ouvre une galerie de vignettes au centre, au lieu d'une fenêtre à part : chaque saga y a son décor (ou son affiche) et son compte, « 2 / 3 films ». Un clic entre dans la collection : ses films s'affichent dans la liste ordinaire, avec toutes les actions habituelles.
+- **On revient d'un clic.** Au-dessus de la liste, un bandeau dit où l'on est et porte le bouton **‹ Collections** (ou **Alt+Gauche**) pour retrouver la galerie.
+- **Une galerie des genres, avec un visuel par genre.** Déplier **Genres** dans le bandeau montre au centre une vignette par genre, faite de quatre affiches de ses films les mieux notés, avec son nombre de titres. Un clic entre dans le genre.
+- **Le bandeau et le centre restent en phase** : entrer dans un genre par sa vignette le sélectionne dans le sous-menu Genres ; en choisir un autre dans le sous-menu change la liste et le bandeau du haut ; **‹ Genres** ramène à la galerie.
+- La fenêtre des collections reste là pour ce qu'elle seule fait : films manquants, mise à jour depuis TMDb, renommage, suppression. Elle s'ouvre par **Gérer les collections…** dans la galerie, ou **Détails de la collection…** quand on est dans l'une d'elles.
+
 ### 0.15.0
 - **Lire un film dont le disque n'est pas branché demande le disque.** Avant chaque lecture, d'un film comme d'un épisode, et avant d'ouvrir le dossier d'un fichier, Cinedex vérifie que le fichier est là. S'il manque, une fenêtre nomme le disque à connecter (son MediaID) et rappelle le chemin attendu, avec trois réponses : **Réessayer** une fois le disque branché, **Chercher sur les autres lettres de lecteur**, ou **Annuler**.
 - **Chercher sur les autres lecteurs** : sous Windows, le même chemin est cherché sous chaque lettre de lecteur prête (`E:\Films\Heat.mkv` sous `F:`, `G:`…). Sous macOS il l'est dans les disques de `/Volumes`, sous Linux dans ceux de `/media`, `/run/media` et `/mnt`. Si le fichier n'y est pas, la fenêtre le dit et reste ouverte.

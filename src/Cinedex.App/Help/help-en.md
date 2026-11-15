@@ -78,7 +78,9 @@ The **Directors** link in the left sidebar shows the catalog's directors in the 
 ## Collections
 A **collection** groups the films of a saga or box set (Back to the Future, The Lord of the Rings…). It is created when a film linked to TMDb that belongs to a saga is imported, or by hand in the **Organization** tab of the details.
 
-The **Collections** link in the left sidebar opens the list of collections, each with its backdrop, poster, overview and every film of the saga in release order:
+The **Collections** link in the left sidebar shows, in the centre of the window, a gallery of cards: one per collection, with its backdrop and its count of films. A click on a card shows its films in the list; the **‹ Collections** button above the list (or **Alt+Left**) returns to the gallery. Genres have the same gallery: expand **Genres** in the sidebar.
+
+**Manage collections…**, in the gallery, and **Collection details…**, when you are inside one, open the collections window, each with its backdrop, poster, overview and every film of the saga in release order:
 - films **in the catalog** carry a check mark; a click shows the film in the main list;
 - **missing** films are dimmed with their TMDb poster; a click opens their TMDb page.
 
@@ -227,6 +229,13 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.16.0
+- **Collections are shown in the main window.** The sidebar's **Collections** link opens a gallery of cards in the centre, instead of a separate window: each saga has its backdrop (or poster) and its count, "2 / 3 films". A click enters the collection: its films show in the ordinary list, with all the usual actions.
+- **One click to come back.** Above the list, a bar says where you are and carries the **‹ Collections** button (or **Alt+Left**) to return to the gallery.
+- **A gallery of genres, with a visual for each.** Expanding **Genres** in the sidebar shows a card per genre in the centre, made of four posters of its best rated films, with its number of titles. A click enters the genre.
+- **The sidebar and the centre stay in step**: entering a genre by its card selects it in the Genres submenu; choosing another in the submenu changes the list and the bar above; **‹ Genres** returns to the gallery.
+- The collections window stays for what only it does: missing films, update from TMDb, renaming, deleting. It opens from **Manage collections…** in the gallery, or **Collection details…** when you are inside one.
+
 ### 0.15.0
 - **Playing a film whose disc is not plugged in asks for the disc.** Before every playback, of a film or an episode, and before opening a file's folder, Cinedex checks that the file is there. If it is missing, a window names the disc to connect (its MediaID) and recalls the expected path, with three answers: **Try again** once the disc is plugged in, **Search the other drive letters**, or **Cancel**.
 - **Searching the other drives**: on Windows, the same path is looked for under every ready drive letter (`E:\Films\Heat.mkv` under `F:`, `G:`…). On macOS it is looked for in the discs of `/Volumes`, on Linux in those of `/media`, `/run/media` and `/mnt`. If the file is not there, the window says so and stays open.

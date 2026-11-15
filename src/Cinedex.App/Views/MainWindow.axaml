@@ -34,6 +34,7 @@
     <KeyBinding Gesture="F9" Command="{Binding ToggleDetailCommand}" />
     <KeyBinding Gesture="F8" Command="{Binding SideBar.ToggleRailCommand}" />
     <KeyBinding Gesture="F2" Command="{Binding EditCommand}" />
+    <KeyBinding Gesture="Alt+Left" Command="{Binding BackToGalleryCommand}" />
     <KeyBinding Gesture="Ctrl+M" Command="{Binding MergeSelectionCommand}" />
     <KeyBinding Gesture="Ctrl+Shift+C" Command="{Binding CopyPathsCommand}" />
     <KeyBinding Gesture="Ctrl+E" Command="{Binding ExportSelectionCommand}" />
@@ -214,8 +215,8 @@
               <TextBlock Text="{Binding SeriesTrackingLabel}" />
             </StackPanel>
           </Button>
-          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenCollectionsCommand}" IsVisible="{Binding ShowCollections}"
-                  ToolTip.Tip="Sagas et coffrets : films possédés, films manquants, décors TMDb">
+          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding ShowCollectionGalleryCommand}" IsVisible="{Binding ShowCollections}" Classes.current="{Binding IsCollectionsView}"
+                  ToolTip.Tip="Sagas et coffrets, en vignettes : cliquez sur une collection pour voir ses films">
             <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
               <controls:Icon Kind="collection" Width="18" Height="18" />
               <TextBlock Text="Collections" />
@@ -445,6 +446,51 @@
       </StackPanel>
     </ScrollViewer>
 
+    <!-- ======================= Galerie : collections ou genres ======================= -->
+    <DockPanel Grid.Column="1" Margin="{StaticResource Edges6_4_1_0}" IsVisible="{Binding IsGalleryView}">
+      <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="{StaticResource Below3}" DataContext="{Binding Gallery}" x:DataType="vm:GalleryViewModel">
+        <StackPanel Spacing="{StaticResource Space1}">
+          <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="{StaticResource FontTitle}" Foreground="{DynamicResource CinedexInk}" />
+          <TextBlock Text="{Binding Hint}" Classes="muted" FontSize="{StaticResource FontSmall}" />
+        </StackPanel>
+        <Button Grid.Column="1" Classes="outline" VerticalAlignment="Center" Content="Gérer les collections…" IsVisible="{Binding IsCollections}"
+                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenCollectionsCommand}"
+                ToolTip.Tip="Films manquants, mise à jour depuis TMDb, renommage et suppression d'une collection" />
+      </Grid>
+      <ScrollViewer>
+        <ItemsControl ItemsSource="{Binding Gallery.Cards}" AutomationProperties.Name="Vignettes de la galerie">
+          <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:GalleryCard">
+              <Button Classes="tool" Padding="0" Margin="{StaticResource Trail2}" Cursor="Hand"
+                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenGalleryCardCommand}" CommandParameter="{Binding}"
+                      AutomationProperties.Name="{Binding Title}" ToolTip.Tip="{Binding Title}">
+                <Border Width="264" Height="150" CornerRadius="{StaticResource RadiusCard}" ClipToBounds="True" Background="{Binding Tint}" Margin="{StaticResource Below2}">
+                  <Panel>
+                    <!-- Le visuel : les images du catalogue côte à côte, sous le voile qui porte le nom. -->
+                    <ItemsControl ItemsSource="{Binding Images}" IsVisible="{Binding HasImages}">
+                      <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                          <controls:AsyncImage Path="{Binding}" DecodeWidth="264" Stretch="UniformToFill" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Border Background="{Binding Veil}" />
+                    <StackPanel VerticalAlignment="Bottom" Margin="{StaticResource Inset3}" Spacing="{StaticResource Space1}">
+                      <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="{StaticResource FontTitle}" Foreground="White"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding Subtitle}" FontSize="{StaticResource FontSmall}" Foreground="White" Opacity="0.85" />
+                    </StackPanel>
+                  </Panel>
+                </Border>
+              </Button>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+    </DockPanel>
+
     <!-- ======================= Zone centrale ======================= -->
     <DockPanel Grid.Column="1" Margin="{StaticResource Edges6_4_1_0}" IsVisible="{Binding IsTitlesView}"
                ContextRequested="OnTitlesContextRequested">
@@ -535,6 +581,27 @@
           </MenuItem>
         </MenuFlyout>
       </DockPanel.ContextFlyout>
+      <!-- Entré depuis une galerie : d'où l'on vient, pour y revenir d'un clic, et où l'on est. -->
+      <Border DockPanel.Dock="Top" Margin="{StaticResource Below3}" Padding="{StaticResource Inset4x3}" CornerRadius="{StaticResource RadiusCard}"
+              Background="{DynamicResource CinedexSurfaceAlt}" IsVisible="{Binding HasTrail}">
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          <Button Classes="tool" VerticalAlignment="Center" Command="{Binding BackToGalleryCommand}" ToolTip.Tip="Revenir à la galerie (Alt+Gauche)">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space1}">
+              <TextBlock Text="‹" FontWeight="SemiBold" />
+              <TextBlock Text="{Binding Trail.BackLabel}" />
+            </StackPanel>
+          </Button>
+          <StackPanel Grid.Column="1" Margin="{StaticResource Before3}" VerticalAlignment="Center" Spacing="{StaticResource Space1}">
+            <TextBlock Text="{Binding Trail.Title}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" TextTrimming="CharacterEllipsis" />
+            <TextBlock Text="{Binding Trail.Summary}" Classes="muted" FontSize="{StaticResource FontSmall}"
+                       IsVisible="{Binding Trail.Summary, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          </StackPanel>
+          <Button Grid.Column="2" Classes="outline" VerticalAlignment="Center" Content="Détails de la collection…" IsVisible="{Binding IsInCollection}"
+                  Command="{Binding OpenCollectionsCommand}"
+                  ToolTip.Tip="Présentation, films manquants et mise à jour depuis TMDb de cette collection" />
+        </Grid>
+      </Border>
+
       <!-- Groupe de doublons affiché : pourquoi ces fiches sont rapprochées, et de quoi trancher ce seul groupe. -->
       <Border DockPanel.Dock="Top" Margin="{StaticResource Below3}" Padding="{StaticResource Inset4x3}" CornerRadius="{StaticResource RadiusCard}"
               Background="{DynamicResource CinedexSurfaceAlt}" IsVisible="{Binding Duplicates.HasSelected, FallbackValue=False}">

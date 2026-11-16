@@ -92,6 +92,59 @@ public sealed class PeopleRepository(CatalogDatabase database)
             .ToList();
     }
 
+    /// <summary>
+    /// Ce qu'il reste à demander à TMDb : fiche jamais lue, ou photo connue mais pas encore téléchargée.
+    /// L'alias de la table doit être <c>p</c>.
+    /// </summary>
+    private const string PendingDetails =
+        "p.tmdb_id IS NOT NULL AND (p.details_fetched_at IS NULL OR (p.photo_image_id IS NULL AND p.profile_path IS NOT NULL))";
+
+    /// <summary>
+    /// Personnes dont la fiche TMDb reste à compléter, les plus présentes dans le catalogue d'abord. C'est la
+    /// file d'attente de la mise à jour : elle ne contient que ce qui reste à faire, si bien qu'un second
+    /// lancement prend la suite du premier au lieu de repasser sur les mêmes personnes.
+    /// </summary>
+    public IReadOnlyList<long> PendingDetailIds(string? text, string? role, int limit)
+    {
+        using var connection = database.Open();
+        return connection.Query<long>(
+                $"""
+                SELECT p.id FROM person p JOIN credit c ON c.person_id = p.id
+                WHERE {PendingDetails}
+                  AND (@pattern IS NULL OR p.name LIKE @pattern ESCAPE '!') AND (@role IS NULL OR c.role = @role)
+                GROUP BY p.id ORDER BY count(DISTINCT c.title_id) DESC, p.name LIMIT @limit;
+                """,
+                new { pattern = string.IsNullOrWhiteSpace(text) ? null : TitleRepository.Like(text), limit, role })
+            .ToList();
+    }
+
+    /// <summary>Nombre de personnes dont la fiche TMDb reste à compléter, pour la même recherche.</summary>
+    public int PendingDetailCount(string? text, string? role)
+    {
+        using var connection = database.Open();
+        return connection.ExecuteScalar<int>(
+            $"""
+            SELECT count(*) FROM person p
+            WHERE {PendingDetails}
+              AND (@pattern IS NULL OR p.name LIKE @pattern ESCAPE '!')
+              AND EXISTS (SELECT 1 FROM credit c WHERE c.person_id = p.id AND (@role IS NULL OR c.role = @role));
+            """,
+            new { pattern = string.IsNullOrWhiteSpace(text) ? null : TitleRepository.Like(text), role });
+    }
+
+    /// <summary>
+    /// Note que TMDb a été interrogé pour cette personne, sans rien changer d'autre. Sert quand TMDb ne la
+    /// connaît plus : sans cela elle serait redemandée à chaque passe, et finirait par occuper les lots.
+    /// La photo attendue est oubliée du même coup, puisqu'elle ne viendra pas.
+    /// </summary>
+    public void MarkDetailsUnavailable(long personId)
+    {
+        using var connection = database.Open();
+        connection.Execute(
+            "UPDATE person SET details_fetched_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), profile_path = NULL WHERE id = @personId;",
+            new { personId });
+    }
+
     public void SaveDetails(long personId, PersonDetail details)
     {
         ArgumentNullException.ThrowIfNull(details);

@@ -15,6 +15,9 @@ public sealed class PeopleService(PeopleRepository people, TmdbClient tmdb, Imag
 
     public string? ResolvePhoto(string? relativePath) => relativePath is null ? null : images.ResolveInside(relativePath);
 
+    /// <summary>Personnes que TMDb ne connaît plus : notées comme vues, mais pas comptées comme téléchargées.</summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<long, bool> _notFound = new();
+
     /// <summary>Complète la fiche depuis TMDb si elle ne l'a jamais été ; renvoie la fiche à jour.</summary>
     public async Task<PersonDetail?> EnsureDetailsAsync(long personId, CancellationToken cancellationToken = default)
     {
@@ -31,7 +34,14 @@ public sealed class PeopleService(PeopleRepository people, TmdbClient tmdb, Imag
                 var remote = await tmdb.GetPersonAsync(tmdbId, cancellationToken).ConfigureAwait(false);
                 people.SaveDetails(personId, remote);
             }
-            catch (Exception ex) when (ex is TmdbAuthenticationException or TmdbUnavailableException or HttpRequestException or KeyNotFoundException)
+            catch (KeyNotFoundException ex)
+            {
+                // TMDb ne connaît plus cette personne : inutile de la redemander à chaque passe.
+                people.MarkDetailsUnavailable(personId);
+                _notFound[personId] = true;
+                logger.LogWarning("Fiche TMDb de la personne {PersonId} introuvable : {Message}", personId, ex.Message);
+            }
+            catch (Exception ex) when (ex is TmdbAuthenticationException or TmdbUnavailableException or HttpRequestException)
             {
                 logger.LogWarning("Fiche TMDb de la personne {PersonId} indisponible : {Message}", personId, ex.Message);
             }
@@ -59,7 +69,7 @@ public sealed class PeopleService(PeopleRepository people, TmdbClient tmdb, Imag
 
             progress?.Report(Cinedex.Core.Localization.Tr.F("Fiches TMDb : {0} / {1} — {2}", i + 1, personIds.Count, person.Name));
             var after = await EnsureDetailsAsync(person.Id, cancellationToken).ConfigureAwait(false);
-            if (after is { HasDetails: true })
+            if (after is { HasDetails: true } && !_notFound.ContainsKey(person.Id))
             {
                 done++;
             }

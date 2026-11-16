@@ -169,7 +169,15 @@ public sealed partial class PeopleBrowserViewModel : ObservableObject
     [ObservableProperty]
     public partial string? Message { get; set; }
 
-    /// <summary>Télécharge les fiches TMDb (biographie, photo) des personnes listées qui ne les ont pas encore.</summary>
+    /// <summary>Fiches demandées à TMDb par lancement : de quoi borner la durée d'une passe.</summary>
+    public const int DetailsBatch = 2000;
+
+    /// <summary>
+    /// Télécharge les fiches TMDb (biographie, photo) des personnes de la recherche qui ne les ont pas
+    /// encore, par lots. Le lot est pris dans ce qui reste à faire, pas dans ce qui est affiché : la liste
+    /// montre toujours les mêmes 2 000 personnes les plus présentes, et s'y limiter faisait qu'un second
+    /// lancement ne trouvait plus rien à faire alors que des milliers de fiches attendaient.
+    /// </summary>
     [RelayCommand(CanExecute = nameof(CanDownload))]
     private async Task DownloadDetailsAsync()
     {
@@ -177,10 +185,13 @@ public sealed partial class PeopleBrowserViewModel : ObservableObject
         _cancel = new CancellationTokenSource();
         try
         {
-            var ids = People.Select(p => p.Id).ToList();
+            var ids = _people.Repository.PendingDetailIds(Query, Role, DetailsBatch);
             var done = await _people.EnsureAllDetailsAsync(ids, new Progress<string>(m => Message = m), _cancel.Token);
-            Message = Tr.F("{0} fiche(s) téléchargée(s) depuis TMDb.", done);
-            ActivityJournal.Current.Write($"Fiches TMDb des {(IsDirectors ? "réalisateurs" : "personnes")} : {done} téléchargée(s)");
+            var left = _people.Repository.PendingDetailCount(Query, Role);
+            Message = left == 0
+                ? Tr.F("{0} fiche(s) téléchargée(s) depuis TMDb. Toutes les fiches sont à jour.", done)
+                : Tr.F("{0} fiche(s) téléchargée(s) depuis TMDb. Il en reste {1} : relancez pour le lot suivant.", done, left);
+            ActivityJournal.Current.Write($"Fiches TMDb des {(IsDirectors ? "réalisateurs" : "personnes")} : {done} téléchargée(s), {left} restante(s)");
             Search();
         }
         catch (OperationCanceledException)

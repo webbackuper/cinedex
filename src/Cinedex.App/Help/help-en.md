@@ -229,6 +229,11 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.16.1
+- **Updating actors and directors moves on from one batch to the next.** The button that downloads TMDb records (biography, dates, photo) handles 2,000 people per run. It took them from the 2,000 people displayed, always the same ones: once those were done, running it again found nothing, while the rest of the catalog was waiting. Each run now takes the next 2,000 among those still to do, the most present in the catalog first.
+- **The message says where you stand**: "5,300 left: run it again for the next batch", then "All records are up to date". The search and the tab (actors or directors) still limit the update to what they designate.
+- A person TMDb no longer knows is no longer asked for on every run, and is not counted among the downloaded records.
+
 ### 0.16.0
 - **Collections are shown in the main window.** The sidebar's **Collections** link opens a gallery of cards in the centre, instead of a separate window: each saga has its backdrop (or poster) and its count, "2 / 3 films". A click enters the collection: its films show in the ordinary list, with all the usual actions.
 - **One click to come back.** Above the list, a bar says where you are and carries the **‹ Collections** button (or **Alt+Left**) to return to the gallery.

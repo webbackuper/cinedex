@@ -934,7 +934,7 @@
       <DockPanel DockPanel.Dock="Top" Margin="{StaticResource Below3}" DataContext="{Binding PeopleBrowser}" x:DataType="vm:PeopleBrowserViewModel">
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="{StaticResource Space2}" Margin="{StaticResource Before3}">
           <Button Classes="tool" Command="{Binding DownloadDetailsCommand}"
-                  ToolTip.Tip="Biographie, dates et photo depuis TMDb pour les personnes listées qui ne les ont pas encore">
+                  ToolTip.Tip="Biographie, dates et photo depuis TMDb pour les personnes qui ne les ont pas encore, par lots de 2 000 : relancez pour le lot suivant">
             <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
               <controls:Icon Kind="cloud" />
               <TextBlock Text="Télécharger les fiches manquantes" VerticalAlignment="Center" />

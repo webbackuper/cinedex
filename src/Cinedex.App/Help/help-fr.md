@@ -229,6 +229,11 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.16.1
+- **La mise à jour des acteurs et des réalisateurs avance d'un lot à l'autre.** Le bouton qui télécharge les fiches TMDb (biographie, dates, photo) traite 2 000 personnes par lancement. Il les prenait parmi les 2 000 personnes affichées, toujours les mêmes : une fois celles-ci faites, relancer ne trouvait plus rien, alors que le reste du catalogue attendait. Chaque lancement prend maintenant les 2 000 suivantes parmi celles qui restent, les plus présentes dans le catalogue d'abord.
+- **Le message dit où l'on en est** : « Il en reste 5 300 : relancez pour le lot suivant », puis « Toutes les fiches sont à jour ». La recherche et l'onglet (acteurs ou réalisateurs) limitent toujours la mise à jour à ce qu'ils désignent.
+- Une personne que TMDb ne connaît plus n'est plus redemandée à chaque lancement, et n'est pas comptée parmi les fiches téléchargées.
+
 ### 0.16.0
 - **Les collections s'affichent dans la fenêtre principale.** Le lien **Collections** du bandeau ouvre une galerie de vignettes au centre, au lieu d'une fenêtre à part : chaque saga y a son décor (ou son affiche) et son compte, « 2 / 3 films ». Un clic entre dans la collection : ses films s'affichent dans la liste ordinaire, avec toutes les actions habituelles.
 - **On revient d'un clic.** Au-dessus de la liste, un bandeau dit où l'on est et porte le bouton **‹ Collections** (ou **Alt+Gauche**) pour retrouver la galerie.

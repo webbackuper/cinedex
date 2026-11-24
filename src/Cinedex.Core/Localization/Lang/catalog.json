@@ -1203,5 +1203,7 @@
  "Présent",
  "Présent : {0}",
  "Vérification de la présence des fichiers…",
- "Vérification…"
+ "Vérification…",
+ "Enregistre, puis ouvre le titre précédent de la vue d'où vient la fiche (Ctrl+Page précédente, Alt+←)",
+ "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)"
 ]

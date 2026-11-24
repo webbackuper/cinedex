@@ -1131,5 +1131,7 @@
  "Présent": "可用",
  "Présent : {0}": "可用：{0}",
  "Vérification de la présence des fichiers…": "正在检查文件是否存在…",
- "Vérification…": "正在检查…"
+ "Vérification…": "正在检查…",
+ "Enregistre, puis ouvre le titre précédent de la vue d'où vient la fiche (Ctrl+Page précédente, Alt+←)": "保存，然后打开来源视图中的上一个标题（Ctrl+Page Up、Alt+←）",
+ "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "保存，然后打开来源视图中的下一个标题（Ctrl+Page Down、Alt+→）"
 }

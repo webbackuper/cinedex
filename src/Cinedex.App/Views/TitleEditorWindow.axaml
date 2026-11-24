@@ -38,12 +38,14 @@
       <TextBlock Text="{Binding LastError}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" TextWrapping="Wrap"
                  IsVisible="{Binding LastError, Converter={x:Static ObjectConverters.IsNotNull}}" />
       <Grid ColumnDefinitions="Auto,*,Auto">
-        <!-- Enchaîner les fiches : enregistre s'il y a lieu, puis ouvre le titre voisin de la liste. -->
+        <!-- Enchaîner les fiches : enregistre s'il y a lieu, puis ouvre dans cette fenêtre le titre voisin de la vue d'origine. -->
         <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
           <Button Classes="tool" Content="‹ Précédent" Click="OnPrevious" IsEnabled="{Binding HasPrevious}"
-                  ToolTip.Tip="Enregistre, puis ouvre le titre précédent de la liste (Ctrl+Page précédente)" />
+                  ToolTip.Tip="Enregistre, puis ouvre le titre précédent de la vue d'où vient la fiche (Ctrl+Page précédente, Alt+←)" />
           <Button Classes="tool" Content="Suivant ›" Click="OnNext" IsEnabled="{Binding HasNext}"
-                  ToolTip.Tip="Enregistre, puis ouvre le titre suivant de la liste (Ctrl+Page suivante)" />
+                  ToolTip.Tip="Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)" />
+          <TextBlock Text="{Binding NavigationText}" Classes="muted" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                     IsVisible="{Binding HasNavigation}" ToolTip.Tip="{Binding NavigationText}" />
         </StackPanel>
         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="{StaticResource Space2}">
           <Button Classes="tool" Content="Annuler" IsCancel="True" Click="OnCancel" />

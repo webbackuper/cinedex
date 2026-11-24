@@ -184,7 +184,7 @@ Ces opérations s'appliquent tout de suite, sans « Enregistrer ». Chacune de c
 - **Ctrl+H** : ajouter depuis le disque ; **Alt+A** : ajouter un titre ; **Ctrl+T** : chercher sur TMDb
 - **Ctrl+U** : lier ou mettre à jour depuis TMDb ; **Ctrl+Maj+U** : mettre à jour via TMDb
 - **F2**, **Alt+E** ou double-clic : modifier la fiche ; **Suppr** : supprimer du catalogue
-- Dans la fiche : **Ctrl+Page suivante** et **Ctrl+Page précédente** enregistrent et passent au titre voisin
+- Dans la fiche : **Ctrl+Page suivante** / **Alt+→** et **Ctrl+Page précédente** / **Alt+←** enregistrent et passent au titre voisin de la vue d'où vient la fiche
 - **Ctrl+P** : lire (aussi dans la fiche complète) ; **Ctrl+O** : ouvrir le dossier du fichier ; **Ctrl+I** : relire les infos techniques
 - **Ctrl+M** : fusionner la sélection ; **Ctrl+Maj+C** : copier les chemins ; **Ctrl+E** : exporter la sélection ; **Ctrl+L** : ajouter à la dernière liste utilisée
 - **Ctrl+S** : vu / pas vu ; **Ctrl+D** : favori ; **Ctrl+R** ou **F7** : un titre non vu au hasard
@@ -231,6 +231,12 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.16.3
+- **Précédent et Suivant restent dans la vue d'où vient la fiche.** Ouverte depuis une bande de l'Accueil, la fiche parcourt cette bande ; depuis la liste, la liste dans son tri et son filtre ; depuis une collection, la filmographie d'un acteur, « Vous aimerez aussi » ou les suggestions TMDb, cette liste-là. Avant, on retombait toujours sur le voisin alphabétique de la liste principale.
+- **Un compteur dit où l'on est** : « 3 / 12 · Accueil › Derniers ajouts », à côté des boutons. La liste est figée à l'ouverture : marquer un film vu dans « Pas encore vus » ne fait pas perdre le fil, Suivant continue. Un titre supprimé entre-temps est sauté, et les boutons se grisent aux deux bouts (pas de retour au début).
+- **La fiche reste ouverte d'un film à l'autre** : taille, position et onglet ne bougent plus. La fiche quittée est enregistrée si elle a changé ; une saisie invalide retient, avec le message en bas. Le filtre et la recherche de la liste principale ne sont plus levés ; la sélection derrière suit le film s'il y est affiché.
+- **Alt+← et Alt+→** s'ajoutent à Ctrl+Page précédente / suivante.
+
 ### 0.16.2
 - **Lire depuis la fiche.** La fiche complète (double-clic, F2, Alt+E) a maintenant un bouton **Lire** bien visible en tête, avec Ctrl+P. Il prend le même chemin que le panneau de droite : si le disque manque, la question « branchez le disque » s'ouvre devant la fiche.
 - **Pastille de présence.** À côté de chaque bouton Lire, une pastille vérifie en direct si le fichier est là : **Présent**, **Absent – branchez « MediaID »**, ou **Absent (délai dépassé)** quand un lecteur réseau ne répond pas. Le test se fait en arrière-plan et le résultat est enregistré, pour que le filtre « Fichiers manquants » reste juste.

@@ -1131,5 +1131,7 @@
  "Présent": "あり",
  "Présent : {0}": "あり：{0}",
  "Vérification de la présence des fichiers…": "ファイルの有無を確認しています…",
- "Vérification…": "確認中…"
+ "Vérification…": "確認中…",
+ "Enregistre, puis ouvre le titre précédent de la vue d'où vient la fiche (Ctrl+Page précédente, Alt+←)": "保存して、このカードを開いたビューの前のタイトルを開きます（Ctrl+Page Up、Alt+←）",
+ "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "保存して、このカードを開いたビューの次のタイトルを開きます（Ctrl+Page Down、Alt+→）"
 }

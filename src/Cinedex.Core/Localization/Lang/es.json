@@ -1124,5 +1124,7 @@
  "Présent": "Disponible",
  "Présent : {0}": "Disponible: {0}",
  "Vérification de la présence des fichiers…": "Comprobando que los archivos están disponibles…",
- "Vérification…": "Comprobando…"
+ "Vérification…": "Comprobando…",
+ "Enregistre, puis ouvre le titre précédent de la vue d'où vient la fiche (Ctrl+Page précédente, Alt+←)": "Guarda y abre el título anterior de la vista de la que viene la ficha (Ctrl+Re Pág, Alt+←)",
+ "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "Guarda y abre el título siguiente de la vista de la que viene la ficha (Ctrl+Av Pág, Alt+→)"
 }

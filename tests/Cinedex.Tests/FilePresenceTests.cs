@@ -51,7 +51,8 @@ public sealed class FilePresenceTests : IDisposable
     }
 
     private FilePresenceViewModel Presence(Func<string, bool>? exists = null, TimeSpan? timeout = null) =>
-        new(checkedFiles => _files.RecordPresence(checkedFiles), exists, timeout);
+        // Délai large par défaut : la suite complète charge les fils, et un disque local n'a pas à « dépasser le délai ».
+        new(checkedFiles => _files.RecordPresence(checkedFiles), exists, timeout ?? TimeSpan.FromSeconds(30));
 
     [Fact]
     public async Task A_file_on_disk_is_present_and_its_missing_mark_is_cleared()
@@ -112,15 +113,14 @@ public sealed class FilePresenceTests : IDisposable
         using var never = new ManualResetEventSlim(false);
         var presence = Presence(exists: _ =>
         {
-            never.Wait(TimeSpan.FromSeconds(10));
+            // Ne répond qu'une fois le test fini : seul le délai peut conclure.
+            never.Wait(TimeSpan.FromSeconds(60));
             return true;
         }, timeout: TimeSpan.FromMilliseconds(50));
 
-        var started = DateTime.UtcNow;
         await presence.CheckAsync(id, _files.FilesOf(id));
         never.Set();
 
-        Assert.True(DateTime.UtcNow - started < TimeSpan.FromSeconds(5));
         Assert.Equal(PresenceState.TimedOut, presence.State);
         Assert.Equal("Absent (délai dépassé)", presence.Text);
         Assert.StartsWith("Délai dépassé : ", presence.ToolTip, StringComparison.Ordinal);

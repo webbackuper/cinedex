@@ -1250,12 +1250,19 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
+        // Précédent / Suivant parcourront la bande cliquée, dans son ordre. Chaque bande prépare ses propres
+        // lignes : la ligne cliquée désigne sa bande sans ambiguïté, même si le film est dans deux bandes.
+        var band = Home?.Bands.FirstOrDefault(b => b.Titles.Any(t => ReferenceEquals(t, title)))
+            ?? Home?.Bands.FirstOrDefault(b => b.Titles.Any(t => t.Id == title.Id));
+        var navigation = band is null
+            ? null
+            : TitleNavigation.For(Tr.T("Accueil") + TitleNavigation.Separator + band.Title, band.Titles.Select(t => t.Id), title.Id);
         Home = null;
 
         // GoToTitle peut relire la liste (Refresh) : la sélection est posée là, de façon synchrone, avant la
         // fiche. La fiche s'ouvre par l'identifiant cliqué, pas par la sélection, au cas où la liste l'aurait perdue.
         GoToTitle(title.Id);
-        await EditTitleAsync(title.Id);
+        await EditTitleAsync(title.Id, navigation);
     }
 
     /// <summary>
@@ -1655,26 +1662,115 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// <summary>
     /// Ouvre la fiche de ce titre. Elle ne dépend pas de la sélection : depuis l'Accueil, la liste derrière
     /// vient d'être relue, et c'est le titre cliqué qu'on ouvre, quoi qu'elle ait gardé de sa sélection.
+    /// <paramref name="navigation"/> : la vue d'où l'on vient, que Précédent / Suivant parcourront ; la liste
+    /// principale à défaut.
     /// </summary>
-    private async Task EditTitleAsync(long titleId)
+    private async Task EditTitleAsync(long titleId, TitleNavigation? navigation = null)
     {
         // Un double-clic ouvre la fiche avant la fin du délai de chargement : le générique doit y être.
         Record.EnsureLoaded();
 
-        var current = _titles.Get(titleId);
-        if (current is null)
+        if (CreateEditor(titleId, navigation ?? MainListContext(titleId)) is not { } editor)
         {
             return;
         }
 
+        // La fenêtre reste ouverte d'un titre à l'autre : la fiche affichée à la fermeture est la dernière de
+        // la chaîne. La fenêtre valide elle-même (TryBuild) avant de se fermer sur « Enregistrer ».
+        var saved = await _dialogs.EditTitleAsync(editor);
+        while (editor.Successor is { } next)
+        {
+            editor = next;
+        }
+
+        CommitEditor(editor, saved);
+    }
+
+    /// <summary>
+    /// Enregistre une fiche qu'on quitte (fermeture, ou passage à un autre titre dans la même fenêtre) :
+    /// modification, MediaID des fichiers, vu / pas vu, journal, puis la liste est rafraîchie. Sans
+    /// enregistrement, la liste est rafraîchie quand même : infos techniques relues, partie ajoutée ou prêt
+    /// modifié depuis la fiche le sont déjà en base.
+    /// </summary>
+    private void CommitEditor(TitleEditorViewModel editor, bool save)
+    {
+        if (save && editor.TryBuild(out var updated))
+        {
+            _titles.Update(updated);
+            Journal($"Fiche modifiée : {updated.Title}");
+            try
+            {
+                editor.ApplyFileChanges();
+            }
+            catch (InvalidOperationException ex)
+            {
+                Status = ex.Message;
+            }
+
+            if (editor.SeenChanged)
+            {
+                _titles.SetSeen([updated.Id], editor.IsSeen, DateTimeOffset.Now);
+                Journal($"Marqué {(editor.IsSeen ? "vu" : "non vu")} : {updated.Title}");
+            }
+        }
+
+        Touch([editor.TitleId]);
+    }
+
+    /// <summary>
+    /// Passe la fenêtre de la fiche à un autre titre : la fiche quittée est enregistrée s'il y a lieu, la
+    /// sélection de la liste suit le titre seulement s'il y est affiché (le filtre et la recherche ne sont
+    /// jamais touchés), et la nouvelle fiche est renvoyée pour remplacer l'ancienne dans la fenêtre.
+    /// </summary>
+    private TitleEditorViewModel? MoveEditor(TitleEditorViewModel from, long titleId, TitleNavigation navigation, bool save)
+    {
+        if (_titles.Get(titleId) is null)
+        {
+            return null;
+        }
+
+        CommitEditor(from, save);
+        if (Titles.FirstOrDefault(t => t.Id == titleId) is { } shown)
+        {
+            SetSelection([shown]);
+        }
+
+        return CreateEditor(titleId, navigation);
+    }
+
+    /// <summary>La liste principale telle qu'elle est affichée : son tri, son filtre, sa recherche.</summary>
+    private TitleNavigation MainListContext(long titleId) => TitleNavigation.For(MainListLabel, Titles.Select(t => t.Id), titleId);
+
+    /// <summary>Nom de la vue principale, pour le compteur de la fiche : la collection ou la liste ouverte, sinon le filtre.</summary>
+    private string MainListLabel
+    {
+        get
+        {
+            var label = Trail?.Title ?? SideBar.SelectedListName ?? Tr.T(SelectedFilter?.Label ?? "Tous les titres");
+            return string.IsNullOrWhiteSpace(SearchText) ? label : label + TitleNavigation.Separator + "\"" + SearchText.Trim() + "\"";
+        }
+    }
+
+    /// <summary>Construit la fiche d'un titre, avec tout ce que montre le panneau de droite ; nulle si le titre n'existe plus.</summary>
+    private TitleEditorViewModel? CreateEditor(long titleId, TitleNavigation navigation)
+    {
+        var current = _titles.Get(titleId);
+        if (current is null)
+        {
+            return null;
+        }
+
         // La fiche reprend tout ce que montre le panneau de droite : affiche, notes, distribution, fichiers.
+        // Le générique est lu pour ce titre-ci : en passant d'une fiche à l'autre, le panneau de droite peut
+        // montrer un autre film.
         var (collectionFilms, collectionName) = CollectionOf(current);
+        var (cast, directors, crew) = Record.CreditsOf(current.Id);
         TitleEditorViewModel? editorRef = null;
         var extras = new TitleEditorExtras(
             _images?.PathFor(current.Id, "poster"),
-            Detail?.Id == current.Id ? Record.Cast.ToList() : null,
-            Detail?.Id == current.Id ? Record.CrewText : null,
-            Detail?.Id == current.Id ? Record.Directors.ToList() : null,
+            cast,
+            crew,
+            directors,
             Record.MediaTextOf(current.Id),
             _media is null ? null : async () =>
             {
@@ -1713,8 +1809,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
             new ViewingsViewModel(_titles, current.Id),
             () =>
             {
-                var (cast, directors, crew) = Record.CreditsOf(current.Id);
-                return new TitleEditorView(cast, directors, crew, _images?.PathFor(current.Id, "poster"), _titles.Collections());
+                var (c, d, w) = Record.CreditsOf(current.Id);
+                return new TitleEditorView(c, d, w, _images?.PathFor(current.Id, "poster"), _titles.Collections());
             },
             collectionFilms,
             collectionName,
@@ -1728,66 +1824,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
                     return _extras.Suggestions.For(current.Id);
                 },
             _extras.Suggestions is null || _metadata is null ? null : suggestion => AddSuggestionToWishlistAsync(suggestion),
-            NeighbourOf(current.Id, -1),
-            NeighbourOf(current.Id, 1),
+            navigation,
             // Le chemin de lecture du bandeau droit, tel quel : disque à brancher, autres lecteurs, lecteur
             // externe, journal et historique. La question « branchez le disque » s'ouvre devant la fiche.
-            Play: _media is null ? null : () => PlayTitleAsync(current.Id, keepSelection: null, ask: editorRef?.Ask));
-        var editor = editorRef = new TitleEditorViewModel(
+            Play: _media is null ? null : () => PlayTitleAsync(current.Id, keepSelection: null, ask: editorRef?.Ask),
+            TitleExists: id => _titles.Get(id) is not null,
+            MoveTo: (id, nav, save) => editorRef is null ? null : MoveEditor(editorRef, id, nav, save));
+        return editorRef = new TitleEditorViewModel(
             current, _titles.Genres(), _titles.RefItems("medium"), _titles.RefItems("case"), _titles.RefItems("version"), _titles.Collections(), extras);
-        // La fenêtre d'édition valide elle-même (TryBuild) avant de se fermer sur « Enregistrer ».
-        if (await _dialogs.EditTitleAsync(editor) && editor.TryBuild(out var updated))
-        {
-            _titles.Update(updated);
-            Journal($"Fiche modifiée : {updated.Title}");
-            try
-            {
-                editor.ApplyFileChanges();
-            }
-            catch (InvalidOperationException ex)
-            {
-                Status = ex.Message;
-            }
-
-            if (editor.SeenChanged)
-            {
-                _titles.SetSeen([updated.Id], editor.IsSeen, DateTimeOffset.Now);
-                Journal($"Marqué {(editor.IsSeen ? "vu" : "non vu")} : {updated.Title}");
-            }
-
-            Touch([updated.Id]);
-        }
-        else if (editor.NavigateToTitleId is null)
-        {
-            // Infos techniques relues, partie ajoutée ou prêt modifié depuis la fiche, même sans enregistrer.
-            Touch([current.Id]);
-        }
-
-        if (editor.NavigateToTitleId is { } target)
-        {
-            // Un film choisi depuis la fiche (acteur, collection, recommandations), ou le titre voisin.
-            GoToTitle(target);
-            if (editor.ReopenAfterNavigation && SelectedTitles.Count == 1 && SelectedTitles[0].Id == target)
-            {
-                // Enchaîner les fiches : la suivante s'ouvre aussitôt, sans repasser par la liste.
-                await EditAsync();
-            }
-        }
-    }
-
-    /// <summary>Le titre voisin dans la liste affichée, ou rien au bout de la liste.</summary>
-    private long? NeighbourOf(long titleId, int step)
-    {
-        for (var i = 0; i < Titles.Count; i++)
-        {
-            if (Titles[i].Id == titleId)
-            {
-                var index = i + step;
-                return index >= 0 && index < Titles.Count ? Titles[index].Id : null;
-            }
-        }
-
-        return null;
     }
 
     [RelayCommand(CanExecute = nameof(HasSelection))]

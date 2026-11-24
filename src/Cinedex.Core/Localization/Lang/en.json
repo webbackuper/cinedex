@@ -1104,5 +1104,7 @@
  "Présent": "Available",
  "Présent : {0}": "Available: {0}",
  "Vérification de la présence des fichiers…": "Checking that the files are available…",
- "Vérification…": "Checking…"
+ "Vérification…": "Checking…",
+ "Enregistre, puis ouvre le titre précédent de la vue d'où vient la fiche (Ctrl+Page précédente, Alt+←)": "Saves, then opens the previous title of the view this record was opened from (Ctrl+Page Up, Alt+←)",
+ "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "Saves, then opens the next title of the view this record was opened from (Ctrl+Page Down, Alt+→)"
 }

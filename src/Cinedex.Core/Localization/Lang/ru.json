@@ -1131,5 +1131,7 @@
  "Présent": "На месте",
  "Présent : {0}": "На месте: {0}",
  "Vérification de la présence des fichiers…": "Проверка наличия файлов…",
- "Vérification…": "Проверка…"
+ "Vérification…": "Проверка…",
+ "Enregistre, puis ouvre le titre précédent de la vue d'où vient la fiche (Ctrl+Page précédente, Alt+←)": "Сохраняет и открывает предыдущее название из представления, откуда открыта карточка (Ctrl+Page Up, Alt+←)",
+ "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "Сохраняет и открывает следующее название из представления, откуда открыта карточка (Ctrl+Page Down, Alt+→)"
 }

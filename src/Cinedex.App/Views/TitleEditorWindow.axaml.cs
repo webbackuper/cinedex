@@ -34,53 +34,42 @@ public sealed partial class TitleEditorWindow : Window
 
     private void OnCancel(object? sender, RoutedEventArgs e) => Close(false);
 
-    private void OnPrevious(object? sender, RoutedEventArgs e) => StepTo((DataContext as TitleEditorViewModel)?.PreviousTitleId);
+    private void OnPrevious(object? sender, RoutedEventArgs e) => Step(-1);
 
-    private void OnNext(object? sender, RoutedEventArgs e) => StepTo((DataContext as TitleEditorViewModel)?.NextTitleId);
+    private void OnNext(object? sender, RoutedEventArgs e) => Step(1);
 
     protected override void OnKeyDown(Avalonia.Input.KeyEventArgs e)
     {
-        if (e.KeyModifiers == Avalonia.Input.KeyModifiers.Control && DataContext is TitleEditorViewModel editor)
+        // Ctrl+Page précédente / suivante, et Alt+← / Alt+→ comme dans un navigateur.
+        var direction = (e.KeyModifiers, e.Key) switch
         {
-            if (e.Key == Avalonia.Input.Key.PageDown)
-            {
-                e.Handled = true;
-                StepTo(editor.NextTitleId);
-                return;
-            }
-
-            if (e.Key == Avalonia.Input.Key.PageUp)
-            {
-                e.Handled = true;
-                StepTo(editor.PreviousTitleId);
-                return;
-            }
+            (Avalonia.Input.KeyModifiers.Control, Avalonia.Input.Key.PageDown) => 1,
+            (Avalonia.Input.KeyModifiers.Control, Avalonia.Input.Key.PageUp) => -1,
+            (Avalonia.Input.KeyModifiers.Alt, Avalonia.Input.Key.Right) => 1,
+            (Avalonia.Input.KeyModifiers.Alt, Avalonia.Input.Key.Left) => -1,
+            _ => 0,
+        };
+        if (direction != 0 && DataContext is TitleEditorViewModel)
+        {
+            e.Handled = true;
+            Step(direction);
+            return;
         }
 
         base.OnKeyDown(e);
     }
 
     /// <summary>
-    /// Passe au titre voisin : la fiche se ferme, enregistrée si elle a changé, et la fenêtre principale
-    /// rouvre aussitôt celle du voisin. Corriger dix films de suite ne demande plus dix allers-retours par
-    /// la liste. Une saisie invalide retient ici : l'erreur s'affiche en bas, rien n'est perdu.
+    /// Passe au titre voisin de la vue d'où vient la fiche, dans la même fenêtre : la fiche est enregistrée
+    /// si elle a changé, puis la suivante prend sa place (taille, position et onglet restent). Une saisie
+    /// invalide retient ici : l'erreur s'affiche en bas, rien n'est perdu.
     /// </summary>
-    private void StepTo(long? titleId)
+    private void Step(int direction)
     {
-        if (DataContext is not TitleEditorViewModel editor || titleId is not { } id)
+        if (DataContext is TitleEditorViewModel editor && editor.Step(direction) is { } next)
         {
-            return;
+            DataContext = next;
         }
-
-        var changed = editor.HasUnsavedChanges;
-        if (changed && !editor.TryBuild(out _))
-        {
-            return;
-        }
-
-        editor.NavigateToTitleId = id;
-        editor.ReopenAfterNavigation = true;
-        Close(changed);
     }
 
     /// <summary>Choisit une image du disque comme affiche du titre.</summary>
@@ -103,7 +92,10 @@ public sealed partial class TitleEditorWindow : Window
         }
     }
 
-    /// <summary>Fiche de l'acteur cliqué ; si l'on y choisit un film, la fiche se ferme et le catalogue s'y place.</summary>
+    /// <summary>
+    /// Fiche de l'acteur cliqué ; si l'on y choisit un film, il s'ouvre dans cette fenêtre, et Précédent /
+    /// Suivant parcourent alors la filmographie de l'acteur.
+    /// </summary>
     private async void OnOpenPerson(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not TitleEditorViewModel editor || (sender as Control)?.DataContext is not CastMember member ||
@@ -114,19 +106,29 @@ public sealed partial class TitleEditorWindow : Window
 
         if (await new PersonWindow { DataContext = page }.ShowDialog<bool>(this) && page.ChosenTitleId is { } titleId)
         {
-            await GoToAsync(titleId);
+            await GoToAsync(TitleEditorViewModel.ContextOf(page.Name, page.Titles.Select(t => t.TitleId), titleId));
         }
     }
 
     /// <summary>
-    /// Un film de la même collection, ou un film proche : la fiche se ferme et le catalogue s'y place. C'est
-    /// le chemin déjà pris pour un acteur, et il garde une seule fiche ouverte à la fois.
+    /// Un film de la même collection, ou un film proche : il s'ouvre dans cette fenêtre, et Précédent /
+    /// Suivant parcourent la liste d'où il a été choisi.
     /// </summary>
-    private async void OnOpenSibling(object? sender, RoutedEventArgs e) =>
-        await GoToAsync((sender as Control)?.DataContext is CollectionSibling { TitleId: { } id, IsCurrent: false } ? id : null);
+    private async void OnOpenSibling(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is TitleEditorViewModel editor && (sender as Control)?.DataContext is CollectionSibling { TitleId: { } id, IsCurrent: false })
+        {
+            await GoToAsync(editor.CollectionContext(id));
+        }
+    }
 
-    private async void OnOpenSimilar(object? sender, RoutedEventArgs e) =>
-        await GoToAsync((sender as Control)?.DataContext is SimilarTitle similar ? similar.Title.Id : null);
+    private async void OnOpenSimilar(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is TitleEditorViewModel editor && (sender as Control)?.DataContext is SimilarTitle similar)
+        {
+            await GoToAsync(editor.SimilarContext(similar.Title.Id));
+        }
+    }
 
     /// <summary>
     /// Une suggestion TMDb : celle qu'on possède s'ouvre, celle qu'on n'a pas part dans la liste de souhaits.
@@ -141,7 +143,7 @@ public sealed partial class TitleEditorWindow : Window
 
         if (suggestion.OwnedTitleId is { } owned)
         {
-            await GoToAsync(owned);
+            await GoToAsync(editor.SuggestionsContext(owned));
             return;
         }
 
@@ -149,12 +151,12 @@ public sealed partial class TitleEditorWindow : Window
     }
 
     /// <summary>
-    /// Quitte la fiche pour un autre titre. Si elle a des modifications en cours, on demande avant : les
-    /// perdre sans un mot en cliquant un film de la collection était le piège de cette navigation.
+    /// Ouvre un autre titre dans cette fenêtre. Si la fiche a des modifications en cours, on demande avant :
+    /// les perdre sans un mot en cliquant un film de la collection était le piège de cette navigation.
     /// </summary>
-    private async Task GoToAsync(long? titleId)
+    private async Task GoToAsync(TitleNavigation navigation)
     {
-        if (DataContext is not TitleEditorViewModel editor || titleId is not { } id)
+        if (DataContext is not TitleEditorViewModel editor)
         {
             return;
         }
@@ -182,8 +184,10 @@ public sealed partial class TitleEditorWindow : Window
             }
         }
 
-        editor.NavigateToTitleId = id;
-        Close(save);
+        if (editor.MoveTo(navigation, save) is { } next)
+        {
+            DataContext = next;
+        }
     }
 
     /// <summary>Fichier supplémentaire du même film (CD2, part2...).</summary>

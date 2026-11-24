@@ -1115,5 +1115,7 @@
  "Présent": "Vorhanden",
  "Présent : {0}": "Vorhanden: {0}",
  "Vérification de la présence des fichiers…": "Prüfe, ob die Dateien vorhanden sind…",
- "Vérification…": "Wird geprüft…"
+ "Vérification…": "Wird geprüft…",
+ "Enregistre, puis ouvre le titre précédent de la vue d'où vient la fiche (Ctrl+Page précédente, Alt+←)": "Speichert und öffnet den vorherigen Titel der Ansicht, aus der die Karte geöffnet wurde (Strg+Bild auf, Alt+←)",
+ "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "Speichert und öffnet den nächsten Titel der Ansicht, aus der die Karte geöffnet wurde (Strg+Bild ab, Alt+→)"
 }

@@ -47,9 +47,10 @@ public sealed record TitleEditorExtras(
     IReadOnlyList<TmdbSuggestion>? Suggestions = null,
     Func<Task<IReadOnlyList<TmdbSuggestion>>>? FetchSuggestions = null,
     Func<TmdbSuggestion, Task>? AddSuggestion = null,
-    long? PreviousTitleId = null,
-    long? NextTitleId = null,
-    Func<Task>? Play = null);
+    TitleNavigation? Navigation = null,
+    Func<Task>? Play = null,
+    Func<long, bool>? TitleExists = null,
+    Func<long, TitleNavigation, bool, TitleEditorViewModel?>? MoveTo = null);
 
 /// <summary>
 /// Un film de la même collection, dans l'onglet Collection de la fiche. Un film manquant au catalogue n'a
@@ -132,8 +133,9 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         PosterPath = extras.PosterPath;
         _setPoster = extras.SetPoster;
         _removePoster = extras.RemovePoster;
-        PreviousTitleId = extras.PreviousTitleId;
-        NextTitleId = extras.NextTitleId;
+        Navigation = extras.Navigation;
+        _titleExists = extras.TitleExists;
+        _moveTo = extras.MoveTo;
         CollectionFilms = extras.CollectionFilms ?? [];
         CollectionTitle = extras.CollectionTitle;
         Similar = extras.Similar ?? [];
@@ -313,23 +315,92 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         }
     }
 
-    /// <summary>Titre choisi depuis la fiche d'un acteur : la fiche se ferme et le catalogue s'y place.</summary>
-    public long? NavigateToTitleId { get; set; }
-
     /// <summary>Le titre que cette fiche édite.</summary>
     public long TitleId => _original.Id;
 
-    /// <summary>La fenêtre principale rouvre une fiche sur le titre où l'on va : c'est ainsi qu'on enchaîne.</summary>
-    public bool ReopenAfterNavigation { get; set; }
+    private readonly Func<long, bool>? _titleExists;
 
-    /// <summary>Titres voisins dans la liste affichée ; nuls au bout de la liste.</summary>
-    public long? PreviousTitleId { get; private set; }
+    private readonly Func<long, TitleNavigation, bool, TitleEditorViewModel?>? _moveTo;
 
-    public long? NextTitleId { get; private set; }
+    /// <summary>La vue d'où vient la fiche, figée à l'ouverture : c'est elle que parcourent Précédent et Suivant.</summary>
+    public TitleNavigation? Navigation { get; }
 
-    public bool HasPrevious => PreviousTitleId is not null;
+    /// <summary>« 3 / 12 · Accueil › Derniers ajouts » ; nul sans vue d'origine.</summary>
+    public string? NavigationText => Navigation?.CounterText;
 
-    public bool HasNext => NextTitleId is not null;
+    public bool HasNavigation => Navigation is not null;
+
+    /// <summary>Titres voisins dans la vue d'origine (ceux supprimés depuis sont sautés) ; nuls au bout.</summary>
+    public long? PreviousTitleId => Navigation?.Step(-1, _titleExists)?.Current;
+
+    public long? NextTitleId => Navigation?.Step(1, _titleExists)?.Current;
+
+    public bool HasPrevious => _moveTo is not null && PreviousTitleId is not null;
+
+    public bool HasNext => _moveTo is not null && NextTitleId is not null;
+
+    /// <summary>
+    /// La fiche qui a pris la place de celle-ci dans la fenêtre (Précédent, Suivant, ou un film choisi depuis
+    /// la fiche). La fenêtre principale suit la chaîne pour savoir quelle fiche était ouverte à la fermeture.
+    /// </summary>
+    public TitleEditorViewModel? Successor { get; private set; }
+
+    /// <summary>
+    /// Passe au titre voisin de la vue d'origine, dans la même fenêtre. Une fiche modifiée est enregistrée
+    /// d'abord ; une saisie invalide retient ici, l'erreur s'affiche en bas et rien n'est perdu. Renvoie la
+    /// fiche suivante, ou nul si l'on reste.
+    /// </summary>
+    public TitleEditorViewModel? Step(int direction)
+    {
+        if (Navigation?.Step(direction, _titleExists) is not { } target)
+        {
+            return null;
+        }
+
+        var save = HasUnsavedChanges;
+        if (save && !TryBuild(out _))
+        {
+            return null;
+        }
+
+        return MoveTo(target, save);
+    }
+
+    /// <summary>
+    /// Ouvre un autre titre dans la même fenêtre, avec sa propre vue d'origine (un film de la collection, de
+    /// la filmographie d'un acteur, des recommandations…). <paramref name="save"/> : enregistrer cette fiche
+    /// avant ; l'appelant a déjà demandé et vérifié la saisie.
+    /// </summary>
+    public TitleEditorViewModel? MoveTo(TitleNavigation navigation, bool save)
+    {
+        ArgumentNullException.ThrowIfNull(navigation);
+        if (_moveTo is null || (save && !TryBuild(out _)))
+        {
+            return null;
+        }
+
+        var next = _moveTo(navigation.Current, navigation, save);
+        if (next is not null)
+        {
+            Successor = next;
+        }
+
+        return next;
+    }
+
+    /// <summary>La séquence d'une liste vue depuis la fiche (collection, recommandations…), placée sur ce titre.</summary>
+    public static TitleNavigation ContextOf(string label, IEnumerable<long> ids, long titleId) => TitleNavigation.For(label, ids, titleId);
+
+    /// <summary>Films de la collection présents au catalogue, dans l'ordre de l'onglet.</summary>
+    public TitleNavigation CollectionContext(long titleId) =>
+        ContextOf(Tr.T("Collection") + TitleNavigation.Separator + (CollectionTitle ?? string.Empty),
+            CollectionFilms.Where(f => f.TitleId is not null).Select(f => f.TitleId!.Value), titleId);
+
+    public TitleNavigation SimilarContext(long titleId) =>
+        ContextOf(Tr.T("Vous aimerez aussi"), Similar.Select(s => s.Title.Id), titleId);
+
+    public TitleNavigation SuggestionsContext(long titleId) =>
+        ContextOf(Tr.T("Suggestions TMDb"), Suggestions.Where(s => s.OwnedTitleId is not null).Select(s => s.OwnedTitleId!.Value), titleId);
 
     private string? _baseline;
 

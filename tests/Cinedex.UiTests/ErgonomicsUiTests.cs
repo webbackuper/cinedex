@@ -98,7 +98,7 @@ public sealed class ErgonomicsUiTests(UiSession ui)
             catalog.Titles.RefItems("medium"),
             catalog.Titles.RefItems("case"),
             catalog.Titles.RefItems("version"),
-            extras: new TitleEditorExtras(PreviousTitleId: null, NextTitleId: 42));
+            extras: new TitleEditorExtras(Navigation: TitleNavigation.For("Liste", [id, 42], id), MoveTo: (_, _, _) => null));
         var window = new TitleEditorWindow { DataContext = editor };
         window.Show();
         UiCatalog.Pump();

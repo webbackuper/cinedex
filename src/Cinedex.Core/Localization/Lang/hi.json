@@ -1130,5 +1130,7 @@
  "Présent": "उपलब्ध",
  "Présent : {0}": "उपलब्ध: {0}",
  "Vérification de la présence des fichiers…": "फ़ाइलों की उपलब्धता जाँची जा रही है…",
- "Vérification…": "जाँच हो रही है…"
+ "Vérification…": "जाँच हो रही है…",
+ "Enregistre, puis ouvre le titre précédent de la vue d'où vient la fiche (Ctrl+Page précédente, Alt+←)": "सहेजता है, फिर जिस दृश्य से यह रिकॉर्ड खुला उसका पिछला शीर्षक खोलता है (Ctrl+Page Up, Alt+←)",
+ "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "सहेजता है, फिर जिस दृश्य से यह रिकॉर्ड खुला उसका अगला शीर्षक खोलता है (Ctrl+Page Down, Alt+→)"
 }

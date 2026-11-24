@@ -1131,5 +1131,7 @@
  "Présent": "موجود",
  "Présent : {0}": "موجود: {0}",
  "Vérification de la présence des fichiers…": "جارٍ التحقق من وجود الملفات…",
- "Vérification…": "جارٍ التحقق…"
+ "Vérification…": "جارٍ التحقق…",
+ "Enregistre, puis ouvre le titre précédent de la vue d'où vient la fiche (Ctrl+Page précédente, Alt+←)": "يحفظ ثم يفتح العنوان السابق في العرض الذي فُتحت منه البطاقة (Ctrl+Page Up، Alt+←)",
+ "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "يحفظ ثم يفتح العنوان التالي في العرض الذي فُتحت منه البطاقة (Ctrl+Page Down، Alt+→)"
 }

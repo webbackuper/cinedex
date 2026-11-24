@@ -184,7 +184,7 @@ These operations apply immediately, without “Save”. Each one that changes th
 - **Ctrl+H**: add from disk; **Alt+A**: add a title; **Ctrl+T**: search TMDb
 - **Ctrl+U**: link or update from TMDb; **Ctrl+Shift+U**: update from TMDb
 - **F2**, **Alt+E** or double-click: edit the entry; **Del**: delete from the catalog
-- In the record: **Ctrl+Page Down** and **Ctrl+Page Up** save and move to the neighbouring title
+- In the record: **Ctrl+Page Down** / **Alt+→** and **Ctrl+Page Up** / **Alt+←** save and move to the neighbouring title of the view the record was opened from
 - **Ctrl+P**: play (also in the full record); **Ctrl+O**: open the file's folder; **Ctrl+I**: reread the technical info
 - **Ctrl+M**: merge the selection; **Ctrl+Shift+C**: copy the paths; **Ctrl+E**: export the selection; **Ctrl+L**: add to the last list used
 - **Ctrl+S**: watched / not watched; **Ctrl+D**: favorite; **Ctrl+R** or **F7**: a random unwatched title
@@ -231,6 +231,12 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.16.3
+- **Previous and Next stay in the view the record came from.** Opened from a Home band, the record steps through that band; from the list, through the list in its sort and filter; from a collection, an actor's filmography, “You may also like” or the TMDb suggestions, through that list. Before, you always landed on the alphabetical neighbour in the main list.
+- **A counter tells where you are**: “3 / 12 · Home › Latest additions”, next to the buttons. The list is frozen when the record opens: marking a film seen in “Not yet watched” does not lose your place, Next carries on. A title deleted in the meantime is skipped, and the buttons are greyed out at both ends (no wrapping around).
+- **The record window stays open from one film to the next**: size, position and tab stay put. The record you leave is saved if it changed; an invalid entry keeps you there, with the message at the bottom. The main list's filter and search are no longer cleared; the selection behind follows the film when it is shown there.
+- **Alt+← and Alt+→** join Ctrl+Page Up / Page Down.
+
 ### 0.16.2
 - **Play from the record.** The full record (double-click, F2, Alt+E) now has a clearly visible **Play** button at the top, with Ctrl+P. It takes the same path as the right panel: if the drive is missing, the “plug in the drive” question opens in front of the record.
 - **Presence badge.** Next to each Play button, a badge checks live whether the file is there: **Available**, **Missing – plug in “MediaID”**, or **Missing (timed out)** when a network drive does not answer. The check runs in the background and the result is saved, so the “Missing files” filter stays accurate.

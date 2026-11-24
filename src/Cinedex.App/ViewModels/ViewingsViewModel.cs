@@ -83,7 +83,8 @@ public sealed partial class ViewingsViewModel : ObservableObject
         Reload();
     }
 
-    private void Reload()
+    /// <summary>Relit l'historique (après une lecture lancée depuis la fiche, qui en ajoute une ligne).</summary>
+    public void Reload()
     {
         History.Clear();
         foreach (var viewing in _titles.Viewings(_titleId))

@@ -1238,15 +1238,24 @@ public sealed partial class MainWindowViewModel : ObservableObject
         return ids.Where(rows.ContainsKey).Select(id => rows[id]).ToList();
     }
 
-    /// <summary>Ouvre la fiche d'un film cliqué sur la page d'accueil.</summary>
+    /// <summary>
+    /// Film cliqué sur la page d'accueil : la liste revient, placée sur lui (la sélection reste derrière),
+    /// et sa fiche s'ouvre. Avant, le clic ne faisait que ramener à la liste.
+    /// </summary>
     [RelayCommand]
-    private void OpenFromHome(TitleSummary? title)
+    private async Task OpenFromHomeAsync(TitleSummary? title)
     {
-        if (title is not null)
+        if (title is null)
         {
-            Home = null;
-            GoToTitle(title.Id);
+            return;
         }
+
+        Home = null;
+
+        // GoToTitle peut relire la liste (Refresh) : la sélection est posée là, de façon synchrone, avant la
+        // fiche. La fiche s'ouvre par l'identifiant cliqué, pas par la sélection, au cas où la liste l'aurait perdue.
+        GoToTitle(title.Id);
+        await EditTitleAsync(title.Id);
     }
 
     /// <summary>
@@ -1637,10 +1646,22 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
+        if (SelectedTitles.Count == 1)
+        {
+            await EditTitleAsync(SelectedTitles[0].Id);
+        }
+    }
+
+    /// <summary>
+    /// Ouvre la fiche de ce titre. Elle ne dépend pas de la sélection : depuis l'Accueil, la liste derrière
+    /// vient d'être relue, et c'est le titre cliqué qu'on ouvre, quoi qu'elle ait gardé de sa sélection.
+    /// </summary>
+    private async Task EditTitleAsync(long titleId)
+    {
         // Un double-clic ouvre la fiche avant la fin du délai de chargement : le générique doit y être.
         Record.EnsureLoaded();
 
-        var current = _titles.Get(SelectedTitles[0].Id);
+        var current = _titles.Get(titleId);
         if (current is null)
         {
             return;
@@ -1648,6 +1669,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         // La fiche reprend tout ce que montre le panneau de droite : affiche, notes, distribution, fichiers.
         var (collectionFilms, collectionName) = CollectionOf(current);
+        TitleEditorViewModel? editorRef = null;
         var extras = new TitleEditorExtras(
             _images?.PathFor(current.Id, "poster"),
             Detail?.Id == current.Id ? Record.Cast.ToList() : null,
@@ -1707,8 +1729,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 },
             _extras.Suggestions is null || _metadata is null ? null : suggestion => AddSuggestionToWishlistAsync(suggestion),
             NeighbourOf(current.Id, -1),
-            NeighbourOf(current.Id, 1));
-        var editor = new TitleEditorViewModel(
+            NeighbourOf(current.Id, 1),
+            // Le chemin de lecture du bandeau droit, tel quel : disque à brancher, autres lecteurs, lecteur
+            // externe, journal et historique. La question « branchez le disque » s'ouvre devant la fiche.
+            Play: _media is null ? null : () => PlayTitleAsync(current.Id, keepSelection: null, ask: editorRef?.Ask));
+        var editor = editorRef = new TitleEditorViewModel(
             current, _titles.Genres(), _titles.RefItems("medium"), _titles.RefItems("case"), _titles.RefItems("version"), _titles.Collections(), extras);
         // La fenêtre d'édition valide elle-même (TryBuild) avant de se fermer sur « Enregistrer ».
         if (await _dialogs.EditTitleAsync(editor) && editor.TryBuild(out var updated))
@@ -2176,7 +2201,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// disque (son MediaID est nommé), avec de quoi réessayer ou chercher le même chemin sur les autres
     /// lecteurs : la lettre d'un disque USB change d'un branchement à l'autre. Nul si l'utilisateur renonce.
     /// </summary>
-    private async Task<LocatedMedia?> LocateFileAsync(long titleId)
+    private async Task<LocatedMedia?> LocateFileAsync(long titleId, MediaLocator.Ask? ask = null)
     {
         if (_media is not { } media)
         {
@@ -2186,7 +2211,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         // Relu à chaque essai : un disque qu'on vient de brancher est reconnu à son nom, quelle que soit sa lettre.
         var located = await MediaLocator.LocateAsync(
             () => media.Files.FilesOf(titleId).Select(f => new MediaCandidate(f.FullPath, f.VolumeLabel, f.Id)).ToList(),
-            _dialogs.ChooseAsync,
+            ask ?? _dialogs.ChooseAsync,
             MediaRoots);
         if (located is { FoundElsewhere: true })
         {
@@ -2203,7 +2228,24 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// <summary>Racines où chercher un fichier absent ; nul pour celles du système. Les tests y mettent les leurs.</summary>
     public Func<IReadOnlyList<string>>? MediaRoots { get; set; }
 
-    private async Task PlayTitleAsync(long titleId, IReadOnlyList<long>? keepSelection)
+    /// <param name="ask">Qui pose la question « branchez le disque » : la fenêtre principale par défaut, la fiche quand on lit depuis elle.</param>
+    private async Task PlayTitleAsync(long titleId, IReadOnlyList<long>? keepSelection, MediaLocator.Ask? ask = null)
+    {
+        try
+        {
+            await PlayLocatedAsync(titleId, keepSelection, ask);
+        }
+        finally
+        {
+            // Lire a pu brancher un disque, ou le trouver absent : la pastille dit ce qu'il en est maintenant.
+            if (Detail?.Id == titleId)
+            {
+                _ = Record.CheckPresenceAsync();
+            }
+        }
+    }
+
+    private async Task PlayLocatedAsync(long titleId, IReadOnlyList<long>? keepSelection, MediaLocator.Ask? ask)
     {
         if (_media is null || _media.Files.FilesOf(titleId).Count == 0)
         {
@@ -2211,7 +2253,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        if (await LocateFileAsync(titleId) is not { } located)
+        if (await LocateFileAsync(titleId, ask) is not { } located)
         {
             Status = MissingMediaMessage();
             return;

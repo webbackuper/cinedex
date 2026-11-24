@@ -1122,5 +1122,14 @@
  "Étagère, boîte… (le chemin du fichier est dans l'onglet Fichier)": "书架、盒子…（文件路径在“文件”选项卡中）",
  "épisode (géré avec les séries)": "剧集（随剧集管理）",
  "… et {0} autre(s)": "…及另外 {0} 个",
- "‹ Précédent": "‹ 上一部"
+ "‹ Précédent": "‹ 上一部",
+ "Absent": "缺失",
+ "Absent (délai dépassé)": "缺失（超时）",
+ "Absent : {0}": "缺失：{0}",
+ "Absent – branchez « {0} »": "缺失 – 请连接“{0}”",
+ "Délai dépassé : {0}": "超时：{0}",
+ "Présent": "可用",
+ "Présent : {0}": "可用：{0}",
+ "Vérification de la présence des fichiers…": "正在检查文件是否存在…",
+ "Vérification…": "正在检查…"
 }

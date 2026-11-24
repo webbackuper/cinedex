@@ -46,6 +46,44 @@ public sealed partial class RecordViewModel : ObservableObject
         _media = media;
         _extras = extras;
         _prepare = prepare;
+        Presence = new FilePresenceViewModel(
+            media is null ? null : checkedFiles => media.Files.RecordPresence(checkedFiles),
+            delay: Avalonia.Application.Current is null ? TimeSpan.Zero : Delay);
+        Presence.Checked += (_, _) => OnPresenceChecked();
+    }
+
+    /// <summary>Pastille « Présent / Absent » à côté du bouton Lire, vérifiée sur le disque à chaque titre affiché.</summary>
+    public FilePresenceViewModel Presence { get; }
+
+    /// <summary>Revérifie la présence des fichiers du titre affiché (après une lecture, par exemple).</summary>
+    public Task CheckPresenceAsync() => Presence.CheckAsync(Detail?.Id, DetailFiles);
+
+    /// <summary>
+    /// La vérification ne dit pas la même chose que ce qu'on montre (un fichier marqué « introuvable » est
+    /// revenu, ou l'inverse) : le « (introuvable) » du résumé technique et la liste des fichiers sont relus,
+    /// sans relancer de vérification. On compare à ce qui est affiché plutôt qu'au nombre de lignes changées
+    /// en base : une vérification dépassée a pu écrire en base juste avant celle-ci.
+    /// </summary>
+    private void OnPresenceChecked()
+    {
+        if (_media is null || Detail is not { } detail || Presence.TitleId != detail.Id)
+        {
+            return;
+        }
+
+        var shown = DetailFiles.ToDictionary(f => f.Id, f => f.IsMissing);
+        var differs = Presence.Results.Any(r => r.Check != FileCheck.TimedOut &&
+            (!shown.TryGetValue(r.File.Id, out var missing) || missing != (r.Check == FileCheck.Absent)));
+        if (!differs)
+        {
+            return;
+        }
+
+        DetailFiles = _media.Files.FilesOf(detail.Id);
+        if (_loadedFor == detail.Id)
+        {
+            TechnicalSummary = MediaTextOf(detail.Id);
+        }
     }
 
     /// <summary>Le titre affiché ; nul quand la sélection est vide ou multiple.</summary>
@@ -144,6 +182,12 @@ public sealed partial class RecordViewModel : ObservableObject
         DetailFiles = Detail is null || _media is null ? [] : _media.Files.FilesOf(Detail.Id);
         DetailGenres = Detail is null ? [] : _titles.GenreLabels(Detail.Id).Select(Tr.T).ToList();
         ScheduleExtras();
+
+        // Le même titre republié (après une modification) garde sa pastille ; un autre titre est revérifié.
+        if (Detail?.Id != Presence.TitleId || Presence.State == PresenceState.None)
+        {
+            _ = CheckPresenceAsync();
+        }
 
         // Le dernier emprunteur ne sert qu'à préremplir le prêt d'une fiche affichée et libre : inutile de
         // le demander à la base quand aucune fiche n'est montrée (sélection multiple, liste vide).

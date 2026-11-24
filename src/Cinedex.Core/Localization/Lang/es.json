@@ -1115,5 +1115,14 @@
  "Étagère, boîte… (le chemin du fichier est dans l'onglet Fichier)": "Estante, caja… (la ruta del archivo está en la pestaña Archivo)",
  "épisode (géré avec les séries)": "episodio (gestionado con las series)",
  "… et {0} autre(s)": "… y {0} más",
- "‹ Précédent": "‹ Anterior"
+ "‹ Précédent": "‹ Anterior",
+ "Absent": "Ausente",
+ "Absent (délai dépassé)": "Ausente (tiempo agotado)",
+ "Absent : {0}": "Ausente: {0}",
+ "Absent – branchez « {0} »": "Ausente – conecte «{0}»",
+ "Délai dépassé : {0}": "Tiempo agotado: {0}",
+ "Présent": "Disponible",
+ "Présent : {0}": "Disponible: {0}",
+ "Vérification de la présence des fichiers…": "Comprobando que los archivos están disponibles…",
+ "Vérification…": "Comprobando…"
 }

@@ -1095,5 +1095,14 @@
  "Étagère, boîte… (le chemin du fichier est dans l'onglet Fichier)": "Shelf, box… (the file path is in the File tab)",
  "épisode (géré avec les séries)": "episode (handled with the series)",
  "… et {0} autre(s)": "… and {0} more",
- "‹ Précédent": "‹ Previous"
+ "‹ Précédent": "‹ Previous",
+ "Absent": "Missing",
+ "Absent (délai dépassé)": "Missing (timed out)",
+ "Absent : {0}": "Missing: {0}",
+ "Absent – branchez « {0} »": "Missing – plug in “{0}”",
+ "Délai dépassé : {0}": "Timed out: {0}",
+ "Présent": "Available",
+ "Présent : {0}": "Available: {0}",
+ "Vérification de la présence des fichiers…": "Checking that the files are available…",
+ "Vérification…": "Checking…"
 }

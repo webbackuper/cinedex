@@ -30,6 +30,7 @@ Each file keeps its **MediaID**: the name of the drive it was found on (the name
 - Give each USB drive a distinct name: Cinedex then recognizes it even if its drive letter changes (E:, F:…).
 - Two different drives may hold a file at the same path: they are not mixed up.
 - If you play a film whose drive is unplugged, Cinedex tells you which drive to plug in.
+- Next to the **Play** button (right panel and full record), a **badge** tells whether the file is there: **Available** (green), **Missing – plug in “MediaID”** (red), or **Checking…** while it is tested. The drive is checked live, without freezing the window; a network drive that does not answer within 2 seconds shows **Missing (timed out)**. For a film in several parts, one is enough to be “Available”; the tooltip lists each file. The result is saved: the **Missing files** filter and the “(not found)” of the technical info follow it. A title without a file (wish list) has no badge.
 - The MediaID can be edited in the film's details, **File** tab, and searched with advanced search.
 
 ## TMDb entries and "To review"
@@ -55,6 +56,7 @@ If an API reaches its limit during an import, Cinedex offers to finish without i
 
 ## A film's details
 A click on a title shows its details in the right panel, whose width you set by dragging the handle between it and the list; a double-click (or Alt+E) opens the full, editable entry with its tabs:
+- At the top of the full record, the **Play** button (Ctrl+P) starts the film like the one in the right panel (drive to plug in, other drive letters, external player, viewing history), with the presence badge next to it.
 - **Details**: titles, year, runtime, summary, countries, studio, IMDb ID, trailer. The **TMDb number** also accepts `tv/322888` for TV movies, which TMDb files under its television section, and the address of a TMDb page pasted from the browser.
 - **You will also like**: below the cast, Cinedex suggests films from **your** catalog that are close to the one shown, with the reason for each (same saga, same director, shared keywords or genres). Everything is computed from the database, so it is offline and instant; only films you own are suggested.
 - **TMDb suggestions**: a button asks TMDb what viewers of this film also liked. One call per title, the result is kept. Suggestions already in the catalog are ticked and open with a click; the others are added to your wishlist.
@@ -111,7 +113,7 @@ Example: Genre is Comedy, then IMDb rating > 7, then Year ≥ 2000.
 **Tooltips**: turn on "Tooltip when hovering over a film" in **Settings > General** to show, when hovering over a film in the list or the posters, its title, genres, IMDb rating and the beginning of its synopsis. They are off by default.
 
 ## The left sidebar
-- **Home**: the page that answers "what do I watch tonight". It offers films never watched, well rated and playable right now (the disk is plugged in), sagas whose first film you watched but not the next one, the latest additions, and films owned for more than six months and never watched. The draw changes once a day.
+- **Home**: the page that answers "what do I watch tonight". It offers films never watched, well rated and playable right now (the disk is plugged in), sagas whose first film you watched but not the next one, the latest additions, and films owned for more than six months and never watched. The draw changes once a day. Clicking a film opens its full record, and the list behind it moves to that film.
 - **Library**: quick views (watched, favorites, shortlist, lent, video files…).
 - **Definition**: submenu Standard definition, High definition, Ultra HD (4K), 3D.
 - **Lists**: the reference lists (the IMDb Top 250, and your own). Choosing a list shows the catalog's films that belong to it, and a banner says how many are missing, with a way to add them all to the wishlist at once.
@@ -183,7 +185,7 @@ These operations apply immediately, without “Save”. Each one that changes th
 - **Ctrl+U**: link or update from TMDb; **Ctrl+Shift+U**: update from TMDb
 - **F2**, **Alt+E** or double-click: edit the entry; **Del**: delete from the catalog
 - In the record: **Ctrl+Page Down** and **Ctrl+Page Up** save and move to the neighbouring title
-- **Ctrl+P**: play; **Ctrl+O**: open the file's folder; **Ctrl+I**: reread the technical info
+- **Ctrl+P**: play (also in the full record); **Ctrl+O**: open the file's folder; **Ctrl+I**: reread the technical info
 - **Ctrl+M**: merge the selection; **Ctrl+Shift+C**: copy the paths; **Ctrl+E**: export the selection; **Ctrl+L**: add to the last list used
 - **Ctrl+S**: watched / not watched; **Ctrl+D**: favorite; **Ctrl+R** or **F7**: a random unwatched title
 - **Ctrl+1**: list; **Ctrl+2**: posters; **F5**: refresh; **F11**: full screen
@@ -229,6 +231,11 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.16.2
+- **Play from the record.** The full record (double-click, F2, Alt+E) now has a clearly visible **Play** button at the top, with Ctrl+P. It takes the same path as the right panel: if the drive is missing, the “plug in the drive” question opens in front of the record.
+- **Presence badge.** Next to each Play button, a badge checks live whether the file is there: **Available**, **Missing – plug in “MediaID”**, or **Missing (timed out)** when a network drive does not answer. The check runs in the background and the result is saved, so the “Missing files” filter stays accurate.
+- **Home: a click opens the film's record** instead of only going back to the list. The list behind it stays on that film.
+
 ### 0.16.1
 - **Updating actors and directors moves on from one batch to the next.** The button that downloads TMDb records (biography, dates, photo) handles 2,000 people per run. It took them from the 2,000 people displayed, always the same ones: once those were done, running it again found nothing, while the rest of the catalog was waiting. Each run now takes the next 2,000 among those still to do, the most present in the catalog first.
 - **The message says where you stand**: "5,300 left: run it again for the next batch", then "All records are up to date". The search and the tab (actors or directors) still limit the update to what they designate.

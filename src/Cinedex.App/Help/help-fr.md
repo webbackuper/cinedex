@@ -30,6 +30,7 @@ Chaque fichier garde le **MediaID**, le nom du disque sur lequel il a été trou
 - Donnez un nom distinct à chacun de vos disques USB : Cinedex les reconnaît ainsi même si leur lettre change (E:, F:…).
 - Deux disques différents peuvent contenir un fichier au même chemin : ils ne sont pas confondus.
 - Si vous lancez un film dont le disque est débranché, Cinedex vous dit quel disque brancher.
+- À côté du bouton **Lire** (panneau de droite et fiche complète), une **pastille** dit si le fichier est là : **Présent** (vert), **Absent – branchez « MediaID »** (rouge), ou **Vérification…** pendant le test. Le disque est regardé en direct, sans geler la fenêtre ; un lecteur réseau qui ne répond pas en 2 secondes donne **Absent (délai dépassé)**. Pour un film en plusieurs parties, il suffit d'une pour être « Présent » ; l'infobulle détaille chaque fichier. Le constat est enregistré : le filtre **Fichiers manquants** et le « (introuvable) » des infos techniques suivent. Un titre sans fichier (liste de souhaits) n'a pas de pastille.
 - Le MediaID se modifie dans la fiche du film, onglet **Fichier**, et se cherche avec la recherche multicritère.
 
 ## Fiches TMDb et « À vérifier »
@@ -55,6 +56,7 @@ Si une API atteint sa limite pendant un import, Cinedex vous propose de terminer
 
 ## La fiche d'un film
 Un clic sur un titre affiche sa fiche dans le panneau de droite, dont la largeur se règle en glissant la poignée qui le sépare de la liste ; un double-clic (ou Alt+E) ouvre la fiche complète, modifiable, avec ses onglets :
+- En tête de la fiche complète, le bouton **Lire** (Ctrl+P) lance le film comme celui du panneau de droite (disque à brancher, autres lettres de lecteur, lecteur externe, historique de visionnage), avec la pastille de présence à côté.
 - **Fiche** : titres, année, durée, résumé, pays, studio, identifiant IMDb, bande-annonce. Le **numéro TMDb** accepte aussi `tv/322888` pour les téléfilms, que TMDb range dans sa section télévision, et l'adresse d'une page TMDb collée depuis le navigateur.
 - **Vous aimerez aussi** : sous la distribution, Cinedex propose des films de **votre** catalogue proches de celui affiché, avec la raison du rapprochement (même saga, même réalisateur, mots-clés ou genres communs). Tout est calculé sur la base, donc hors ligne et immédiat ; seuls les films que vous possédez sont proposés.
 - **Suggestions TMDb** : un bouton demande à TMDb ce que les spectateurs de ce film ont aussi aimé. Un seul appel par titre, le résultat est gardé. Les suggestions déjà au catalogue sont cochées et s'ouvrent d'un clic ; les autres s'ajoutent à votre liste de souhaits.
@@ -111,7 +113,7 @@ Exemple : Genre est Comédie, puis Note IMDb > 7, puis Année ≥ 2000.
 **Infobulles** : activez « Infobulle au survol d'un film » dans **Réglages > Général** pour afficher, en survolant un film de la liste ou des affiches, son titre, ses genres, sa note IMDb et le début de son synopsis. Elles sont désactivées par défaut.
 
 ## Le bandeau gauche
-- **Accueil** : la page qui répond à « qu'est-ce que je regarde ce soir ». Elle propose des films jamais vus, bien notés et dont le fichier est lisible tout de suite (le disque est branché), les sagas dont vous avez vu un épisode mais pas le suivant, les derniers ajouts, et des films possédés depuis plus de six mois et jamais vus. Le tirage ne change qu'une fois par jour.
+- **Accueil** : la page qui répond à « qu'est-ce que je regarde ce soir ». Elle propose des films jamais vus, bien notés et dont le fichier est lisible tout de suite (le disque est branché), les sagas dont vous avez vu un épisode mais pas le suivant, les derniers ajouts, et des films possédés depuis plus de six mois et jamais vus. Le tirage ne change qu'une fois par jour. Un clic sur un film ouvre sa fiche complète, et la liste derrière se place sur lui.
 - **Bibliothèque** : vues rapides (vus, favoris, liste courte, prêtés, fichiers vidéo…).
 - **Définition** : sous-menu Définition standard, Haute définition, Ultra HD (4K), 3D.
 - **Listes** : les listes de référence (le Top 250 IMDb, et les vôtres). Choisir une liste montre les films du catalogue qui en font partie, et un bandeau dit combien il en manque, avec de quoi les ajouter d'un coup à la liste de souhaits.
@@ -183,7 +185,7 @@ Ces opérations s'appliquent tout de suite, sans « Enregistrer ». Chacune de c
 - **Ctrl+U** : lier ou mettre à jour depuis TMDb ; **Ctrl+Maj+U** : mettre à jour via TMDb
 - **F2**, **Alt+E** ou double-clic : modifier la fiche ; **Suppr** : supprimer du catalogue
 - Dans la fiche : **Ctrl+Page suivante** et **Ctrl+Page précédente** enregistrent et passent au titre voisin
-- **Ctrl+P** : lire ; **Ctrl+O** : ouvrir le dossier du fichier ; **Ctrl+I** : relire les infos techniques
+- **Ctrl+P** : lire (aussi dans la fiche complète) ; **Ctrl+O** : ouvrir le dossier du fichier ; **Ctrl+I** : relire les infos techniques
 - **Ctrl+M** : fusionner la sélection ; **Ctrl+Maj+C** : copier les chemins ; **Ctrl+E** : exporter la sélection ; **Ctrl+L** : ajouter à la dernière liste utilisée
 - **Ctrl+S** : vu / pas vu ; **Ctrl+D** : favori ; **Ctrl+R** ou **F7** : un titre non vu au hasard
 - **Ctrl+1** : liste ; **Ctrl+2** : affiches ; **F5** : rafraîchir ; **F11** : plein écran
@@ -229,6 +231,11 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.16.2
+- **Lire depuis la fiche.** La fiche complète (double-clic, F2, Alt+E) a maintenant un bouton **Lire** bien visible en tête, avec Ctrl+P. Il prend le même chemin que le panneau de droite : si le disque manque, la question « branchez le disque » s'ouvre devant la fiche.
+- **Pastille de présence.** À côté de chaque bouton Lire, une pastille vérifie en direct si le fichier est là : **Présent**, **Absent – branchez « MediaID »**, ou **Absent (délai dépassé)** quand un lecteur réseau ne répond pas. Le test se fait en arrière-plan et le résultat est enregistré, pour que le filtre « Fichiers manquants » reste juste.
+- **Accueil : un clic ouvre la fiche du film**, au lieu de seulement revenir à la liste. La liste derrière reste placée sur ce film.
+
 ### 0.16.1
 - **La mise à jour des acteurs et des réalisateurs avance d'un lot à l'autre.** Le bouton qui télécharge les fiches TMDb (biographie, dates, photo) traite 2 000 personnes par lancement. Il les prenait parmi les 2 000 personnes affichées, toujours les mêmes : une fois celles-ci faites, relancer ne trouvait plus rien, alors que le reste du catalogue attendait. Chaque lancement prend maintenant les 2 000 suivantes parmi celles qui restent, les plus présentes dans le catalogue d'abord.
 - **Le message dit où l'on en est** : « Il en reste 5 300 : relancez pour le lot suivant », puis « Toutes les fiches sont à jour ». La recherche et l'onglet (acteurs ou réalisateurs) limitent toujours la mise à jour à ce qu'ils désignent.

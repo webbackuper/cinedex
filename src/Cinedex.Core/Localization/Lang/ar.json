@@ -1122,5 +1122,14 @@
  "Étagère, boîte… (le chemin du fichier est dans l'onglet Fichier)": "رف، صندوق… (مسار الملف في تبويب «الملف»)",
  "épisode (géré avec les séries)": "حلقة (تُدار مع المسلسلات)",
  "… et {0} autre(s)": "… و{0} غيرها",
- "‹ Précédent": "‹ السابق"
+ "‹ Précédent": "‹ السابق",
+ "Absent": "غير موجود",
+ "Absent (délai dépassé)": "غير موجود (انتهت المهلة)",
+ "Absent : {0}": "غير موجود: {0}",
+ "Absent – branchez « {0} »": "غير موجود – صِل «{0}»",
+ "Délai dépassé : {0}": "انتهت المهلة: {0}",
+ "Présent": "موجود",
+ "Présent : {0}": "موجود: {0}",
+ "Vérification de la présence des fichiers…": "جارٍ التحقق من وجود الملفات…",
+ "Vérification…": "جارٍ التحقق…"
 }

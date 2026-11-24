@@ -1087,6 +1087,7 @@
                     <TextBlock Text="Lire" />
                   </StackPanel>
                 </Button>
+                <views:PresenceBadge Margin="{StaticResource Trail2}" DataContext="{Binding Record.Presence}" />
                 <Button Classes="outline" Margin="{StaticResource Trail2}" Command="{Binding OpenSeriesCommand}" IsVisible="{Binding Record.IsSeries}" ToolTip.Tip="Saisons et épisodes">
                   <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
                     <controls:Icon Kind="tv" Width="18" Height="18" />

@@ -17,7 +17,23 @@
     </Style>
   </Window.Styles>
 
+  <Window.KeyBindings>
+    <KeyBinding Gesture="Ctrl+P" Command="{Binding PlayCommand}" />
+  </Window.KeyBindings>
+
   <DockPanel Margin="{StaticResource WindowPadding}">
+    <!-- En tête : lire le film tout de suite, et savoir d'un coup d'œil si son fichier est là. -->
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="{StaticResource Space3}" Margin="{StaticResource Below3}"
+                IsVisible="{Binding HasFiles}">
+      <Button Classes="primary" Command="{Binding PlayCommand}" ToolTip.Tip="Lire (Ctrl+P)">
+        <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
+          <controls:Icon Kind="play" Width="18" Height="18" />
+          <TextBlock Text="Lire" />
+        </StackPanel>
+      </Button>
+      <views:PresenceBadge DataContext="{Binding Presence}" />
+    </StackPanel>
+
     <StackPanel DockPanel.Dock="Bottom" Spacing="{StaticResource Space2}" Margin="{StaticResource Above3}">
       <TextBlock Text="{Binding LastError}" Foreground="{DynamicResource SystemFillColorCriticalBrush}" TextWrapping="Wrap"
                  IsVisible="{Binding LastError, Converter={x:Static ObjectConverters.IsNotNull}}" />

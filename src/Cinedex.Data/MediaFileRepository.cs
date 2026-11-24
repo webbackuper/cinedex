@@ -453,6 +453,43 @@ public sealed class MediaFileRepository(CatalogDatabase database)
         return missing;
     }
 
+    /// <summary>
+    /// Enregistre ce qu'une vérification en direct vient de constater (pastille de présence de la fiche) :
+    /// <c>is_missing</c> suit le disque, et <c>last_seen_at</c> date le dernier passage où le fichier était là.
+    /// Le filtre « Fichiers manquants » et le « (introuvable) » du résumé technique disent alors la même chose
+    /// que la pastille. Renvoie le nombre de fichiers dont l'état présent / absent a changé.
+    /// </summary>
+    public int RecordPresence(IEnumerable<(long Id, bool Exists)> checkedFiles)
+    {
+        ArgumentNullException.ThrowIfNull(checkedFiles);
+        var list = checkedFiles.ToList();
+        if (list.Count == 0)
+        {
+            return 0;
+        }
+
+        using var connection = database.Open();
+        using var transaction = connection.BeginTransaction();
+        var changed = 0;
+        foreach (var (id, exists) in list)
+        {
+            changed += connection.Execute(
+                "UPDATE media_file SET is_missing = @missing WHERE id = @id AND is_missing <> @missing;",
+                new { id, missing = exists ? 0 : 1 },
+                transaction);
+            if (exists)
+            {
+                connection.Execute(
+                    "UPDATE media_file SET last_seen_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = @id;",
+                    new { id },
+                    transaction);
+            }
+        }
+
+        transaction.Commit();
+        return changed;
+    }
+
     /// <summary>Retrouve les fichiers absents déplacés ailleurs, par nom et taille identiques ; renvoie le nombre corrigé.</summary>
     public int RelinkMoved(IEnumerable<(string FullPath, long Size)> foundFiles)
     {

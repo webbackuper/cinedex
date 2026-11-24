@@ -48,7 +48,8 @@ public sealed record TitleEditorExtras(
     Func<Task<IReadOnlyList<TmdbSuggestion>>>? FetchSuggestions = null,
     Func<TmdbSuggestion, Task>? AddSuggestion = null,
     long? PreviousTitleId = null,
-    long? NextTitleId = null);
+    long? NextTitleId = null,
+    Func<Task>? Play = null);
 
 /// <summary>
 /// Un film de la même collection, dans l'onglet Collection de la fiche. Un film manquant au catalogue n'a
@@ -124,6 +125,9 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         Loans = extras.Loans;
         Viewings = extras.Viewings;
         _files = extras.Files;
+        _play = extras.Play;
+        var files = _files;
+        Presence = new FilePresenceViewModel(files is null ? null : checkedFiles => files.RecordPresence(checkedFiles));
         ReloadFiles();
         PosterPath = extras.PosterPath;
         _setPoster = extras.SetPoster;
@@ -271,6 +275,42 @@ public sealed partial class TitleEditorViewModel : ObservableObject
         }
 
         OnPropertyChanged(nameof(HasFiles));
+        PlayCommand.NotifyCanExecuteChanged();
+        _ = CheckPresenceAsync();
+    }
+
+    private readonly Func<Task>? _play;
+
+    /// <summary>Pastille « Présent / Absent » à côté du bouton Lire, vérifiée sur le disque à l'ouverture et après chaque lecture.</summary>
+    public FilePresenceViewModel Presence { get; }
+
+    /// <summary>Qui demande de brancher le disque d'un fichier absent : la fenêtre de la fiche, pour que la question s'ouvre devant elle.</summary>
+    public Services.MediaLocator.Ask? Ask { get; set; }
+
+    /// <summary>Le bouton Lire n'apparaît que si l'on sait lire (catalogue avec fichiers) ; il reste actif même quand la pastille dit « Absent » : lire demande alors de brancher le disque.</summary>
+    public bool CanPlay => _play is not null && Files.Count > 0;
+
+    /// <summary>Revérifie la présence des fichiers de la fiche.</summary>
+    public Task CheckPresenceAsync() => Presence.CheckAsync(_original.Id, Files.Select(f => f.File).ToList());
+
+    /// <summary>Lit le titre par le même chemin que le bandeau droit (Ctrl+P), puis revérifie la pastille.</summary>
+    [RelayCommand(CanExecute = nameof(CanPlay))]
+    private async Task PlayAsync()
+    {
+        if (_play is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _play();
+        }
+        finally
+        {
+            Viewings?.Reload();
+            await CheckPresenceAsync();
+        }
     }
 
     /// <summary>Titre choisi depuis la fiche d'un acteur : la fiche se ferme et le catalogue s'y place.</summary>

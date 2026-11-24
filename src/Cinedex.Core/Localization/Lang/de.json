@@ -1106,5 +1106,14 @@
  "Étagère, boîte… (le chemin du fichier est dans l'onglet Fichier)": "Regal, Kiste… (der Dateipfad steht im Reiter Datei)",
  "épisode (géré avec les séries)": "Episode (mit den Serien verwaltet)",
  "… et {0} autre(s)": "… und {0} weitere",
- "‹ Précédent": "‹ Zurück"
+ "‹ Précédent": "‹ Zurück",
+ "Absent": "Fehlt",
+ "Absent (délai dépassé)": "Fehlt (Zeitüberschreitung)",
+ "Absent : {0}": "Fehlt: {0}",
+ "Absent – branchez « {0} »": "Fehlt – schließen Sie „{0}“ an",
+ "Délai dépassé : {0}": "Zeitüberschreitung: {0}",
+ "Présent": "Vorhanden",
+ "Présent : {0}": "Vorhanden: {0}",
+ "Vérification de la présence des fichiers…": "Prüfe, ob die Dateien vorhanden sind…",
+ "Vérification…": "Wird geprüft…"
 }

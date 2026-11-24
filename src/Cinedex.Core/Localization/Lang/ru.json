@@ -1122,5 +1122,14 @@
  "Étagère, boîte… (le chemin du fichier est dans l'onglet Fichier)": "Полка, коробка… (путь к файлу — на вкладке «Файл»)",
  "épisode (géré avec les séries)": "эпизод (обрабатывается вместе с сериалами)",
  "… et {0} autre(s)": "… и ещё {0}",
- "‹ Précédent": "‹ Назад"
+ "‹ Précédent": "‹ Назад",
+ "Absent": "Нет на месте",
+ "Absent (délai dépassé)": "Нет на месте (время ожидания истекло)",
+ "Absent : {0}": "Нет на месте: {0}",
+ "Absent – branchez « {0} »": "Нет на месте – подключите «{0}»",
+ "Délai dépassé : {0}": "Время ожидания истекло: {0}",
+ "Présent": "На месте",
+ "Présent : {0}": "На месте: {0}",
+ "Vérification de la présence des fichiers…": "Проверка наличия файлов…",
+ "Vérification…": "Проверка…"
 }

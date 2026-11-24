@@ -33,6 +33,9 @@
           <SolidColorBrush x:Key="CinedexPrimary" Color="#1D1F20" />
           <SolidColorBrush x:Key="CinedexOnPrimary" Color="#FFFFFF" />
           <SolidColorBrush x:Key="CinedexNegative" Color="#C4242A" />
+          <SolidColorBrush x:Key="CinedexNegativeSoft" Color="#FBE7E8" />
+          <SolidColorBrush x:Key="CinedexPositive" Color="#1E7A46" />
+          <SolidColorBrush x:Key="CinedexPositiveSoft" Color="#E3F3E9" />
           <SolidColorBrush x:Key="CinedexPosterBack" Color="#E9E9E6" />
           <SolidColorBrush x:Key="TabItemHeaderSelectedPipeFill" Color="#161616" />
         </ResourceDictionary>
@@ -51,6 +54,9 @@
           <SolidColorBrush x:Key="CinedexPrimary" Color="#F2F2F2" />
           <SolidColorBrush x:Key="CinedexOnPrimary" Color="#111111" />
           <SolidColorBrush x:Key="CinedexNegative" Color="#E5566F" />
+          <SolidColorBrush x:Key="CinedexNegativeSoft" Color="#3B1E22" />
+          <SolidColorBrush x:Key="CinedexPositive" Color="#5CC98A" />
+          <SolidColorBrush x:Key="CinedexPositiveSoft" Color="#173323" />
           <SolidColorBrush x:Key="CinedexPosterBack" Color="#242424" />
           <SolidColorBrush x:Key="TabItemHeaderSelectedPipeFill" Color="#F2F2F2" />
         </ResourceDictionary>

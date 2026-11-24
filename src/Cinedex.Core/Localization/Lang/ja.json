@@ -1122,5 +1122,14 @@
  "Étagère, boîte… (le chemin du fichier est dans l'onglet Fichier)": "棚、箱…（ファイルのパスは「ファイル」タブにあります）",
  "épisode (géré avec les séries)": "エピソード（シリーズで管理）",
  "… et {0} autre(s)": "…他 {0} 件",
- "‹ Précédent": "‹ 前へ"
+ "‹ Précédent": "‹ 前へ",
+ "Absent": "見つかりません",
+ "Absent (délai dépassé)": "見つかりません（タイムアウト）",
+ "Absent : {0}": "見つかりません：{0}",
+ "Absent – branchez « {0} »": "見つかりません – 「{0}」を接続してください",
+ "Délai dépassé : {0}": "タイムアウト：{0}",
+ "Présent": "あり",
+ "Présent : {0}": "あり：{0}",
+ "Vérification de la présence des fichiers…": "ファイルの有無を確認しています…",
+ "Vérification…": "確認中…"
 }

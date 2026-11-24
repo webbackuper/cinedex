@@ -9,7 +9,19 @@ namespace Cinedex.App.Views;
 
 public sealed partial class TitleEditorWindow : Window
 {
-    public TitleEditorWindow() => InitializeComponent();
+    public TitleEditorWindow()
+    {
+        InitializeComponent();
+
+        // Lire un fichier absent demande de brancher son disque : la question s'ouvre devant la fiche.
+        DataContextChanged += (_, _) =>
+        {
+            if (DataContext is TitleEditorViewModel editor)
+            {
+                editor.Ask = (title, message, answers) => MessageWindow.ChooseAsync(this, title, message, answers);
+            }
+        };
+    }
 
     private void OnSave(object? sender, RoutedEventArgs e)
     {

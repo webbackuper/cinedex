@@ -1194,5 +1194,14 @@
  "Équipe",
  "Étagère, boîte… (le chemin du fichier est dans l'onglet Fichier)",
  "… et {0} autre(s)",
- "‹ Précédent"
+ "‹ Précédent",
+ "Absent",
+ "Absent (délai dépassé)",
+ "Absent : {0}",
+ "Absent – branchez « {0} »",
+ "Délai dépassé : {0}",
+ "Présent",
+ "Présent : {0}",
+ "Vérification de la présence des fichiers…",
+ "Vérification…"
 ]

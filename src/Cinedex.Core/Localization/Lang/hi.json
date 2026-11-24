@@ -1121,5 +1121,14 @@
  "Étagère, boîte… (le chemin du fichier est dans l'onglet Fichier)": "शेल्फ़, डिब्बा… (फ़ाइल का पथ «फ़ाइल» टैब में है)",
  "épisode (géré avec les séries)": "एपिसोड (सीरीज़ के साथ प्रबंधित)",
  "… et {0} autre(s)": "… और {0} अन्य",
- "‹ Précédent": "‹ पिछला"
+ "‹ Précédent": "‹ पिछला",
+ "Absent": "अनुपलब्ध",
+ "Absent (délai dépassé)": "अनुपलब्ध (समय सीमा पार)",
+ "Absent : {0}": "अनुपलब्ध: {0}",
+ "Absent – branchez « {0} »": "अनुपलब्ध – «{0}» लगाएँ",
+ "Délai dépassé : {0}": "समय सीमा पार: {0}",
+ "Présent": "उपलब्ध",
+ "Présent : {0}": "उपलब्ध: {0}",
+ "Vérification de la présence des fichiers…": "फ़ाइलों की उपलब्धता जाँची जा रही है…",
+ "Vérification…": "जाँच हो रही है…"
 }

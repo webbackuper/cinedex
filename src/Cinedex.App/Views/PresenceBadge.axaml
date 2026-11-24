@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Cinedex.App.ViewModels"
+             xmlns:controls="using:Cinedex.App.Controls"
+             x:Class="Cinedex.App.Views.PresenceBadge"
+             x:DataType="vm:FilePresenceViewModel"
+             IsVisible="{Binding IsVisible}"
+             VerticalAlignment="Center">
+  <!-- Pastille de présence : vérifiée sur le disque en direct ; l'infobulle détaille chaque fichier. -->
+  <UserControl.Styles>
+    <Style Selector="Border.presence">
+      <Setter Property="Background" Value="{DynamicResource CinedexSurfaceAlt}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource CinedexBorder}" />
+      <Setter Property="BorderThickness" Value="{StaticResource Hairline}" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusChip}" />
+      <Setter Property="Padding" Value="{StaticResource Inline2}" />
+      <Setter Property="MinHeight" Value="{StaticResource Space6}" />
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource CinedexMuted}" />
+    </Style>
+    <Style Selector="Border.presence.present">
+      <Setter Property="Background" Value="{DynamicResource CinedexPositiveSoft}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource CinedexPositive}" />
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource CinedexPositive}" />
+    </Style>
+    <Style Selector="Border.presence.absent">
+      <Setter Property="Background" Value="{DynamicResource CinedexNegativeSoft}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource CinedexNegative}" />
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource CinedexNegative}" />
+    </Style>
+  </UserControl.Styles>
+  <Border Classes="presence" Classes.present="{Binding IsPresent}" Classes.absent="{Binding IsAbsent}"
+          ToolTip.Tip="{Binding ToolTip}">
+    <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space1}" VerticalAlignment="Center">
+      <controls:Icon Kind="check" Width="14" Height="14" IsVisible="{Binding IsPresent}" />
+      <controls:Icon Kind="alert" Width="14" Height="14" IsVisible="{Binding IsAbsent}" />
+      <controls:Icon Kind="clock" Width="14" Height="14" IsVisible="{Binding IsChecking}" />
+      <TextBlock Text="{Binding Text}" FontSize="{StaticResource FontSmall}" FontWeight="SemiBold" VerticalAlignment="Center" />
+    </StackPanel>
+  </Border>
+</UserControl>

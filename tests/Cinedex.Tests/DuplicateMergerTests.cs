@@ -62,26 +62,21 @@ public sealed class DuplicateMergerTests : IDisposable
     }
 
     [Fact]
-    public async Task The_settings_tab_merges_through_the_same_path_with_one_backup()
+    public void The_settings_tab_sends_to_the_main_window_instead_of_merging_itself()
     {
         TwoDuplicates();
-        var vm = new MaintenanceViewModel(_maintenance, new CatalogManager(new AppPaths(_temp.Path, isPortable: true)), "tests", _backups, Path.Combine(_temp.Path, "images"))
-        {
-            Confirm = (_, _) => Task.FromResult(true),
-        };
+        var vm = new MaintenanceViewModel(_maintenance, new CatalogManager(new AppPaths(_temp.Path, isPortable: true)), "tests", _backups, Path.Combine(_temp.Path, "images"));
+        var closed = false;
+        vm.CloseRequested += (_, _) => closed = true;
 
-        await vm.FindDuplicatesCommand.ExecuteAsync(null);
-        Assert.NotEmpty(vm.Duplicates);
+        vm.ShowDuplicatesCommand.Execute(null);
 
-        await vm.MergeDuplicateTitlesCommand.ExecuteAsync(null);
-
-        // Une seule sauvegarde : celle de la fusion, pas une seconde par-dessus.
-        Assert.Single(Backups());
-        Assert.Single(_titles.ListAll());
-        Assert.Empty(vm.Duplicates);
-        Assert.Contains("fusionnée", vm.Message, StringComparison.Ordinal);
+        // Une seule interface de gestion : les réglages se ferment, rien n'est fusionné ici.
+        Assert.True(closed);
+        Assert.True(vm.PendingShowDuplicates);
+        Assert.Equal(2, _titles.ListAll().Count);
+        Assert.Empty(Backups());
     }
-
     [Fact]
     public void The_result_is_told_in_one_sentence()
     {

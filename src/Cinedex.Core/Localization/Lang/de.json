@@ -1117,5 +1117,10 @@
  "Vérification de la présence des fichiers…": "Prüfe, ob die Dateien vorhanden sind…",
  "Vérification…": "Wird geprüft…",
  "Enregistre, puis ouvre le titre précédent de la vue d'où vient la fiche (Ctrl+Page précédente, Alt+←)": "Speichert und öffnet den vorherigen Titel der Ansicht, aus der die Karte geöffnet wurde (Strg+Bild auf, Alt+←)",
- "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "Speichert und öffnet den nächsten Titel der Ansicht, aus der die Karte geöffnet wurde (Strg+Bild ab, Alt+→)"
+ "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "Speichert und öffnet den nächsten Titel der Ansicht, aus der die Karte geöffnet wurde (Strg+Bild ab, Alt+→)",
+ "Ferme les réglages et ouvre la vue des doublons dans la fenêtre principale : chaque groupe, la raison du rapprochement, et de quoi fusionner.": "Schließt die Einstellungen und öffnet die Duplikatansicht im Hauptfenster: jede Gruppe, der Grund der Zuordnung und die Zusammenführung.",
+ "Gérer les films en double…": "Doppelte Filme verwalten…",
+ "Les films présents plusieurs fois au catalogue, groupe par groupe, dans la zone centrale": "Filme, die mehrfach im Katalog vorkommen, Gruppe für Gruppe, im mittleren Bereich",
+ "Doublons ({0})": "Duplikate ({0})",
+ "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition.": "{0} Gruppe(n) zu entscheiden. Prüfen Sie vor dem Zusammenführen, ob es wirklich derselbe Film ist: die Zuordnung ist nur ein Vorschlag."
 }

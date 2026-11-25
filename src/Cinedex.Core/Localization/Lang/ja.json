@@ -1133,5 +1133,10 @@
  "Vérification de la présence des fichiers…": "ファイルの有無を確認しています…",
  "Vérification…": "確認中…",
  "Enregistre, puis ouvre le titre précédent de la vue d'où vient la fiche (Ctrl+Page précédente, Alt+←)": "保存して、このカードを開いたビューの前のタイトルを開きます（Ctrl+Page Up、Alt+←）",
- "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "保存して、このカードを開いたビューの次のタイトルを開きます（Ctrl+Page Down、Alt+→）"
+ "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "保存して、このカードを開いたビューの次のタイトルを開きます（Ctrl+Page Down、Alt+→）",
+ "Ferme les réglages et ouvre la vue des doublons dans la fenêtre principale : chaque groupe, la raison du rapprochement, et de quoi fusionner.": "設定を閉じ、メインウィンドウで重複ビューを開きます：各グループ、一致の理由、統合の方法。",
+ "Gérer les films en double…": "重複した映画を管理…",
+ "Les films présents plusieurs fois au catalogue, groupe par groupe, dans la zone centrale": "カタログに複数回ある映画を、グループごとに中央エリアに表示",
+ "Doublons ({0})": "重複（{0}）",
+ "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition.": "判断待ちのグループ：{0}。統合する前に本当に同じ映画か確認してください：一致は提案にすぎません。"
 }

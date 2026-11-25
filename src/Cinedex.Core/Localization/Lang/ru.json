@@ -1133,5 +1133,10 @@
  "Vérification de la présence des fichiers…": "Проверка наличия файлов…",
  "Vérification…": "Проверка…",
  "Enregistre, puis ouvre le titre précédent de la vue d'où vient la fiche (Ctrl+Page précédente, Alt+←)": "Сохраняет и открывает предыдущее название из представления, откуда открыта карточка (Ctrl+Page Up, Alt+←)",
- "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "Сохраняет и открывает следующее название из представления, откуда открыта карточка (Ctrl+Page Down, Alt+→)"
+ "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "Сохраняет и открывает следующее название из представления, откуда открыта карточка (Ctrl+Page Down, Alt+→)",
+ "Ferme les réglages et ouvre la vue des doublons dans la fenêtre principale : chaque groupe, la raison du rapprochement, et de quoi fusionner.": "Закрывает настройки и открывает представление дубликатов в главном окне: каждая группа, причина сопоставления и способ объединения.",
+ "Gérer les films en double…": "Управление дубликатами фильмов…",
+ "Les films présents plusieurs fois au catalogue, groupe par groupe, dans la zone centrale": "Фильмы, присутствующие в каталоге несколько раз, по группам, в центральной области",
+ "Doublons ({0})": "Дубликаты ({0})",
+ "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition.": "Групп для решения: {0}. Перед объединением убедитесь, что это действительно один и тот же фильм: сопоставление — лишь предложение."
 }

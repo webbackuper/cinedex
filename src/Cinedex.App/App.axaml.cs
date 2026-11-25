@@ -103,11 +103,6 @@ public sealed class App : Application
                                 Backups = new BackupsViewModel(services.GetRequiredService<BackupService>()),
                             },
                         };
-                        if (Environment.GetEnvironmentVariable("CINEDEX_SNAPSHOT_DUPLICATES") is { Length: > 0 } &&
-                            settings.DataContext is SettingsViewModel { Maintenance: { } snapshotMaintenance })
-                        {
-                            snapshotMaintenance.FindDuplicatesCommand.Execute(null);
-                        }
                         // CINEDEX_SNAPSHOT_STATS=<n> : onglet de rang n plutôt que les statistiques.
                         settings.Opened += (_, _) =>
                         {

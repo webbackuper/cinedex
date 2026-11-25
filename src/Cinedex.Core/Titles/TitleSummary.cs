@@ -45,6 +45,13 @@ public sealed record TitleSummary(
 
     public double? ImdbRating { get; init; }
 
+    /// <summary>Notes des sites, lues avec la ligne : le tri en mémoire en a besoin.</summary>
+    public double? TmdbRating { get; init; }
+
+    public int? Metascore { get; init; }
+
+    public int? Tomatometer { get; init; }
+
     /// <summary>Début du synopsis (infobulle de la liste).</summary>
     public string? Overview { get; init; }
 

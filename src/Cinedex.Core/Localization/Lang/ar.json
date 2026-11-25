@@ -1133,5 +1133,10 @@
  "Vérification de la présence des fichiers…": "جارٍ التحقق من وجود الملفات…",
  "Vérification…": "جارٍ التحقق…",
  "Enregistre, puis ouvre le titre précédent de la vue d'où vient la fiche (Ctrl+Page précédente, Alt+←)": "يحفظ ثم يفتح العنوان السابق في العرض الذي فُتحت منه البطاقة (Ctrl+Page Up، Alt+←)",
- "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "يحفظ ثم يفتح العنوان التالي في العرض الذي فُتحت منه البطاقة (Ctrl+Page Down، Alt+→)"
+ "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "يحفظ ثم يفتح العنوان التالي في العرض الذي فُتحت منه البطاقة (Ctrl+Page Down، Alt+→)",
+ "Ferme les réglages et ouvre la vue des doublons dans la fenêtre principale : chaque groupe, la raison du rapprochement, et de quoi fusionner.": "يغلق الإعدادات ويفتح عرض النسخ المكررة في النافذة الرئيسية: كل مجموعة، وسبب التقريب، وطريقة الدمج.",
+ "Gérer les films en double…": "إدارة الأفلام المكررة…",
+ "Les films présents plusieurs fois au catalogue, groupe par groupe, dans la zone centrale": "الأفلام الموجودة أكثر من مرة في الفهرس، مجموعة تلو الأخرى، في المنطقة الوسطى",
+ "Doublons ({0})": "المكررات ({0})",
+ "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition.": "{0} مجموعة للبت فيها. تحقق من أنه الفيلم نفسه قبل الدمج: التقريب مجرد اقتراح."
 }

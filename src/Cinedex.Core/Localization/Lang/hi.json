@@ -1132,5 +1132,10 @@
  "Vérification de la présence des fichiers…": "फ़ाइलों की उपलब्धता जाँची जा रही है…",
  "Vérification…": "जाँच हो रही है…",
  "Enregistre, puis ouvre le titre précédent de la vue d'où vient la fiche (Ctrl+Page précédente, Alt+←)": "सहेजता है, फिर जिस दृश्य से यह रिकॉर्ड खुला उसका पिछला शीर्षक खोलता है (Ctrl+Page Up, Alt+←)",
- "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "सहेजता है, फिर जिस दृश्य से यह रिकॉर्ड खुला उसका अगला शीर्षक खोलता है (Ctrl+Page Down, Alt+→)"
+ "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "सहेजता है, फिर जिस दृश्य से यह रिकॉर्ड खुला उसका अगला शीर्षक खोलता है (Ctrl+Page Down, Alt+→)",
+ "Ferme les réglages et ouvre la vue des doublons dans la fenêtre principale : chaque groupe, la raison du rapprochement, et de quoi fusionner.": "सेटिंग्स बंद करता है और मुख्य विंडो में डुप्लिकेट दृश्य खोलता है: हर समूह, मिलान का कारण और विलय करने का तरीका।",
+ "Gérer les films en double…": "डुप्लिकेट फ़िल्में प्रबंधित करें…",
+ "Les films présents plusieurs fois au catalogue, groupe par groupe, dans la zone centrale": "कैटलॉग में एक से अधिक बार मौजूद फ़िल्में, समूह-दर-समूह, मध्य क्षेत्र में",
+ "Doublons ({0})": "डुप्लिकेट ({0})",
+ "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition.": "{0} समूह तय करने हैं। विलय से पहले जाँच लें कि यह सचमुच वही फ़िल्म है: मिलान केवल एक सुझाव है।"
 }

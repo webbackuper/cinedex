@@ -1133,5 +1133,10 @@
  "Vérification de la présence des fichiers…": "正在检查文件是否存在…",
  "Vérification…": "正在检查…",
  "Enregistre, puis ouvre le titre précédent de la vue d'où vient la fiche (Ctrl+Page précédente, Alt+←)": "保存，然后打开来源视图中的上一个标题（Ctrl+Page Up、Alt+←）",
- "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "保存，然后打开来源视图中的下一个标题（Ctrl+Page Down、Alt+→）"
+ "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "保存，然后打开来源视图中的下一个标题（Ctrl+Page Down、Alt+→）",
+ "Ferme les réglages et ouvre la vue des doublons dans la fenêtre principale : chaque groupe, la raison du rapprochement, et de quoi fusionner.": "关闭设置，并在主窗口中打开重复项视图：每个分组、匹配原因以及合并方式。",
+ "Gérer les films en double…": "管理重复的影片…",
+ "Les films présents plusieurs fois au catalogue, groupe par groupe, dans la zone centrale": "目录中出现多次的影片，按组显示在中央区域",
+ "Doublons ({0})": "重复项（{0}）",
+ "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition.": "{0} 个分组待处理。合并前请确认确实是同一部影片：匹配只是建议。"
 }

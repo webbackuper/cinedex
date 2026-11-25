@@ -515,28 +515,11 @@
 
             <TextBlock Classes="h" Text="Films" />
             <WrapPanel>
-              <Button Classes="tool" Margin="{StaticResource Trail2}" Content="Trouver les films en double" Command="{Binding FindDuplicatesCommand}"
-                      ToolTip.Tip="Même numéro TMDb ou IMDb ; à défaut d'identifiant, même titre et même année. Rien n'est supprimé." />
-              <Button Classes="tool" Margin="{StaticResource Trail2}" Content="Fusionner les films en double…" Command="{Binding MergeDuplicateTitlesCommand}"
-                      ToolTip.Tip="Regroupe chaque groupe de doublons en une seule fiche, qui garde tous leurs fichiers vidéo : un même film en plusieurs versions, un fichier par version. Aucun fichier du disque n'est touché." />
-              <Button Classes="tool" Margin="{StaticResource Trail2}" Content="Fusionner ce groupe…" Command="{Binding MergeOneDuplicateCommand}"
-                      ToolTip.Tip="Ne fusionne que le groupe du titre sélectionné dans la liste ci-dessous, et laisse les autres tels quels." />
+              <Button Classes="tool" Margin="{StaticResource Trail2}" Content="Gérer les films en double…" Command="{Binding ShowDuplicatesCommand}"
+                      ToolTip.Tip="Ferme les réglages et ouvre la vue des doublons dans la fenêtre principale : chaque groupe, la raison du rapprochement, et de quoi fusionner." />
               <Button Classes="tool" Margin="{StaticResource Trail2}" Content="{Binding RenumberLabel}" Command="{Binding RenumberCommand}"
                       ToolTip.Tip="Numérote les exemplaires (colonne N°) de 1 à n dans l'ordre de tri de la liste principale" />
             </WrapPanel>
-            <TextBlock Classes="hint" Text="Choisissez un titre dans la liste pour ne fusionner que son groupe." />
-            <ListBox ItemsSource="{Binding Duplicates}" SelectedItem="{Binding SelectedDuplicate}" MaxHeight="260" DoubleTapped="OnDuplicateChosen"
-                     IsVisible="{Binding Duplicates.Count}">
-              <ListBox.ItemTemplate>
-                <DataTemplate x:DataType="vm:DuplicateRow">
-                  <Panel>
-                    <TextBlock Text="{Binding Text}" FontWeight="SemiBold" FontSize="{StaticResource FontSmall}" Opacity="0.7" IsVisible="{Binding IsHeader}" />
-                    <TextBlock Text="{Binding Text}" Margin="{StaticResource Before4}" IsVisible="{Binding !IsHeader}" ToolTip.Tip="Double-clic : afficher ce titre dans le catalogue" />
-                  </Panel>
-                </DataTemplate>
-              </ListBox.ItemTemplate>
-            </ListBox>
-
             <TextBlock Classes="h" Text="Nettoyage" />
             <WrapPanel>
               <Button Classes="tool" Margin="{StaticResource Trail2}" Content="Supprimer les collections, tags et groupes vides…" Command="{Binding RemoveEmptyLabelsCommand}" />

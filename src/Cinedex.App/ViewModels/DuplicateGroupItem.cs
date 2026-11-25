@@ -10,6 +10,9 @@ namespace Cinedex.App.ViewModels;
 /// </summary>
 public sealed record DuplicateGroupItem(string Label, string Reason, IReadOnlyList<long> TitleIds)
 {
+    /// <summary>Les fiches du groupe, prêtes à afficher (affiche, année, support) dans la vue des doublons.</summary>
+    public IReadOnlyList<Cinedex.Core.Titles.TitleSummary> Titles { get; init; } = [];
+
     public static DuplicateGroupItem From(DuplicateGroup group)
     {
         ArgumentNullException.ThrowIfNull(group);

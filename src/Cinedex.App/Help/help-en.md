@@ -98,11 +98,11 @@ A series linked to TMDb gets its seasons and episodes. The **Seasons and episode
 ## Right-click on a film
 A right-click in the list or on a poster opens a menu acting on **the whole selection**: open the details, play, open the folder, watched / not watched, favorite, batch edit, update from TMDb, update the .nfo files, re-read the technical info, clear the record, merge the selected films, delete. A right-click on a film outside the selection selects it first; on a film already selected, the batch is kept.
 
-**Merge the selected films** gathers records you name yourself, without Cinedex checking that this is the same film: that is for you to know. The kept record takes over every video file of the others, nothing is erased on the disk, and the database is backed up first. For the duplicates Cinedex can recognize, use **Settings > Maintenance** instead.
+**Merge the selected films** gathers records you name yourself, without Cinedex checking that this is the same film: that is for you to know. The kept record takes over every video file of the others, nothing is erased on the disk, and the database is backed up first. For the duplicates Cinedex can recognize, use **Duplicates** in the left sidebar instead.
 
 ## Search and sort
 - The **Search…** box (Ctrl+F) searches titles and summaries.
-- **Sort by** orders the list; the button next to it reverses the order.
+- **Sort by** orders the list; the button next to it reverses the order. The **IMDb**, **TMDb**, **Metacritic** and **Rotten Tomatoes** ratings sort from best to worst; films without a rating stay at the end of the list in both directions.
 - **List** (Ctrl+1) or **Posters** (Ctrl+2) changes the layout.
 - **Esc** clears the search, the filter and the criteria.
 
@@ -115,6 +115,7 @@ Example: Genre is Comedy, then IMDb rating > 7, then Year ≥ 2000.
 ## The left sidebar
 - **Home**: the page that answers "what do I watch tonight". It offers films never watched, well rated and playable right now (the disk is plugged in), sagas whose first film you watched but not the next one, the latest additions, and films owned for more than six months and never watched. The draw changes once a day. Clicking a film opens its full record, and the list behind it moves to that film.
 - **Library**: quick views (watched, favorites, shortlist, lent, video files…).
+- **Duplicates (n)**: films present more than once in the catalog (same TMDb record or same IMDb ID; failing any identifier, same title and same year). One click shows them in the central area, group by group, as a list or as posters: each group says why its records were matched and has its own **Merge this group…** button; at the top, **Search again** and **Merge all groups…**. Clicking a record opens it, and Previous / Next step through its group so you can compare. The kept record gathers every video file of the others, the database is backed up before each merge, and no file on the disk is touched.
 - **Definition**: submenu Standard definition, High definition, Ultra HD (4K), 3D.
 - **Lists**: the reference lists (the IMDb Top 250, and your own). Choosing a list shows the catalog's films that belong to it, and a banner says how many are missing, with a way to add them all to the wishlist at once.
 - **My lists**: your personal groups ("Family night", "To rewatch"), entered in the Organization tab of the details or through a bulk edit. They are **ordered**: opening a list shows it in your order, and two toolbar buttons move the selection up or down. A title added goes to the end. Choosing another sort (title, year…) wins for as long as you keep it.
@@ -170,8 +171,7 @@ The **Settings > Maintenance** tab shows the location, size and contents of the 
 - **Purge the catalog**: deletes all the content of the open catalog (titles, copies, files, people, collections, loans, series, images). Its settings, reference lists, custom fields, saved filters and scan folders are kept. Two confirmations are asked; the database is backed up just before (backups folder), but images are not.
 - **Remove unused actors**: people who no longer appear in any credits (the number is shown on the button).
 - **Merge duplicate actors and directors**: records with the same name (ignoring accents and capitals) are grouped; two namesakes with different TMDb or IMDb records stay separate.
-- **Find duplicate films**: same TMDb record or same IMDb ID; failing any identifier, same title and same year. Nothing is deleted; double-clicking a title shows it in the list.
-- **Merge duplicate films**: gathers each group into a single entry, which keeps every video file — one film in several versions, one file per version. The report tells real versions from copies of the same encoding, from MediaInfo.
+- **Manage duplicate films**: closes the settings and opens the **Duplicates** view of the main window, the only place where they are handled (see "The left sidebar").
 - **Renumber the films in the current sort order**: copies (No. column) are numbered from 1 to n in the sort order of the main list (for example Title ↑ or Date added ↓).
 - **Delete empty collections, tags and groups** and **Clean up unused images** (posters, backdrops and photos nothing uses any more).
 - **Check database integrity** and **Compact and optimize the database**.
@@ -231,6 +231,10 @@ If your network requires a proxy, turn on **Settings > Network > Use a proxy**, 
 - Cinedex never changes your video files. Deleting a title from the catalog does not touch the disk.
 
 ## What's new
+### 0.16.4
+- **Sort by IMDb, TMDb, Metacritic or Rotten Tomatoes rating.** These ratings could not be used for sorting. Chosen in "Sort by", they order from best to worst; films without a rating stay at the end of the list, whatever the direction.
+- **Duplicates are handled in the central area.** The **Duplicates (n)** entry of the left sidebar no longer has a submenu: one click shows every group at once, with its records (as a list or as posters), why they were matched and a **Merge this group…** button each. **Settings > Maintenance** points there, so there is only one place to decide them.
+
 ### 0.16.3
 - **Previous and Next stay in the view the record came from.** Opened from a Home band, the record steps through that band; from the list, through the list in its sort and filter; from a collection, an actor's filmography, “You may also like” or the TMDb suggestions, through that list. Before, you always landed on the alphabetical neighbour in the main list.
 - **A counter tells where you are**: “3 / 12 · Home › Latest additions”, next to the buttons. The list is frozen when the record opens: marking a film seen in “Not yet watched” does not lose your place, Next carries on. A title deleted in the meantime is skipped, and the buttons are greyed out at both ends (no wrapping around).

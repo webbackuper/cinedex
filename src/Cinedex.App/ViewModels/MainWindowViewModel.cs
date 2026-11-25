@@ -576,7 +576,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public bool HasDuplicates => Duplicates is not null;
 
-    private IReadOnlyList<long>? _duplicateIds;
+    /// <summary>La vue des doublons occupe la zone centrale, à la place de la liste.</summary>
+    public bool IsDuplicatesView => Duplicates?.IsOpen == true;
 
     private DuplicatesViewModel? CreateDuplicates()
     {
@@ -585,12 +586,22 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return null;
         }
 
-        var duplicates = new DuplicatesViewModel(merger, _dialogs.ConfirmAsync);
+        var duplicates = new DuplicatesViewModel(merger, _dialogs.ConfirmAsync, Ordered);
         duplicates.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(DuplicatesViewModel.Selected))
+            if (e.PropertyName == nameof(DuplicatesViewModel.IsOpen))
             {
-                OnDuplicateGroupChosen(duplicates.Selected);
+                if (duplicates.IsOpen)
+                {
+                    // La vue des doublons remplace toute autre vue de la zone centrale.
+                    Home = null;
+                    PeopleBrowser = null;
+                    Gallery = null;
+                    Trail = null;
+                }
+
+                OnPropertyChanged(nameof(IsDuplicatesView));
+                OnPropertyChanged(nameof(IsTitlesView));
             }
             else if (e.PropertyName == nameof(DuplicatesViewModel.Message) && duplicates.Message is { } message)
             {
@@ -618,27 +629,32 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private DuplicateMerger? _merger;
 
-    private void OnDuplicateGroupChosen(DuplicateGroupItem? group)
-    {
-        // Les identifiants d'abord : ce qui suit peut relire la liste, et elle doit déjà être la bonne.
-        _duplicateIds = group?.TitleIds;
-        if (group is not null)
-        {
-            Home = null;
-            PeopleBrowser = null;
-            SideBar.ReleaseAll();
-            Rules = null;
-        }
-
-        RefreshView(group?.TitleIds);
-    }
-
-    /// <summary>Une autre vue est choisie : le groupe de doublons affiché est relâché.</summary>
+    /// <summary>Une autre vue est choisie : la vue des doublons se ferme.</summary>
     private void ReleaseDuplicateGroup()
     {
-        if (Duplicates is { Selected: not null } duplicates)
+        if (Duplicates is { IsOpen: true } duplicates)
         {
-            duplicates.Selected = null;
+            duplicates.IsOpen = false;
+        }
+    }
+
+    /// <summary>
+    /// Une fiche cliquée dans la vue des doublons : elle s'ouvre, et Précédent / Suivant parcourent son groupe,
+    /// pour comparer les fiches avant de fusionner.
+    /// </summary>
+    [RelayCommand]
+    private async Task OpenDuplicateAsync(TitleSummary? title)
+    {
+        if (title is null || Duplicates?.GroupOf(title) is not { } group)
+        {
+            return;
+        }
+
+        await EditTitleAsync(title.Id, TitleNavigation.For(Tr.T("Doublons") + TitleNavigation.Separator + group.Label, group.TitleIds, title.Id));
+        if (Duplicates is { IsOpen: true } duplicates)
+        {
+            // Une fiche modifiée (année, numéro TMDb) peut ne plus être en double : la vue est relue.
+            await duplicates.FindCommand.ExecuteAsync(null);
         }
     }
 
@@ -708,6 +724,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
         new(SortField.Number, "Numéro"),
         new(SortField.AddedAt, "Date d'ajout"),
         new(SortField.UserRating, "Note personnelle"),
+        new(SortField.ImdbRating, "Note IMDb"),
+        new(SortField.TmdbRating, "Note TMDb"),
+        new(SortField.Metascore, "Metacritic"),
+        new(SortField.Tomatometer, "Rotten Tomatoes"),
         new(SortField.Runtime, "Durée"),
         new(SortField.ListOrder, "Ordre de la liste"),
     ];
@@ -1018,7 +1038,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public bool IsPeopleView => PeopleBrowser is not null;
 
-    public bool IsTitlesView => PeopleBrowser is null && Home is null && Gallery is null;
+    public bool IsTitlesView => PeopleBrowser is null && Home is null && Gallery is null && !IsDuplicatesView;
 
     /// <summary>
     /// Galerie affichée dans la vue centrale : les collections ou les genres, en vignettes. Entrer dans une
@@ -1039,6 +1059,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             Home = null;
             PeopleBrowser = null;
+            ReleaseDuplicateGroup();
         }
     }
 
@@ -1287,6 +1308,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             Home = null;
             Gallery = null;
+            ReleaseDuplicateGroup();
         }
     }
 
@@ -1295,6 +1317,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         if (value is not null)
         {
             Gallery = null;
+            ReleaseDuplicateGroup();
         }
     }
 
@@ -1466,7 +1489,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     private TitleQuery CurrentQuery => new(SearchText, SelectedFilter.Value, SelectedSort.Value, SortDescending, _display.HideAdult,
-        Rules: Rules, Ids: _duplicateIds, GroupOrder: SideBar.SelectedListName);
+        Rules: Rules, GroupOrder: SideBar.SelectedListName);
 
     private IReadOnlyList<long> SelectedIds => SelectedTitles.Select(t => t.Id).ToList();
 
@@ -1545,6 +1568,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     partial void OnSelectedSortChanged(Choice<SortField> value)
     {
+        // Une note des sites se lit de la meilleure à la moins bonne : c'est le sens proposé en la choisissant.
+        if (value?.Value is SortField.ImdbRating or SortField.TmdbRating or SortField.Metascore or SortField.Tomatometer)
+        {
+            SortDescending = true;
+        }
+
         MoveUpCommand.NotifyCanExecuteChanged();
         MoveDownCommand.NotifyCanExecuteChanged();
         RefreshView();
@@ -2142,9 +2171,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 Refresh(selectIds: SelectedIds);
             }
 
-            if (maintenance?.PendingTitleId is { } titleId)
+            if (maintenance?.PendingShowDuplicates == true && Duplicates is { } duplicates)
             {
-                GoToTitle(titleId);
+                // Une seule interface pour les doublons : celle de la fenêtre principale, relue à l'ouverture.
+                await duplicates.OpenCommand.ExecuteAsync(null);
             }
 
             // Boutons de l'onglet Métadonnées : la fenêtre vient de se fermer, la passe démarre ici.
@@ -3011,6 +3041,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
         SortField.AddedAt => (title.AddedOn, title.Title),
         SortField.UserRating => (title.UserRating, title.Title),
         SortField.Runtime => (title.RuntimeMinutes, title.Title),
+        SortField.ImdbRating => (title.ImdbRating, title.Title),
+        SortField.TmdbRating => (title.TmdbRating, title.Title),
+        SortField.Metascore => (title.Metascore, title.Title),
+        SortField.Tomatometer => (title.Tomatometer, title.Title),
         _ => null,
     };
 

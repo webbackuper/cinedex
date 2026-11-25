@@ -1126,5 +1126,10 @@
  "Vérification de la présence des fichiers…": "Comprobando que los archivos están disponibles…",
  "Vérification…": "Comprobando…",
  "Enregistre, puis ouvre le titre précédent de la vue d'où vient la fiche (Ctrl+Page précédente, Alt+←)": "Guarda y abre el título anterior de la vista de la que viene la ficha (Ctrl+Re Pág, Alt+←)",
- "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "Guarda y abre el título siguiente de la vista de la que viene la ficha (Ctrl+Av Pág, Alt+→)"
+ "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "Guarda y abre el título siguiente de la vista de la que viene la ficha (Ctrl+Av Pág, Alt+→)",
+ "Ferme les réglages et ouvre la vue des doublons dans la fenêtre principale : chaque groupe, la raison du rapprochement, et de quoi fusionner.": "Cierra los ajustes y abre la vista de duplicados en la ventana principal: cada grupo, el motivo del emparejamiento y cómo fusionarlo.",
+ "Gérer les films en double…": "Gestionar películas duplicadas…",
+ "Les films présents plusieurs fois au catalogue, groupe par groupe, dans la zone centrale": "Películas presentes varias veces en el catálogo, grupo por grupo, en la zona central",
+ "Doublons ({0})": "Duplicados ({0})",
+ "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition.": "{0} grupo(s) por decidir. Compruebe que se trata de la misma película antes de fusionar: el emparejamiento es solo una propuesta."
 }

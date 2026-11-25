@@ -17,7 +17,7 @@ public sealed partial class TitleRepository(CatalogDatabase database)
                c.number, m.label AS medium,
                (SELECT l.borrower FROM loan l WHERE l.copy_id = c.id AND l.returned_at IS NULL) AS borrower,
                (SELECT i.rel_path FROM title_image ti JOIN image i ON i.id = ti.image_id WHERE ti.title_id = t.id AND ti.role = 'poster') AS poster_rel,
-               t.imdb_rating, substr(t.overview, 1, 600) AS overview,
+               t.imdb_rating, t.tmdb_rating, t.metascore, t.tomatometer, substr(t.overview, 1, 600) AS overview,
                t.original_title, t.studio, t.certification, substr(t.added_at, 1, 10) AS added_on,
                (SELECT group_concat(DISTINCT mf.volume_label) FROM media_file mf JOIN copy cm ON cm.id = mf.copy_id
                 WHERE cm.title_id = t.id AND mf.volume_label IS NOT NULL) AS media_id,
@@ -704,6 +704,10 @@ public sealed partial class TitleRepository(CatalogDatabase database)
             SortField.AddedAt => "t.added_at",
             SortField.UserRating => "t.user_rating",
             SortField.Runtime => "t.runtime_minutes",
+            SortField.ImdbRating => "t.imdb_rating",
+            SortField.TmdbRating => "t.tmdb_rating",
+            SortField.Metascore => "t.metascore",
+            SortField.Tomatometer => "t.tomatometer",
             // Hors d'une liste personnelle, « ordre de la liste » n'a pas de sens : on retombe sur le titre.
             SortField.ListOrder => hasGroupOrder
                 ? "(SELECT tg.position FROM title_group tg JOIN user_group ug ON ug.id = tg.group_id WHERE tg.title_id = t.id AND ug.name = @GroupOrder COLLATE NOCASE)"
@@ -772,6 +776,9 @@ public sealed partial class TitleRepository(CatalogDatabase database)
     {
         Genres = row.Genres,
         ImdbRating = row.Imdb_Rating,
+        TmdbRating = row.Tmdb_Rating,
+        Metascore = (int?)row.Metascore,
+        Tomatometer = (int?)row.Tomatometer,
         Overview = row.Overview,
         OriginalTitle = row.Original_Title,
         Studio = row.Studio,
@@ -824,6 +831,12 @@ public sealed partial class TitleRepository(CatalogDatabase database)
         public string? Poster_Rel { get; set; }
 
         public double? Imdb_Rating { get; set; }
+
+        public double? Tmdb_Rating { get; set; }
+
+        public long? Metascore { get; set; }
+
+        public long? Tomatometer { get; set; }
 
         public string? Overview { get; set; }
 

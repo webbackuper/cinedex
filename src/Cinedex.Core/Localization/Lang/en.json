@@ -1106,5 +1106,10 @@
  "Vérification de la présence des fichiers…": "Checking that the files are available…",
  "Vérification…": "Checking…",
  "Enregistre, puis ouvre le titre précédent de la vue d'où vient la fiche (Ctrl+Page précédente, Alt+←)": "Saves, then opens the previous title of the view this record was opened from (Ctrl+Page Up, Alt+←)",
- "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "Saves, then opens the next title of the view this record was opened from (Ctrl+Page Down, Alt+→)"
+ "Enregistre, puis ouvre le titre suivant de la vue d'où vient la fiche (Ctrl+Page suivante, Alt+→)": "Saves, then opens the next title of the view this record was opened from (Ctrl+Page Down, Alt+→)",
+ "Ferme les réglages et ouvre la vue des doublons dans la fenêtre principale : chaque groupe, la raison du rapprochement, et de quoi fusionner.": "Closes the settings and opens the duplicates view in the main window: each group, why the records were matched, and how to merge them.",
+ "Gérer les films en double…": "Manage duplicate films…",
+ "Les films présents plusieurs fois au catalogue, groupe par groupe, dans la zone centrale": "Films present more than once in the catalog, group by group, in the central area",
+ "Doublons ({0})": "Duplicates ({0})",
+ "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition.": "{0} group(s) to decide on. Check that it really is the same film before merging: the match is only a suggestion."
 }

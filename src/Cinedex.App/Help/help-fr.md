@@ -98,11 +98,11 @@ Une série liée à TMDb récupère ses saisons et épisodes. Le bouton **Saison
 ## Clic droit sur un film
 Un clic droit dans la liste ou sur une affiche ouvre un menu qui agit sur **toute la sélection** : ouvrir la fiche, lire, ouvrir le dossier, vu / pas vu, favori, modifier en lot, mettre à jour via TMDb, mettre à jour les .nfo, relire les infos techniques, vider la fiche, fusionner les films sélectionnés, supprimer. Un clic droit sur un film hors sélection le sélectionne d'abord ; sur un film déjà sélectionné, le lot est conservé.
 
-**Fusionner les films sélectionnés** réunit des fiches que vous désignez vous-même, sans que Cinedex vérifie qu'il s'agit du même film : c'est à vous de le savoir. La fiche gardée récupère tous les fichiers vidéo des autres, rien n'est effacé sur le disque, et la base est sauvegardée avant. Pour les doublons que Cinedex sait reconnaître, passez plutôt par **Réglages > Maintenance**.
+**Fusionner les films sélectionnés** réunit des fiches que vous désignez vous-même, sans que Cinedex vérifie qu'il s'agit du même film : c'est à vous de le savoir. La fiche gardée récupère tous les fichiers vidéo des autres, rien n'est effacé sur le disque, et la base est sauvegardée avant. Pour les doublons que Cinedex sait reconnaître, passez plutôt par **Doublons** dans le bandeau gauche.
 
 ## Rechercher et trier
 - La zone **Rechercher…** (Ctrl+F) cherche dans les titres et les résumés.
-- **Trier par** classe la liste ; le bouton voisin inverse l'ordre.
+- **Trier par** classe la liste ; le bouton voisin inverse l'ordre. Les notes **IMDb**, **TMDb**, **Metacritic** et **Rotten Tomatoes** se trient de la meilleure à la moins bonne ; les films sans note restent en fin de liste dans les deux sens.
 - **Liste** (Ctrl+1) ou **Affiches** (Ctrl+2) change la présentation.
 - **Échap** efface la recherche, le filtre et les critères.
 
@@ -115,6 +115,7 @@ Exemple : Genre est Comédie, puis Note IMDb > 7, puis Année ≥ 2000.
 ## Le bandeau gauche
 - **Accueil** : la page qui répond à « qu'est-ce que je regarde ce soir ». Elle propose des films jamais vus, bien notés et dont le fichier est lisible tout de suite (le disque est branché), les sagas dont vous avez vu un épisode mais pas le suivant, les derniers ajouts, et des films possédés depuis plus de six mois et jamais vus. Le tirage ne change qu'une fois par jour. Un clic sur un film ouvre sa fiche complète, et la liste derrière se place sur lui.
 - **Bibliothèque** : vues rapides (vus, favoris, liste courte, prêtés, fichiers vidéo…).
+- **Doublons (n)** : les films présents plusieurs fois au catalogue (même fiche TMDb ou même identifiant IMDb ; à défaut d'identifiant, même titre et même année). Un clic les affiche dans la zone centrale, groupe par groupe, en liste ou en affiches : chaque groupe dit pourquoi ses fiches sont rapprochées et porte son bouton **Fusionner ce groupe…** ; en haut, **Chercher à nouveau** et **Fusionner tous les groupes…**. Un clic sur une fiche l'ouvre, et Précédent / Suivant parcourent son groupe pour comparer. La fiche gardée réunit tous les fichiers vidéo des autres, la base est sauvegardée avant chaque fusion, et aucun fichier du disque n'est touché.
 - **Définition** : sous-menu Définition standard, Haute définition, Ultra HD (4K), 3D.
 - **Listes** : les listes de référence (le Top 250 IMDb, et les vôtres). Choisir une liste montre les films du catalogue qui en font partie, et un bandeau dit combien il en manque, avec de quoi les ajouter d'un coup à la liste de souhaits.
 - **Mes listes** : vos groupes personnels (« Soirée famille », « À revoir »), saisis dans l'onglet Classement de la fiche ou par modification groupée. Ils sont **ordonnés** : ouvrir une liste la montre dans votre ordre, et deux boutons de la barre d'outils montent ou descendent la sélection. Un titre ajouté se range à la fin. Choisir un autre tri (titre, année…) l'emporte le temps qu'on le garde.
@@ -170,8 +171,7 @@ L'onglet **Réglages > Maintenance** affiche l'emplacement, la taille et le cont
 - **Purger le catalogue** : efface tout le contenu du catalogue ouvert (titres, exemplaires, fichiers, personnes, collections, prêts, séries, images). Ses réglages, listes de référence, champs personnalisés, filtres enregistrés et dossiers à analyser restent. Deux confirmations sont demandées ; la base est sauvegardée juste avant (dossier des sauvegardes), mais pas les images.
 - **Retirer les acteurs inutilisés** : personnes qui ne figurent plus dans aucun générique (le nombre est indiqué sur le bouton).
 - **Fusionner les doublons d'acteurs et de réalisateurs** : les fiches au nom identique (accents et majuscules ignorés) sont regroupées ; deux homonymes aux fiches TMDb ou IMDb différentes restent distincts.
-- **Trouver les films en double** : même fiche TMDb ou même identifiant IMDb ; à défaut d'identifiant, même titre et même année. Rien n'est supprimé ; un double-clic sur un titre l'affiche dans la liste.
-- **Fusionner les films en double** : regroupe chaque groupe en une seule fiche, qui garde tous les fichiers vidéo — un même film en plusieurs versions, un fichier par version. Le compte rendu distingue les vraies versions des copies d'un même encodage, d'après MediaInfo.
+- **Gérer les films en double** : ferme les réglages et ouvre la vue **Doublons** de la fenêtre principale, seul endroit où ils se gèrent (voir « Le bandeau gauche »).
 - **Renuméroter les films selon le tri actuel** : les exemplaires (colonne N°) sont numérotés de 1 à n dans l'ordre de tri de la liste principale (par exemple Titre ↑ ou Date d'ajout ↓).
 - **Supprimer les collections, tags et groupes vides** et **Nettoyer les images inutilisées** (affiches, fonds et photos que plus rien n'utilise).
 - **Vérifier l'intégrité de la base** et **Compacter et optimiser la base**.
@@ -231,6 +231,10 @@ Si votre réseau impose un proxy, activez **Réglages > Réseau > Passer par un 
 - Cinedex ne modifie jamais vos fichiers vidéo. Supprimer un titre du catalogue ne touche pas au disque.
 
 ## Nouveautés
+### 0.16.4
+- **Trier par note IMDb, TMDb, Metacritic ou Rotten Tomatoes.** Ces notes ne pouvaient pas servir de tri. Choisies dans « Trier par », elles classent de la meilleure à la moins bonne ; les films sans note restent en fin de liste, quel que soit le sens.
+- **Les doublons se gèrent dans la zone centrale.** L'entrée **Doublons (n)** du bandeau gauche n'a plus de sous-menu : un clic montre tous les groupes à la fois, avec leurs fiches (en liste ou en affiches), la raison du rapprochement et un bouton **Fusionner ce groupe…** chacun. **Réglages > Maintenance** y renvoie, pour qu'il n'y ait qu'un seul endroit où les trancher.
+
 ### 0.16.3
 - **Précédent et Suivant restent dans la vue d'où vient la fiche.** Ouverte depuis une bande de l'Accueil, la fiche parcourt cette bande ; depuis la liste, la liste dans son tri et son filtre ; depuis une collection, la filmographie d'un acteur, « Vous aimerez aussi » ou les suggestions TMDb, cette liste-là. Avant, on retombait toujours sur le voisin alphabétique de la liste principale.
 - **Un compteur dit où l'on est** : « 3 / 12 · Accueil › Derniers ajouts », à côté des boutons. La liste est figée à l'ouverture : marquer un film vu dans « Pas encore vus » ne fait pas perdre le fil, Suivant continue. Un titre supprimé entre-temps est sauté, et les boutons se grisent aux deux bouts (pas de retour au début).

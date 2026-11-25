@@ -342,37 +342,15 @@
               </ListBox.ItemTemplate>
             </ListBox>
 
-            <!-- Sous-menu Doublons : les groupes à trancher, et les fusions. Aussi dans Réglages > Maintenance. -->
+            <!-- Doublons : une entrée simple ; les groupes se gèrent dans la zone centrale, pas dans un sous-menu. -->
             <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Margin="{StaticResource Edges2_1_2_0}"
-                    Command="{Binding Duplicates.ToggleCommand}" IsVisible="{Binding HasDuplicates}"
-                    ToolTip.Tip="Les films présents plusieurs fois au catalogue, groupe par groupe">
-              <Grid ColumnDefinitions="Auto,*,Auto">
+                    Command="{Binding Duplicates.OpenCommand}" IsVisible="{Binding HasDuplicates}" Classes.current="{Binding IsDuplicatesView}"
+                    ToolTip.Tip="Les films présents plusieurs fois au catalogue, groupe par groupe, dans la zone centrale">
+              <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
                 <controls:Icon Kind="columns" Width="18" Height="18" Foreground="{DynamicResource CinedexMuted}" />
-                <TextBlock Grid.Column="1" Margin="{StaticResource Before3}" Text="Doublons" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
-                <controls:Icon Grid.Column="2" Kind="chevron-down" Width="14" Height="14" Foreground="{DynamicResource CinedexMuted}"
-                               RenderTransformOrigin="50%,50%" RenderTransform="{Binding Duplicates.IsExpanded, Converter={x:Static views:ExpandArrowConverter.Instance}}" />
-              </Grid>
+                <TextBlock Text="{Binding Duplicates.EntryLabel, FallbackValue=''}" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
+              </StackPanel>
             </Button>
-            <StackPanel IsVisible="{Binding Duplicates.IsExpanded, FallbackValue=False}" Margin="{StaticResource Before6}">
-              <TextBlock Text="{Binding Duplicates.StatusText}" Classes="muted" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"
-                         Margin="{StaticResource Edges2_1_2_0}" />
-              <ListBox Classes="nav" ItemsSource="{Binding Duplicates.Groups}" SelectedItem="{Binding Duplicates.Selected}"
-                       IsVisible="{Binding Duplicates.HasGroups, FallbackValue=False}" AutomationProperties.Name="Groupes de films en double">
-                <ListBox.ItemTemplate>
-                  <DataTemplate x:DataType="vm:DuplicateGroupItem">
-                    <StackPanel>
-                      <TextBlock Text="{Binding Label}" Foreground="{DynamicResource CinedexInk}" TextTrimming="CharacterEllipsis" />
-                      <TextBlock Text="{Binding Reason}" Classes="muted" FontSize="{StaticResource FontSmall}" TextTrimming="CharacterEllipsis" />
-                    </StackPanel>
-                  </DataTemplate>
-                </ListBox.ItemTemplate>
-              </ListBox>
-              <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Margin="{StaticResource Edges2_1_2_0}"
-                      Content="Chercher à nouveau" Command="{Binding Duplicates.FindCommand}" />
-              <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Margin="{StaticResource Edges2_1_2_0}"
-                      Content="Fusionner tous les groupes…" Command="{Binding Duplicates.MergeAllCommand}"
-                      ToolTip.Tip="Chaque groupe devient une seule fiche qui garde tous ses fichiers vidéo. Aucun fichier du disque n'est touché." />
-            </StackPanel>
 
             <!-- Sous-menus de parcours : genres, décennies, pays, langues. Même comportement que MediaID. -->
             <ItemsControl ItemsSource="{Binding SideBar.Facets}">
@@ -491,6 +469,92 @@
       </ScrollViewer>
     </DockPanel>
 
+    <!-- ======================= Doublons : tous les groupes, chacun avec ses fiches ======================= -->
+    <DockPanel Grid.Column="1" Margin="{StaticResource Edges6_4_1_0}" IsVisible="{Binding IsDuplicatesView}">
+      <Border DockPanel.Dock="Top" Margin="{StaticResource Below3}" Padding="{StaticResource Inset4x3}" CornerRadius="{StaticResource RadiusCard}"
+              Background="{DynamicResource CinedexSurfaceAlt}">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Spacing="{StaticResource Space1}">
+            <TextBlock Text="{Binding Duplicates.EntryLabel, FallbackValue=''}" FontWeight="SemiBold" FontSize="{StaticResource FontTitle}" Foreground="{DynamicResource CinedexInk}" />
+            <TextBlock Text="{Binding Duplicates.StatusText, FallbackValue=''}" Classes="muted" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" MaxWidth="620" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="{StaticResource Space2}" VerticalAlignment="Center">
+            <Button Classes="tool" Content="Chercher à nouveau" Command="{Binding Duplicates.FindCommand}" />
+            <Button Classes="outline" Content="Fusionner tous les groupes…" Command="{Binding Duplicates.MergeAllCommand}"
+                    ToolTip.Tip="Chaque groupe devient une seule fiche qui garde tous ses fichiers vidéo. Aucun fichier du disque n'est touché." />
+          </StackPanel>
+        </Grid>
+      </Border>
+      <ScrollViewer>
+        <ItemsControl ItemsSource="{Binding Duplicates.Groups, FallbackValue={x:Null}}" AutomationProperties.Name="Groupes de films en double">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:DuplicateGroupItem">
+              <Border Margin="{StaticResource Below3}" Padding="{StaticResource Inset4x3}" CornerRadius="{StaticResource RadiusCard}"
+                      BorderBrush="{DynamicResource CinedexBorder}" BorderThickness="{StaticResource Hairline}">
+                <StackPanel Spacing="{StaticResource Space2}">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Spacing="{StaticResource Space1}">
+                      <TextBlock Text="{Binding Label}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding Reason}" Classes="muted" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <Button Grid.Column="1" Classes="outline" VerticalAlignment="Center" Content="Fusionner ce groupe…"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Duplicates.MergeGroupCommand}" CommandParameter="{Binding}"
+                            ToolTip.Tip="Réunit ces fiches en une seule, qui gardera tous leurs fichiers vidéo : un même film en plusieurs versions, un fichier par version." />
+                  </Grid>
+
+                  <!-- Vue affiches -->
+                  <ItemsControl ItemsSource="{Binding Titles}" IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsGridView}">
+                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="titles:TitleSummary">
+                        <Button Classes="tool" Width="150" Padding="{StaticResource Inset1x2}" Margin="{StaticResource Trail2}" VerticalContentAlignment="Top"
+                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenDuplicateCommand}" CommandParameter="{Binding}"
+                                ToolTip.Tip="{Binding TitleWithYear}">
+                          <StackPanel Spacing="{StaticResource Space1}" HorizontalAlignment="Center">
+                            <Border Width="128" Height="190" CornerRadius="{StaticResource RadiusChip}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
+                              <Panel>
+                                <controls:Icon Kind="film" Width="28" Height="28" Foreground="{DynamicResource CinedexMuted}" />
+                                <controls:AsyncImage Path="{Binding PosterPath}" DecodeWidth="256" Stretch="UniformToFill" />
+                              </Panel>
+                            </Border>
+                            <TextBlock Text="{Binding Title}" FontSize="{StaticResource FontSmall}" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding DisplaySubtitle}" FontSize="{StaticResource FontSmall}" Classes="muted" TextAlignment="Center" TextWrapping="Wrap" MaxLines="2" />
+                            <TextBlock Text="{Binding MediaId}" FontSize="{StaticResource FontSmall}" Classes="muted" TextAlignment="Center" TextTrimming="CharacterEllipsis"
+                                       IsVisible="{Binding MediaId, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                          </StackPanel>
+                        </Button>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+
+                  <!-- Vue liste -->
+                  <ItemsControl ItemsSource="{Binding Titles}" IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsListView}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="titles:TitleSummary">
+                        <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="{StaticResource Inset2x1}"
+                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenDuplicateCommand}" CommandParameter="{Binding}">
+                          <Grid ColumnDefinitions="Auto,*,Auto">
+                            <Border Width="32" Height="48" CornerRadius="{StaticResource RadiusChip}" ClipToBounds="True" Background="{DynamicResource CinedexPosterBack}">
+                              <controls:AsyncImage Path="{Binding PosterPath}" DecodeWidth="64" Stretch="UniformToFill" />
+                            </Border>
+                            <StackPanel Grid.Column="1" Margin="{StaticResource Before3}" VerticalAlignment="Center" Spacing="{StaticResource Space1}">
+                              <TextBlock Text="{Binding TitleWithYear}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" TextTrimming="CharacterEllipsis" />
+                              <TextBlock Text="{Binding DisplaySubtitle}" Classes="muted" FontSize="{StaticResource FontSmall}" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="2" Text="{Binding MediaId}" Classes="muted" FontSize="{StaticResource FontSmall}" VerticalAlignment="Center" Margin="{StaticResource Before3}" />
+                          </Grid>
+                        </Button>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+    </DockPanel>
+
     <!-- ======================= Zone centrale ======================= -->
     <DockPanel Grid.Column="1" Margin="{StaticResource Edges6_4_1_0}" IsVisible="{Binding IsTitlesView}"
                ContextRequested="OnTitlesContextRequested">
@@ -599,22 +663,6 @@
           <Button Grid.Column="2" Classes="outline" VerticalAlignment="Center" Content="Détails de la collection…" IsVisible="{Binding IsInCollection}"
                   Command="{Binding OpenCollectionsCommand}"
                   ToolTip.Tip="Présentation, films manquants et mise à jour depuis TMDb de cette collection" />
-        </Grid>
-      </Border>
-
-      <!-- Groupe de doublons affiché : pourquoi ces fiches sont rapprochées, et de quoi trancher ce seul groupe. -->
-      <Border DockPanel.Dock="Top" Margin="{StaticResource Below3}" Padding="{StaticResource Inset4x3}" CornerRadius="{StaticResource RadiusCard}"
-              Background="{DynamicResource CinedexSurfaceAlt}" IsVisible="{Binding Duplicates.HasSelected, FallbackValue=False}">
-        <Grid ColumnDefinitions="*,Auto">
-          <StackPanel Spacing="{StaticResource Space1}">
-            <TextBlock Text="{Binding Duplicates.Selected.Label}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" />
-            <TextBlock Text="{Binding Duplicates.Selected.Reason}" Classes="muted" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" MaxWidth="620" />
-            <TextBlock Text="Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition."
-                       Classes="muted" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" MaxWidth="620" />
-          </StackPanel>
-          <Button Grid.Column="1" Classes="outline" VerticalAlignment="Center" Content="Fusionner ce groupe…"
-                  Command="{Binding Duplicates.MergeSelectedCommand}"
-                  ToolTip.Tip="Réunit ces fiches en une seule, qui gardera tous leurs fichiers vidéo : un même film en plusieurs versions, un fichier par version." />
         </Grid>
       </Border>
 

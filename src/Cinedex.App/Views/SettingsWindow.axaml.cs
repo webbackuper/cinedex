@@ -96,14 +96,6 @@ public sealed partial class SettingsWindow : Window
         }
     }
 
-    private void OnDuplicateChosen(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is SettingsViewModel { Maintenance: { SelectedDuplicate: { } row } maintenance })
-        {
-            maintenance.ShowDuplicate(row);
-        }
-    }
-
     /// <summary>Ouvre directement l'onglet Statistiques (le dernier).</summary>
     public void ShowStatistics() => Tabs.SelectedIndex = Tabs.ItemCount - 1;
 

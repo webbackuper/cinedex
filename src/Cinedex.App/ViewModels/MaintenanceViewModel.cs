@@ -8,11 +8,8 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace Cinedex.App.ViewModels;
 
-/// <summary>Une ligne de la liste des doublons : le groupe, puis chacun de ses titres.</summary>
-public sealed record DuplicateRow(long? TitleId, string Text, bool IsHeader);
-
 /// <summary>
-/// Onglet Maintenance des réglages : renommage du catalogue ouvert, nettoyages, doublons, renumérotation,
+/// Onglet Maintenance des réglages : renommage du catalogue ouvert, nettoyages, renvoi vers les doublons, renumérotation,
 /// contrôle, compactage et sauvegarde. Chaque opération qui modifie la base est précédée d'une sauvegarde.
 /// </summary>
 public sealed partial class MaintenanceViewModel : ObservableObject
@@ -22,9 +19,6 @@ public sealed partial class MaintenanceViewModel : ObservableObject
     private readonly string _backupsDirectory;
     private readonly string _imagesDirectory;
 
-    /// <summary>La fusion des doublons, la même que celle du bandeau gauche et du clic droit : sauvegarde comprise.</summary>
-    private readonly DuplicateMerger _merger;
-
     public MaintenanceViewModel(MaintenanceRepository repository, CatalogManager catalogs, string catalogName, string backupsDirectory, string imagesDirectory)
     {
         _repository = repository;
@@ -33,7 +27,6 @@ public sealed partial class MaintenanceViewModel : ObservableObject
         NewName = catalogName;
         _backupsDirectory = backupsDirectory;
         _imagesDirectory = imagesDirectory;
-        _merger = new DuplicateMerger(repository, backupsDirectory);
         RefreshInfo();
     }
 
@@ -61,13 +54,11 @@ public sealed partial class MaintenanceViewModel : ObservableObject
     /// <summary>Nouveau nom du catalogue ouvert, appliqué par l'application après la fermeture des réglages.</summary>
     public string? PendingRename { get; private set; }
 
-    /// <summary>Titre à afficher dans la liste principale après la fermeture des réglages.</summary>
-    public long? PendingTitleId { get; private set; }
+    /// <summary>Les doublons sont à montrer dans la fenêtre principale, une fois les réglages fermés.</summary>
+    public bool PendingShowDuplicates { get; private set; }
 
     /// <summary>La base a été modifiée : la liste principale est relue.</summary>
     public bool Changed { get; private set; }
-
-    public ObservableCollection<DuplicateRow> Duplicates { get; } = [];
 
     [ObservableProperty] public partial string NewName { get; set; }
 
@@ -78,13 +69,8 @@ public sealed partial class MaintenanceViewModel : ObservableObject
     [ObservableProperty] public partial int UnusedPeople { get; private set; }
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(MergeOneDuplicateCommand))]
-    public partial DuplicateRow? SelectedDuplicate { get; set; }
-
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(RemoveUnusedPeopleCommand), nameof(MergePeopleCommand), nameof(FindDuplicatesCommand), nameof(RenumberCommand),
-        nameof(RemoveEmptyLabelsCommand), nameof(RemoveUnusedImagesCommand), nameof(CheckIntegrityCommand), nameof(OptimizeCommand), nameof(BackupCommand), nameof(RenameCommand), nameof(PurgeCatalogCommand),
-        nameof(MergeDuplicateTitlesCommand), nameof(MergeOneDuplicateCommand))]
+    [NotifyCanExecuteChangedFor(nameof(RemoveUnusedPeopleCommand), nameof(MergePeopleCommand), nameof(RenumberCommand),
+        nameof(RemoveEmptyLabelsCommand), nameof(RemoveUnusedImagesCommand), nameof(CheckIntegrityCommand), nameof(OptimizeCommand), nameof(BackupCommand), nameof(RenameCommand), nameof(PurgeCatalogCommand))]
     public partial bool IsBusy { get; private set; }
 
     public string UnusedPeopleLabel => Tr.F("Retirer les acteurs inutilisés ({0})", UnusedPeople);
@@ -147,98 +133,15 @@ public sealed partial class MaintenanceViewModel : ObservableObject
             return merged == 0 ? Tr.T("Aucun doublon de personne trouvé.") : Tr.F("{0} fiche(s) en double fusionnée(s).", merged);
         });
 
-    /// <summary>Cherche les films en double (rien n'est supprimé) ; un titre de la liste s'affiche dans le catalogue.</summary>
-    [RelayCommand(CanExecute = nameof(CanRun))]
-    private async Task FindDuplicatesAsync()
-    {
-        await RunAsync(() =>
-        {
-            var groups = _merger.Find();
-            return () =>
-            {
-                Duplicates.Clear();
-                foreach (var group in groups)
-                {
-                    Duplicates.Add(new DuplicateRow(null, group.Reason, IsHeader: true));
-                    foreach (var title in group.Titles)
-                    {
-                        var year = title.Year?.ToString(CultureInfo.CurrentCulture) ?? "?";
-                        var files = title.Files == 0 ? Tr.T("aucun fichier") : Tr.F("{0} fichier(s)", title.Files);
-                        Duplicates.Add(new DuplicateRow(title.Id, $"{title.Title} ({year}) · {files}", IsHeader: false));
-                    }
-                }
-
-                Message = groups.Count == 0
-                    ? Tr.T("Aucun film en double trouvé.")
-                    : Tr.F("{0} groupe(s) de doublons possibles. Double-cliquez sur un titre pour l'afficher dans le catalogue.", groups.Count);
-            };
-        });
-    }
-
     /// <summary>
-    /// Regroupe les films en double en une seule fiche, qui garde tous leurs fichiers : un même film en
-    /// plusieurs versions, un fichier par version. Ce ne sont pas des parties d'un film découpé, même si la
-    /// base les numérote avec le même champ. Le compte rendu signale les fichiers de caractéristiques identiques.
+    /// Les doublons se gèrent dans la fenêtre principale, une seule interface pour tout : les réglages se
+    /// ferment et la vue des doublons s'ouvre.
     /// </summary>
-    [RelayCommand(CanExecute = nameof(CanRun))]
-    private async Task MergeDuplicateTitlesAsync()
+    [RelayCommand]
+    private void ShowDuplicates()
     {
-        var before = Message;
-        await ModifyAsync(
-            Tr.T("Fusionner les films en double"),
-            Tr.T("Regrouper chaque groupe de doublons en une seule fiche, qui gardera tous leurs fichiers vidéo ? Aucun fichier du disque n'est touché."),
-            backupLabel: null,
-            () => DuplicateMerger.Describe(_merger.MergeAll()));
-
-        // La liste est relue sur le fil d'interface, une fois la fusion finie, pour ne montrer que ce qui reste.
-        if (Changed && !ReferenceEquals(before, Message))
-        {
-            var result = Message;
-            await FindDuplicatesAsync();
-            Message = result;
-        }
-    }
-
-    private bool CanMergeOne() => !IsBusy && SelectedDuplicate is { TitleId: not null };
-
-    /// <summary>
-    /// Fusionne le seul groupe auquel appartient le titre sélectionné. Tous les rapprochements proposés ne se
-    /// valent pas : pouvoir trancher groupe par groupe évite d'avoir à tout accepter ou tout refuser.
-    /// </summary>
-    [RelayCommand(CanExecute = nameof(CanMergeOne))]
-    private async Task MergeOneDuplicateAsync()
-    {
-        if (SelectedDuplicate is not { TitleId: { } titleId } row)
-        {
-            return;
-        }
-
-        await ModifyAsync(
-            Tr.T("Fusionner ce groupe de doublons"),
-            Tr.F("Regrouper en une seule fiche le groupe de « {0} » ? Les autres groupes ne sont pas touchés, et aucun fichier du disque non plus.", row.Text),
-            backupLabel: null,
-            () =>
-            {
-                var result = _merger.MergeGroupOf(titleId);
-                return result.Merged == 0 ? Tr.T("Ce titre n'est plus en double.") : DuplicateMerger.Describe(result);
-            });
-
-        // La liste porte encore le groupe disparu : elle est relue pour ne montrer que ce qui reste à trancher.
-        if (Changed)
-        {
-            await FindDuplicatesAsync();
-        }
-    }
-
-    /// <summary>Ferme les réglages et affiche le titre choisi dans la liste des doublons.</summary>
-    public void ShowDuplicate(DuplicateRow row)
-    {
-        ArgumentNullException.ThrowIfNull(row);
-        if (row.TitleId is { } id)
-        {
-            PendingTitleId = id;
-            CloseRequested?.Invoke(this, EventArgs.Empty);
-        }
+        PendingShowDuplicates = true;
+        CloseRequested?.Invoke(this, EventArgs.Empty);
     }
 
     [RelayCommand(CanExecute = nameof(CanRun))]

@@ -32,6 +32,12 @@ public enum SortField
     UserRating,
     Runtime,
 
+    /// <summary>Notes des sites ; les titres sans note vont en fin de liste, quel que soit le sens.</summary>
+    ImdbRating,
+    TmdbRating,
+    Metascore,
+    Tomatometer,
+
     /// <summary>Ordre donné à la main dans une liste personnelle ; sans liste, revient au tri par titre.</summary>
     ListOrder,
 }

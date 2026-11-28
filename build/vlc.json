@@ -1,0 +1,14 @@
+{
+  "version": "3.0.24",
+  "source": "https://download.videolan.org/pub/videolan/vlc/3.0.24/",
+  "license": "GNU GPL v2 ou ultérieure (VideoLAN) ; COPYING.txt copié avec le lecteur, sources sur https://www.videolan.org/vlc/download-sources.html",
+  "note": "Empreinte SHA-256 relevée le 2026-11-28 sur le fichier .sha256 officiel publié à côté de l'archive. Sert au coffret USB : VLC portable, lancé en chemin relatif.",
+  "packages": {
+    "win-x64": {
+      "file": "win64/vlc-3.0.24-win64.zip",
+      "sha256": "fcf30850371ad10c9373cc4f0f4501e7dee49e3e9ae9f20c72fb2661a1ca6323",
+      "kind": "zip",
+      "folder": "vlc-3.0.24"
+    }
+  }
+}

@@ -12,7 +12,9 @@ param(
     [ValidateSet('win-x64', 'win-arm64', 'linux-x64', 'linux-arm64', 'osx-x64', 'osx-arm64')]
     [string]$Rid,
     [string]$Output = (Join-Path (Split-Path $PSScriptRoot -Parent) 'publish'),
-    [string]$Dotnet = 'dotnet'
+    [string]$Dotnet = 'dotnet',
+    # Coffret USB : joint VLC portable (build/fetch-vlc.ps1), que l'export copie sur le disque offert.
+    [switch]$WithVlc
 )
 
 $ErrorActionPreference = 'Stop'
@@ -35,6 +37,7 @@ if ($LASTEXITCODE -ne 0) { throw "Échec de la publication pour $Rid" }
 Get-ChildItem -Path $target -Filter '*.pdb' | Remove-Item -Force
 
 & (Join-Path $PSScriptRoot 'fetch-mediainfo.ps1') -Rid $Rid -Destination $target
+if ($WithVlc) { & (Join-Path $PSScriptRoot 'fetch-vlc.ps1') -Rid $Rid -Destination $target }
 
 Copy-Item (Join-Path $root 'README.md') $target
 $version = ([xml](Get-Content (Join-Path $root 'Directory.Build.props'))).Project.PropertyGroup.Version

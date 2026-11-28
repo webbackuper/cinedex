@@ -36,6 +36,12 @@ public sealed class App : Application
         {
             _paths = AppPaths.Resolve();
             _paths.EnsureCreated();
+            if (_paths.IsGift)
+            {
+                // Coffret : les chemins des films sont relatifs à la racine du disque, où se trouve l'exécutable.
+                Cinedex.Data.MediaPaths.RelativeBase = AppContext.BaseDirectory;
+            }
+
             _serilog = CreateLogger(_paths);
             GuardUiThread(_serilog, () => _window);
             Services.Appearance.Apply(Services.Appearance.Load(_paths.DataRoot));
@@ -209,6 +215,12 @@ public sealed class App : Application
         ActivityJournal.Current.Write($"Catalogue ouvert : {name}");
 
         var services = _services;
+        if (_paths!.IsGift)
+        {
+            OpenGift(services, name);
+            return;
+        }
+
         var catalogs = new CatalogsViewModel(new CatalogManager(_paths!), name, OpenCatalog, services.GetRequiredService<SettingsStore>(), RenameOpenCatalog, RestoreOpenCatalog);
         var main = new MainWindowViewModel(
             services.GetRequiredService<TitleRepository>(),
@@ -241,7 +253,15 @@ public sealed class App : Application
                 services.GetRequiredService<StatisticsRepository>(),
                 services.GetRequiredService<ReferenceListService>(),
                 services.GetRequiredService<MaintenanceRepository>(),
-                services.GetRequiredService<FileRenameService>()));
+                services.GetRequiredService<FileRenameService>()))
+        {
+            GiftExport = new GiftExportService(
+                services.GetRequiredService<TitleRepository>(),
+                services.GetRequiredService<MediaFileRepository>(),
+                services.GetRequiredService<CatalogDatabase>(),
+                services.GetRequiredService<ImageStore>().ImagesDirectory,
+                services.GetRequiredService<PeopleRepository>()),
+        };
         main.Updates = _updates;
         main.Load();
         _ = main.CheckForUpdatesAtStartupAsync();
@@ -249,6 +269,31 @@ public sealed class App : Application
         _window.Title = Tr.F("Cinedex · {0}", name);
     }
 
+    /// <summary>
+    /// Coffret : consultation et lecture. Ni TMDb, ni réglages, ni catalogues, ni maintenance, ni recherche de
+    /// mise à jour ; le client HTTP lui-même refuse tout appel. Vu, favori et note restent possibles.
+    /// </summary>
+    private void OpenGift(ServiceProvider services, string name)
+    {
+        var main = new MainWindowViewModel(
+            services.GetRequiredService<TitleRepository>(),
+            services.GetRequiredService<AppPaths>(),
+            _window!,
+            metadata: null,
+            services.GetRequiredService<ImageStore>(),
+            settings: null,
+            services.GetRequiredService<MediaContext>(),
+            catalogs: null,
+            new CatalogExtras(
+                services.GetRequiredService<RecommendationRepository>(),
+                services.GetRequiredService<SuggestionRepository>(),
+                services.GetRequiredService<HomeRepository>(),
+                services.GetRequiredService<StatisticsRepository>()));
+        main.Load();
+        _window!.DataContext = main;
+        _window.Title = Tr.F("{0} · Cinedex", _paths!.GiftName ?? name);
+        ActivityJournal.Current.Write($"Coffret ouvert : {_paths.GiftName}");
+    }
     private static Serilog.Core.Logger CreateLogger(AppPaths paths)
     {
         var serilog = new LoggerConfiguration()
@@ -331,7 +376,10 @@ public sealed class App : Application
         services.AddSingleton(sp => new ImageStore(sp.GetRequiredService<CatalogDatabase>(), paths.CatalogImagesDirectory(catalog)));
         services.AddSingleton(SecretStore.ForCurrentPlatform());
         // Un seul client HTTP (TMDb, OMDb, notes IMDb, images) ; son proxy suit Réglages > Réseau sans redémarrer.
-        services.AddSingleton(_ => TmdbClient.CreateHttpClient(new SwitchableProxy(() => ProxySettings.Current)));
+        // Un coffret n'appelle jamais le réseau : toute requête échoue comme une absence de connexion.
+        services.AddSingleton(_ => paths.IsGift
+            ? new HttpClient(new OfflineHandler())
+            : TmdbClient.CreateHttpClient(new SwitchableProxy(() => ProxySettings.Current)));
         services.AddSingleton(sp =>
         {
             var secrets = sp.GetRequiredService<ISecretStore>();

@@ -15,16 +15,31 @@ public sealed class AppPaths
     private const string LegacyName = "Bobine";
     private const string LegacyDatabaseFileName = "bobine.db";
 
-    public AppPaths(string dataRoot, bool isPortable)
+    /// <summary>
+    /// Coffret (disque cadeau) : <c>Cinedex.exe</c> à la racine du disque, ses données dans le dossier
+    /// <see cref="GiftFolderName"/> à côté, reconnu à ce marqueur. Le fichier contient le nom du coffret.
+    /// </summary>
+    public const string GiftFolderName = "Cinedex";
+
+    public const string GiftMarker = "coffret.flag";
+
+    public AppPaths(string dataRoot, bool isPortable, string? giftName = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(dataRoot);
         DataRoot = Path.GetFullPath(dataRoot);
-        IsPortable = isPortable;
+        IsPortable = isPortable || giftName is not null;
+        GiftName = giftName;
     }
 
     public string DataRoot { get; }
 
     public bool IsPortable { get; }
+
+    /// <summary>Lancé depuis un coffret : consultation et lecture seulement, sans réseau.</summary>
+    public bool IsGift => GiftName is not null;
+
+    /// <summary>Nom du coffret (celui du disque) ; nul hors coffret.</summary>
+    public string? GiftName { get; }
 
     public string CatalogsDirectory => Path.Combine(DataRoot, "catalogs");
 
@@ -37,6 +52,13 @@ public sealed class AppPaths
     public static AppPaths Resolve(string? baseDirectory = null, string? userDataOverride = null)
     {
         var appDir = baseDirectory ?? AppContext.BaseDirectory;
+        var gift = Path.Combine(appDir, GiftFolderName, GiftMarker);
+        if (File.Exists(gift))
+        {
+            var name = ReadGiftName(gift);
+            return new AppPaths(Path.Combine(appDir, GiftFolderName), isPortable: true, giftName: name);
+        }
+
         if (File.Exists(Path.Combine(appDir, PortableMarker)))
         {
             return new AppPaths(Path.Combine(appDir, "data"), isPortable: true);
@@ -63,6 +85,19 @@ public sealed class AppPaths
         }
 
         return new AppPaths(root, isPortable: false);
+    }
+
+    private static string ReadGiftName(string marker)
+    {
+        try
+        {
+            var text = File.ReadAllText(marker).Trim();
+            return text.Length == 0 ? "Coffret" : text.Length > 64 ? text[..64] : text;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return "Coffret";
+        }
     }
 
     /// <summary>Dossier d'un catalogue : la base SQLite et ses images.</summary>

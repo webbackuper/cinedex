@@ -399,7 +399,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// </summary>
     public async Task RunScheduledBackupAsync(bool atStartup)
     {
-        if (_media?.Backup is not { } backup || _backupRunning)
+        if (IsGift || _media?.Backup is not { } backup || _backupRunning)
         {
             return;
         }
@@ -1402,6 +1402,178 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     public bool HasMedia => _media is not null;
+
+    /// <summary>Lancé depuis un coffret (disque cadeau) : consultation et lecture, sans import, TMDb ni réglages.</summary>
+    public bool IsGift => _paths.IsGift;
+
+    /// <summary>L'interface complète, hors coffret : les vues l'utilisent pour masquer ce qu'un coffret n'offre pas.</summary>
+    public bool IsFull => !_paths.IsGift;
+
+    /// <summary>Export vers un disque cadeau ; nul dans un coffret, et dans les tests qui ne s'en servent pas.</summary>
+    public GiftExportService? GiftExport { get; init; }
+
+    public bool CanExportGift => GiftExport is not null && !IsGift;
+
+    /// <summary>
+    /// Exporte le catalogue ouvert vers le disque qui porte ses films : Cinedex.exe en mode coffret, une copie
+    /// nettoyée du catalogue aux chemins relatifs, VLC, Catalogue.html et LISEZ-MOI.txt. Les films ne sont ni
+    /// copiés ni touchés. Tout est vérifié avant d'écrire : fichiers hors du disque, place, coffret existant.
+    /// </summary>
+    [RelayCommand]
+    private async Task ExportGiftAsync()
+    {
+        if (GiftExport is not { } export || IsGift || IsBusy)
+        {
+            return;
+        }
+
+        // Le disque proposé d'abord : celui qui porte le plus de fichiers du catalogue.
+        var files = _media?.Files.AllFiles() ?? [];
+        var drives = GiftDrives()
+            .OrderByDescending(d => files.Count(f => f.FullPath.StartsWith(d.Root, StringComparison.OrdinalIgnoreCase)))
+            .Take(6)
+            .ToList();
+        if (drives.Count == 0)
+        {
+            await _dialogs.InformAsync(Tr.T("Exporter vers un disque cadeau"), Tr.T("Aucun disque amovible ou secondaire n'est branché. Branchez le disque qui porte les films, puis recommencez."));
+            return;
+        }
+
+        var choice = await _dialogs.ChooseAsync(
+            Tr.T("Exporter vers un disque cadeau"),
+            Tr.T("Choisissez le disque qui porte déjà les films de ce catalogue. Cinedex y ajoute Cinedex.exe, le catalogue, VLC et Catalogue.html à la racine ; les films ne sont ni copiés ni modifiés."),
+            [.. drives.Select(d => d.Label), Tr.T("Annuler")]);
+        if (choice < 0 || choice >= drives.Count)
+        {
+            return;
+        }
+
+        var drive = drives[choice];
+        var name = drive.Name ?? _catalogs?.Current ?? AppPaths.DefaultCatalogName;
+        GiftPlan plan;
+        try
+        {
+            plan = await Task.Run(() => export.Plan(drive.Root, name));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            await _dialogs.InformAsync(Tr.T("Exporter vers un disque cadeau"), ex.Message);
+            return;
+        }
+
+        if (plan.Problem is { } problem)
+        {
+            await _dialogs.InformAsync(Tr.T("Exporter vers un disque cadeau"), problem);
+            return;
+        }
+
+        if (!plan.HasRoom)
+        {
+            await _dialogs.InformAsync(
+                Tr.T("Exporter vers un disque cadeau"),
+                Tr.F("Il manque de la place sur « {0} » : il faut {1}, et il reste {2} (unité d'allocation : {3}). Libérez de la place, puis recommencez.",
+                    drive.Root, Size(plan.RequiredBytes), Size(plan.FreeBytes), Size(plan.ClusterBytes)));
+            return;
+        }
+
+        var excluded = new List<long>();
+        if (plan.OffDisk.Count > 0)
+        {
+            var list = string.Join("\n", plan.OffDisk.Take(12).Select(t => "• " + t.Title)) + (plan.OffDisk.Count > 12 ? "\n" + Tr.F("… et {0} autre(s)", plan.OffDisk.Count - 12) : string.Empty);
+            var answer = await _dialogs.ChooseAsync(
+                Tr.T("Titres hors du disque"),
+                Tr.F("{0} titre(s) ont un fichier ailleurs que sur « {1} » : le destinataire ne pourrait pas les lire.\n\n{2}", plan.OffDisk.Count, drive.Root, list),
+                Tr.T("Les retirer du coffret"),
+                Tr.T("Annuler"));
+            if (answer != 0)
+            {
+                return;
+            }
+
+            excluded.AddRange(plan.OffDisk.Select(t => t.TitleId));
+        }
+
+        var incomplete = _titles.Query(new TitleQuery(Filter: QuickFilter.NoMetadata)).Where(t => !excluded.Contains(t.Id)).Select(t => t.Title).ToList();
+        var summary = Tr.F("Exporter {0} titre(s) vers « {1} » ({2}) ? Place utilisée : {3}.", plan.TitleCount, drive.Root, name, Size(plan.RequiredBytes));
+        if (incomplete.Count > 0)
+        {
+            summary += "\n\n" + Tr.F("{0} fiche(s) sans infos (ni synopsis ni genre) : {1}", incomplete.Count, string.Join(", ", incomplete.Take(8)) + (incomplete.Count > 8 ? "…" : string.Empty));
+        }
+
+        if (!plan.HasPlayer)
+        {
+            summary += "\n\n" + Tr.T("VLC n'est pas fourni avec cette version de Cinedex : le coffret lira les films avec le lecteur vidéo de l'ordinateur.");
+        }
+
+        if (plan.Replaces)
+        {
+            summary += "\n\n" + Tr.T("Un coffret existe déjà sur ce disque : il est remplacé. Ce que le destinataire y a noté (vus, favoris, notes) serait perdu.");
+        }
+
+        summary += "\n\n" + Tr.T("Les prêts, l'historique de visionnage, vos notes, favoris, commentaires, prix et réglages ne sont pas copiés.");
+        if (!await _dialogs.ConfirmAsync(Tr.T("Exporter vers un disque cadeau"), summary))
+        {
+            return;
+        }
+
+        IsBusy = true;
+        try
+        {
+            var progress = new Progress<string>(m => Status = m);
+            var result = await Task.Run(() => export.Export(plan, excluded, progress));
+            Journal($"Coffret exporté vers {result.TargetRoot} : {result.Titles} titre(s), {result.Files} fichier(s), {result.Images} image(s)");
+            Status = Tr.F("Coffret prêt sur {0} : {1} titre(s).", result.TargetRoot, result.Titles);
+            await _dialogs.InformAsync(
+                Tr.T("Coffret prêt"),
+                Tr.F("Le coffret « {0} » est prêt sur {1} : {2} titre(s), {3} fichier(s) vidéo.\n\nPour l'essayer, lancez Cinedex.exe à la racine du disque (ou ouvrez Catalogue.html). Lisez LISEZ-MOI.txt avant de l'offrir.", name, result.TargetRoot, result.Titles, result.Files));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or Microsoft.Data.Sqlite.SqliteException)
+        {
+            Journal($"Export du coffret impossible : {ex.Message}");
+            await _dialogs.InformAsync(Tr.T("Exporter vers un disque cadeau"), Tr.F("L'export n'a pas pu se terminer : {0}\n\nVos films ne sont pas touchés ; relancez l'export une fois le problème réglé.", ex.Message));
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    /// <summary>Un disque où exporter : sa racine, son nom (MediaID) et de quoi le présenter.</summary>
+    private sealed record GiftDrive(string Root, string? Name, string Label);
+
+    /// <summary>Disques branchés, hors disque système : ceux qui peuvent porter un coffret.</summary>
+    private static List<GiftDrive> GiftDrives()
+    {
+        var system = Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.Windows)) ?? string.Empty;
+        var drives = new List<GiftDrive>();
+        foreach (var drive in DriveInfo.GetDrives())
+        {
+            try
+            {
+                if (!drive.IsReady || drive.DriveType is DriveType.CDRom or DriveType.Network or DriveType.Ram ||
+                    string.Equals(drive.RootDirectory.FullName, system, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var name = string.IsNullOrWhiteSpace(drive.VolumeLabel) ? null : drive.VolumeLabel;
+                drives.Add(new GiftDrive(
+                    drive.RootDirectory.FullName,
+                    name,
+                    Tr.F("{0} {1} ({2} libres, {3})", drive.RootDirectory.FullName, name ?? Tr.T("(sans nom)"), Size(drive.AvailableFreeSpace), drive.DriveFormat)));
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // Disque qui disparaît pendant l'énumération : ignoré.
+            }
+        }
+
+        return drives;
+    }
+
+    private static string Size(long bytes) => bytes >= 1L << 30
+        ? Tr.F("{0:0.0} Go", bytes / (double)(1L << 30))
+        : Tr.F("{0:0} Mo", Math.Max(1, bytes / (double)(1L << 20)));
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AddFromTmdbCommand), nameof(LinkToTmdbCommand), nameof(UpdateAllFromTmdbCommand))]

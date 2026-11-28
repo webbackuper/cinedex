@@ -252,6 +252,13 @@ public sealed class MediaFileRepository(CatalogDatabase database)
         transaction.Commit();
     }
 
+    /// <summary>Tous les fichiers du catalogue (films et épisodes), chemins résolus sur les disques branchés.</summary>
+    public IReadOnlyList<MediaFileEntry> AllFiles()
+    {
+        using var connection = database.Open();
+        return All(connection, volumes: VolumeProvider());
+    }
+
     public IReadOnlyList<MediaFileEntry> FilesOf(long titleId)
     {
         using var connection = database.Open();
@@ -563,7 +570,7 @@ public sealed class MediaFileRepository(CatalogDatabase database)
                 param)
             .Select(f =>
             {
-                var full = f.Root is null ? f.Path : System.IO.Path.GetFullPath(System.IO.Path.Combine(f.Root, f.Path));
+                var full = MediaPaths.Full(f.Root, f.Path);
                 return new MediaFileEntry(
                     f.Id,
                     f.TitleId,

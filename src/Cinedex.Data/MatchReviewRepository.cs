@@ -56,7 +56,7 @@ public sealed class MatchReviewRepository(CatalogDatabase database)
                 (int?)r.Year,
                 r.Query,
                 Deserialize(r.Candidates),
-                r.Path is null ? null : r.Root is null ? r.Path : Path.Combine(r.Root, r.Path)))
+                r.Path is null ? null : MediaPaths.Full(r.Root, r.Path)))
             .ToList();
     }
 

@@ -326,7 +326,7 @@ public sealed class SeriesRepository(CatalogDatabase database)
                 e.Overview,
                 Parse(e.AirDate),
                 e.Seen != 0,
-                e.Path is null ? null : e.Root is null ? e.Path : System.IO.Path.GetFullPath(System.IO.Path.Combine(e.Root, e.Path))))
+                e.Path is null ? null : MediaPaths.Full(e.Root, e.Path)))
             .ToList();
 
     private static string? Format(DateOnly? date) => date?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);

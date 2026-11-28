@@ -19,6 +19,25 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
     private readonly Avalonia.Threading.DispatcherTimer _idleTimer = new() { Interval = TimeSpan.FromSeconds(5) };
     private readonly Avalonia.Threading.DispatcherTimer _backupTimer = new() { Interval = TimeSpan.FromMinutes(15) };
 
+    /// <summary>
+    /// Coffret : les raccourcis de ce qu'il n'offre pas (import, TMDb, suppression, réglages…) sont retirés, comme
+    /// leurs boutons sont masqués. Vu, favori, note, lecture, recherche et affichage restent.
+    /// </summary>
+    private void RemoveGiftShortcuts(MainWindowViewModel vm)
+    {
+        var gated = new HashSet<System.Windows.Input.ICommand>
+        {
+            vm.AddFromTmdbCommand, vm.LinkToTmdbCommand, vm.UpdateAllFromTmdbCommand, vm.ImportFolderCommand,
+            vm.DeleteCommand, vm.MergeSelectionCommand, vm.RefreshTechnicalCommand, vm.OpenSettingsCommand,
+            vm.ManageCatalogsCommand, vm.BulkEditCommand, vm.ClearDetailCommand, vm.RenameFilesCommand,
+            vm.ExportGiftCommand,
+        };
+        foreach (var binding in KeyBindings.Where(k => k.Command is not null && gated.Contains(k.Command)).ToList())
+        {
+            KeyBindings.Remove(binding);
+        }
+    }
+
     public MainWindow()
     {
         InitializeComponent();
@@ -76,6 +95,11 @@ public sealed partial class MainWindow : Window, IDialogs, IApiLimitPrompt
         {
             if (DataContext is MainWindowViewModel vm)
             {
+                if (vm.IsGift)
+                {
+                    RemoveGiftShortcuts(vm);
+                }
+
                 ApplyDetailWidth(vm.DetailWidth);
                 // Un autre catalogue : ce que la largeur avait replié pour le précédent ne le concerne pas.
                 _detailCollapsedByWidth = false;

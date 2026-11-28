@@ -15,6 +15,8 @@ public static class Player
         EnsurePlayable(file);
         if (!string.IsNullOrWhiteSpace(externalPlayer))
         {
+            // Un lecteur donné en chemin relatif est celui livré avec Cinedex (le VLC d'un coffret) : à côté de l'exécutable.
+            externalPlayer = ResolveAppRelative(externalPlayer);
             if (!File.Exists(externalPlayer))
             {
                 throw new FileNotFoundException("Lecteur externe introuvable.", externalPlayer);
@@ -32,6 +34,10 @@ public static class Player
 
         OpenWithSystem(file);
     }
+
+    /// <summary>Chemin relatif rapporté au dossier de l'exécutable ; un chemin absolu est rendu tel quel.</summary>
+    public static string ResolveAppRelative(string path, string? baseDirectory = null) =>
+        Path.IsPathRooted(path) ? path : Path.GetFullPath(Path.Combine(baseDirectory ?? AppContext.BaseDirectory, path));
 
     /// <summary>Ouvre le gestionnaire de fichiers sur le dossier du fichier, fichier sélectionné quand c'est possible.</summary>
     public static void RevealInFolder(string file)

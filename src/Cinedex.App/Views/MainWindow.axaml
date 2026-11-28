@@ -160,7 +160,7 @@
             <Image Source="/Assets/cinedex.png" Width="30" Height="30" RenderOptions.BitmapInterpolationMode="HighQuality" />
             <TextBlock Text="Cinedex" FontSize="{StaticResource FontTitle}" FontWeight="SemiBold" Foreground="{DynamicResource CinedexInk}" VerticalAlignment="Center" />
           </StackPanel>
-          <Button Classes="tool" Margin="-8,8,0,0" Command="{Binding ManageCatalogsCommand}" ToolTip.Tip="Ouvrir, créer, renommer ou retirer un catalogue">
+          <Button IsVisible="{Binding IsFull}" Classes="tool" Margin="-8,8,0,0" Command="{Binding ManageCatalogsCommand}" ToolTip.Tip="Ouvrir, créer, renommer ou retirer un catalogue">
             <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
               <controls:Icon Kind="database" Width="18" Height="18" />
               <TextBlock Text="{Binding CatalogName}" FontSize="{StaticResource FontSmall}" />
@@ -238,7 +238,7 @@
               </MenuFlyout>
             </Button.Flyout>
           </Button>
-          <Button Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenSettingsCommand}">
+          <Button IsVisible="{Binding IsFull}" Classes="tool" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Command="{Binding OpenSettingsCommand}">
             <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space3}">
               <controls:Icon Kind="options" Width="18" Height="18" />
               <TextBlock Text="Réglages" />
@@ -577,14 +577,14 @@
           <MenuItem Header="Favori" Command="{Binding ToggleFavoriteCommand}" InputGesture="Ctrl+D">
             <MenuItem.Icon><controls:Icon Kind="heart" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="Modifier en lot…" Command="{Binding BulkEditCommand}"
+          <MenuItem IsVisible="{Binding IsFull}" Header="Modifier en lot…" Command="{Binding BulkEditCommand}"
                     ToolTip.Tip="Support, emplacement, collection, tags, groupes, possédé, vu : appliqué à toute la sélection.">
             <MenuItem.Icon><controls:Icon Kind="columns" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="Marquer comme possédé" Command="{Binding SetOwnedCommand}" CommandParameter="{x:True}">
+          <MenuItem IsVisible="{Binding IsFull}" Header="Marquer comme possédé" Command="{Binding SetOwnedCommand}" CommandParameter="{x:True}">
             <MenuItem.Icon><controls:Icon Kind="check" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="Remettre en liste de souhaits" Command="{Binding SetOwnedCommand}" CommandParameter="{x:False}">
+          <MenuItem IsVisible="{Binding IsFull}" Header="Remettre en liste de souhaits" Command="{Binding SetOwnedCommand}" CommandParameter="{x:False}">
             <MenuItem.Icon><controls:Icon Kind="bookmark" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
           <MenuItem Header="Ajouter à une liste" ItemsSource="{Binding SideBar.ListNames}" IsVisible="{Binding SideBar.HasLists}"
@@ -610,17 +610,17 @@
             </MenuItem.ItemContainerTheme>
           </MenuItem>
           <Separator />
-          <MenuItem Header="Mettre à jour via TMDb" Command="{Binding UpdateAllFromTmdbCommand}" InputGesture="Ctrl+Shift+U">
+          <MenuItem IsVisible="{Binding IsFull}" Header="Mettre à jour via TMDb" Command="{Binding UpdateAllFromTmdbCommand}" InputGesture="Ctrl+Shift+U">
             <MenuItem.Icon><controls:Icon Kind="cloud" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="Mettre à jour les .nfo…" Command="{Binding UpdateNfoCommand}"
+          <MenuItem IsVisible="{Binding IsFull}" Header="Mettre à jour les .nfo…" Command="{Binding UpdateNfoCommand}"
                     ToolTip.Tip="Réécrit les .nfo existants depuis les fiches, et propose de créer ceux qui manquent.">
             <MenuItem.Icon><controls:Icon Kind="sync" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="Relire les infos techniques (MediaInfo)" Command="{Binding RefreshTechnicalCommand}" InputGesture="Ctrl+I">
+          <MenuItem IsVisible="{Binding IsFull}" Header="Relire les infos techniques (MediaInfo)" Command="{Binding RefreshTechnicalCommand}" InputGesture="Ctrl+I">
             <MenuItem.Icon><controls:Icon Kind="view" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="Vider la fiche" Command="{Binding ClearDetailCommand}"
+          <MenuItem IsVisible="{Binding IsFull}" Header="Vider la fiche" Command="{Binding ClearDetailCommand}"
                     ToolTip.Tip="Efface le descriptif, les identifiants, les notes, les genres, la distribution et l'affiche. Le titre, vos saisies et les fichiers restent.">
             <MenuItem.Icon><controls:Icon Kind="eraser" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
@@ -631,16 +631,16 @@
           <MenuItem Header="Exporter la sélection…" Command="{Binding ExportSelectionCommand}" InputGesture="Ctrl+E">
             <MenuItem.Icon><controls:Icon Kind="export" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="Renommer les fichiers…" Command="{Binding RenameFilesCommand}"
+          <MenuItem IsVisible="{Binding IsFull}" Header="Renommer les fichiers…" Command="{Binding RenameFilesCommand}"
                     ToolTip.Tip="Renomme les fichiers vidéo sur le disque en « Titre (Année) », avec leur .nfo. Le détail est montré avant.">
             <MenuItem.Icon><controls:Icon Kind="edit" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
           <Separator />
-          <MenuItem Header="Fusionner les films sélectionnés…" Command="{Binding MergeSelectionCommand}" InputGesture="Ctrl+M"
+          <MenuItem IsVisible="{Binding IsFull}" Header="Fusionner les films sélectionnés…" Command="{Binding MergeSelectionCommand}" InputGesture="Ctrl+M"
                     ToolTip.Tip="Réunit les fiches sélectionnées en une seule, qui garde tous leurs fichiers vidéo. Cinedex ne vérifie pas qu'il s'agit du même film.">
             <MenuItem.Icon><controls:Icon Kind="link" Width="16" Height="16" /></MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="Supprimer du catalogue" Command="{Binding DeleteCommand}" InputGesture="Delete">
+          <MenuItem IsVisible="{Binding IsFull}" Header="Supprimer du catalogue" Command="{Binding DeleteCommand}" InputGesture="Delete">
             <MenuItem.Icon><controls:Icon Kind="delete" Width="16" Height="16" Foreground="{DynamicResource CinedexNegative}" /></MenuItem.Icon>
           </MenuItem>
         </MenuFlyout>
@@ -676,7 +676,7 @@
             <TextBlock Text="{Binding SideBar.SelectedReferenceList.Note}" Classes="muted" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" MaxWidth="620"
                        IsVisible="{Binding SideBar.SelectedReferenceList.Note, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
           </StackPanel>
-          <Button Grid.Column="1" Classes="outline" VerticalAlignment="Center" Content="Ajouter les manquants à mes souhaits"
+          <Button IsVisible="{Binding IsFull}" Grid.Column="1" Classes="outline" VerticalAlignment="Center" Content="Ajouter les manquants à mes souhaits"
                   Command="{Binding AddMissingToWishlistCommand}"
                   ToolTip.Tip="Rapatrie la fiche TMDb de chaque film manquant, le marque non possédé et l'étiquette au nom de la liste." />
         </Grid>
@@ -701,27 +701,31 @@
             <controls:Icon Kind="more" />
             <Button.Flyout>
               <MenuFlyout Placement="BottomEdgeAlignedRight">
-                <MenuItem Header="Mettre à jour via TMDb" Command="{Binding UpdateAllFromTmdbCommand}" InputGesture="Ctrl+Shift+U">
+                <MenuItem IsVisible="{Binding IsFull}" Header="Mettre à jour via TMDb" Command="{Binding UpdateAllFromTmdbCommand}" InputGesture="Ctrl+Shift+U">
                   <MenuItem.Icon><controls:Icon Kind="cloud" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Actualiser les notes IMDb (fichier officiel)" Command="{Binding RefreshImdbRatingsCommand}">
+                <MenuItem IsVisible="{Binding IsFull}" Header="Actualiser les notes IMDb (fichier officiel)" Command="{Binding RefreshImdbRatingsCommand}">
                   <MenuItem.Icon><controls:Icon Kind="star" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Relire les infos techniques (MediaInfo)" Command="{Binding RefreshTechnicalCommand}">
+                <MenuItem IsVisible="{Binding IsFull}" Header="Relire les infos techniques (MediaInfo)" Command="{Binding RefreshTechnicalCommand}">
                   <MenuItem.Icon><controls:Icon Kind="view" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Écrire les .nfo" Command="{Binding WriteNfoCommand}"
+                <MenuItem IsVisible="{Binding IsFull}" Header="Écrire les .nfo" Command="{Binding WriteNfoCommand}"
                           ToolTip.Tip="Crée les .nfo manquants et complète les champs vides des .nfo existants, sans toucher à ce qu'ils contiennent déjà.">
                   <MenuItem.Icon><controls:Icon Kind="document" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Mettre à jour les .nfo…" Command="{Binding UpdateNfoCommand}"
+                <MenuItem IsVisible="{Binding IsFull}" Header="Mettre à jour les .nfo…" Command="{Binding UpdateNfoCommand}"
                           ToolTip.Tip="Réécrit les .nfo existants depuis les fiches de Cinedex, en remplaçant les valeurs déjà présentes. Aucun .nfo n'est créé : un film qui n'en a pas reste sans. À utiliser après avoir corrigé des fiches.">
                   <MenuItem.Icon><controls:Icon Kind="sync" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Vérifier les fichiers" Command="{Binding CheckFilesCommand}">
+                <MenuItem IsVisible="{Binding IsFull}" Header="Vérifier les fichiers" Command="{Binding CheckFilesCommand}">
                   <MenuItem.Icon><controls:Icon Kind="alert" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
                 <Separator />
+                <MenuItem Header="Exporter vers un disque cadeau…" Command="{Binding ExportGiftCommand}" IsVisible="{Binding CanExportGift}"
+                          ToolTip.Tip="Ajoute au disque qui porte déjà les films Cinedex.exe, ce catalogue (sans vos données personnelles), VLC et une page web : un coffret à offrir. Les films ne sont ni copiés ni modifiés.">
+                  <MenuItem.Icon><controls:Icon Kind="harddisk" Width="16" Height="16" /></MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="Exporter la liste affichée…" Command="{Binding ExportListCommand}">
                   <MenuItem.Icon><controls:Icon Kind="export" Width="16" Height="16" /></MenuItem.Icon>
                 </MenuItem>
@@ -731,13 +735,13 @@
               </MenuFlyout>
             </Button.Flyout>
           </Button>
-          <Button Classes="tool" Command="{Binding ImportFolderCommand}" ToolTip.Tip="Ajouter depuis le disque : analyse un dossier de vidéos (Ctrl+H)">
+          <Button IsVisible="{Binding IsFull}" Classes="tool" Command="{Binding ImportFolderCommand}" ToolTip.Tip="Ajouter depuis le disque : analyse un dossier de vidéos (Ctrl+H)">
             <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
               <controls:Icon Kind="folder-plus" />
               <TextBlock Text="Scanner" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
-          <Button x:Name="AddButton" Classes="primary" ToolTip.Tip="Ajouter un titre (Alt+A)">
+          <Button x:Name="AddButton" Classes="primary" IsVisible="{Binding IsFull}" ToolTip.Tip="Ajouter un titre (Alt+A)">
             <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
               <controls:Icon Kind="add" Width="18" Height="18" />
               <TextBlock Text="Ajouter" VerticalAlignment="Center" />
@@ -752,8 +756,8 @@
                     </TextBox.KeyBindings>
                   </TextBox>
                   <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}" HorizontalAlignment="Right">
-                    <Button Classes="tool" Command="{Binding AddCommand}" Content="À la main" />
-                    <Button Classes="primary" Command="{Binding AddFromTmdbCommand}">
+                    <Button IsVisible="{Binding IsFull}" Classes="tool" Command="{Binding AddCommand}" Content="À la main" />
+                    <Button IsVisible="{Binding IsFull}" Classes="primary" Command="{Binding AddFromTmdbCommand}">
                       <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
                         <controls:Icon Kind="cloud" Width="16" Height="16" />
                         <TextBlock Text="Chercher sur TMDb" />
@@ -981,7 +985,7 @@
     <DockPanel Grid.Column="1" Margin="{StaticResource Edges6_4_1_0}" IsVisible="{Binding IsPeopleView}">
       <DockPanel DockPanel.Dock="Top" Margin="{StaticResource Below3}" DataContext="{Binding PeopleBrowser}" x:DataType="vm:PeopleBrowserViewModel">
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="{StaticResource Space2}" Margin="{StaticResource Before3}">
-          <Button Classes="tool" Command="{Binding DownloadDetailsCommand}"
+          <Button IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsFull}" Classes="tool" Command="{Binding DownloadDetailsCommand}"
                   ToolTip.Tip="Biographie, dates et photo depuis TMDb pour les personnes qui ne les ont pas encore, par lots de 2 000 : relancez pour le lot suivant">
             <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
               <controls:Icon Kind="cloud" />
@@ -1154,18 +1158,18 @@
                 <Button Classes="tool" Margin="{StaticResource Edges0_0_1_2}" Command="{Binding EditCommand}" ToolTip.Tip="Modifier la fiche (Alt+E)">
                   <controls:Icon Kind="edit" />
                 </Button>
-                <Button Classes="tool" Margin="{StaticResource Edges0_0_1_2}" Command="{Binding ClearDetailCommand}"
+                <Button IsVisible="{Binding IsFull}" Classes="tool" Margin="{StaticResource Edges0_0_1_2}" Command="{Binding ClearDetailCommand}"
                         ToolTip.Tip="Vider la fiche : efface le descriptif, les identifiants, les notes des sites, les genres, la distribution et l'affiche. Le titre, vos saisies et les fichiers restent.">
                   <controls:Icon Kind="eraser" />
                 </Button>
-                <Button Classes="tool" Margin="{StaticResource Edges0_0_1_2}" Command="{Binding LinkToTmdbCommand}" ToolTip.Tip="Lier ou mettre à jour depuis TMDb (Ctrl+U)">
+                <Button IsVisible="{Binding IsFull}" Classes="tool" Margin="{StaticResource Edges0_0_1_2}" Command="{Binding LinkToTmdbCommand}" ToolTip.Tip="Lier ou mettre à jour depuis TMDb (Ctrl+U)">
                   <controls:Icon Kind="cloud" />
                 </Button>
                 <Button Classes="tool" Margin="{StaticResource Edges0_0_1_2}" Command="{Binding OpenFolderCommand}" ToolTip.Tip="Ouvrir le dossier du fichier (Ctrl+O)">
                   <controls:Icon Kind="folder" />
                 </Button>
                 <!-- Action destructrice : à part, en dernier, dans la couleur négative. -->
-                <Button Classes="tool" Margin="{StaticResource Edges4_0_0_2}" Command="{Binding DeleteCommand}" ToolTip.Tip="Supprimer du catalogue (Suppr)">
+                <Button IsVisible="{Binding IsFull}" Classes="tool" Margin="{StaticResource Edges4_0_0_2}" Command="{Binding DeleteCommand}" ToolTip.Tip="Supprimer du catalogue (Suppr)">
                   <controls:Icon Kind="delete" Foreground="{DynamicResource CinedexNegative}" />
                 </Button>
               </WrapPanel>
@@ -1323,7 +1327,7 @@
 
               <!-- Suggestions TMDb : surtout des films absents du catalogue, ajoutables à la liste de souhaits -->
               <StackPanel Spacing="{StaticResource Space2}">
-                <Button Classes="tool" HorizontalAlignment="Left" Command="{Binding FetchSuggestionsCommand}"
+                <Button IsVisible="{Binding IsFull}" Classes="tool" HorizontalAlignment="Left" Command="{Binding FetchSuggestionsCommand}"
                         ToolTip.Tip="Demande à TMDb ce que les spectateurs de ce film ont aussi aimé. Un seul appel par titre : le résultat est gardé.">
                   <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
                     <controls:Icon Kind="cloud" Width="16" Height="16" />
@@ -1376,11 +1380,11 @@
                              IsVisible="{Binding Record.Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNotNull}}" />
                   <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding Record.Detail.CurrentLoan, Converter={x:Static ObjectConverters.IsNull}}">
                     <TextBox PlaceholderText="Emprunteur" Text="{Binding Record.BorrowerText}" />
-                    <Button Grid.Column="1" Margin="{StaticResource Before2}" Content="Prêter" Command="{Binding LendCommand}" />
+                    <Button IsVisible="{Binding IsFull}" Grid.Column="1" Margin="{StaticResource Before2}" Content="Prêter" Command="{Binding LendCommand}" />
                   </Grid>
                   <StackPanel Orientation="Horizontal" Spacing="{StaticResource Space2}">
-                    <Button Classes="tool" Content="Rendu" Command="{Binding ReturnLoanCommand}" />
-                    <Button Classes="tool" Content="Historique" Command="{Binding ShowLoanHistoryCommand}" />
+                    <Button IsVisible="{Binding IsFull}" Classes="tool" Content="Rendu" Command="{Binding ReturnLoanCommand}" />
+                    <Button IsVisible="{Binding IsFull}" Classes="tool" Content="Historique" Command="{Binding ShowLoanHistoryCommand}" />
                   </StackPanel>
                 </StackPanel>
               </Border>

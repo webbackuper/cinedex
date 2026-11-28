@@ -1137,5 +1137,7 @@
  "Gérer les films en double…": "डुप्लिकेट फ़िल्में प्रबंधित करें…",
  "Les films présents plusieurs fois au catalogue, groupe par groupe, dans la zone centrale": "कैटलॉग में एक से अधिक बार मौजूद फ़िल्में, समूह-दर-समूह, मध्य क्षेत्र में",
  "Doublons ({0})": "डुप्लिकेट ({0})",
- "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition.": "{0} समूह तय करने हैं। विलय से पहले जाँच लें कि यह सचमुच वही फ़िल्म है: मिलान केवल एक सुझाव है।"
+ "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition.": "{0} समूह तय करने हैं। विलय से पहले जाँच लें कि यह सचमुच वही फ़िल्म है: मिलान केवल एक सुझाव है।",
+ "Exporter vers un disque cadeau…": "उपहार ड्राइव पर निर्यात करें…",
+ "Ajoute au disque qui porte déjà les films Cinedex.exe, ce catalogue (sans vos données personnelles), VLC et une page web : un coffret à offrir. Les films ne sont ni copiés ni modifiés.": "जिस ड्राइव पर फ़िल्में पहले से हैं, उस पर Cinedex.exe, यह कैटलॉग (आपके निजी डेटा के बिना), VLC और एक वेब पेज जोड़ता है: एक उपहार बॉक्स। फ़िल्में न कॉपी होती हैं न बदलती हैं।"
 }

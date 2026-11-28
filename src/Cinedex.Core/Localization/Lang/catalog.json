@@ -1210,5 +1210,7 @@
  "Gérer les films en double…",
  "Les films présents plusieurs fois au catalogue, groupe par groupe, dans la zone centrale",
  "Doublons ({0})",
- "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition."
+ "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition.",
+ "Exporter vers un disque cadeau…",
+ "Ajoute au disque qui porte déjà les films Cinedex.exe, ce catalogue (sans vos données personnelles), VLC et une page web : un coffret à offrir. Les films ne sont ni copiés ni modifiés."
 ]

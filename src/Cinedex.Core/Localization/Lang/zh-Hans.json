@@ -1138,5 +1138,7 @@
  "Gérer les films en double…": "管理重复的影片…",
  "Les films présents plusieurs fois au catalogue, groupe par groupe, dans la zone centrale": "目录中出现多次的影片，按组显示在中央区域",
  "Doublons ({0})": "重复项（{0}）",
- "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition.": "{0} 个分组待处理。合并前请确认确实是同一部影片：匹配只是建议。"
+ "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition.": "{0} 个分组待处理。合并前请确认确实是同一部影片：匹配只是建议。",
+ "Exporter vers un disque cadeau…": "导出到礼物硬盘…",
+ "Ajoute au disque qui porte déjà les films Cinedex.exe, ce catalogue (sans vos données personnelles), VLC et une page web : un coffret à offrir. Les films ne sont ni copiés ni modifiés.": "在已存放影片的硬盘上添加 Cinedex.exe、本目录（不含您的个人数据）、VLC 和一个网页：一份可赠送的礼盒。影片不会被复制或修改。"
 }

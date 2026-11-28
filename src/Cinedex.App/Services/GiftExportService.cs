@@ -157,6 +157,8 @@ public sealed partial class GiftExportService
         if (plan.Replaces && Directory.Exists(dataRoot))
         {
             progress?.Report(Tr.T("Retrait du coffret précédent…"));
+            // Les connexions gardées en réserve sur l'ancienne copie tiennent le fichier ouvert.
+            SqliteConnection.ClearAllPools();
             Directory.Delete(dataRoot, recursive: true);
         }
 
@@ -243,7 +245,7 @@ public sealed partial class GiftExportService
         Run("DELETE FROM match_review;");
         Run("DELETE FROM saved_filter;");
         Run("UPDATE title SET is_favorite = 0, is_shortlisted = 0, user_rating = NULL, comments = NULL;");
-        Run("UPDATE copy SET price = NULL, location = NULL;");
+        Run("UPDATE copy SET price_cents = NULL, currency = NULL, location = NULL;");
 
         using (var update = connection.CreateCommand())
         {

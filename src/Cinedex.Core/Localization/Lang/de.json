@@ -1122,5 +1122,7 @@
  "Gérer les films en double…": "Doppelte Filme verwalten…",
  "Les films présents plusieurs fois au catalogue, groupe par groupe, dans la zone centrale": "Filme, die mehrfach im Katalog vorkommen, Gruppe für Gruppe, im mittleren Bereich",
  "Doublons ({0})": "Duplikate ({0})",
- "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition.": "{0} Gruppe(n) zu entscheiden. Prüfen Sie vor dem Zusammenführen, ob es wirklich derselbe Film ist: die Zuordnung ist nur ein Vorschlag."
+ "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition.": "{0} Gruppe(n) zu entscheiden. Prüfen Sie vor dem Zusammenführen, ob es wirklich derselbe Film ist: die Zuordnung ist nur ein Vorschlag.",
+ "Exporter vers un disque cadeau…": "Auf eine Geschenkfestplatte exportieren…",
+ "Ajoute au disque qui porte déjà les films Cinedex.exe, ce catalogue (sans vos données personnelles), VLC et une page web : un coffret à offrir. Les films ne sont ni copiés ni modifiés.": "Fügt dem Laufwerk, auf dem die Filme bereits liegen, Cinedex.exe, diesen Katalog (ohne Ihre persönlichen Daten), VLC und eine Webseite hinzu: eine Geschenkbox. Die Filme werden weder kopiert noch verändert."
 }

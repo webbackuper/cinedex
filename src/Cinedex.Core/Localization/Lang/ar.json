@@ -1138,5 +1138,7 @@
  "Gérer les films en double…": "إدارة الأفلام المكررة…",
  "Les films présents plusieurs fois au catalogue, groupe par groupe, dans la zone centrale": "الأفلام الموجودة أكثر من مرة في الفهرس، مجموعة تلو الأخرى، في المنطقة الوسطى",
  "Doublons ({0})": "المكررات ({0})",
- "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition.": "{0} مجموعة للبت فيها. تحقق من أنه الفيلم نفسه قبل الدمج: التقريب مجرد اقتراح."
+ "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition.": "{0} مجموعة للبت فيها. تحقق من أنه الفيلم نفسه قبل الدمج: التقريب مجرد اقتراح.",
+ "Exporter vers un disque cadeau…": "تصدير إلى قرص هدية…",
+ "Ajoute au disque qui porte déjà les films Cinedex.exe, ce catalogue (sans vos données personnelles), VLC et une page web : un coffret à offrir. Les films ne sont ni copiés ni modifiés.": "يضيف إلى القرص الذي يحمل الأفلام Cinedex.exe وهذا الفهرس (دون بياناتك الشخصية) وVLC وصفحة ويب: علبة هدية. لا تُنسخ الأفلام ولا تُعدَّل."
 }

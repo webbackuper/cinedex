@@ -1111,5 +1111,7 @@
  "Gérer les films en double…": "Manage duplicate films…",
  "Les films présents plusieurs fois au catalogue, groupe par groupe, dans la zone centrale": "Films present more than once in the catalog, group by group, in the central area",
  "Doublons ({0})": "Duplicates ({0})",
- "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition.": "{0} group(s) to decide on. Check that it really is the same film before merging: the match is only a suggestion."
+ "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition.": "{0} group(s) to decide on. Check that it really is the same film before merging: the match is only a suggestion.",
+ "Exporter vers un disque cadeau…": "Export to a gift drive…",
+ "Ajoute au disque qui porte déjà les films Cinedex.exe, ce catalogue (sans vos données personnelles), VLC et une page web : un coffret à offrir. Les films ne sont ni copiés ni modifiés.": "Adds Cinedex.exe, this catalog (without your personal data), VLC and a web page to the drive that already holds the films: a gift box. The films are neither copied nor modified."
 }

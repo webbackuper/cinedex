@@ -1138,5 +1138,7 @@
  "Gérer les films en double…": "Управление дубликатами фильмов…",
  "Les films présents plusieurs fois au catalogue, groupe par groupe, dans la zone centrale": "Фильмы, присутствующие в каталоге несколько раз, по группам, в центральной области",
  "Doublons ({0})": "Дубликаты ({0})",
- "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition.": "Групп для решения: {0}. Перед объединением убедитесь, что это действительно один и тот же фильм: сопоставление — лишь предложение."
+ "{0} groupe(s) à trancher. Vérifiez qu'il s'agit bien du même film avant de fusionner : le rapprochement est une proposition.": "Групп для решения: {0}. Перед объединением убедитесь, что это действительно один и тот же фильм: сопоставление — лишь предложение.",
+ "Exporter vers un disque cadeau…": "Экспорт на подарочный диск…",
+ "Ajoute au disque qui porte déjà les films Cinedex.exe, ce catalogue (sans vos données personnelles), VLC et une page web : un coffret à offrir. Les films ne sont ni copiés ni modifiés.": "Добавляет на диск, где уже лежат фильмы, Cinedex.exe, этот каталог (без ваших личных данных), VLC и веб-страницу: подарочный набор. Фильмы не копируются и не изменяются."
 }

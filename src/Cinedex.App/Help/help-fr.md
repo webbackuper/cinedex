@@ -217,6 +217,14 @@ L'application Android (fichier .apk, à installer à la main, hors Play Store) p
 
 Pour installer l'APK, autorisez l'installation d'applications provenant de sources inconnues dans les réglages Android.
 
+## Disque cadeau (coffret)
+Pour offrir des films avec leurs fiches : copiez vous-même les films sur un disque USB (exFAT, avec un nom, par exemple « NOEL2026 »), créez un catalogue à ce nom, importez le disque et complétez les fiches. Puis, dans le menu **…** de la barre d'outils, **Exporter vers un disque cadeau…** :
+- Cinedex vérifie d'abord que tous les fichiers sont sur ce disque (les titres hors du disque peuvent être retirés du coffret), qu'il y a assez de place (en comptant l'unité d'allocation du disque), et signale les fiches sans infos ;
+- il ajoute à la racine **Cinedex.exe**, **Catalogue.html** (une page qui s'ouvre dans n'importe quel navigateur, Mac compris) et **LISEZ-MOI.txt**, et un dossier **Cinedex** avec une copie du catalogue, les affiches et VLC. Les films ne sont ni copiés ni modifiés ;
+- la copie ne contient ni prêts, ni historique de visionnage, ni vos notes, favoris, commentaires, prix ou réglages, et ses chemins sont relatifs : le disque marche quelle que soit sa lettre.
+
+Lancé depuis le disque, Cinedex s'ouvre en **mode coffret** : Accueil, liste et affiches, fiches, recherche et lecture avec VLC en plein écran. Le destinataire peut marquer « vu », mettre en favori et noter ; l'import, TMDb, les réglages et la maintenance sont absents, et rien ne passe par Internet. Refaire l'export remplace le coffret (après confirmation : ce que le destinataire y a noté serait perdu).
+
 ## Export de la liste
 **Réglages > Export** enregistre la liste des films en **CSV**, **TSV** ou **Excel (.xlsx)** : la liste affichée (recherche, filtre et tri actuels) ou tout le catalogue, avec les colonnes cochées (numéro, titre, titre original, année, genres, durée, réalisateurs, acteurs principaux, notes, vu, favori, support, emplacement, collection, prêt, résolution, MediaID, fichiers, taille, identifiants TMDb et IMDb, date d'ajout, synopsis). Le CSV utilise le séparateur de la langue du système (« ; » en français) et s'ouvre directement dans Excel. Colonnes et format sont retenus.
 

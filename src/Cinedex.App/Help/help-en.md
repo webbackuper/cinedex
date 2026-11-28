@@ -217,6 +217,14 @@ The Android app (an .apk file, installed by hand, outside the Play Store) lets y
 
 To install the APK, allow installing apps from unknown sources in the Android settings.
 
+## Gift drive
+To give films with their records: copy the films yourself to a USB drive (exFAT, with a name such as "NOEL2026"), create a catalog with that name, import the drive and complete the records. Then, in the toolbar's **…** menu, **Export to a gift drive…**:
+- Cinedex first checks that every file is on that drive (titles elsewhere can be left out of the gift), that there is enough room (counting the drive's allocation unit), and lists the records without information;
+- it adds **Cinedex.exe**, **Catalogue.html** (a page that opens in any browser, Mac included) and **LISEZ-MOI.txt** at the root, and a **Cinedex** folder with a copy of the catalog, the posters and VLC. The films are neither copied nor modified;
+- the copy holds no loans, viewing history, ratings, favorites, comments, prices or settings of yours, and its paths are relative: the drive works whatever its letter.
+
+Started from the drive, Cinedex opens in **gift mode**: Home, list and posters, records, search and playback with VLC full screen. The recipient can mark films watched, favorite and rate them; import, TMDb, settings and maintenance are absent, and nothing goes through the Internet. Exporting again replaces the gift (after confirmation: what the recipient noted there would be lost).
+
 ## Exporting the list
 **Settings > Export** saves the film list as **CSV**, **TSV** or **Excel (.xlsx)**: the displayed list (current search, filter and sort) or the whole catalog, with the checked columns (number, title, original title, year, genres, runtime, directors, main actors, ratings, watched, favorite, medium, location, collection, loan, resolution, MediaID, files, size, TMDb and IMDb IDs, date added, synopsis). The CSV uses the system language's separator (";" in French) and opens directly in Excel. Columns and format are remembered.
 

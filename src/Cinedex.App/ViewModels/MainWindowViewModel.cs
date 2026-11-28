@@ -1618,7 +1618,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public bool IsEmpty => _loaded && Titles.Count == 0;
 
-    public string DataLocation => _paths.IsPortable ? Tr.F("Mode portable : {0}", _paths.DataRoot) : _paths.DataRoot;
+    public string DataLocation => _paths.GiftName is { } gift
+        ? Tr.F("Coffret « {0} »", gift)
+        : _paths.IsPortable ? Tr.F("Mode portable : {0}", _paths.DataRoot) : _paths.DataRoot;
 
     /// <summary>Apparence choisie (commune à tous les catalogues), appliquée et mémorisée dès qu'elle change.</summary>
     public AppTheme Theme
